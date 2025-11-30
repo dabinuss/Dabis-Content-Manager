@@ -14,7 +14,23 @@ public partial class MainWindow : Window
 {
     private readonly TemplateService _templateService;
     private readonly IYouTubeUploadService _uploadService;
-    private readonly CancellationTokenSource _cts = new();
+    private readonly UploadProject _project;
+    private CancellationTokenSource? _uploadCts;
+
+    private const string DefaultYouTubeDescriptionTemplate = """
+{{TITLE}}
+
+---
+
+Hochgeladen mit Dabis Content Manager.
+
+Sichtbarkeit: {{VISIBILITY}}
+Playlist: {{PLAYLIST}}
+Tags: {{TAGS}}
+Geplant: {{DATE}}
+Plattform: {{PLATFORM}}
+Erstellt am: {{CREATED_AT}}
+""";
 
     public MainWindow()
     {
@@ -22,6 +38,11 @@ public partial class MainWindow : Window
 
         _templateService = new TemplateService();
         _uploadService = new FakeYouTubeUploadService();
+        _project = new UploadProject
+        {
+            Platform = PlatformType.YouTube,
+            Visibility = VideoVisibility.Unlisted
+        };
     }
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -29,170 +50,165 @@ public partial class MainWindow : Window
         var dialog = new OpenFileDialog
         {
             Title = "Videodatei auswählen",
-            Filter = "Video Files|*.mp4;*.mkv;*.mov;*.avi|All Files|*.*"
+            Filter =
+                "Video-Dateien (*.mp4;*.mov;*.mkv;*.avi;*.webm)|*.mp4;*.mov;*.mkv;*.avi;*.webm|Alle Dateien (*.*)|*.*"
         };
 
-        if (dialog.ShowDialog() == true)
+        if (dialog.ShowDialog(this) == true)
         {
             VideoPathTextBox.Text = dialog.FileName;
+            _project.VideoFilePath = dialog.FileName;
 
             if (string.IsNullOrWhiteSpace(TitleTextBox.Text))
             {
-                var fileName = Path.GetFileNameWithoutExtension(dialog.FileName);
-                TitleTextBox.Text = fileName;
+                TitleTextBox.Text = CreateTitleSuggestionFromFileName(dialog.FileName);
             }
+
+            StatusTextBlock.Text = string.Empty;
         }
     }
 
     private void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(VideoPathTextBox.Text))
+        string source = !string.IsNullOrWhiteSpace(VideoPathTextBox.Text)
+            ? VideoPathTextBox.Text
+            : TitleTextBox.Text;
+
+        if (string.IsNullOrWhiteSpace(source))
         {
-            MessageBox.Show("Bitte zuerst eine Videodatei auswählen.", "Hinweis",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            StatusTextBlock.Text = "Bitte zuerst eine Videodatei wählen oder einen Titel eingeben.";
             return;
         }
 
-        var fileName = Path.GetFileNameWithoutExtension(VideoPathTextBox.Text);
-        var dateString = DateTime.Now.ToString("yyyy-MM-dd");
-        TitleTextBox.Text = $"{fileName} | Highlight | {dateString}";
+        var suggestion = CreateTitleSuggestionFromFileName(source);
+        TitleTextBox.Text = suggestion;
+        StatusTextBlock.Text = "Titelvorschlag übernommen.";
     }
 
     private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        var project = BuildProjectFromUiOrShowError();
-        if (project is null)
+        try
         {
-            return;
+            SyncUiToProject();
+
+            var descriptionFromTemplate = _templateService.ApplyTemplate(
+                DefaultYouTubeDescriptionTemplate,
+                _project);
+
+            if (!string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
+            {
+                DescriptionTextBox.Text += Environment.NewLine + Environment.NewLine + descriptionFromTemplate;
+            }
+            else
+            {
+                DescriptionTextBox.Text = descriptionFromTemplate;
+            }
+
+            _project.Description = DescriptionTextBox.Text;
+            StatusTextBlock.Text = "Template angewendet.";
         }
-
-        // Einfaches Default-Template (später aus Settings)
-        var template =
-@"{{TITLE}}
-
-Playlist: {{PLAYLIST}}
-Plattform: {{PLATFORM}}
-Sichtbarkeit: {{VISIBILITY}}
-
-Tags: {{TAGS}}
-
-Aufgenommen am: {{CREATED_AT}}
-Geplanter Upload: {{DATE}}";
-
-        var result = _templateService.ApplyTemplate(template, project);
-        DescriptionTextBox.Text = result;
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehler beim Anwenden des Templates: {ex.Message}";
+        }
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
     {
-        var project = BuildProjectFromUiOrShowError();
-        if (project is null)
-        {
-            return;
-        }
+        DisableUiForUpload();
 
-        SetUiBusy(true, "Upload wird vorbereitet...");
+        _uploadCts?.Cancel();
+        _uploadCts = new CancellationTokenSource();
 
         try
         {
-            var result = await _uploadService.UploadAsync(project, _cts.Token);
+            SyncUiToProject();
+
+            StatusTextBlock.Text = "Upload läuft...";
+
+            var result = await _uploadService.UploadAsync(_project, _uploadCts.Token);
 
             if (result.Success)
             {
-                StatusTextBlock.Text = $"Upload simuliert ✔ URL: {result.VideoUrl}";
-                MessageBox.Show(
-                    $"Upload erfolgreich (simuliert).\n\nVideo: {result.VideoUrl}",
-                    "Upload",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                StatusTextBlock.Text = $"Upload abgeschlossen: {result.VideoUrl}";
             }
             else
             {
-                StatusTextBlock.Text = "Upload fehlgeschlagen.";
-                MessageBox.Show(
-                    result.ErrorMessage ?? "Unbekannter Fehler.",
-                    "Fehler",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                StatusTextBlock.Text = $"Upload fehlgeschlagen: {result.ErrorMessage}";
             }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = "Upload abgebrochen.";
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = "Fehler beim Upload.";
-            MessageBox.Show(
-                ex.Message,
-                "Fehler",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            StatusTextBlock.Text = $"Fehler: {ex.Message}";
         }
         finally
         {
-            SetUiBusy(false);
+            EnableUiAfterUpload();
         }
     }
 
-    private UploadProject? BuildProjectFromUiOrShowError()
+    private void SyncUiToProject()
     {
-        var videoPath = VideoPathTextBox.Text;
-        var title = TitleTextBox.Text;
-        var description = DescriptionTextBox.Text;
+        _project.Title = TitleTextBox.Text.Trim();
+        _project.Description = DescriptionTextBox.Text;
 
-        if (string.IsNullOrWhiteSpace(videoPath))
-        {
-            MessageBox.Show("Bitte eine Videodatei angeben.", "Fehlende Daten",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return null;
-        }
+        // Phase 2: Wir halten es simpel.
+        _project.Platform = PlatformType.YouTube;
+        _project.Visibility = VideoVisibility.Unlisted;
 
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            MessageBox.Show("Bitte einen Titel angeben.", "Fehlende Daten",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return null;
-        }
-
-        var project = new UploadProject
-        {
-            Platform = PlatformType.YouTube,
-            VideoFilePath = videoPath,
-            Title = title,
-            Description = description,
-            Visibility = VideoVisibility.Unlisted,
-            PlaylistId = null,
-            ScheduledTime = null
-        };
-
-        // Später kannst du Tags aus einem UI-Feld einlesen
-        project.SetTagsFromCsv("stream, highlight");
-
-        try
-        {
-            project.Validate();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message, "Ungültige Projektdaten",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return null;
-        }
-
-        return project;
+        // Tags / Playlist / Scheduling kommen später mit eigener UI.
+        // ScheduledTime, PlaylistId und Tags bleiben in der Standardeinstellung.
     }
 
-    private void SetUiBusy(bool isBusy, string? status = null)
+    private static string CreateTitleSuggestionFromFileName(string pathOrTitle)
     {
-        BrowseButton.IsEnabled = !isBusy;
-        GenerateTitleButton.IsEnabled = !isBusy;
-        ApplyTemplateButton.IsEnabled = !isBusy;
-        UploadButton.IsEnabled = !isBusy;
+        if (string.IsNullOrWhiteSpace(pathOrTitle))
+        {
+            return "Neues Video";
+        }
 
-        StatusTextBlock.Text = status ?? string.Empty;
+        var fileName = Path.GetFileNameWithoutExtension(pathOrTitle);
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            fileName = pathOrTitle;
+        }
+
+        var title = fileName
+            .Replace('_', ' ')
+            .Replace('-', ' ');
+
+        while (title.Contains("  ", StringComparison.Ordinal))
+        {
+            title = title.Replace("  ", " ");
+        }
+
+        return title.Trim();
+    }
+
+    private void DisableUiForUpload()
+    {
+        UploadButton.IsEnabled = false;
+        ApplyTemplateButton.IsEnabled = false;
+        GenerateTitleButton.IsEnabled = false;
+        BrowseButton.IsEnabled = false;
+    }
+
+    private void EnableUiAfterUpload()
+    {
+        UploadButton.IsEnabled = true;
+        ApplyTemplateButton.IsEnabled = true;
+        GenerateTitleButton.IsEnabled = true;
+        BrowseButton.IsEnabled = true;
     }
 
     protected override void OnClosed(EventArgs e)
     {
-        _cts.Cancel();
-        _cts.Dispose();
+        _uploadCts?.Cancel();
+        _uploadCts?.Dispose();
         base.OnClosed(e);
     }
 }
