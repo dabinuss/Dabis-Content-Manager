@@ -1,0 +1,75 @@
+﻿<Window x:Class="DCM.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Dabis Content Manager"
+        Height="450"
+        Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Video-Datei -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
+            <Label Content="Video:" VerticalAlignment="Center" Width="60"/>
+            <TextBox x:Name="VideoPathTextBox"
+                     VerticalAlignment="Center"
+                     Margin="0,0,8,0"
+                     MinWidth="400"/>
+            <Button x:Name="BrowseButton"
+                    Content="Durchsuchen..."
+                    Click="BrowseButton_Click"
+                    MinWidth="100"/>
+        </StackPanel>
+
+        <!-- Titel -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,8">
+            <Label Content="Titel:"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="TitleTextBox"
+                         Margin="0,0,8,0"
+                         MinWidth="400"/>
+                <Button x:Name="GenerateTitleButton"
+                        Content="Titel vorschlagen"
+                        Click="GenerateTitleButton_Click"
+                        MinWidth="140"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Beschreibung -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,8">
+            <Label Content="Beschreibung:"/>
+            <TextBox x:Name="DescriptionTextBox"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     TextWrapping="Wrap"
+                     MinHeight="150"/>
+        </StackPanel>
+
+        <!-- Aktionen unten -->
+        <DockPanel Grid.Row="3">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <Button x:Name="ApplyTemplateButton"
+                        Content="Template anwenden"
+                        Click="ApplyTemplateButton_Click"
+                        Margin="0,0,8,0"
+                        MinWidth="140"/>
+                <Button x:Name="UploadButton"
+                        Content="Upload (YouTube)"
+                        Click="UploadButton_Click"
+                        MinWidth="140"/>
+            </StackPanel>
+
+            <TextBlock x:Name="StatusTextBlock"
+                       DockPanel.Dock="Right"
+                       Text=""
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"/>
+        </DockPanel>
+    </Grid>
+</Window>

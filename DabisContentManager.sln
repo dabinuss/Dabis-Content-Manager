@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCM.Core", "DCM.Core\DCM.Core.csproj", "{DACC06D1-25F2-4013-93D6-6FC308D033BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCM.YouTube", "DCM.YouTube\DCM.YouTube.csproj", "{BFF05D6C-7810-4538-B63B-671AB06CA909}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCM.App", "DCM.App\DCM.App.csproj", "{0C3DEC67-F05D-4680-86A8-CF59C1C23C6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DCM.Tests", "DCM.Tests\DCM.Tests.csproj", "{B0458A23-6CB1-431A-B276-E151DBA62B58}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DACC06D1-25F2-4013-93D6-6FC308D033BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DACC06D1-25F2-4013-93D6-6FC308D033BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DACC06D1-25F2-4013-93D6-6FC308D033BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DACC06D1-25F2-4013-93D6-6FC308D033BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFF05D6C-7810-4538-B63B-671AB06CA909}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFF05D6C-7810-4538-B63B-671AB06CA909}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFF05D6C-7810-4538-B63B-671AB06CA909}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFF05D6C-7810-4538-B63B-671AB06CA909}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C3DEC67-F05D-4680-86A8-CF59C1C23C6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C3DEC67-F05D-4680-86A8-CF59C1C23C6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C3DEC67-F05D-4680-86A8-CF59C1C23C6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C3DEC67-F05D-4680-86A8-CF59C1C23C6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0458A23-6CB1-431A-B276-E151DBA62B58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0458A23-6CB1-431A-B276-E151DBA62B58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0458A23-6CB1-431A-B276-E151DBA62B58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0458A23-6CB1-431A-B276-E151DBA62B58}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
