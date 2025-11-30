@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using DCM.Core.Models;
 using DCM.Core.Services;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
@@ -57,10 +59,111 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
     /// <summary>
     /// Startet (oder reaktiviert) den OAuth-Flow und initialisiert den YouTubeService.
+    /// Darf den Browser öffnen.
     /// </summary>
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
         await EnsureServiceAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Versucht eine bestehende YouTube-Sitzung anhand gespeicherter Tokens
+    /// wiederherzustellen – komplett ohne Browser / interaktiven Flow.
+    /// Liefert true, wenn eine Verbindung aufgebaut werden konnte.
+    /// </summary>
+    public async Task<bool> TryConnectSilentAsync(CancellationToken cancellationToken = default)
+    {
+        // Wenn schon verbunden, sind wir fertig.
+        if (_service is not null)
+        {
+            return true;
+        }
+
+        // Ohne Client-Secrets oder ohne Token-Ordner: kein Silent-Connect möglich.
+        if (!File.Exists(_clientSecretsPath) || !HasStoredTokens())
+        {
+            return false;
+        }
+
+        try
+        {
+            // Secrets laden
+            var secrets = await GoogleClientSecrets
+                .FromFileAsync(_clientSecretsPath, cancellationToken)
+                .ConfigureAwait(false);
+
+            var scopes = new[]
+            {
+                YouTubeService.Scope.Youtube,
+                YouTubeService.Scope.YoutubeUpload,
+                YouTubeService.Scope.YoutubeReadonly
+            };
+
+            var dataStore = new FileDataStore(_tokenFolder, fullPath: true);
+
+            // Token direkt aus dem Store ziehen, ohne Browser.
+            var storedToken = await dataStore.GetAsync<TokenResponse>("user").ConfigureAwait(false);
+            if (storedToken is null)
+            {
+                return false;
+            }
+
+            var flow = new GoogleAuthorizationCodeFlow(
+                new GoogleAuthorizationCodeFlow.Initializer
+                {
+                    ClientSecrets = secrets.Secrets,
+                    Scopes = scopes,
+                    DataStore = dataStore
+                });
+
+            var credential = new UserCredential(flow, "user", storedToken);
+
+            // NEU: Empfohlene Eigenschaft IsStale statt IsExpired(SystemClock.Default)
+            if (credential.Token.IsStale)
+            {
+                var refreshed = await credential
+                    .RefreshTokenAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!refreshed)
+                {
+                    // Token kann nicht mehr verwendet werden → Silent-Fail.
+                    return false;
+                }
+            }
+
+            _credential = credential;
+
+            _service = new YouTubeService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = _credential,
+                ApplicationName = _applicationName
+            });
+
+            // Channel-Name holen (für Statusanzeige), Fehler hier sind nicht kritisch.
+            try
+            {
+                var channelsRequest = _service.Channels.List("snippet");
+                channelsRequest.Mine = true;
+
+                var channelsResponse = await channelsRequest
+                    .ExecuteAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                ChannelTitle = channelsResponse.Items?.FirstOrDefault()?.Snippet?.Title;
+            }
+            catch
+            {
+                // Ignorieren – Verbindung steht trotzdem.
+            }
+
+            return true;
+        }
+        catch
+        {
+            // Irgendwas am Silent-Flow ist schief gegangen → einfach false zurückgeben.
+            return false;
+        }
     }
 
     /// <summary>
@@ -168,9 +271,6 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
         var insertRequest = _service.Videos.Insert(video, "snippet,status", fileStream, "video/*");
 
-        // explizite ChunkSize setzen ist nicht zwingend nötig – default reicht
-        // insertRequest.ChunkSize = ResumableUpload.MinimumChunkSize; // entfernt
-
         var uploadProgress = await insertRequest.UploadAsync(cancellationToken).ConfigureAwait(false);
 
         if (uploadProgress.Exception is not null)
@@ -216,6 +316,10 @@ public sealed class YouTubePlatformClient : IPlatformClient
         return UploadResult.Ok(videoId, videoUrl);
     }
 
+    /// <summary>
+    /// Interaktives Initialisieren des YouTubeService über den normalen OAuth-Flow.
+    /// Darf den Browser öffnen.
+    /// </summary>
     private async Task EnsureServiceAsync(CancellationToken cancellationToken)
     {
         if (_service is not null)
@@ -272,4 +376,17 @@ public sealed class YouTubePlatformClient : IPlatformClient
             VideoVisibility.Unlisted => "unlisted",
             _ => "unlisted"
         };
+
+    private bool HasStoredTokens()
+    {
+        if (!Directory.Exists(_tokenFolder))
+        {
+            return false;
+        }
+
+        // Google speichert die Token-Datei ohne .json mit einem festen Namen,
+        // z.B. "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user"
+        return Directory.EnumerateFiles(_tokenFolder)
+            .Any(f => Path.GetFileName(f).Contains("TokenResponse", StringComparison.OrdinalIgnoreCase));
+    }
 }
