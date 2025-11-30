@@ -53,6 +53,20 @@ public sealed class JsonTemplateRepository : ITemplateRepository
     {
         var path = GetFilePath();
 
+        // Sicherheitsnetz: einfaches Backup der bisherigen Datei
+        if (File.Exists(path))
+        {
+            var backupPath = path + ".bak";
+            try
+            {
+                File.Copy(path, backupPath, overwrite: true);
+            }
+            catch
+            {
+                // Backup-Fehler sind für den Hauptspeichervorgang nicht kritisch.
+            }
+        }
+
         var options = new JsonSerializerOptions
         {
             WriteIndented = true

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -22,9 +23,10 @@ public partial class MainWindow : Window
     private UploadService _uploadService;
     private AppSettings _settings = new();
 
-    private Template[] _loadedTemplates = Array.Empty<Template>();
+    private readonly List<Template> _loadedTemplates = new();
+    private Template? _currentEditingTemplate;
 
-    private readonly System.Collections.Generic.List<YouTubePlaylistListItem> _youTubePlaylists = new();
+    private readonly List<YouTubePlaylistListItem> _youTubePlaylists = new();
 
     private sealed class YouTubePlaylistListItem
     {
@@ -83,8 +85,12 @@ public partial class MainWindow : Window
 
     private void InitializePlatformComboBox()
     {
+        // Upload-Tab
         PlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
         PlatformComboBox.SelectedItem = _settings.DefaultPlatform;
+
+        // Templates-Tab
+        TemplatePlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
     }
 
     private void InitializeSchedulingDefaults()
@@ -99,11 +105,10 @@ public partial class MainWindow : Window
     {
         try
         {
-            _loadedTemplates = _templateRepository.Load().ToArray();
+            _loadedTemplates.Clear();
+            _loadedTemplates.AddRange(_templateRepository.Load());
 
-            // Templates-Tab
             TemplateListBox.ItemsSource = _loadedTemplates;
-            TemplateListBox.SelectionChanged += TemplateListBox_SelectionChanged;
 
             var defaultTemplate = _loadedTemplates.FirstOrDefault(t => t.IsDefault && t.Platform == PlatformType.YouTube)
                                   ?? _loadedTemplates.FirstOrDefault(t => t.Platform == PlatformType.YouTube);
@@ -111,10 +116,13 @@ public partial class MainWindow : Window
             if (defaultTemplate is not null)
             {
                 TemplateListBox.SelectedItem = defaultTemplate;
-                TemplateBodyTextBox.Text = defaultTemplate.Body;
+                LoadTemplateIntoEditor(defaultTemplate);
+            }
+            else
+            {
+                LoadTemplateIntoEditor(null);
             }
 
-            // Template-Auswahl im Upload-Tab
             TemplateComboBox.ItemsSource = _loadedTemplates;
             if (defaultTemplate is not null)
             {
@@ -135,11 +143,11 @@ public partial class MainWindow : Window
     {
         if (TemplateListBox.SelectedItem is Template tmpl)
         {
-            TemplateBodyTextBox.Text = tmpl.Body;
+            LoadTemplateIntoEditor(tmpl);
         }
         else
         {
-            TemplateBodyTextBox.Text = string.Empty;
+            LoadTemplateIntoEditor(null);
         }
     }
 
@@ -240,6 +248,181 @@ public partial class MainWindow : Window
         {
             StatusTextBlock.Text = $"Unerwarteter Fehler beim Upload: {ex.Message}";
         }
+    }
+
+    #endregion
+
+    #region Events – Template-CRUD
+
+    private void TemplateNewButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Neues Template direkt in die Liste aufnehmen
+        var tmpl = new Template
+        {
+            Name = "Neues Template",
+            Platform = PlatformType.YouTube,
+            // Falls es noch keinen Default für YouTube gibt, dieses als Default markieren
+            IsDefault = !_loadedTemplates.Any(t => t.Platform == PlatformType.YouTube && t.IsDefault),
+            Body = string.Empty
+        };
+
+        _loadedTemplates.Add(tmpl);
+        RefreshTemplateBindings();
+
+        TemplateListBox.SelectedItem = tmpl;
+        LoadTemplateIntoEditor(tmpl);
+
+        StatusTextBlock.Text = "Neues Template erstellt. Bitte bearbeiten und speichern.";
+    }
+
+    private void TemplateEditButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (TemplateListBox.SelectedItem is Template tmpl)
+        {
+            LoadTemplateIntoEditor(tmpl);
+            StatusTextBlock.Text = $"Template \"{tmpl.Name}\" wird bearbeitet.";
+        }
+        else
+        {
+            StatusTextBlock.Text = "Kein Template zum Bearbeiten ausgewählt.";
+        }
+    }
+
+    private void TemplateDeleteButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (TemplateListBox.SelectedItem is not Template tmpl)
+        {
+            StatusTextBlock.Text = "Kein Template zum Löschen ausgewählt.";
+            return;
+        }
+
+        if (_loadedTemplates.Remove(tmpl))
+        {
+            if (_currentEditingTemplate?.Id == tmpl.Id)
+            {
+                _currentEditingTemplate = null;
+                LoadTemplateIntoEditor(null);
+            }
+
+            SaveTemplatesToRepository();
+            RefreshTemplateBindings();
+            StatusTextBlock.Text = $"Template \"{tmpl.Name}\" gelöscht.";
+        }
+    }
+
+    private void TemplateSaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_currentEditingTemplate is null)
+            {
+                StatusTextBlock.Text = "Kein Template im Editor zum Speichern.";
+                return;
+            }
+
+            var name = (TemplateNameTextBox.Text ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                StatusTextBlock.Text = "Templatename darf nicht leer sein.";
+                return;
+            }
+
+            var platform = PlatformType.YouTube;
+            if (TemplatePlatformComboBox.SelectedItem is PlatformType selectedPlatform)
+            {
+                platform = selectedPlatform;
+            }
+
+            var isDefault = TemplateIsDefaultCheckBox.IsChecked == true;
+            var description = TemplateDescriptionTextBox.Text;
+            var body = TemplateBodyEditorTextBox.Text ?? string.Empty;
+
+            // Optional: Warnung bei doppelten Namen pro Plattform
+            var duplicate = _loadedTemplates
+                .FirstOrDefault(t =>
+                    t.Platform == platform &&
+                    !string.Equals(t.Id, _currentEditingTemplate.Id, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
+
+            if (duplicate is not null)
+            {
+                StatusTextBlock.Text =
+                    $"Hinweis: Es existiert bereits ein Template mit diesem Namen für Plattform {platform}.";
+                // Wir speichern trotzdem, nur Hinweis.
+            }
+
+            _currentEditingTemplate.Name = name;
+            _currentEditingTemplate.Platform = platform;
+            _currentEditingTemplate.IsDefault = isDefault;
+            _currentEditingTemplate.Description = string.IsNullOrWhiteSpace(description) ? null : description;
+            _currentEditingTemplate.Body = body;
+
+            // Nur ein Default-Template pro Plattform erzwingen
+            if (isDefault)
+            {
+                foreach (var other in _loadedTemplates.Where(t =>
+                         t.Platform == platform && t.Id != _currentEditingTemplate.Id))
+                {
+                    other.IsDefault = false;
+                }
+            }
+
+            SaveTemplatesToRepository();
+            RefreshTemplateBindings();
+
+            TemplateListBox.SelectedItem = _currentEditingTemplate;
+            TemplateComboBox.SelectedItem = _currentEditingTemplate;
+
+            StatusTextBlock.Text = $"Template \"{_currentEditingTemplate.Name}\" gespeichert.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehler beim Speichern des Templates: {ex.Message}";
+        }
+    }
+
+    private void LoadTemplateIntoEditor(Template? tmpl)
+    {
+        _currentEditingTemplate = tmpl;
+
+        if (tmpl is null)
+        {
+            TemplateNameTextBox.Text = string.Empty;
+            TemplatePlatformComboBox.SelectedItem = null;
+            TemplateIsDefaultCheckBox.IsChecked = false;
+            TemplateDescriptionTextBox.Text = string.Empty;
+            TemplateBodyEditorTextBox.Text = string.Empty;
+            return;
+        }
+
+        TemplateNameTextBox.Text = tmpl.Name;
+        TemplatePlatformComboBox.SelectedItem = tmpl.Platform;
+        TemplateIsDefaultCheckBox.IsChecked = tmpl.IsDefault;
+        TemplateDescriptionTextBox.Text = tmpl.Description ?? string.Empty;
+        TemplateBodyEditorTextBox.Text = tmpl.Body;
+    }
+
+    private void SaveTemplatesToRepository()
+    {
+        try
+        {
+            _templateRepository.Save(_loadedTemplates);
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Templates konnten nicht gespeichert werden: {ex.Message}";
+        }
+    }
+
+    private void RefreshTemplateBindings()
+    {
+        // Liste
+        TemplateListBox.ItemsSource = null;
+        TemplateListBox.ItemsSource = _loadedTemplates;
+
+        // Auswahl im Upload-Tab
+        TemplateComboBox.ItemsSource = null;
+        TemplateComboBox.ItemsSource = _loadedTemplates;
     }
 
     #endregion
