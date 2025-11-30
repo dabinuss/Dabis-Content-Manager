@@ -10,4 +10,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3364" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
+  </ItemGroup>
+
 </Project>

@@ -81,11 +81,47 @@
             <!-- TAB 2: Konten -->
             <TabItem Header="Konten">
                 <Grid Margin="8">
-                    <TextBlock Text="Kontenverwaltung (YouTube-Login etc.) – Platzhalter für spätere Phasen."
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               TextWrapping="Wrap"
-                               TextAlignment="Center"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <GroupBox Header="YouTube-Konto" Grid.Row="0">
+                        <StackPanel Margin="8">
+                            <TextBlock x:Name="YouTubeAccountStatusTextBlock"
+                                       Text="Nicht mit YouTube verbunden."
+                                       Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="YouTubeConnectButton"
+                                        Content="Mit YouTube verbinden"
+                                        Click="YouTubeConnectButton_Click"
+                                        Margin="0,0,8,0"
+                                        MinWidth="160"/>
+                                <Button x:Name="YouTubeDisconnectButton"
+                                        Content="Trennen"
+                                        Click="YouTubeDisconnectButton_Click"
+                                        MinWidth="100"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="YouTube-Playlists" Grid.Row="1" Margin="0,8,0,0">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="Standard-Playlist für neue Uploads:"
+                                       Grid.Row="0"
+                                       Margin="0,0,0,4"/>
+                            <ListBox x:Name="YouTubePlaylistsListBox"
+                                     Grid.Row="1"
+                                     DisplayMemberPath="Title"
+                                     MinHeight="120"
+                                     SelectionChanged="YouTubePlaylistsListBox_SelectionChanged"/>
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </TabItem>
 

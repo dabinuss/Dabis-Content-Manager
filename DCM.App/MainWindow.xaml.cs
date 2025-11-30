@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Win32;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
@@ -16,10 +17,25 @@ public partial class MainWindow : Window
     private readonly TemplateService _templateService = new();
     private readonly ITemplateRepository _templateRepository;
     private readonly ISettingsProvider _settingsProvider;
-    private readonly IPlatformClient _youTubeClient;
+    private readonly YouTubePlatformClient _youTubeClient;
     private AppSettings _settings = new();
 
     private Template[] _loadedTemplates = Array.Empty<Template>();
+
+    private sealed class YouTubePlaylistListItem
+    {
+        public YouTubePlaylistListItem(string id, string title)
+        {
+            Id = id;
+            Title = title;
+        }
+
+        public string Id { get; }
+
+        public string Title { get; }
+
+        public override string ToString() => Title;
+    }
 
     public MainWindow()
     {
@@ -28,10 +44,11 @@ public partial class MainWindow : Window
         // JSON-Konfigsystem initialisieren
         _settingsProvider = new JsonSettingsProvider();
         _templateRepository = new JsonTemplateRepository();
-        _youTubeClient = new YouTubePlatformClient(new FakeYouTubeUploadService());
+        _youTubeClient = new YouTubePlatformClient();
 
         LoadSettings();
         LoadTemplates();
+        UpdateYouTubeStatusText(); // Anfangsstatus
     }
 
     #region Initial Load
@@ -75,9 +92,9 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Events
+    #region Events – Templates & Upload
 
-    private void TemplateListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private void TemplateListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (TemplateListBox.SelectedItem is Template tmpl)
         {
@@ -151,6 +168,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (!_youTubeClient.IsConnected)
+        {
+            StatusTextBlock.Text = "Bitte zuerst im Tab \"Konten\" mit YouTube verbinden.";
+            return;
+        }
+
         StatusTextBlock.Text = "Upload wird vorbereitet...";
 
         try
@@ -174,6 +197,54 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Events – YouTube Konto & Playlists
+
+    private async void YouTubeConnectButton_Click(object sender, RoutedEventArgs e)
+    {
+        StatusTextBlock.Text = "Verbinde mit YouTube...";
+
+        try
+        {
+            await _youTubeClient.ConnectAsync(CancellationToken.None);
+            UpdateYouTubeStatusText();
+            await RefreshYouTubePlaylistsAsync();
+            StatusTextBlock.Text = "Mit YouTube verbunden.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"YouTube-Verbindung fehlgeschlagen: {ex.Message}";
+        }
+    }
+
+    private async void YouTubeDisconnectButton_Click(object sender, RoutedEventArgs e)
+    {
+        StatusTextBlock.Text = "YouTube-Verbindung wird getrennt...";
+
+        try
+        {
+            await _youTubeClient.DisconnectAsync();
+            UpdateYouTubeStatusText();
+            YouTubePlaylistsListBox.ItemsSource = null;
+            StatusTextBlock.Text = "YouTube-Verbindung getrennt.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Trennen fehlgeschlagen: {ex.Message}";
+        }
+    }
+
+    private void YouTubePlaylistsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (YouTubePlaylistsListBox.SelectedItem is YouTubePlaylistListItem item)
+        {
+            _settings.DefaultPlaylistId = item.Id;
+            SaveSettings();
+            StatusTextBlock.Text = $"Standard-Playlist gesetzt: {item.Title}";
+        }
+    }
+
+    #endregion
+
     #region Helpers
 
     private UploadProject BuildUploadProjectFromUi()
@@ -189,7 +260,7 @@ public partial class MainWindow : Window
             ScheduledTime = null // später über UI steuerbar
         };
 
-        // Tags können später über eigene UI kommen, Phase 1 reicht dieses Grundgerüst.
+        // Tags kommen später über eigene UI.
         return project;
     }
 
@@ -201,7 +272,54 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // Silent fail – für Phase 1 nicht kritisch
+            // Für jetzt nicht kritisch.
+        }
+    }
+
+    private void UpdateYouTubeStatusText()
+    {
+        if (_youTubeClient.IsConnected)
+        {
+            YouTubeAccountStatusTextBlock.Text = string.IsNullOrWhiteSpace(_youTubeClient.ChannelTitle)
+                ? "Mit YouTube verbunden."
+                : $"Verbunden als: {_youTubeClient.ChannelTitle}";
+        }
+        else
+        {
+            YouTubeAccountStatusTextBlock.Text = "Nicht mit YouTube verbunden.";
+        }
+    }
+
+    private async System.Threading.Tasks.Task RefreshYouTubePlaylistsAsync()
+    {
+        if (!_youTubeClient.IsConnected)
+        {
+            YouTubePlaylistsListBox.ItemsSource = null;
+            return;
+        }
+
+        try
+        {
+            var playlists = await _youTubeClient.GetPlaylistsAsync(CancellationToken.None);
+
+            var items = playlists
+                .Select(p => new YouTubePlaylistListItem(p.Id, p.Title))
+                .ToList();
+
+            YouTubePlaylistsListBox.ItemsSource = items;
+
+            if (!string.IsNullOrWhiteSpace(_settings.DefaultPlaylistId))
+            {
+                var selected = items.FirstOrDefault(i => i.Id == _settings.DefaultPlaylistId);
+                if (selected is not null)
+                {
+                    YouTubePlaylistsListBox.SelectedItem = selected;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehler beim Laden der Playlists: {ex.Message}";
         }
     }
 
