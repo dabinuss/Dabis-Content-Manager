@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
+using DCM.Core.Configuration;
 using DCM.Core.Models;
 using DCM.Core.Services;
 using DCM.YouTube;
@@ -12,203 +13,197 @@ namespace DCM.App;
 
 public partial class MainWindow : Window
 {
-    private readonly TemplateService _templateService;
-    private readonly IYouTubeUploadService _uploadService;
-    private readonly UploadProject _project;
-    private CancellationTokenSource? _uploadCts;
+    private readonly TemplateService _templateService = new();
+    private readonly ITemplateRepository _templateRepository;
+    private readonly ISettingsProvider _settingsProvider;
+    private readonly IPlatformClient _youTubeClient;
+    private AppSettings _settings = new();
 
-    private const string DefaultYouTubeDescriptionTemplate = """
-{{TITLE}}
-
----
-
-Hochgeladen mit Dabis Content Manager.
-
-Sichtbarkeit: {{VISIBILITY}}
-Playlist: {{PLAYLIST}}
-Tags: {{TAGS}}
-Geplant: {{DATE}}
-Plattform: {{PLATFORM}}
-Erstellt am: {{CREATED_AT}}
-""";
+    private Template[] _loadedTemplates = Array.Empty<Template>();
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _templateService = new TemplateService();
-        _uploadService = new FakeYouTubeUploadService();
-        _project = new UploadProject
+        // JSON-Konfigsystem initialisieren
+        _settingsProvider = new JsonSettingsProvider();
+        _templateRepository = new JsonTemplateRepository();
+        _youTubeClient = new YouTubePlatformClient(new FakeYouTubeUploadService());
+
+        LoadSettings();
+        LoadTemplates();
+    }
+
+    #region Initial Load
+
+    private void LoadSettings()
+    {
+        try
         {
-            Platform = PlatformType.YouTube,
-            Visibility = VideoVisibility.Unlisted
-        };
+            _settings = _settingsProvider.Load();
+        }
+        catch (Exception ex)
+        {
+            _settings = new AppSettings();
+            StatusTextBlock.Text = $"Einstellungen konnten nicht geladen werden: {ex.Message}";
+        }
+    }
+
+    private void LoadTemplates()
+    {
+        try
+        {
+            _loadedTemplates = _templateRepository.Load().ToArray();
+
+            TemplateListBox.ItemsSource = _loadedTemplates;
+            TemplateListBox.SelectionChanged += TemplateListBox_SelectionChanged;
+
+            var defaultTemplate = _loadedTemplates.FirstOrDefault(t => t.IsDefault && t.Platform == PlatformType.YouTube)
+                                  ?? _loadedTemplates.FirstOrDefault(t => t.Platform == PlatformType.YouTube);
+
+            if (defaultTemplate is not null)
+            {
+                TemplateListBox.SelectedItem = defaultTemplate;
+                TemplateBodyTextBox.Text = defaultTemplate.Body;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Templates konnten nicht geladen werden: {ex.Message}";
+        }
+    }
+
+    #endregion
+
+    #region Events
+
+    private void TemplateListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (TemplateListBox.SelectedItem is Template tmpl)
+        {
+            TemplateBodyTextBox.Text = tmpl.Body;
+        }
+        else
+        {
+            TemplateBodyTextBox.Text = string.Empty;
+        }
     }
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog
+        var dlg = new OpenFileDialog
         {
             Title = "Videodatei auswählen",
-            Filter =
-                "Video-Dateien (*.mp4;*.mov;*.mkv;*.avi;*.webm)|*.mp4;*.mov;*.mkv;*.avi;*.webm|Alle Dateien (*.*)|*.*"
+            Filter = "Video-Dateien|*.mp4;*.mkv;*.mov;*.avi;*.webm|Alle Dateien|*.*",
+            InitialDirectory = !string.IsNullOrWhiteSpace(_settings.LastVideoFolder) && Directory.Exists(_settings.LastVideoFolder)
+                ? _settings.LastVideoFolder
+                : Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)
         };
 
-        if (dialog.ShowDialog(this) == true)
+        if (dlg.ShowDialog(this) == true)
         {
-            VideoPathTextBox.Text = dialog.FileName;
-            _project.VideoFilePath = dialog.FileName;
-
-            if (string.IsNullOrWhiteSpace(TitleTextBox.Text))
-            {
-                TitleTextBox.Text = CreateTitleSuggestionFromFileName(dialog.FileName);
-            }
-
-            StatusTextBlock.Text = string.Empty;
+            VideoPathTextBox.Text = dlg.FileName;
+            _settings.LastVideoFolder = Path.GetDirectoryName(dlg.FileName);
+            SaveSettings();
         }
     }
 
     private void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
     {
-        string source = !string.IsNullOrWhiteSpace(VideoPathTextBox.Text)
-            ? VideoPathTextBox.Text
-            : TitleTextBox.Text;
+        var path = VideoPathTextBox.Text;
 
-        if (string.IsNullOrWhiteSpace(source))
+        if (string.IsNullOrWhiteSpace(path))
         {
-            StatusTextBlock.Text = "Bitte zuerst eine Videodatei wählen oder einen Titel eingeben.";
+            TitleTextBox.Text = "Neues Video";
             return;
         }
 
-        var suggestion = CreateTitleSuggestionFromFileName(source);
-        TitleTextBox.Text = suggestion;
-        StatusTextBlock.Text = "Titelvorschlag übernommen.";
+        var fileName = Path.GetFileNameWithoutExtension(path);
+        TitleTextBox.Text = string.IsNullOrWhiteSpace(fileName) ? "Neues Video" : fileName;
     }
 
     private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        try
+        if (TemplateListBox.SelectedItem is not Template tmpl)
         {
-            SyncUiToProject();
-
-            var descriptionFromTemplate = _templateService.ApplyTemplate(
-                DefaultYouTubeDescriptionTemplate,
-                _project);
-
-            if (!string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
-            {
-                DescriptionTextBox.Text += Environment.NewLine + Environment.NewLine + descriptionFromTemplate;
-            }
-            else
-            {
-                DescriptionTextBox.Text = descriptionFromTemplate;
-            }
-
-            _project.Description = DescriptionTextBox.Text;
-            StatusTextBlock.Text = "Template angewendet.";
+            StatusTextBlock.Text = "Kein Template ausgewählt.";
+            return;
         }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = $"Fehler beim Anwenden des Templates: {ex.Message}";
-        }
+
+        var project = BuildUploadProjectFromUi();
+        var result = _templateService.ApplyTemplate(tmpl.Body, project);
+
+        DescriptionTextBox.Text = result;
+        StatusTextBlock.Text = $"Template \"{tmpl.Name}\" angewendet.";
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
     {
-        DisableUiForUpload();
-
-        _uploadCts?.Cancel();
-        _uploadCts = new CancellationTokenSource();
+        var project = BuildUploadProjectFromUi();
 
         try
         {
-            SyncUiToProject();
+            project.Validate();
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehlerhafte Eingaben: {ex.Message}";
+            return;
+        }
 
-            StatusTextBlock.Text = "Upload läuft...";
+        StatusTextBlock.Text = "Upload wird vorbereitet...";
 
-            var result = await _uploadService.UploadAsync(_project, _uploadCts.Token);
+        try
+        {
+            var result = await _youTubeClient.UploadAsync(project, CancellationToken.None);
 
             if (result.Success)
             {
-                StatusTextBlock.Text = $"Upload abgeschlossen: {result.VideoUrl}";
+                StatusTextBlock.Text = $"Upload erfolgreich: {result.VideoUrl}";
             }
             else
             {
                 StatusTextBlock.Text = $"Upload fehlgeschlagen: {result.ErrorMessage}";
             }
         }
-        catch (OperationCanceledException)
-        {
-            StatusTextBlock.Text = "Upload abgebrochen.";
-        }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Fehler: {ex.Message}";
+            StatusTextBlock.Text = $"Unerwarteter Fehler beim Upload: {ex.Message}";
         }
-        finally
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private UploadProject BuildUploadProjectFromUi()
+    {
+        var project = new UploadProject
         {
-            EnableUiAfterUpload();
-        }
+            VideoFilePath = VideoPathTextBox.Text ?? string.Empty,
+            Title = TitleTextBox.Text ?? string.Empty,
+            Description = DescriptionTextBox.Text ?? string.Empty,
+            Platform = PlatformType.YouTube,
+            Visibility = VideoVisibility.Unlisted,
+            PlaylistId = _settings.DefaultPlaylistId,
+            ScheduledTime = null // später über UI steuerbar
+        };
+
+        // Tags können später über eigene UI kommen, Phase 1 reicht dieses Grundgerüst.
+        return project;
     }
 
-    private void SyncUiToProject()
+    private void SaveSettings()
     {
-        _project.Title = TitleTextBox.Text.Trim();
-        _project.Description = DescriptionTextBox.Text;
-
-        // Phase 2: Wir halten es simpel.
-        _project.Platform = PlatformType.YouTube;
-        _project.Visibility = VideoVisibility.Unlisted;
-
-        // Tags / Playlist / Scheduling kommen später mit eigener UI.
-        // ScheduledTime, PlaylistId und Tags bleiben in der Standardeinstellung.
-    }
-
-    private static string CreateTitleSuggestionFromFileName(string pathOrTitle)
-    {
-        if (string.IsNullOrWhiteSpace(pathOrTitle))
+        try
         {
-            return "Neues Video";
+            _settingsProvider.Save(_settings);
         }
-
-        var fileName = Path.GetFileNameWithoutExtension(pathOrTitle);
-        if (string.IsNullOrWhiteSpace(fileName))
+        catch
         {
-            fileName = pathOrTitle;
+            // Silent fail – für Phase 1 nicht kritisch
         }
-
-        var title = fileName
-            .Replace('_', ' ')
-            .Replace('-', ' ');
-
-        while (title.Contains("  ", StringComparison.Ordinal))
-        {
-            title = title.Replace("  ", " ");
-        }
-
-        return title.Trim();
     }
 
-    private void DisableUiForUpload()
-    {
-        UploadButton.IsEnabled = false;
-        ApplyTemplateButton.IsEnabled = false;
-        GenerateTitleButton.IsEnabled = false;
-        BrowseButton.IsEnabled = false;
-    }
-
-    private void EnableUiAfterUpload()
-    {
-        UploadButton.IsEnabled = true;
-        ApplyTemplateButton.IsEnabled = true;
-        GenerateTitleButton.IsEnabled = true;
-        BrowseButton.IsEnabled = true;
-    }
-
-    protected override void OnClosed(EventArgs e)
-    {
-        _uploadCts?.Cancel();
-        _uploadCts?.Dispose();
-        base.OnClosed(e);
-    }
+    #endregion
 }

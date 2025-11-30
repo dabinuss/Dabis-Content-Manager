@@ -3,73 +3,133 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Dabis Content Manager"
         Height="450"
-        Width="800"
+        Width="900"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <TabControl>
+            <!-- TAB 1: Neuer Upload -->
+            <TabItem Header="Neuer Upload">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <!-- Video-Datei -->
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
-            <Label Content="Video:" VerticalAlignment="Center" Width="60"/>
-            <TextBox x:Name="VideoPathTextBox"
-                     VerticalAlignment="Center"
-                     Margin="0,0,8,0"
-                     MinWidth="400"/>
-            <Button x:Name="BrowseButton"
-                    Content="Durchsuchen..."
-                    Click="BrowseButton_Click"
-                    MinWidth="100"/>
-        </StackPanel>
+                    <!-- Video-Datei -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
+                        <Label Content="Video:" VerticalAlignment="Center" Width="60"/>
+                        <TextBox x:Name="VideoPathTextBox"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,8,0"
+                                 MinWidth="400"/>
+                        <Button x:Name="BrowseButton"
+                                Content="Durchsuchen..."
+                                Click="BrowseButton_Click"
+                                MinWidth="100"/>
+                    </StackPanel>
 
-        <!-- Titel -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,8">
-            <Label Content="Titel:"/>
-            <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="TitleTextBox"
-                         Margin="0,0,8,0"
-                         MinWidth="400"/>
-                <Button x:Name="GenerateTitleButton"
-                        Content="Titel vorschlagen"
-                        Click="GenerateTitleButton_Click"
-                        MinWidth="140"/>
-            </StackPanel>
-        </StackPanel>
+                    <!-- Titel -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,8">
+                        <Label Content="Titel:"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="TitleTextBox"
+                                     Margin="0,0,8,0"
+                                     MinWidth="400"/>
+                            <Button x:Name="GenerateTitleButton"
+                                    Content="Titel vorschlagen"
+                                    Click="GenerateTitleButton_Click"
+                                    MinWidth="140"/>
+                        </StackPanel>
+                    </StackPanel>
 
-        <!-- Beschreibung -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,8">
-            <Label Content="Beschreibung:"/>
-            <TextBox x:Name="DescriptionTextBox"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"
-                     TextWrapping="Wrap"
-                     MinHeight="150"/>
-        </StackPanel>
+                    <!-- Beschreibung -->
+                    <StackPanel Grid.Row="2" Margin="0,0,0,8">
+                        <Label Content="Beschreibung:"/>
+                        <TextBox x:Name="DescriptionTextBox"
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 TextWrapping="Wrap"
+                                 MinHeight="150"/>
+                    </StackPanel>
 
-        <!-- Aktionen unten -->
-        <DockPanel Grid.Row="3">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                <Button x:Name="ApplyTemplateButton"
-                        Content="Template anwenden"
-                        Click="ApplyTemplateButton_Click"
-                        Margin="0,0,8,0"
-                        MinWidth="140"/>
-                <Button x:Name="UploadButton"
-                        Content="Upload (YouTube)"
-                        Click="UploadButton_Click"
-                        MinWidth="140"/>
-            </StackPanel>
+                    <!-- Aktionen unten -->
+                    <DockPanel Grid.Row="3">
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                            <Button x:Name="ApplyTemplateButton"
+                                    Content="Template anwenden"
+                                    Click="ApplyTemplateButton_Click"
+                                    Margin="0,0,8,0"
+                                    MinWidth="140"/>
+                            <Button x:Name="UploadButton"
+                                    Content="Upload (YouTube)"
+                                    Click="UploadButton_Click"
+                                    MinWidth="140"/>
+                        </StackPanel>
 
-            <TextBlock x:Name="StatusTextBlock"
-                       DockPanel.Dock="Right"
-                       Text=""
-                       HorizontalAlignment="Right"
-                       VerticalAlignment="Center"
-                       TextWrapping="Wrap"/>
-        </DockPanel>
+                        <TextBlock x:Name="StatusTextBlock"
+                                   DockPanel.Dock="Right"
+                                   Text=""
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 2: Konten -->
+            <TabItem Header="Konten">
+                <Grid Margin="8">
+                    <TextBlock Text="Kontenverwaltung (YouTube-Login etc.) – Platzhalter für spätere Phasen."
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"/>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 3: Templates -->
+            <TabItem Header="Templates">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                        <TextBlock Text="Verfügbare Templates (aus JSON geladen)"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,8"/>
+                        <ListBox x:Name="TemplateListBox"
+                                 DisplayMemberPath="Name"
+                                 MinHeight="200"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Template-Inhalt"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,8"/>
+                        <TextBox x:Name="TemplateBodyTextBox"
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 TextWrapping="Wrap"
+                                 MinHeight="200"
+                                 IsReadOnly="True"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 4: Historie -->
+            <TabItem Header="Historie">
+                <Grid Margin="8">
+                    <TextBlock Text="Upload-Historie – Platzhalter für spätere Phasen."
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>
