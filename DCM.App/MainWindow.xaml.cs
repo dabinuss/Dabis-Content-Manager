@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Navigation;
 using Microsoft.Win32;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
@@ -25,6 +27,7 @@ public partial class MainWindow : Window
     private readonly ISettingsProvider _settingsProvider;
     private readonly YouTubePlatformClient _youTubeClient;
     private readonly IContentSuggestionService _contentSuggestionService;
+    private readonly UploadHistoryService _uploadHistoryService;
     private UploadService _uploadService;
     private AppSettings _settings = new();
 
@@ -32,6 +35,8 @@ public partial class MainWindow : Window
     private Template? _currentEditingTemplate;
 
     private readonly List<YouTubePlaylistListItem> _youTubePlaylists = new();
+
+    private List<UploadHistoryEntry> _allHistoryEntries = new();
 
     private sealed class YouTubePlaylistListItem
     {
@@ -57,6 +62,7 @@ public partial class MainWindow : Window
         _templateRepository = new JsonTemplateRepository();
         _youTubeClient = new YouTubePlatformClient();
         _contentSuggestionService = new SimpleContentSuggestionService();
+        _uploadHistoryService = new UploadHistoryService();
         _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
 
         LoadSettings();
@@ -65,6 +71,7 @@ public partial class MainWindow : Window
         InitializeSchedulingDefaults();
         LoadTemplates();
         UpdateYouTubeStatusText(); // Anfangsstatus
+        LoadUploadHistory();
 
         // Auto-Reconnect nach dem Laden des Fensters
         Loaded += MainWindow_Loaded;
@@ -485,14 +492,14 @@ public partial class MainWindow : Window
         // Optionale Bestätigung vor dem Upload
         if (_settings.ConfirmBeforeUpload)
         {
-            var result = System.Windows.MessageBox.Show(
+            var confirmResult = System.Windows.MessageBox.Show(
                 this,
                 "Upload wirklich starten?",
                 "Bestätigung",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
-            if (result != MessageBoxResult.Yes)
+            if (confirmResult != MessageBoxResult.Yes)
             {
                 StatusTextBlock.Text = "Upload abgebrochen.";
                 return;
@@ -542,6 +549,10 @@ public partial class MainWindow : Window
             Template? selectedTemplate = TemplateComboBox.SelectedItem as Template;
 
             var result = await _uploadService.UploadAsync(project, selectedTemplate, CancellationToken.None);
+
+            // Upload-Historie speichern
+            _uploadHistoryService.AddEntry(project, result);
+            LoadUploadHistory();
 
             if (result.Success)
             {
@@ -954,7 +965,7 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Helpers
+    #region Helpers & History
 
     private UploadProject BuildUploadProjectFromUi(bool includeScheduling)
     {
@@ -1133,6 +1144,122 @@ public partial class MainWindow : Window
         {
             // Auto-Login ist nur Komfort – bei Fehler kann der User normal verbinden.
         }
+    }
+
+    private void LoadUploadHistory()
+    {
+        try
+        {
+            _allHistoryEntries = _uploadHistoryService
+                .GetAll()
+                .OrderByDescending(e => e.DateTime)
+                .ToList();
+
+            ApplyHistoryFilter();
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Upload-Historie konnte nicht geladen werden: {ex.Message}";
+        }
+    }
+
+    private void ApplyHistoryFilter()
+    {
+        if (HistoryDataGrid is null)
+            return;
+
+        IEnumerable<UploadHistoryEntry> filtered = _allHistoryEntries;
+
+        // Plattform-Filter
+        if (HistoryPlatformFilterComboBox?.SelectedItem is ComboBoxItem pItem &&
+            pItem.Tag is PlatformType platformFilter)
+        {
+            filtered = filtered.Where(e => e.Platform == platformFilter);
+        }
+
+        // Status-Filter
+        if (HistoryStatusFilterComboBox?.SelectedItem is ComboBoxItem sItem &&
+            sItem.Tag is string statusTag)
+        {
+            if (statusTag == "Success")
+            {
+                filtered = filtered.Where(e => e.Success);
+            }
+            else if (statusTag == "Error")
+            {
+                filtered = filtered.Where(e => !e.Success);
+            }
+        }
+
+        HistoryDataGrid.ItemsSource = filtered.ToList();
+    }
+
+    private void HistoryFilter_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        ApplyHistoryFilter();
+    }
+
+    private void HistoryClearButton_Click(object sender, RoutedEventArgs e)
+    {
+        var confirm = System.Windows.MessageBox.Show(
+            this,
+            "Die komplette Upload-Historie wirklich löschen?",
+            "Bestätigung",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (confirm != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            _uploadHistoryService.Clear();
+            _allHistoryEntries.Clear();
+            ApplyHistoryFilter();
+            StatusTextBlock.Text = "Upload-Historie gelöscht.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Historie konnte nicht gelöscht werden: {ex.Message}";
+        }
+    }
+
+    private void HistoryDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (HistoryDataGrid.SelectedItem is UploadHistoryEntry entry &&
+            entry.VideoUrl is not null)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(entry.VideoUrl.ToString())
+                {
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                // Fehler beim Öffnen des Browsers ignorieren.
+            }
+        }
+    }
+
+    private void HistoryLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.ToString())
+            {
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // Fehler beim Öffnen des Browsers ignorieren.
+        }
+
+        e.Handled = true;
     }
 
     #endregion

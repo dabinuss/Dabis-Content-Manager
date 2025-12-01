@@ -15,7 +15,7 @@
                               Padding="4">
                     <StackPanel Margin="8" Orientation="Vertical">
 
-                        <!-- Gruppe: Video & Plattform -->
+                        <!-- Gruppe: Video &amp; Plattform -->
                         <GroupBox Header="Video &amp; Plattform" Margin="0,0,0,12">
                             <StackPanel Margin="8" Orientation="Vertical">
                                 <!-- Videodatei -->
@@ -439,17 +439,83 @@
 
             <!-- TAB 5: Historie -->
             <TabItem Header="Historie">
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Auto"
-                              Padding="4">
-                    <Grid Margin="8">
-                        <TextBlock Text="Upload-Historie – Platzhalter für spätere Phasen."
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"
-                                   TextWrapping="Wrap"
-                                   TextAlignment="Center"/>
-                    </Grid>
-                </ScrollViewer>
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Filter & Aktionen -->
+                    <StackPanel Grid.Row="0"
+                                Orientation="Horizontal"
+                                Margin="0,0,0,8"
+                                VerticalAlignment="Center">
+                        <Label Content="Plattform:"
+                               VerticalAlignment="Center"
+                               Margin="0,0,4,0"/>
+                        <ComboBox x:Name="HistoryPlatformFilterComboBox"
+                                  Width="140"
+                                  Margin="0,0,12,0"
+                                  SelectionChanged="HistoryFilter_Changed">
+                            <ComboBoxItem Content="Alle" IsSelected="True"/>
+                            <ComboBoxItem Content="YouTube" Tag="{x:Static core:PlatformType.YouTube}"/>
+                        </ComboBox>
+
+                        <Label Content="Status:"
+                               VerticalAlignment="Center"
+                               Margin="0,0,4,0"/>
+                        <ComboBox x:Name="HistoryStatusFilterComboBox"
+                                  Width="140"
+                                  Margin="0,0,12,0"
+                                  SelectionChanged="HistoryFilter_Changed">
+                            <ComboBoxItem Content="Alle" IsSelected="True"/>
+                            <ComboBoxItem Content="Nur Erfolg" Tag="Success"/>
+                            <ComboBoxItem Content="Nur Fehler" Tag="Error"/>
+                        </ComboBox>
+
+                        <Button x:Name="HistoryClearButton"
+                                Content="Historie leeren"
+                                Click="HistoryClearButton_Click"
+                                MinWidth="120"/>
+                    </StackPanel>
+
+                    <!-- Historien-Grid -->
+                    <DataGrid x:Name="HistoryDataGrid"
+                              Grid.Row="1"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column"
+                              SelectionMode="Single"
+                              MouseDoubleClick="HistoryDataGrid_MouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Datum/Uhrzeit"
+                                                Binding="{Binding DateTime, StringFormat=G}"
+                                                Width="160"/>
+                            <DataGridTextColumn Header="Plattform"
+                                                Binding="{Binding Platform}"
+                                                Width="100"/>
+                            <DataGridTextColumn Header="Titel"
+                                                Binding="{Binding VideoTitle}"
+                                                Width="*"/>
+                            <DataGridTextColumn Header="Status"
+                                                Binding="{Binding Status}"
+                                                Width="100"/>
+                            <DataGridTemplateColumn Header="Link" Width="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                            <Hyperlink NavigateUri="{Binding VideoUrl}"
+                                                       RequestNavigate="HistoryLink_RequestNavigate">
+                                                <Run Text="{Binding VideoUrl}"/>
+                                            </Hyperlink>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
             </TabItem>
 
             <!-- TAB 6: App-Einstellungen -->
