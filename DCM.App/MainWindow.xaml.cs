@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -68,7 +69,10 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await TryAutoConnectYouTubeAsync();
+        if (_settings.AutoConnectYouTube)
+        {
+            await TryAutoConnectYouTubeAsync();
+        }
     }
 
     #region Initial Load
@@ -108,14 +112,35 @@ public partial class MainWindow : Window
                 : _settings.DefaultSchedulingTime;
         }
 
+        if (DefaultVisibilityComboBox is not null)
+        {
+            var items = DefaultVisibilityComboBox.Items.OfType<ComboBoxItem>().ToList();
+            var selected = items.FirstOrDefault(i =>
+                i.Tag is VideoVisibility vv && vv == _settings.DefaultVisibility);
+            if (selected is not null)
+            {
+                DefaultVisibilityComboBox.SelectedItem = selected;
+            }
+        }
+
         if (ConfirmBeforeUploadCheckBox is not null)
         {
             ConfirmBeforeUploadCheckBox.IsChecked = _settings.ConfirmBeforeUpload;
         }
 
-        if (ExternalImageEditorPathTextBox is not null)
+        if (AutoApplyDefaultTemplateCheckBox is not null)
         {
-            ExternalImageEditorPathTextBox.Text = _settings.ExternalImageEditorPath ?? string.Empty;
+            AutoApplyDefaultTemplateCheckBox.IsChecked = _settings.AutoApplyDefaultTemplate;
+        }
+
+        if (OpenBrowserAfterUploadCheckBox is not null)
+        {
+            OpenBrowserAfterUploadCheckBox.IsChecked = _settings.OpenBrowserAfterUpload;
+        }
+
+        if (AutoConnectYouTubeCheckBox is not null)
+        {
+            AutoConnectYouTubeCheckBox.IsChecked = _settings.AutoConnectYouTube;
         }
     }
 
@@ -127,6 +152,18 @@ public partial class MainWindow : Window
 
         // Templates-Tab
         TemplatePlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
+
+        // Sichtbarkeit-Combo im Upload-Tab nach Settings
+        if (VisibilityComboBox is not null)
+        {
+            var items = VisibilityComboBox.Items.OfType<ComboBoxItem>().ToList();
+            var selected = items.FirstOrDefault(i =>
+                i.Tag is VideoVisibility vv && vv == _settings.DefaultVisibility);
+            if (selected is not null)
+            {
+                VisibilityComboBox.SelectedItem = selected;
+            }
+        }
     }
 
     private void InitializeSchedulingDefaults()
@@ -197,6 +234,23 @@ public partial class MainWindow : Window
         {
             LoadTemplateIntoEditor(null);
         }
+    }
+
+    private void TemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_settings.AutoApplyDefaultTemplate)
+            return;
+
+        if (TemplateComboBox.SelectedItem is not Template tmpl)
+            return;
+
+        if (!string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
+            return;
+
+        var project = BuildUploadProjectFromUi(includeScheduling: false);
+        var result = _templateService.ApplyTemplate(tmpl.Body, project);
+        DescriptionTextBox.Text = result;
+        StatusTextBlock.Text = $"Template \"{tmpl.Name}\" automatisch angewendet.";
     }
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -379,6 +433,21 @@ public partial class MainWindow : Window
             if (result.Success)
             {
                 StatusTextBlock.Text = $"Upload erfolgreich: {result.VideoUrl}";
+
+                if (_settings.OpenBrowserAfterUpload && result.VideoUrl is not null)
+                {
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo(result.VideoUrl.ToString())
+                        {
+                            UseShellExecute = true
+                        });
+                    }
+                    catch
+                    {
+                        // Browser öffnen ist Komfort – Fehler nicht kritisch.
+                    }
+                }
             }
             else
             {
@@ -700,39 +769,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ExternalImageEditorBrowseButton_Click(object sender, RoutedEventArgs e)
-    {
-        var dlg = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "Externen Bildeditor auswählen",
-            Filter = "Programme|*.exe;*.bat;*.cmd|Alle Dateien|*.*"
-        };
-
-        if (!string.IsNullOrWhiteSpace(_settings.ExternalImageEditorPath))
-        {
-            try
-            {
-                var dir = Path.GetDirectoryName(_settings.ExternalImageEditorPath);
-                if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
-                {
-                    dlg.InitialDirectory = dir;
-                }
-            }
-            catch
-            {
-                // Ignorieren, Default-InitialDirectory verwenden.
-            }
-        }
-
-        if (dlg.ShowDialog(this) == true)
-        {
-            ExternalImageEditorPathTextBox.Text = dlg.FileName;
-            _settings.ExternalImageEditorPath = dlg.FileName;
-            SaveSettings();
-            StatusTextBlock.Text = "Pfad zum Bildeditor aktualisiert.";
-        }
-    }
-
     private void AppSettingsSaveButton_Click(object sender, RoutedEventArgs e)
     {
         _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
@@ -747,11 +783,20 @@ public partial class MainWindow : Window
             ? null
             : DefaultSchedulingTimeTextBox.Text.Trim();
 
-        _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
+        if (DefaultVisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
+            visItem.Tag is VideoVisibility visibility)
+        {
+            _settings.DefaultVisibility = visibility;
+        }
+        else
+        {
+            _settings.DefaultVisibility = VideoVisibility.Unlisted;
+        }
 
-        _settings.ExternalImageEditorPath = string.IsNullOrWhiteSpace(ExternalImageEditorPathTextBox.Text)
-            ? null
-            : ExternalImageEditorPathTextBox.Text.Trim();
+        _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
+        _settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
+        _settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
+        _settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
 
         SaveSettings();
         StatusTextBlock.Text = "App-Einstellungen gespeichert.";
@@ -775,7 +820,7 @@ public partial class MainWindow : Window
         }
 
         // Sichtbarkeit
-        var visibility = VideoVisibility.Unlisted;
+        var visibility = _settings.DefaultVisibility;
         if (VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)
         {
             visibility = visEnum;

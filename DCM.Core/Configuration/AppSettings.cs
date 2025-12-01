@@ -40,7 +40,22 @@ public sealed class AppSettings
     public bool ConfirmBeforeUpload { get; set; } = false;
 
     /// <summary>
-    /// Pfad zu einem externen Bildbearbeitungsprogramm (für Thumbnails etc.).
+    /// Ob beim Start automatisch versucht werden soll, mit YouTube zu verbinden (falls Tokens vorhanden sind).
     /// </summary>
-    public string? ExternalImageEditorPath { get; set; }
+    public bool AutoConnectYouTube { get; set; } = true;
+
+    /// <summary>
+    /// Standard-Sichtbarkeit für neue Uploads.
+    /// </summary>
+    public VideoVisibility DefaultVisibility { get; set; } = VideoVisibility.Unlisted;
+
+    /// <summary>
+    /// Ob das ausgewählte (Standard-)Template automatisch angewendet werden soll, wenn möglich.
+    /// </summary>
+    public bool AutoApplyDefaultTemplate { get; set; } = true;
+
+    /// <summary>
+    /// Ob nach erfolgreichem Upload der Browser mit der Video-URL geöffnet werden soll.
+    /// </summary>
+    public bool OpenBrowserAfterUpload { get; set; } = false;
 }

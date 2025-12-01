@@ -106,7 +106,8 @@
                                 <ComboBox x:Name="TemplateComboBox"
                                           MinWidth="250"
                                           DisplayMemberPath="Name"
-                                          ToolTip="Template für die Beschreibung."/>
+                                          ToolTip="Template für die Beschreibung."
+                                          SelectionChanged="TemplateComboBox_SelectionChanged"/>
                             </StackPanel>
                         </StackPanel>
 
@@ -346,7 +347,6 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>  <!-- Ordner -->
                             <RowDefinition Height="Auto"/>  <!-- Upload-Defaults -->
-                            <RowDefinition Height="Auto"/>  <!-- Externe Tools -->
                             <RowDefinition Height="Auto"/>  <!-- Speichern-Button -->
                         </Grid.RowDefinitions>
 
@@ -393,31 +393,38 @@
                                              Text="18:00"/>
                                 </StackPanel>
 
-                                <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
-                                          Content="Vor Upload um Bestätigung fragen"/>
-                            </StackPanel>
-                        </GroupBox>
-
-                        <!-- Externe Tools -->
-                        <GroupBox Header="Externe Tools" Grid.Row="2" Margin="0,0,0,8">
-                            <StackPanel Margin="8">
-                                <StackPanel Orientation="Horizontal">
-                                    <Label Content="Bildeditor:"
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Label Content="Standard-Sichtbarkeit:"
                                            VerticalAlignment="Center"
                                            Width="160"/>
-                                    <TextBox x:Name="ExternalImageEditorPathTextBox"
-                                             MinWidth="350"
-                                             Margin="0,0,8,0"/>
-                                    <Button x:Name="ExternalImageEditorBrowseButton"
-                                            Content="Programm wählen..."
-                                            MinWidth="120"
-                                            Click="ExternalImageEditorBrowseButton_Click"/>
+                                    <ComboBox x:Name="DefaultVisibilityComboBox"
+                                              MinWidth="150">
+                                        <ComboBoxItem Content="Öffentlich" Tag="{x:Static core:VideoVisibility.Public}"/>
+                                        <ComboBoxItem Content="Nicht gelistet" Tag="{x:Static core:VideoVisibility.Unlisted}"/>
+                                        <ComboBoxItem Content="Privat" Tag="{x:Static core:VideoVisibility.Private}"/>
+                                    </ComboBox>
                                 </StackPanel>
+
+                                <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
+                                          Content="Vor Upload um Bestätigung fragen"
+                                          Margin="0,0,0,4"/>
+
+                                <CheckBox x:Name="AutoApplyDefaultTemplateCheckBox"
+                                          Content="Template automatisch anwenden (wenn Beschreibung leer ist)"
+                                          Margin="0,0,0,4"/>
+
+                                <CheckBox x:Name="OpenBrowserAfterUploadCheckBox"
+                                          Content="Nach erfolgreichem Upload Browser mit Video öffnen"
+                                          Margin="0,0,0,4"/>
+
+                                <CheckBox x:Name="AutoConnectYouTubeCheckBox"
+                                          Content="Beim Start automatisch mit YouTube verbinden (falls möglich)"
+                                          Margin="0,0,0,0"/>
                             </StackPanel>
                         </GroupBox>
 
                         <!-- Speichern -->
-                        <StackPanel Grid.Row="3"
+                        <StackPanel Grid.Row="2"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Right">
                             <Button x:Name="AppSettingsSaveButton"
