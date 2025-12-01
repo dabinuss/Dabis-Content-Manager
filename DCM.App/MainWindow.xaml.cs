@@ -543,12 +543,19 @@ public partial class MainWindow : Window
         }
 
         StatusTextBlock.Text = "Upload wird vorbereitet...";
+        ShowUploadProgress("Upload wird vorbereitet...");
+
+        var progressReporter = new Progress<UploadProgressInfo>(ReportUploadProgress);
 
         try
         {
             Template? selectedTemplate = TemplateComboBox.SelectedItem as Template;
 
-            var result = await _uploadService.UploadAsync(project, selectedTemplate, CancellationToken.None);
+            var result = await _uploadService.UploadAsync(
+                project,
+                selectedTemplate,
+                progressReporter,
+                CancellationToken.None);
 
             // Upload-Historie speichern
             _uploadHistoryService.AddEntry(project, result);
@@ -581,6 +588,10 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Unerwarteter Fehler beim Upload: {ex.Message}";
+        }
+        finally
+        {
+            HideUploadProgress();
         }
     }
 
@@ -961,6 +972,67 @@ public partial class MainWindow : Window
 
         SaveSettings();
         StatusTextBlock.Text = "Kanalprofil gespeichert.";
+    }
+
+    #endregion
+
+    #region Upload Progress UI
+
+    private void ShowUploadProgress(string message)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(() => ShowUploadProgress(message));
+            return;
+        }
+
+        UploadProgressBar.Visibility = Visibility.Visible;
+        UploadProgressLabel.Visibility = Visibility.Visible;
+
+        UploadProgressBar.IsIndeterminate = true;
+        UploadProgressBar.Value = 0;
+        UploadProgressLabel.Text = message;
+    }
+
+    private void ReportUploadProgress(UploadProgressInfo info)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(() => ReportUploadProgress(info));
+            return;
+        }
+
+        UploadProgressBar.Visibility = Visibility.Visible;
+        UploadProgressLabel.Visibility = Visibility.Visible;
+
+        UploadProgressBar.IsIndeterminate = info.IsIndeterminate;
+
+        if (!info.IsIndeterminate)
+        {
+            var percent = double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100);
+            UploadProgressBar.Value = percent;
+        }
+
+        if (!string.IsNullOrWhiteSpace(info.Message))
+        {
+            UploadProgressLabel.Text = info.Message;
+            StatusTextBlock.Text = info.Message;
+        }
+    }
+
+    private void HideUploadProgress()
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(HideUploadProgress);
+            return;
+        }
+
+        UploadProgressBar.Visibility = Visibility.Collapsed;
+        UploadProgressLabel.Visibility = Visibility.Collapsed;
+        UploadProgressBar.IsIndeterminate = false;
+        UploadProgressBar.Value = 0;
+        UploadProgressLabel.Text = string.Empty;
     }
 
     #endregion

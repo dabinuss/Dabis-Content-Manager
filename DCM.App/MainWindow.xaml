@@ -7,7 +7,12 @@
         Width="1000"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="12">
-        <TabControl>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0">
             <!-- TAB 1: Neuer Upload (kompakt & gruppiert) -->
             <TabItem Header="Neuer Upload">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -203,13 +208,6 @@
                                         Click="UploadButton_Click"
                                         MinWidth="140"/>
                             </StackPanel>
-
-                            <TextBlock x:Name="StatusTextBlock"
-                                       DockPanel.Dock="Right"
-                                       Text=""
-                                       HorizontalAlignment="Right"
-                                       VerticalAlignment="Center"
-                                       TextWrapping="Wrap"/>
                         </DockPanel>
                     </StackPanel>
                 </ScrollViewer>
@@ -616,5 +614,33 @@
                 </ScrollViewer>
             </TabItem>
         </TabControl>
+
+        <!-- Globale Status- und Fortschrittsanzeige -->
+        <Border Grid.Row="1"
+                Margin="0,12,0,0"
+                Padding="8"
+                Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}"
+                BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                BorderThickness="1">
+            <StackPanel Orientation="Vertical">
+                <TextBlock x:Name="StatusTextBlock"
+                           Text=""
+                           TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal"
+                            Margin="0,6,0,0"
+                            VerticalAlignment="Center">
+                    <ProgressBar x:Name="UploadProgressBar"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Height="12"
+                                 Width="200"
+                                 Visibility="Collapsed"/>
+                    <TextBlock x:Name="UploadProgressLabel"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"
+                               Visibility="Collapsed"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

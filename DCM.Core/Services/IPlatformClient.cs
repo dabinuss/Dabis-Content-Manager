@@ -8,5 +8,8 @@ public interface IPlatformClient
 {
     PlatformType Platform { get; }
 
-    Task<UploadResult> UploadAsync(UploadProject project, CancellationToken cancellationToken = default);
+    Task<UploadResult> UploadAsync(
+        UploadProject project,
+        IProgress<UploadProgressInfo>? progress = null,
+        CancellationToken cancellationToken = default);
 }

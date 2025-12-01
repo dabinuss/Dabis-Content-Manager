@@ -1,5 +1,3 @@
-// DCM.Core/Services/UploadService.cs
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +29,7 @@ public sealed class UploadService
     public async Task<UploadResult> UploadAsync(
         UploadProject project,
         Template? template,
+        IProgress<UploadProgressInfo>? progress = null,
         CancellationToken cancellationToken = default)
     {
         if (project is null) throw new ArgumentNullException(nameof(project));
@@ -58,6 +57,6 @@ public sealed class UploadService
         }
 
         // Upload über den jeweiligen Client
-        return await client.UploadAsync(project, cancellationToken).ConfigureAwait(false);
+        return await client.UploadAsync(project, progress, cancellationToken).ConfigureAwait(false);
     }
 }

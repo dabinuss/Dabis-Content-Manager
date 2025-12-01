@@ -1,5 +1,3 @@
-// DCM.YouTube/YouTubePlatformClient.cs
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +10,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Services;
+using Google.Apis.Upload;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
@@ -119,7 +118,16 @@ public sealed class YouTubePlatformClient : IPlatformClient
         _credential = null;
 
         if (Directory.Exists(_tokenFolder))
-            Directory.Delete(_tokenFolder, true);
+        {
+            try
+            {
+                Directory.Delete(_tokenFolder, true);
+            }
+            catch
+            {
+                // Ignorieren – Token-Ordner konnte nicht gelöscht werden.
+            }
+        }
 
         return Task.CompletedTask;
     }
@@ -159,7 +167,10 @@ public sealed class YouTubePlatformClient : IPlatformClient
         return result;
     }
 
-    public async Task<UploadResult> UploadAsync(UploadProject project, CancellationToken cancellationToken = default)
+    public async Task<UploadResult> UploadAsync(
+        UploadProject project,
+        IProgress<UploadProgressInfo>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         if (project is null) throw new ArgumentNullException(nameof(project));
         project.Validate();
@@ -195,6 +206,7 @@ public sealed class YouTubePlatformClient : IPlatformClient
         }
 
         using var fileStream = new FileStream(project.VideoFilePath, FileMode.Open, FileAccess.Read);
+        var totalBytes = fileStream.Length;
 
         var insertRequest = _service.Videos.Insert(
             video,
@@ -202,6 +214,29 @@ public sealed class YouTubePlatformClient : IPlatformClient
             fileStream,
             "video/*"
         );
+
+        insertRequest.ProgressChanged += uploadProgress =>
+        {
+            switch (uploadProgress.Status)
+            {
+                case UploadStatus.Starting:
+                    progress?.Report(new UploadProgressInfo(0, "Upload startet...", totalBytes == 0));
+                    break;
+                case UploadStatus.Uploading:
+                    var percent = totalBytes > 0
+                        ? (double)uploadProgress.BytesSent / totalBytes * 100d
+                        : 0d;
+                    progress?.Report(new UploadProgressInfo(percent, "Video wird hochgeladen...", totalBytes == 0));
+                    break;
+                case UploadStatus.Completed:
+                    progress?.Report(new UploadProgressInfo(100, "Video-Upload abgeschlossen."));
+                    break;
+                case UploadStatus.Failed:
+                    progress?.Report(new UploadProgressInfo(0,
+                        uploadProgress.Exception?.Message ?? "Upload fehlgeschlagen."));
+                    break;
+            }
+        };
 
         var uploadProgress = await insertRequest.UploadAsync(cancellationToken);
 
@@ -218,6 +253,8 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
         if (!string.IsNullOrWhiteSpace(project.PlaylistId))
         {
+            progress?.Report(new UploadProgressInfo(100, "Playlist wird aktualisiert..."));
+
             var playlistItem = new PlaylistItem
             {
                 Snippet = new PlaylistItemSnippet
@@ -236,13 +273,18 @@ public sealed class YouTubePlatformClient : IPlatformClient
                 var playlistInsert = _service.PlaylistItems.Insert(playlistItem, "snippet");
                 await playlistInsert.ExecuteAsync(cancellationToken);
             }
-            catch { }
+            catch
+            {
+                // Playlist-Fehler sind nicht kritisch für den Upload.
+            }
         }
 
         // Thumbnail
         if (!string.IsNullOrWhiteSpace(project.ThumbnailPath) &&
             File.Exists(project.ThumbnailPath))
         {
+            progress?.Report(new UploadProgressInfo(100, "Thumbnail wird gesetzt..."));
+
             try
             {
                 using var thumbStream = new FileStream(project.ThumbnailPath, FileMode.Open, FileAccess.Read);
@@ -252,8 +294,13 @@ public sealed class YouTubePlatformClient : IPlatformClient
                 var thumbsRequest = _service.Thumbnails.Set(videoId, thumbStream, contentType);
                 await thumbsRequest.UploadAsync(cancellationToken);
             }
-            catch { }
+            catch
+            {
+                // Thumbnail-Upload fehlgeschlagen – ignorieren.
+            }
         }
+
+        progress?.Report(new UploadProgressInfo(100, "Upload abgeschlossen."));
 
         var videoUrl = new Uri($"https://www.youtube.com/watch?v={videoId}");
         return UploadResult.Ok(videoId, videoUrl);
@@ -328,4 +375,3 @@ public sealed class YouTubePlatformClient : IPlatformClient
         };
     }
 }
-
