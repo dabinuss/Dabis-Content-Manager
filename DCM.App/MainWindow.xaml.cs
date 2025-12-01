@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private readonly ITemplateRepository _templateRepository;
     private readonly ISettingsProvider _settingsProvider;
     private readonly YouTubePlatformClient _youTubeClient;
+    private readonly IContentSuggestionService _contentSuggestionService;
     private UploadService _uploadService;
     private AppSettings _settings = new();
 
@@ -55,10 +56,12 @@ public partial class MainWindow : Window
         _settingsProvider = new JsonSettingsProvider();
         _templateRepository = new JsonTemplateRepository();
         _youTubeClient = new YouTubePlatformClient();
+        _contentSuggestionService = new SimpleContentSuggestionService();
         _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
 
         LoadSettings();
         InitializePlatformComboBox();
+        InitializeLanguageComboBox();
         InitializeSchedulingDefaults();
         LoadTemplates();
         UpdateYouTubeStatusText(); // Anfangsstatus
@@ -88,6 +91,9 @@ public partial class MainWindow : Window
             _settings = new AppSettings();
             StatusTextBlock.Text = $"Einstellungen konnten nicht geladen werden: {ex.Message}";
         }
+
+        // Safety: Persona nie null lassen
+        _settings.Persona ??= new ChannelPersona();
 
         ApplySettingsToUi();
     }
@@ -142,6 +148,45 @@ public partial class MainWindow : Window
         {
             AutoConnectYouTubeCheckBox.IsChecked = _settings.AutoConnectYouTube;
         }
+
+        // Kanalprofil-Tab
+        var persona = _settings.Persona ?? new ChannelPersona();
+        _settings.Persona = persona;
+
+        if (ChannelPersonaNameTextBox is not null)
+        {
+            ChannelPersonaNameTextBox.Text = persona.Name ?? string.Empty;
+        }
+
+        if (ChannelPersonaChannelNameTextBox is not null)
+        {
+            ChannelPersonaChannelNameTextBox.Text = persona.ChannelName ?? string.Empty;
+        }
+
+        if (ChannelPersonaLanguageTextBox is not null)
+        {
+            ChannelPersonaLanguageTextBox.Text = persona.Language ?? string.Empty;
+        }
+
+        if (ChannelPersonaToneOfVoiceTextBox is not null)
+        {
+            ChannelPersonaToneOfVoiceTextBox.Text = persona.ToneOfVoice ?? string.Empty;
+        }
+
+        if (ChannelPersonaContentTypeTextBox is not null)
+        {
+            ChannelPersonaContentTypeTextBox.Text = persona.ContentType ?? string.Empty;
+        }
+
+        if (ChannelPersonaTargetAudienceTextBox is not null)
+        {
+            ChannelPersonaTargetAudienceTextBox.Text = persona.TargetAudience ?? string.Empty;
+        }
+
+        if (ChannelPersonaAdditionalInstructionsTextBox is not null)
+        {
+            ChannelPersonaAdditionalInstructionsTextBox.Text = persona.AdditionalInstructions ?? string.Empty;
+        }
     }
 
     private void InitializePlatformComboBox()
@@ -164,6 +209,23 @@ public partial class MainWindow : Window
                 VisibilityComboBox.SelectedItem = selected;
             }
         }
+    }
+
+    private void InitializeLanguageComboBox()
+    {
+        if (ChannelPersonaLanguageTextBox is null)
+            return;
+
+        // Nur neutrale Sprachen (keine Länder-Kombinationen wie "Deutsch (Belgien)")
+        var cultures = CultureInfo
+            .GetCultures(CultureTypes.NeutralCultures)
+            .Where(c => !string.IsNullOrWhiteSpace(c.Name)) // Invariant ausschließen
+            .OrderBy(c => c.DisplayName)
+            .Select(c => $"{c.DisplayName} ({c.Name})")
+            .ToList();
+
+        ChannelPersonaLanguageTextBox.ItemsSource = cultures;
+        // Text bleibt das, was wir in ApplySettingsToUi gesetzt haben (ComboBox ist editierbar)
     }
 
     private void InitializeSchedulingDefaults()
@@ -330,18 +392,69 @@ public partial class MainWindow : Window
         ThumbnailPathTextBox.Text = string.Empty;
     }
 
-    private void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
+    private async void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
     {
-        var path = VideoPathTextBox.Text;
+        var project = BuildUploadProjectFromUi(includeScheduling: false);
 
-        if (string.IsNullOrWhiteSpace(path))
+        _settings.Persona ??= new ChannelPersona();
+
+        var titles = await _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona);
+
+        if (titles is null || titles.Count == 0)
         {
-            TitleTextBox.Text = "Neues Video";
+            var path = project.VideoFilePath;
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                TitleTextBox.Text = "Neues Video";
+                return;
+            }
+
+            var fileName = Path.GetFileNameWithoutExtension(path);
+            TitleTextBox.Text = string.IsNullOrWhiteSpace(fileName) ? "Neues Video" : fileName;
             return;
         }
 
-        var fileName = Path.GetFileNameWithoutExtension(path);
-        TitleTextBox.Text = string.IsNullOrWhiteSpace(fileName) ? "Neues Video" : fileName;
+        TitleTextBox.Text = titles[0];
+        StatusTextBlock.Text = "Titelvorschlag eingefügt.";
+    }
+
+    private async void GenerateDescriptionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var project = BuildUploadProjectFromUi(includeScheduling: false);
+
+        _settings.Persona ??= new ChannelPersona();
+
+        var description = await _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona);
+
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            DescriptionTextBox.Text = description;
+            StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
+        }
+        else
+        {
+            StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
+        }
+    }
+
+    private async void GenerateTagsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var project = BuildUploadProjectFromUi(includeScheduling: false);
+
+        _settings.Persona ??= new ChannelPersona();
+
+        var tags = await _contentSuggestionService.SuggestTagsAsync(project, _settings.Persona);
+
+        if (tags is not null && tags.Count > 0)
+        {
+            TagsTextBox.Text = string.Join(", ", tags);
+            StatusTextBlock.Text = "Tag-Vorschläge eingefügt.";
+        }
+        else
+        {
+            StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
+        }
     }
 
     private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e)
@@ -697,7 +810,7 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Events – App-Einstellungen
+    #region Events – App-Einstellungen & Kanalprofil
 
     private void DefaultVideoFolderBrowseButton_Click(object sender, RoutedEventArgs e)
     {
@@ -802,6 +915,43 @@ public partial class MainWindow : Window
         StatusTextBlock.Text = "App-Einstellungen gespeichert.";
     }
 
+    private void ChannelProfileSaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.Persona ??= new ChannelPersona();
+        var persona = _settings.Persona;
+
+        persona.Name = string.IsNullOrWhiteSpace(ChannelPersonaNameTextBox.Text)
+            ? null
+            : ChannelPersonaNameTextBox.Text.Trim();
+
+        persona.ChannelName = string.IsNullOrWhiteSpace(ChannelPersonaChannelNameTextBox.Text)
+            ? null
+            : ChannelPersonaChannelNameTextBox.Text.Trim();
+
+        persona.Language = string.IsNullOrWhiteSpace(ChannelPersonaLanguageTextBox.Text)
+            ? null
+            : ChannelPersonaLanguageTextBox.Text.Trim();
+
+        persona.ToneOfVoice = string.IsNullOrWhiteSpace(ChannelPersonaToneOfVoiceTextBox.Text)
+            ? null
+            : ChannelPersonaToneOfVoiceTextBox.Text.Trim();
+
+        persona.ContentType = string.IsNullOrWhiteSpace(ChannelPersonaContentTypeTextBox.Text)
+            ? null
+            : ChannelPersonaContentTypeTextBox.Text.Trim();
+
+        persona.TargetAudience = string.IsNullOrWhiteSpace(ChannelPersonaTargetAudienceTextBox.Text)
+            ? null
+            : ChannelPersonaTargetAudienceTextBox.Text.Trim();
+
+        persona.AdditionalInstructions = string.IsNullOrWhiteSpace(ChannelPersonaAdditionalInstructionsTextBox.Text)
+            ? null
+            : ChannelPersonaAdditionalInstructionsTextBox.Text.Trim();
+
+        SaveSettings();
+        StatusTextBlock.Text = "Kanalprofil gespeichert.";
+    }
+
     #endregion
 
     #region Helpers
@@ -871,10 +1021,16 @@ public partial class MainWindow : Window
             Visibility = visibility,
             PlaylistId = playlistId,
             ScheduledTime = scheduledTime,
-            ThumbnailPath = ThumbnailPathTextBox.Text
+            ThumbnailPath = ThumbnailPathTextBox.Text,
+            TranscriptText = TranscriptTextBox.Text
         };
 
-        // Tags kommen später über eigene UI.
+        // Tags aus UI übernehmen
+        if (TagsTextBox is not null)
+        {
+            project.SetTagsFromCsv(TagsTextBox.Text ?? string.Empty);
+        }
+
         return project;
     }
 

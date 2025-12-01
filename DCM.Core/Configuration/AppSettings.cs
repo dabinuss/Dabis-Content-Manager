@@ -58,4 +58,9 @@ public sealed class AppSettings
     /// Ob nach erfolgreichem Upload der Browser mit der Video-URL geöffnet werden soll.
     /// </summary>
     public bool OpenBrowserAfterUpload { get; set; } = false;
+
+    /// <summary>
+    /// Kanal-Persona für Content-Suggestions.
+    /// </summary>
+    public ChannelPersona Persona { get; set; } = new();
 }

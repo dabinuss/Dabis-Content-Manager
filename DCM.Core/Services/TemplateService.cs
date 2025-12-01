@@ -35,6 +35,23 @@ public sealed class TemplateService
     {
         if (project is null) throw new ArgumentNullException(nameof(project));
 
+        string? transcriptSnippet = null;
+
+        if (!string.IsNullOrWhiteSpace(project.TranscriptText))
+        {
+            var text = project.TranscriptText.Trim();
+
+            const int maxLength = 280;
+            if (text.Length > maxLength)
+            {
+                transcriptSnippet = text[..maxLength].TrimEnd() + "…";
+            }
+            else
+            {
+                transcriptSnippet = text;
+            }
+        }
+
         var dict = new Dictionary<string, string?>
         {
             ["TITLE"] = project.Title,
@@ -43,7 +60,8 @@ public sealed class TemplateService
             ["PLAYLIST"] = project.PlaylistId,
             ["VISIBILITY"] = project.Visibility.ToString(),
             ["PLATFORM"] = project.Platform.ToString(),
-            ["CREATED_AT"] = project.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+            ["CREATED_AT"] = project.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
+            ["TRANSCRIPT_SNIPPET"] = transcriptSnippet
         };
 
         return ApplyTemplate(template, dict);

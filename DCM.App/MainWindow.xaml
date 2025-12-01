@@ -93,7 +93,7 @@
                                 </StackPanel>
 
                                 <!-- Template -->
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                     <Label Content="Template:"
                                            VerticalAlignment="Center"
                                            Width="100"/>
@@ -102,6 +102,21 @@
                                               DisplayMemberPath="Name"
                                               ToolTip="Template für die Beschreibung."
                                               SelectionChanged="TemplateComboBox_SelectionChanged"/>
+                                </StackPanel>
+
+                                <!-- Tags -->
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <Label Content="Tags:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <TextBox x:Name="TagsTextBox"
+                                             MinWidth="300"
+                                             Margin="0,0,8,0"
+                                             ToolTip="Tags, kommagetrennt (z. B. &quot;lets play, gaming, deutsch&quot;)."/>
+                                    <Button x:Name="GenerateTagsButton"
+                                            Content="Tags vorschlagen"
+                                            Click="GenerateTagsButton_Click"
+                                            MinWidth="130"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
@@ -148,14 +163,29 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <!-- Gruppe: Beschreibung -->
+                        <!-- Gruppe: Beschreibung + Transkript -->
                         <GroupBox Header="Beschreibung" Margin="0,0,0,12">
                             <StackPanel Margin="8" Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Button x:Name="GenerateDescriptionButton"
+                                            Content="Beschreibung vorschlagen"
+                                            Click="GenerateDescriptionButton_Click"
+                                            MinWidth="160"/>
+                                </StackPanel>
+
                                 <TextBox x:Name="DescriptionTextBox"
                                          AcceptsReturn="True"
                                          VerticalScrollBarVisibility="Auto"
                                          TextWrapping="Wrap"
                                          MinHeight="180"/>
+
+                                <Label Content="Transkript (optional):"
+                                       Margin="0,8,0,0"/>
+                                <TextBox x:Name="TranscriptTextBox"
+                                         AcceptsReturn="True"
+                                         VerticalScrollBarVisibility="Auto"
+                                         TextWrapping="Wrap"
+                                         MinHeight="120"/>
                             </StackPanel>
                         </GroupBox>
 
@@ -236,7 +266,92 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- TAB 3: Templates -->
+            <!-- TAB 3: Kanalprofil -->
+            <TabItem Header="Kanalprofil">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto"
+                              Padding="4">
+                    <Grid Margin="8">
+                        <GroupBox Header="Kanalprofil">
+                            <StackPanel Margin="8">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Name:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="ChannelPersonaNameTextBox"
+                                             MinWidth="300"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Channel-Name:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="ChannelPersonaChannelNameTextBox"
+                                             MinWidth="300"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Sprache (z. B. de-DE):"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <ComboBox x:Name="ChannelPersonaLanguageTextBox"
+                                              MinWidth="250"
+                                              IsEditable="True"
+                                              IsTextSearchEnabled="True"
+                                              StaysOpenOnEdit="True"
+                                              ToolTip="Sprache auswählen oder selbst eingeben (z. B. &quot;de-DE&quot; oder &quot;deutsch&quot;)."/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Tonfall:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="ChannelPersonaToneOfVoiceTextBox"
+                                             MinWidth="300"
+                                             ToolTip="z. B. locker, sarkastisch, informativ"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Content-Typ:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="ChannelPersonaContentTypeTextBox"
+                                             MinWidth="300"
+                                             ToolTip="z. B. Gaming Highlights, IRL, Tutorials"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Zielgruppe:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="ChannelPersonaTargetAudienceTextBox"
+                                             MinWidth="300"
+                                             ToolTip="z. B. Casual Gamer 18-34"/>
+                                </StackPanel>
+
+                                <Label Content="Additional Instructions:"
+                                       Margin="0,8,0,2"/>
+                                <TextBox x:Name="ChannelPersonaAdditionalInstructionsTextBox"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MinHeight="100"/>
+
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Right"
+                                            Margin="0,8,0,0">
+                                    <Button x:Name="ChannelProfileSaveButton"
+                                            Content="Speichern"
+                                            Click="ChannelProfileSaveButton_Click"
+                                            MinWidth="100"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 4: Templates -->
             <TabItem Header="Templates">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Auto"
@@ -322,7 +437,7 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- TAB 4: Historie -->
+            <!-- TAB 5: Historie -->
             <TabItem Header="Historie">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Auto"
@@ -337,7 +452,7 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- TAB 5: App-Einstellungen -->
+            <!-- TAB 6: App-Einstellungen -->
             <TabItem Header="App-Einstellungen">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Auto"

@@ -23,6 +23,11 @@ public sealed class UploadProject
 
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optionaler Volltext-Transkriptinhalt (z. B. von externer Transkript-Engine).
+    /// </summary>
+    public string? TranscriptText { get; set; }
+
     public List<string> Tags { get; } = new();
 
     public VideoVisibility Visibility { get; set; } = VideoVisibility.Unlisted;
