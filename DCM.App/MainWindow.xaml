@@ -3,169 +3,164 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
         Title="Dabis Content Manager"
-        Height="450"
-        Width="900"
+        Height="700"
+        Width="1000"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="12">
         <TabControl>
-            <!-- TAB 1: Neuer Upload (alles auf einer Seite) -->
+            <!-- TAB 1: Neuer Upload (kompakt & gruppiert) -->
             <TabItem Header="Neuer Upload">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Auto">
-                    <Grid Margin="8">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>   <!-- Video + Plattform + Thumbnail -->
-                            <RowDefinition Height="Auto"/>   <!-- Playlist + Sichtbarkeit -->
-                            <RowDefinition Height="Auto"/>   <!-- Scheduling -->
-                            <RowDefinition Height="Auto"/>   <!-- Titel -->
-                            <RowDefinition Height="*"/>      <!-- Beschreibung -->
-                            <RowDefinition Height="Auto"/>   <!-- Buttons + Status -->
-                        </Grid.RowDefinitions>
+                              HorizontalScrollBarVisibility="Auto"
+                              Padding="4">
+                    <StackPanel Margin="8" Orientation="Vertical">
 
-                        <!-- Video + Plattform + Thumbnail -->
-                        <StackPanel Grid.Row="0"
-                                    Orientation="Vertical"
-                                    Margin="0,0,0,8">
-                            <TextBlock Text="Upload-Konfiguration"
-                                       FontWeight="Bold"
-                                       Margin="0,0,0,4"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <Label Content="Video:"
-                                       VerticalAlignment="Center"
-                                       Width="60"/>
-                                <TextBox x:Name="VideoPathTextBox"
-                                         VerticalAlignment="Center"
-                                         Margin="0,0,8,0"
-                                         MinWidth="400"/>
-                                <Button x:Name="BrowseButton"
-                                        Content="Durchsuchen..."
-                                        Click="BrowseButton_Click"
-                                        MinWidth="100"/>
+                        <!-- Gruppe: Video & Plattform -->
+                        <GroupBox Header="Video &amp; Plattform" Margin="0,0,0,12">
+                            <StackPanel Margin="8" Orientation="Vertical">
+                                <!-- Videodatei -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Video:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <TextBox x:Name="VideoPathTextBox"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,8,0"
+                                             MinWidth="400"/>
+                                    <Button x:Name="BrowseButton"
+                                            Content="Durchsuchen..."
+                                            Click="BrowseButton_Click"
+                                            MinWidth="120"/>
+                                </StackPanel>
+
+                                <!-- Thumbnail-Auswahl -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Thumbnail:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <TextBox x:Name="ThumbnailPathTextBox"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,8,0"
+                                             MinWidth="400"
+                                             IsReadOnly="True"/>
+                                    <Button x:Name="ThumbnailBrowseButton"
+                                            Content="Durchsuchen..."
+                                            Click="ThumbnailBrowseButton_Click"
+                                            MinWidth="120"
+                                            Margin="0,0,8,0"/>
+                                    <Button x:Name="ThumbnailClearButton"
+                                            Content="Entfernen"
+                                            Click="ThumbnailClearButton_Click"
+                                            MinWidth="90"/>
+                                </StackPanel>
+
+                                <!-- Plattform -->
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="Plattform:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <ComboBox x:Name="PlatformComboBox"
+                                              MinWidth="200"/>
+                                </StackPanel>
                             </StackPanel>
+                        </GroupBox>
 
-                            <!-- Thumbnail-Auswahl -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <Label Content="Thumbnail:"
-                                       VerticalAlignment="Center"
-                                       Width="60"/>
-                                <TextBox x:Name="ThumbnailPathTextBox"
-                                         VerticalAlignment="Center"
-                                         Margin="0,0,8,0"
-                                         MinWidth="400"
-                                         IsReadOnly="True"/>
-                                <Button x:Name="ThumbnailBrowseButton"
-                                        Content="Durchsuchen..."
-                                        Click="ThumbnailBrowseButton_Click"
-                                        MinWidth="100"
-                                        Margin="0,0,8,0"/>
-                                <Button x:Name="ThumbnailClearButton"
-                                        Content="Entfernen"
-                                        Click="ThumbnailClearButton_Click"
-                                        MinWidth="80"/>
+                        <!-- Gruppe: Playlist, Sichtbarkeit & Template -->
+                        <GroupBox Header="Playlist &amp; Metadaten" Margin="0,0,0,12">
+                            <StackPanel Margin="8" Orientation="Vertical">
+                                <!-- Playlist -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Playlist:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <ComboBox x:Name="PlaylistComboBox"
+                                              MinWidth="250"
+                                              DisplayMemberPath="Title"
+                                              ToolTip="Playlist, in die das Video einsortiert wird (YouTube)."/>
+                                </StackPanel>
+
+                                <!-- Sichtbarkeit -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Sichtbarkeit:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <ComboBox x:Name="VisibilityComboBox"
+                                              MinWidth="180">
+                                        <ComboBoxItem Content="Öffentlich" Tag="{x:Static core:VideoVisibility.Public}"/>
+                                        <ComboBoxItem Content="Nicht gelistet" Tag="{x:Static core:VideoVisibility.Unlisted}" IsSelected="True"/>
+                                        <ComboBoxItem Content="Privat" Tag="{x:Static core:VideoVisibility.Private}"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Template -->
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="Template:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <ComboBox x:Name="TemplateComboBox"
+                                              MinWidth="250"
+                                              DisplayMemberPath="Name"
+                                              ToolTip="Template für die Beschreibung."
+                                              SelectionChanged="TemplateComboBox_SelectionChanged"/>
+                                </StackPanel>
                             </StackPanel>
+                        </GroupBox>
 
-                            <StackPanel Orientation="Horizontal">
-                                <Label Content="Plattform:"
-                                       VerticalAlignment="Center"
-                                       Width="60"/>
-                                <ComboBox x:Name="PlatformComboBox"
-                                          MinWidth="200"/>
+                        <!-- Gruppe: Veröffentlichung (Scheduling) -->
+                        <GroupBox Header="Veröffentlichung" Margin="0,0,0,12">
+                            <StackPanel Margin="8" Orientation="Vertical">
+                                <CheckBox x:Name="ScheduleCheckBox"
+                                          Content="Geplante Veröffentlichung aktivieren"
+                                          Margin="0,0,0,6"
+                                          Checked="ScheduleCheckBox_Changed"
+                                          Unchecked="ScheduleCheckBox_Changed"/>
+                                <StackPanel Orientation="Horizontal" Margin="16,0,0,0">
+                                    <Label Content="Datum:"
+                                           VerticalAlignment="Center"
+                                           Width="100"/>
+                                    <DatePicker x:Name="ScheduleDatePicker"
+                                                Width="140"
+                                                IsEnabled="False"/>
+                                    <Label Content="Zeit (HH:mm):"
+                                           VerticalAlignment="Center"
+                                           Margin="12,0,0,0"/>
+                                    <TextBox x:Name="ScheduleTimeTextBox"
+                                             Width="80"
+                                             IsEnabled="False"
+                                             Text="18:00"/>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
+                        </GroupBox>
 
-                        <!-- Playlist + Sichtbarkeit + Template -->
-                        <StackPanel Grid.Row="1"
-                                    Orientation="Vertical"
-                                    Margin="0,0,0,8">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <Label Content="Playlist:"
-                                       VerticalAlignment="Center"
-                                       Width="60"/>
-                                <ComboBox x:Name="PlaylistComboBox"
-                                          MinWidth="250"
-                                          DisplayMemberPath="Title"
-                                          ToolTip="Playlist, in die das Video einsortiert wird (YouTube)."/>
+                        <!-- Gruppe: Titel -->
+                        <GroupBox Header="Titel" Margin="0,0,0,12">
+                            <StackPanel Margin="8" Orientation="Vertical">
+                                <Label Content="Titel:"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="TitleTextBox"
+                                             Margin="0,0,8,0"
+                                             MinWidth="400"/>
+                                    <Button x:Name="GenerateTitleButton"
+                                            Content="Titel vorschlagen"
+                                            Click="GenerateTitleButton_Click"
+                                            MinWidth="140"/>
+                                </StackPanel>
                             </StackPanel>
+                        </GroupBox>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <Label Content="Sichtbarkeit:"
-                                       VerticalAlignment="Center"
-                                       Width="60"/>
-                                <ComboBox x:Name="VisibilityComboBox"
-                                          MinWidth="180">
-                                    <ComboBoxItem Content="Öffentlich" Tag="{x:Static core:VideoVisibility.Public}"/>
-                                    <ComboBoxItem Content="Nicht gelistet" Tag="{x:Static core:VideoVisibility.Unlisted}" IsSelected="True"/>
-                                    <ComboBoxItem Content="Privat" Tag="{x:Static core:VideoVisibility.Private}"/>
-                                </ComboBox>
+                        <!-- Gruppe: Beschreibung -->
+                        <GroupBox Header="Beschreibung" Margin="0,0,0,12">
+                            <StackPanel Margin="8" Orientation="Vertical">
+                                <TextBox x:Name="DescriptionTextBox"
+                                         AcceptsReturn="True"
+                                         VerticalScrollBarVisibility="Auto"
+                                         TextWrapping="Wrap"
+                                         MinHeight="180"/>
                             </StackPanel>
-
-                            <StackPanel Orientation="Horizontal">
-                                <Label Content="Template:"
-                                       VerticalAlignment="Center"
-                                       Width="60"/>
-                                <ComboBox x:Name="TemplateComboBox"
-                                          MinWidth="250"
-                                          DisplayMemberPath="Name"
-                                          ToolTip="Template für die Beschreibung."
-                                          SelectionChanged="TemplateComboBox_SelectionChanged"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Scheduling -->
-                        <StackPanel Grid.Row="2"
-                                    Orientation="Vertical"
-                                    Margin="0,0,0,8">
-                            <CheckBox x:Name="ScheduleCheckBox"
-                                      Content="Geplante Veröffentlichung aktivieren"
-                                      Margin="0,0,0,4"
-                                      Checked="ScheduleCheckBox_Changed"
-                                      Unchecked="ScheduleCheckBox_Changed"/>
-                            <StackPanel Orientation="Horizontal" Margin="16,0,0,0">
-                                <Label Content="Datum:"
-                                       VerticalAlignment="Center"
-                                       Width="60"/>
-                                <DatePicker x:Name="ScheduleDatePicker"
-                                            Width="140"
-                                            IsEnabled="False"/>
-                                <Label Content="Zeit (HH:mm):"
-                                       VerticalAlignment="Center"
-                                       Margin="12,0,0,0"/>
-                                <TextBox x:Name="ScheduleTimeTextBox"
-                                         Width="70"
-                                         IsEnabled="False"
-                                         Text="18:00"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Titel -->
-                        <StackPanel Grid.Row="3"
-                                    Margin="0,0,0,8">
-                            <Label Content="Titel:"/>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBox x:Name="TitleTextBox"
-                                         Margin="0,0,8,0"
-                                         MinWidth="400"/>
-                                <Button x:Name="GenerateTitleButton"
-                                        Content="Titel vorschlagen"
-                                        Click="GenerateTitleButton_Click"
-                                        MinWidth="140"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Beschreibung -->
-                        <StackPanel Grid.Row="4"
-                                    Margin="0,0,0,8">
-                            <Label Content="Beschreibung:"/>
-                            <TextBox x:Name="DescriptionTextBox"
-                                     AcceptsReturn="True"
-                                     VerticalScrollBarVisibility="Auto"
-                                     TextWrapping="Wrap"
-                                     MinHeight="150"/>
-                        </StackPanel>
+                        </GroupBox>
 
                         <!-- Aktionen unten -->
-                        <DockPanel Grid.Row="5"
-                                   Margin="0,0,0,0">
+                        <DockPanel LastChildFill="True">
                             <StackPanel Orientation="Horizontal"
                                         DockPanel.Dock="Left">
                                 <Button x:Name="ApplyTemplateButton"
@@ -186,21 +181,22 @@
                                        VerticalAlignment="Center"
                                        TextWrapping="Wrap"/>
                         </DockPanel>
-                    </Grid>
+                    </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <!-- TAB 2: Konten -->
             <TabItem Header="Konten">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Auto">
+                              HorizontalScrollBarVisibility="Auto"
+                              Padding="4">
                     <Grid Margin="8">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <GroupBox Header="YouTube-Konto" Grid.Row="0">
+                        <GroupBox Header="YouTube-Konto" Grid.Row="0" Margin="0,0,0,12">
                             <StackPanel Margin="8">
                                 <TextBlock x:Name="YouTubeAccountStatusTextBlock"
                                            Text="Nicht mit YouTube verbunden."
@@ -219,7 +215,7 @@
                             </StackPanel>
                         </GroupBox>
 
-                        <GroupBox Header="YouTube-Playlists" Grid.Row="1" Margin="0,8,0,0">
+                        <GroupBox Header="YouTube-Playlists" Grid.Row="1">
                             <Grid Margin="8">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -228,11 +224,11 @@
 
                                 <TextBlock Text="Standard-Playlist für neue Uploads:"
                                            Grid.Row="0"
-                                           Margin="0,0,0,4"/>
+                                           Margin="0,0,0,6"/>
                                 <ListBox x:Name="YouTubePlaylistsListBox"
                                          Grid.Row="1"
                                          DisplayMemberPath="Title"
-                                         MinHeight="120"
+                                         MinHeight="140"
                                          SelectionChanged="YouTubePlaylistsListBox_SelectionChanged"/>
                             </Grid>
                         </GroupBox>
@@ -243,7 +239,8 @@
             <!-- TAB 3: Templates -->
             <TabItem Header="Templates">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Auto">
+                              HorizontalScrollBarVisibility="Auto"
+                              Padding="4">
                     <Grid Margin="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"/>
@@ -257,23 +254,23 @@
                                        Margin="0,0,0,8"/>
                             <ListBox x:Name="TemplateListBox"
                                      DisplayMemberPath="Name"
-                                     MinHeight="200"
+                                     MinHeight="220"
                                      SelectionChanged="TemplateListBox_SelectionChanged"/>
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                 <Button x:Name="TemplateNewButton"
                                         Content="Neu"
                                         Click="TemplateNewButton_Click"
-                                        MinWidth="70"
+                                        MinWidth="80"
                                         Margin="0,0,8,0"/>
                                 <Button x:Name="TemplateEditButton"
                                         Content="Bearbeiten"
                                         Click="TemplateEditButton_Click"
-                                        MinWidth="90"
+                                        MinWidth="100"
                                         Margin="0,0,8,0"/>
                                 <Button x:Name="TemplateDeleteButton"
                                         Content="Löschen"
                                         Click="TemplateDeleteButton_Click"
-                                        MinWidth="80"/>
+                                        MinWidth="90"/>
                             </StackPanel>
                         </StackPanel>
 
@@ -285,7 +282,7 @@
 
                             <Label Content="Name:"/>
                             <TextBox x:Name="TemplateNameTextBox"
-                                     MinWidth="200"
+                                     MinWidth="220"
                                      Margin="0,0,0,4"/>
 
                             <Label Content="Plattform:"/>
@@ -310,7 +307,7 @@
                                      AcceptsReturn="True"
                                      VerticalScrollBarVisibility="Auto"
                                      TextWrapping="Wrap"
-                                     MinHeight="150"/>
+                                     MinHeight="160"/>
 
                             <StackPanel Orientation="Horizontal"
                                         Margin="0,8,0,0"
@@ -318,7 +315,7 @@
                                 <Button x:Name="TemplateSaveButton"
                                         Content="Speichern"
                                         Click="TemplateSaveButton_Click"
-                                        MinWidth="90"/>
+                                        MinWidth="100"/>
                             </StackPanel>
                         </StackPanel>
                     </Grid>
@@ -328,7 +325,8 @@
             <!-- TAB 4: Historie -->
             <TabItem Header="Historie">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Auto">
+                              HorizontalScrollBarVisibility="Auto"
+                              Padding="4">
                     <Grid Margin="8">
                         <TextBlock Text="Upload-Historie – Platzhalter für spätere Phasen."
                                    VerticalAlignment="Center"
@@ -342,7 +340,8 @@
             <!-- TAB 5: App-Einstellungen -->
             <TabItem Header="App-Einstellungen">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Auto">
+                              HorizontalScrollBarVisibility="Auto"
+                              Padding="4">
                     <Grid Margin="8">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>  <!-- Ordner -->
@@ -351,9 +350,9 @@
                         </Grid.RowDefinitions>
 
                         <!-- Ordner -->
-                        <GroupBox Header="Ordner" Grid.Row="0" Margin="0,0,0,8">
+                        <GroupBox Header="Ordner" Grid.Row="0" Margin="0,0,0,12">
                             <StackPanel Margin="8">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                     <Label Content="Standard-Videoordner:"
                                            VerticalAlignment="Center"
                                            Width="160"/>
@@ -362,7 +361,7 @@
                                              Margin="0,0,8,0"/>
                                     <Button x:Name="DefaultVideoFolderBrowseButton"
                                             Content="Wählen..."
-                                            MinWidth="80"
+                                            MinWidth="90"
                                             Click="DefaultVideoFolderBrowseButton_Click"/>
                                 </StackPanel>
 
@@ -375,16 +374,16 @@
                                              Margin="0,0,8,0"/>
                                     <Button x:Name="DefaultThumbnailFolderBrowseButton"
                                             Content="Wählen..."
-                                            MinWidth="80"
+                                            MinWidth="90"
                                             Click="DefaultThumbnailFolderBrowseButton_Click"/>
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
 
                         <!-- Upload-Defaults -->
-                        <GroupBox Header="Upload-Defaults" Grid.Row="1" Margin="0,0,0,8">
+                        <GroupBox Header="Upload-Defaults" Grid.Row="1" Margin="0,0,0,12">
                             <StackPanel Margin="8">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                     <Label Content="Standard-Zeit (HH:mm):"
                                            VerticalAlignment="Center"
                                            Width="160"/>
@@ -393,7 +392,7 @@
                                              Text="18:00"/>
                                 </StackPanel>
 
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                     <Label Content="Standard-Sichtbarkeit:"
                                            VerticalAlignment="Center"
                                            Width="160"/>
