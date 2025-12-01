@@ -13,6 +13,7 @@ using Microsoft.Win32;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
 using DCM.Core.Services;
+using DCM.Llm;
 using DCM.YouTube;
 using WinForms = System.Windows.Forms;
 
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
     private readonly IContentSuggestionService _contentSuggestionService;
     private readonly UploadHistoryService _uploadHistoryService;
     private readonly ILlmService _llmService;
+    private readonly ILlmClient _llmClient;
     private UploadService _uploadService;
     private AppSettings _settings = new();
 
@@ -66,9 +68,16 @@ public partial class MainWindow : Window
 
         LoadSettings();
 
-        // LLM-Service initialisieren
+        // LLM-Infrastruktur initialisieren
         _llmService = new DummyLlmService(_settings.Llm);
-        _contentSuggestionService = new SimpleContentSuggestionService(_llmService);
+        _llmClient = CreateLlmClient(_settings.Llm);
+
+        // Content-Suggestion-Service mit LLM-Unterstützung
+        var fallbackService = new SimpleFallbackSuggestionService();
+        _contentSuggestionService = new ContentSuggestionService(
+            _llmClient,
+            fallbackService,
+            _settings.Llm);
 
         _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
 
@@ -81,6 +90,16 @@ public partial class MainWindow : Window
 
         // Auto-Reconnect nach dem Laden des Fensters
         Loaded += MainWindow_Loaded;
+    }
+
+    private static ILlmClient CreateLlmClient(LlmSettings settings)
+    {
+        if (settings.IsLocalMode && !string.IsNullOrWhiteSpace(settings.LocalModelPath))
+        {
+            return new LocalLlmClient(settings);
+        }
+
+        return new NullLlmClient();
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)

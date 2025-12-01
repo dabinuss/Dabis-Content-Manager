@@ -2,6 +2,10 @@ using DCM.Core.Configuration;
 
 namespace DCM.Core.Services;
 
+/// <summary>
+/// Dummy-Implementierung des ILlmService.
+/// Gibt immer Platzhalter-Antworten zurück.
+/// </summary>
 public sealed class DummyLlmService : ILlmService
 {
     private readonly LlmSettings _settings;

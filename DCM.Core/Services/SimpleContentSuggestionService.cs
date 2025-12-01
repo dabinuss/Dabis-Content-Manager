@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using DCM.Core.Models;
 
 namespace DCM.Core.Services;
 
+/// <summary>
+/// Einfache Implementierung des IContentSuggestionService ohne LLM.
+/// Delegiert an ILlmService für Abwärtskompatibilität.
+/// </summary>
 public sealed class SimpleContentSuggestionService : IContentSuggestionService
 {
     private readonly ILlmService _llmService;
