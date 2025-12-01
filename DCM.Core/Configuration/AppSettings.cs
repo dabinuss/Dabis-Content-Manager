@@ -63,4 +63,9 @@ public sealed class AppSettings
     /// Kanal-Persona für Content-Suggestions.
     /// </summary>
     public ChannelPersona Persona { get; set; } = new();
+
+    /// <summary>
+    /// LLM-Einstellungen für KI-gestützte Content-Generierung.
+    /// </summary>
+    public LlmSettings Llm { get; set; } = new();
 }

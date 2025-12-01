@@ -28,6 +28,7 @@ public partial class MainWindow : Window
     private readonly YouTubePlatformClient _youTubeClient;
     private readonly IContentSuggestionService _contentSuggestionService;
     private readonly UploadHistoryService _uploadHistoryService;
+    private readonly ILlmService _llmService;
     private UploadService _uploadService;
     private AppSettings _settings = new();
 
@@ -61,16 +62,21 @@ public partial class MainWindow : Window
         _settingsProvider = new JsonSettingsProvider();
         _templateRepository = new JsonTemplateRepository();
         _youTubeClient = new YouTubePlatformClient();
-        _contentSuggestionService = new SimpleContentSuggestionService();
         _uploadHistoryService = new UploadHistoryService();
-        _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
 
         LoadSettings();
+
+        // LLM-Service initialisieren
+        _llmService = new DummyLlmService(_settings.Llm);
+        _contentSuggestionService = new SimpleContentSuggestionService(_llmService);
+
+        _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
+
         InitializePlatformComboBox();
         InitializeLanguageComboBox();
         InitializeSchedulingDefaults();
         LoadTemplates();
-        UpdateYouTubeStatusText(); // Anfangsstatus
+        UpdateYouTubeStatusText();
         LoadUploadHistory();
 
         // Auto-Reconnect nach dem Laden des Fensters
@@ -101,6 +107,7 @@ public partial class MainWindow : Window
 
         // Safety: Persona nie null lassen
         _settings.Persona ??= new ChannelPersona();
+        _settings.Llm ??= new LlmSettings();
 
         ApplySettingsToUi();
     }
@@ -405,25 +412,26 @@ public partial class MainWindow : Window
 
         _settings.Persona ??= new ChannelPersona();
 
-        var titles = await _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona);
+        StatusTextBlock.Text = "Generiere Titelvorschläge...";
 
-        if (titles is null || titles.Count == 0)
+        try
         {
-            var path = project.VideoFilePath;
+            var titles = await _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona);
 
-            if (string.IsNullOrWhiteSpace(path))
+            if (titles is null || titles.Count == 0)
             {
-                TitleTextBox.Text = "Neues Video";
+                TitleTextBox.Text = "[Keine Vorschläge]";
+                StatusTextBlock.Text = "Keine Titelvorschläge erhalten.";
                 return;
             }
 
-            var fileName = Path.GetFileNameWithoutExtension(path);
-            TitleTextBox.Text = string.IsNullOrWhiteSpace(fileName) ? "Neues Video" : fileName;
-            return;
+            TitleTextBox.Text = titles[0];
+            StatusTextBlock.Text = $"Titelvorschlag eingefügt. ({titles.Count} Vorschläge)";
         }
-
-        TitleTextBox.Text = titles[0];
-        StatusTextBlock.Text = "Titelvorschlag eingefügt.";
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehler bei Titelgenerierung: {ex.Message}";
+        }
     }
 
     private async void GenerateDescriptionButton_Click(object sender, RoutedEventArgs e)
@@ -432,16 +440,25 @@ public partial class MainWindow : Window
 
         _settings.Persona ??= new ChannelPersona();
 
-        var description = await _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona);
+        StatusTextBlock.Text = "Generiere Beschreibungsvorschlag...";
 
-        if (!string.IsNullOrWhiteSpace(description))
+        try
         {
-            DescriptionTextBox.Text = description;
-            StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
+            var description = await _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona);
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                DescriptionTextBox.Text = description;
+                StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
+            }
+            else
+            {
+                StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
+            StatusTextBlock.Text = $"Fehler bei Beschreibungsgenerierung: {ex.Message}";
         }
     }
 
@@ -451,16 +468,25 @@ public partial class MainWindow : Window
 
         _settings.Persona ??= new ChannelPersona();
 
-        var tags = await _contentSuggestionService.SuggestTagsAsync(project, _settings.Persona);
+        StatusTextBlock.Text = "Generiere Tag-Vorschläge...";
 
-        if (tags is not null && tags.Count > 0)
+        try
         {
-            TagsTextBox.Text = string.Join(", ", tags);
-            StatusTextBlock.Text = "Tag-Vorschläge eingefügt.";
+            var tags = await _contentSuggestionService.SuggestTagsAsync(project, _settings.Persona);
+
+            if (tags is not null && tags.Count > 0)
+            {
+                TagsTextBox.Text = string.Join(", ", tags);
+                StatusTextBlock.Text = $"Tag-Vorschläge eingefügt. ({tags.Count} Tags)";
+            }
+            else
+            {
+                StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
+            StatusTextBlock.Text = $"Fehler bei Tag-Generierung: {ex.Message}";
         }
     }
 
