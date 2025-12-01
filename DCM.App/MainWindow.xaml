@@ -14,7 +14,7 @@
                               HorizontalScrollBarVisibility="Auto">
                     <Grid Margin="8">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>   <!-- Video + Plattform -->
+                            <RowDefinition Height="Auto"/>   <!-- Video + Plattform + Thumbnail -->
                             <RowDefinition Height="Auto"/>   <!-- Playlist + Sichtbarkeit -->
                             <RowDefinition Height="Auto"/>   <!-- Scheduling -->
                             <RowDefinition Height="Auto"/>   <!-- Titel -->
@@ -22,7 +22,7 @@
                             <RowDefinition Height="Auto"/>   <!-- Buttons + Status -->
                         </Grid.RowDefinitions>
 
-                        <!-- Video + Plattform -->
+                        <!-- Video + Plattform + Thumbnail -->
                         <StackPanel Grid.Row="0"
                                     Orientation="Vertical"
                                     Margin="0,0,0,8">
@@ -41,6 +41,27 @@
                                         Content="Durchsuchen..."
                                         Click="BrowseButton_Click"
                                         MinWidth="100"/>
+                            </StackPanel>
+
+                            <!-- Thumbnail-Auswahl -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Label Content="Thumbnail:"
+                                       VerticalAlignment="Center"
+                                       Width="60"/>
+                                <TextBox x:Name="ThumbnailPathTextBox"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,8,0"
+                                         MinWidth="400"
+                                         IsReadOnly="True"/>
+                                <Button x:Name="ThumbnailBrowseButton"
+                                        Content="Durchsuchen..."
+                                        Click="ThumbnailBrowseButton_Click"
+                                        MinWidth="100"
+                                        Margin="0,0,8,0"/>
+                                <Button x:Name="ThumbnailClearButton"
+                                        Content="Entfernen"
+                                        Click="ThumbnailClearButton_Click"
+                                        MinWidth="80"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal">

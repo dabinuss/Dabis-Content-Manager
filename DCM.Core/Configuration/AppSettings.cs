@@ -10,6 +10,11 @@ public sealed class AppSettings
     public string? LastVideoFolder { get; set; }
 
     /// <summary>
+    /// Optionaler Standardordner für Thumbnails.
+    /// </summary>
+    public string? DefaultThumbnailFolder { get; set; }
+
+    /// <summary>
     /// Standardplattform für neue Upload-Projekte.
     /// </summary>
     public PlatformType DefaultPlatform { get; set; } = PlatformType.YouTube;

@@ -16,6 +16,8 @@ namespace DCM.App;
 
 public partial class MainWindow : Window
 {
+    private const long MaxThumbnailSizeBytes = 1 * 1024 * 1024; // 1 MB
+
     private readonly TemplateService _templateService = new();
     private readonly ITemplateRepository _templateRepository;
     private readonly ISettingsProvider _settingsProvider;
@@ -170,6 +172,45 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ThumbnailBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFileDialog
+        {
+            Title = "Thumbnail-Datei auswählen",
+            Filter = "Bilddateien|*.png;*.jpg;*.jpeg|Alle Dateien|*.*"
+        };
+
+        string initialDirectory;
+
+        if (!string.IsNullOrWhiteSpace(_settings.DefaultThumbnailFolder) &&
+            Directory.Exists(_settings.DefaultThumbnailFolder))
+        {
+            initialDirectory = _settings.DefaultThumbnailFolder;
+        }
+        else if (!string.IsNullOrWhiteSpace(_settings.LastVideoFolder) &&
+                 Directory.Exists(_settings.LastVideoFolder))
+        {
+            initialDirectory = _settings.LastVideoFolder;
+        }
+        else
+        {
+            initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+        }
+
+        dlg.InitialDirectory = initialDirectory;
+
+        if (dlg.ShowDialog(this) == true)
+        {
+            ThumbnailPathTextBox.Text = dlg.FileName;
+            // DefaultThumbnailFolder bleibt vorerst konfigurierbar für spätere Phasen.
+        }
+    }
+
+    private void ThumbnailClearButton_Click(object sender, RoutedEventArgs e)
+    {
+        ThumbnailPathTextBox.Text = string.Empty;
+    }
+
     private void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
     {
         var path = VideoPathTextBox.Text;
@@ -210,6 +251,24 @@ public partial class MainWindow : Window
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
     {
         var project = BuildUploadProjectFromUi(includeScheduling: true);
+
+        // Milder Check für Thumbnail – nur Hinweis, kein Abbruch.
+        if (!string.IsNullOrWhiteSpace(project.ThumbnailPath) &&
+            !File.Exists(project.ThumbnailPath))
+        {
+            StatusTextBlock.Text = "Hinweis: Thumbnail-Datei wurde nicht gefunden. Upload wird ohne Thumbnail fortgesetzt.";
+            project.ThumbnailPath = string.Empty;
+        }
+        else if (!string.IsNullOrWhiteSpace(project.ThumbnailPath))
+        {
+            // 1-MB-Größenlimit
+            var fileInfo = new FileInfo(project.ThumbnailPath);
+            if (fileInfo.Length > MaxThumbnailSizeBytes)
+            {
+                StatusTextBlock.Text = "Thumbnail ist größer als 1 MB und wird nicht verwendet.";
+                project.ThumbnailPath = string.Empty;
+            }
+        }
 
         try
         {
@@ -553,7 +612,8 @@ public partial class MainWindow : Window
             Platform = platform,
             Visibility = visibility,
             PlaylistId = playlistId,
-            ScheduledTime = scheduledTime
+            ScheduledTime = scheduledTime,
+            ThumbnailPath = ThumbnailPathTextBox.Text
         };
 
         // Tags kommen später über eigene UI.

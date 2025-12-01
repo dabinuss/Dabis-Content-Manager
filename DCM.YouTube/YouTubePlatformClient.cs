@@ -33,65 +33,32 @@ public sealed class YouTubePlatformClient : IPlatformClient
         var baseFolder = Path.Combine(appData, "DabisContentManager");
 
         if (!Directory.Exists(baseFolder))
-        {
             Directory.CreateDirectory(baseFolder);
-        }
 
-        // Diese Datei musst du aus der Google Cloud Console herunterladen
-        // (OAuth-Client "Desktop App") und hier ablegen.
         _clientSecretsPath = Path.Combine(baseFolder, "youtube_client_secrets.json");
-
-        // Hier speichert Google.Apis die Tokens.
         _tokenFolder = Path.Combine(baseFolder, "youtube_tokens");
     }
 
     public PlatformType Platform => PlatformType.YouTube;
-
-    /// <summary>
-    /// True, wenn aktuell ein YouTubeService initialisiert wurde.
-    /// </summary>
     public bool IsConnected => _service is not null;
-
-    /// <summary>
-    /// Optionaler Channel-Name für die UI-Anzeige.
-    /// </summary>
     public string? ChannelTitle { get; private set; }
 
-    /// <summary>
-    /// Startet (oder reaktiviert) den OAuth-Flow und initialisiert den YouTubeService.
-    /// Darf den Browser öffnen.
-    /// </summary>
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
-        await EnsureServiceAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureServiceAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Versucht eine bestehende YouTube-Sitzung anhand gespeicherter Tokens
-    /// wiederherzustellen – komplett ohne Browser / interaktiven Flow.
-    /// Liefert true, wenn eine Verbindung aufgebaut werden konnte.
-    /// </summary>
     public async Task<bool> TryConnectSilentAsync(CancellationToken cancellationToken = default)
     {
-        // Wenn schon verbunden, sind wir fertig.
         if (_service is not null)
-        {
             return true;
-        }
 
-        // Ohne Client-Secrets oder ohne Token-Ordner: kein Silent-Connect möglich.
         if (!File.Exists(_clientSecretsPath) || !HasStoredTokens())
-        {
             return false;
-        }
 
         try
         {
-            // Secrets laden
-            var secrets = await GoogleClientSecrets
-                .FromFileAsync(_clientSecretsPath, cancellationToken)
-                .ConfigureAwait(false);
-
+            var secrets = await GoogleClientSecrets.FromFileAsync(_clientSecretsPath, cancellationToken);
             var scopes = new[]
             {
                 YouTubeService.Scope.Youtube,
@@ -99,76 +66,52 @@ public sealed class YouTubePlatformClient : IPlatformClient
                 YouTubeService.Scope.YoutubeReadonly
             };
 
-            var dataStore = new FileDataStore(_tokenFolder, fullPath: true);
+            var dataStore = new FileDataStore(_tokenFolder, true);
 
-            // Token direkt aus dem Store ziehen, ohne Browser.
-            var storedToken = await dataStore.GetAsync<TokenResponse>("user").ConfigureAwait(false);
+            var storedToken = await dataStore.GetAsync<TokenResponse>("user");
             if (storedToken is null)
-            {
                 return false;
-            }
 
-            var flow = new GoogleAuthorizationCodeFlow(
-                new GoogleAuthorizationCodeFlow.Initializer
-                {
-                    ClientSecrets = secrets.Secrets,
-                    Scopes = scopes,
-                    DataStore = dataStore
-                });
+            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = secrets.Secrets,
+                Scopes = scopes,
+                DataStore = dataStore
+            });
 
             var credential = new UserCredential(flow, "user", storedToken);
 
-            // NEU: Empfohlene Eigenschaft IsStale statt IsExpired(SystemClock.Default)
             if (credential.Token.IsStale)
             {
-                var refreshed = await credential
-                    .RefreshTokenAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (!refreshed)
-                {
-                    // Token kann nicht mehr verwendet werden → Silent-Fail.
+                if (!await credential.RefreshTokenAsync(cancellationToken))
                     return false;
-                }
             }
 
             _credential = credential;
 
             _service = new YouTubeService(new BaseClientService.Initializer
             {
-                HttpClientInitializer = _credential,
+                HttpClientInitializer = credential,
                 ApplicationName = _applicationName
             });
 
-            // Channel-Name holen (für Statusanzeige), Fehler hier sind nicht kritisch.
             try
             {
-                var channelsRequest = _service.Channels.List("snippet");
-                channelsRequest.Mine = true;
-
-                var channelsResponse = await channelsRequest
-                    .ExecuteAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                ChannelTitle = channelsResponse.Items?.FirstOrDefault()?.Snippet?.Title;
+                var req = _service.Channels.List("snippet");
+                req.Mine = true;
+                var resp = await req.ExecuteAsync(cancellationToken);
+                ChannelTitle = resp.Items?.FirstOrDefault()?.Snippet?.Title;
             }
-            catch
-            {
-                // Ignorieren – Verbindung steht trotzdem.
-            }
+            catch { }
 
             return true;
         }
         catch
         {
-            // Irgendwas am Silent-Flow ist schief gegangen → einfach false zurückgeben.
             return false;
         }
     }
 
-    /// <summary>
-    /// Löscht gespeicherte Tokens und beendet die aktuelle Sitzung.
-    /// </summary>
     public Task DisconnectAsync()
     {
         ChannelTitle = null;
@@ -176,24 +119,17 @@ public sealed class YouTubePlatformClient : IPlatformClient
         _credential = null;
 
         if (Directory.Exists(_tokenFolder))
-        {
-            Directory.Delete(_tokenFolder, recursive: true);
-        }
+            Directory.Delete(_tokenFolder, true);
 
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Liste der eigenen Playlists abrufen.
-    /// </summary>
     public async Task<IReadOnlyList<YouTubePlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default)
     {
-        await EnsureServiceAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureServiceAsync(cancellationToken);
 
         if (_service is null)
-        {
-            throw new InvalidOperationException("YouTube-Dienst ist nicht initialisiert.");
-        }
+            throw new InvalidOperationException("YouTube-Dienst nicht initialisiert.");
 
         var result = new List<YouTubePlaylistInfo>();
 
@@ -206,43 +142,35 @@ public sealed class YouTubePlatformClient : IPlatformClient
         do
         {
             request.PageToken = pageToken;
-            var response = await request.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+            var response = await request.ExecuteAsync(cancellationToken);
 
             if (response.Items != null)
             {
-                result.AddRange(response.Items
-                    .Where(p => !string.IsNullOrWhiteSpace(p.Id))
-                    .Select(p => new YouTubePlaylistInfo(
-                        p.Id!,
-                        p.Snippet?.Title ?? "(ohne Titel)")));
+                result.AddRange(
+                    response.Items
+                        .Where(p => !string.IsNullOrWhiteSpace(p.Id))
+                        .Select(p => new YouTubePlaylistInfo(p.Id!, p.Snippet?.Title ?? "(ohne Titel)")));
             }
 
             pageToken = response.NextPageToken;
-        } while (!string.IsNullOrEmpty(pageToken));
+        }
+        while (!string.IsNullOrEmpty(pageToken));
 
         return result;
     }
 
-    /// <summary>
-    /// Echte Upload-Implementierung via YouTube Data API v3.
-    /// </summary>
     public async Task<UploadResult> UploadAsync(UploadProject project, CancellationToken cancellationToken = default)
     {
         if (project is null) throw new ArgumentNullException(nameof(project));
-
         project.Validate();
 
         if (!File.Exists(project.VideoFilePath))
-        {
             return UploadResult.Failed($"Videodatei nicht gefunden: {project.VideoFilePath}");
-        }
 
-        await EnsureServiceAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureServiceAsync(cancellationToken);
 
         if (_service is null)
-        {
             return UploadResult.Failed("YouTube-Dienst konnte nicht initialisiert werden.");
-        }
 
         var video = new Video
         {
@@ -260,7 +188,6 @@ public sealed class YouTubePlatformClient : IPlatformClient
             }
         };
 
-        // Optionales Scheduling – neue, nicht-obsolete Property
         if (project.ScheduledTime is DateTimeOffset scheduled &&
             scheduled > DateTimeOffset.Now.AddMinutes(1))
         {
@@ -269,23 +196,26 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
         using var fileStream = new FileStream(project.VideoFilePath, FileMode.Open, FileAccess.Read);
 
-        var insertRequest = _service.Videos.Insert(video, "snippet,status", fileStream, "video/*");
+        var insertRequest = _service.Videos.Insert(
+            video,
+            "snippet,status",
+            fileStream,
+            "video/*"
+        );
 
-        var uploadProgress = await insertRequest.UploadAsync(cancellationToken).ConfigureAwait(false);
+        var uploadProgress = await insertRequest.UploadAsync(cancellationToken);
 
         if (uploadProgress.Exception is not null)
-        {
             return UploadResult.Failed(uploadProgress.Exception.Message);
-        }
 
-        if (insertRequest.ResponseBody is null || string.IsNullOrWhiteSpace(insertRequest.ResponseBody.Id))
-        {
+        if (insertRequest.ResponseBody?.Id is null)
             return UploadResult.Failed("YouTube hat keine Video-ID zurückgegeben.");
-        }
 
         var videoId = insertRequest.ResponseBody.Id;
 
-        // Optional: direkt in Playlist schieben
+        // Delay-Fix (YouTube braucht Zeit, sonst ignoriert es das Thumbnail)
+        await Task.Delay(1500, cancellationToken);
+
         if (!string.IsNullOrWhiteSpace(project.PlaylistId))
         {
             var playlistItem = new PlaylistItem
@@ -301,41 +231,43 @@ public sealed class YouTubePlatformClient : IPlatformClient
                 }
             };
 
-            var playlistInsert = _service.PlaylistItems.Insert(playlistItem, "snippet");
             try
             {
-                await playlistInsert.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+                var playlistInsert = _service.PlaylistItems.Insert(playlistItem, "snippet");
+                await playlistInsert.ExecuteAsync(cancellationToken);
             }
-            catch
+            catch { }
+        }
+
+        // Thumbnail
+        if (!string.IsNullOrWhiteSpace(project.ThumbnailPath) &&
+            File.Exists(project.ThumbnailPath))
+        {
+            try
             {
-                // Playlist hinzufügen ist nice-to-have, kein Hard-Fail.
+                using var thumbStream = new FileStream(project.ThumbnailPath, FileMode.Open, FileAccess.Read);
+                var ext = Path.GetExtension(project.ThumbnailPath);
+                var contentType = GetThumbnailMimeType(ext);
+
+                var thumbsRequest = _service.Thumbnails.Set(videoId, thumbStream, contentType);
+                await thumbsRequest.UploadAsync(cancellationToken);
             }
+            catch { }
         }
 
         var videoUrl = new Uri($"https://www.youtube.com/watch?v={videoId}");
         return UploadResult.Ok(videoId, videoUrl);
     }
 
-    /// <summary>
-    /// Interaktives Initialisieren des YouTubeService über den normalen OAuth-Flow.
-    /// Darf den Browser öffnen.
-    /// </summary>
     private async Task EnsureServiceAsync(CancellationToken cancellationToken)
     {
         if (_service is not null)
-        {
             return;
-        }
 
         if (!File.Exists(_clientSecretsPath))
-        {
-            throw new InvalidOperationException(
-                $"YouTube Client-Secrets-Datei wurde nicht gefunden. Erwartet an: {_clientSecretsPath}");
-        }
+            throw new InvalidOperationException($"YouTube Client-Secrets fehlen: {_clientSecretsPath}");
 
-        var secrets = await GoogleClientSecrets
-            .FromFileAsync(_clientSecretsPath, cancellationToken)
-            .ConfigureAwait(false);
+        var secrets = await GoogleClientSecrets.FromFileAsync(_clientSecretsPath, cancellationToken);
 
         var scopes = new[]
         {
@@ -344,15 +276,14 @@ public sealed class YouTubePlatformClient : IPlatformClient
             YouTubeService.Scope.YoutubeReadonly
         };
 
-        var dataStore = new FileDataStore(_tokenFolder, fullPath: true);
+        var dataStore = new FileDataStore(_tokenFolder, true);
 
         _credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                secrets.Secrets,
-                scopes,
-                "user",
-                cancellationToken,
-                dataStore)
-            .ConfigureAwait(false);
+            secrets.Secrets,
+            scopes,
+            "user",
+            cancellationToken,
+            dataStore);
 
         _service = new YouTubeService(new BaseClientService.Initializer
         {
@@ -360,12 +291,11 @@ public sealed class YouTubePlatformClient : IPlatformClient
             ApplicationName = _applicationName
         });
 
-        // Channel-Name holen (für Statusanzeige)
-        var channelsRequest = _service.Channels.List("snippet");
-        channelsRequest.Mine = true;
+        var req = _service.Channels.List("snippet");
+        req.Mine = true;
+        var resp = await req.ExecuteAsync(cancellationToken);
 
-        var channelsResponse = await channelsRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-        ChannelTitle = channelsResponse.Items?.FirstOrDefault()?.Snippet?.Title;
+        ChannelTitle = resp.Items?.FirstOrDefault()?.Snippet?.Title;
     }
 
     private static string MapPrivacyStatus(VideoVisibility visibility) =>
@@ -379,14 +309,23 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
     private bool HasStoredTokens()
     {
-        if (!Directory.Exists(_tokenFolder))
-        {
-            return false;
-        }
-
-        // Google speichert die Token-Datei ohne .json mit einem festen Namen,
-        // z.B. "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user"
+        if (!Directory.Exists(_tokenFolder)) return false;
         return Directory.EnumerateFiles(_tokenFolder)
             .Any(f => Path.GetFileName(f).Contains("TokenResponse", StringComparison.OrdinalIgnoreCase));
     }
+
+    private static string GetThumbnailMimeType(string? extension)
+    {
+        if (string.IsNullOrWhiteSpace(extension))
+            return "image/jpeg";
+
+        return extension.ToLowerInvariant() switch
+        {
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            _ => "image/jpeg"
+        };
+    }
 }
+

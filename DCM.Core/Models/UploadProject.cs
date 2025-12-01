@@ -14,6 +14,11 @@ public sealed class UploadProject
 
     public string VideoFilePath { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optionaler Pfad zu einer Thumbnail-Datei (PNG/JPG).
+    /// </summary>
+    public string? ThumbnailPath { get; set; }
+
     public string Title { get; set; } = string.Empty;
 
     public string Description { get; set; } = string.Empty;
@@ -72,5 +77,7 @@ public sealed class UploadProject
             // Nur milder Check: „deutlich in der Vergangenheit“ vermeiden
             throw new InvalidOperationException("Scheduled time must not be in the past.");
         }
+
+        // ThumbnailPath wird nur im UI milde geprüft (Warnung), kein Hard-Fail hier.
     }
 }
