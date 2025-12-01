@@ -337,6 +337,97 @@
                     </Grid>
                 </ScrollViewer>
             </TabItem>
+
+            <!-- TAB 5: App-Einstellungen -->
+            <TabItem Header="App-Einstellungen">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>  <!-- Ordner -->
+                            <RowDefinition Height="Auto"/>  <!-- Upload-Defaults -->
+                            <RowDefinition Height="Auto"/>  <!-- Externe Tools -->
+                            <RowDefinition Height="Auto"/>  <!-- Speichern-Button -->
+                        </Grid.RowDefinitions>
+
+                        <!-- Ordner -->
+                        <GroupBox Header="Ordner" Grid.Row="0" Margin="0,0,0,8">
+                            <StackPanel Margin="8">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Label Content="Standard-Videoordner:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="DefaultVideoFolderTextBox"
+                                             MinWidth="350"
+                                             Margin="0,0,8,0"/>
+                                    <Button x:Name="DefaultVideoFolderBrowseButton"
+                                            Content="Wählen..."
+                                            MinWidth="80"
+                                            Click="DefaultVideoFolderBrowseButton_Click"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="Standard-Thumbnailordner:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="DefaultThumbnailFolderTextBox"
+                                             MinWidth="350"
+                                             Margin="0,0,8,0"/>
+                                    <Button x:Name="DefaultThumbnailFolderBrowseButton"
+                                            Content="Wählen..."
+                                            MinWidth="80"
+                                            Click="DefaultThumbnailFolderBrowseButton_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Upload-Defaults -->
+                        <GroupBox Header="Upload-Defaults" Grid.Row="1" Margin="0,0,0,8">
+                            <StackPanel Margin="8">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <Label Content="Standard-Zeit (HH:mm):"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="DefaultSchedulingTimeTextBox"
+                                             Width="80"
+                                             Text="18:00"/>
+                                </StackPanel>
+
+                                <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
+                                          Content="Vor Upload um Bestätigung fragen"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Externe Tools -->
+                        <GroupBox Header="Externe Tools" Grid.Row="2" Margin="0,0,0,8">
+                            <StackPanel Margin="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="Bildeditor:"
+                                           VerticalAlignment="Center"
+                                           Width="160"/>
+                                    <TextBox x:Name="ExternalImageEditorPathTextBox"
+                                             MinWidth="350"
+                                             Margin="0,0,8,0"/>
+                                    <Button x:Name="ExternalImageEditorBrowseButton"
+                                            Content="Programm wählen..."
+                                            MinWidth="120"
+                                            Click="ExternalImageEditorBrowseButton_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Speichern -->
+                        <StackPanel Grid.Row="3"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right">
+                            <Button x:Name="AppSettingsSaveButton"
+                                    Content="Speichern"
+                                    MinWidth="100"
+                                    Click="AppSettingsSaveButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

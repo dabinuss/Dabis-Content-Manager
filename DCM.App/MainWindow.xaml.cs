@@ -11,6 +11,7 @@ using DCM.Core.Configuration;
 using DCM.Core.Models;
 using DCM.Core.Services;
 using DCM.YouTube;
+using WinForms = System.Windows.Forms;
 
 namespace DCM.App;
 
@@ -83,6 +84,39 @@ public partial class MainWindow : Window
             _settings = new AppSettings();
             StatusTextBlock.Text = $"Einstellungen konnten nicht geladen werden: {ex.Message}";
         }
+
+        ApplySettingsToUi();
+    }
+
+    private void ApplySettingsToUi()
+    {
+        // App-Einstellungen-Tab
+        if (DefaultVideoFolderTextBox is not null)
+        {
+            DefaultVideoFolderTextBox.Text = _settings.DefaultVideoFolder ?? string.Empty;
+        }
+
+        if (DefaultThumbnailFolderTextBox is not null)
+        {
+            DefaultThumbnailFolderTextBox.Text = _settings.DefaultThumbnailFolder ?? string.Empty;
+        }
+
+        if (DefaultSchedulingTimeTextBox is not null)
+        {
+            DefaultSchedulingTimeTextBox.Text = string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime)
+                ? "18:00"
+                : _settings.DefaultSchedulingTime;
+        }
+
+        if (ConfirmBeforeUploadCheckBox is not null)
+        {
+            ConfirmBeforeUploadCheckBox.IsChecked = _settings.ConfirmBeforeUpload;
+        }
+
+        if (ExternalImageEditorPathTextBox is not null)
+        {
+            ExternalImageEditorPathTextBox.Text = _settings.ExternalImageEditorPath ?? string.Empty;
+        }
     }
 
     private void InitializePlatformComboBox()
@@ -97,9 +131,21 @@ public partial class MainWindow : Window
 
     private void InitializeSchedulingDefaults()
     {
-        // Default: nächster Tag 18:00 Uhr
+        // Default: nächster Tag, Uhrzeit aus Settings oder 18:00 Uhr
+        TimeSpan defaultTime;
+
+        if (!string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime) &&
+            TimeSpan.TryParse(_settings.DefaultSchedulingTime, CultureInfo.CurrentCulture, out var parsed))
+        {
+            defaultTime = parsed;
+        }
+        else
+        {
+            defaultTime = new TimeSpan(18, 0, 0);
+        }
+
         ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
-        ScheduleTimeTextBox.Text = "18:00";
+        ScheduleTimeTextBox.Text = defaultTime.ToString(@"hh\:mm");
         UpdateScheduleControlsEnabled();
     }
 
@@ -155,13 +201,32 @@ public partial class MainWindow : Window
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new OpenFileDialog
+        // InitialDirectory-Priorität:
+        // 1) DefaultVideoFolder (falls gesetzt)
+        // 2) LastVideoFolder
+        // 3) Eigene Videos
+        string initialDirectory;
+
+        if (!string.IsNullOrWhiteSpace(_settings.DefaultVideoFolder) &&
+            Directory.Exists(_settings.DefaultVideoFolder))
+        {
+            initialDirectory = _settings.DefaultVideoFolder;
+        }
+        else if (!string.IsNullOrWhiteSpace(_settings.LastVideoFolder) &&
+                 Directory.Exists(_settings.LastVideoFolder))
+        {
+            initialDirectory = _settings.LastVideoFolder;
+        }
+        else
+        {
+            initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+        }
+
+        var dlg = new Microsoft.Win32.OpenFileDialog
         {
             Title = "Videodatei auswählen",
             Filter = "Video-Dateien|*.mp4;*.mkv;*.mov;*.avi;*.webm|Alle Dateien|*.*",
-            InitialDirectory = !string.IsNullOrWhiteSpace(_settings.LastVideoFolder) && Directory.Exists(_settings.LastVideoFolder)
-                ? _settings.LastVideoFolder
-                : Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)
+            InitialDirectory = initialDirectory
         };
 
         if (dlg.ShowDialog(this) == true)
@@ -174,7 +239,7 @@ public partial class MainWindow : Window
 
     private void ThumbnailBrowseButton_Click(object sender, RoutedEventArgs e)
     {
-        var dlg = new OpenFileDialog
+        var dlg = new Microsoft.Win32.OpenFileDialog
         {
             Title = "Thumbnail-Datei auswählen",
             Filter = "Bilddateien|*.png;*.jpg;*.jpeg|Alle Dateien|*.*"
@@ -202,7 +267,7 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog(this) == true)
         {
             ThumbnailPathTextBox.Text = dlg.FileName;
-            // DefaultThumbnailFolder bleibt vorerst konfigurierbar für spätere Phasen.
+            // DefaultThumbnailFolder bleibt über den App-Settings-Tab konfigurierbar.
         }
     }
 
@@ -250,6 +315,23 @@ public partial class MainWindow : Window
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
     {
+        // Optionale Bestätigung vor dem Upload
+        if (_settings.ConfirmBeforeUpload)
+        {
+            var result = System.Windows.MessageBox.Show(
+                this,
+                "Upload wirklich starten?",
+                "Bestätigung",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                StatusTextBlock.Text = "Upload abgebrochen.";
+                return;
+            }
+        }
+
         var project = BuildUploadProjectFromUi(includeScheduling: true);
 
         // Milder Check für Thumbnail – nur Hinweis, kein Abbruch.
@@ -542,6 +624,137 @@ public partial class MainWindow : Window
                 }
             }
         }
+    }
+
+    #endregion
+
+    #region Events – App-Einstellungen
+
+    private void DefaultVideoFolderBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        string initialPath;
+
+        if (!string.IsNullOrWhiteSpace(_settings.DefaultVideoFolder) &&
+            Directory.Exists(_settings.DefaultVideoFolder))
+        {
+            initialPath = _settings.DefaultVideoFolder;
+        }
+        else if (!string.IsNullOrWhiteSpace(_settings.LastVideoFolder) &&
+                 Directory.Exists(_settings.LastVideoFolder))
+        {
+            initialPath = _settings.LastVideoFolder;
+        }
+        else
+        {
+            initialPath = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+        }
+
+        using var dialog = new WinForms.FolderBrowserDialog
+        {
+            Description = "Standard-Videoordner auswählen",
+            SelectedPath = initialPath,
+            ShowNewFolderButton = true
+        };
+
+        if (dialog.ShowDialog() == WinForms.DialogResult.OK)
+        {
+            DefaultVideoFolderTextBox.Text = dialog.SelectedPath;
+            _settings.DefaultVideoFolder = dialog.SelectedPath;
+            SaveSettings();
+            StatusTextBlock.Text = "Standard-Videoordner aktualisiert.";
+        }
+    }
+
+    private void DefaultThumbnailFolderBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        string initialPath;
+
+        if (!string.IsNullOrWhiteSpace(_settings.DefaultThumbnailFolder) &&
+            Directory.Exists(_settings.DefaultThumbnailFolder))
+        {
+            initialPath = _settings.DefaultThumbnailFolder;
+        }
+        else if (!string.IsNullOrWhiteSpace(_settings.LastVideoFolder) &&
+                 Directory.Exists(_settings.LastVideoFolder))
+        {
+            initialPath = _settings.LastVideoFolder;
+        }
+        else
+        {
+            initialPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+        }
+
+        using var dialog = new WinForms.FolderBrowserDialog
+        {
+            Description = "Standard-Thumbnailordner auswählen",
+            SelectedPath = initialPath,
+            ShowNewFolderButton = true
+        };
+
+        if (dialog.ShowDialog() == WinForms.DialogResult.OK)
+        {
+            DefaultThumbnailFolderTextBox.Text = dialog.SelectedPath;
+            _settings.DefaultThumbnailFolder = dialog.SelectedPath;
+            SaveSettings();
+            StatusTextBlock.Text = "Standard-Thumbnailordner aktualisiert.";
+        }
+    }
+
+    private void ExternalImageEditorBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Externen Bildeditor auswählen",
+            Filter = "Programme|*.exe;*.bat;*.cmd|Alle Dateien|*.*"
+        };
+
+        if (!string.IsNullOrWhiteSpace(_settings.ExternalImageEditorPath))
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(_settings.ExternalImageEditorPath);
+                if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+                {
+                    dlg.InitialDirectory = dir;
+                }
+            }
+            catch
+            {
+                // Ignorieren, Default-InitialDirectory verwenden.
+            }
+        }
+
+        if (dlg.ShowDialog(this) == true)
+        {
+            ExternalImageEditorPathTextBox.Text = dlg.FileName;
+            _settings.ExternalImageEditorPath = dlg.FileName;
+            SaveSettings();
+            StatusTextBlock.Text = "Pfad zum Bildeditor aktualisiert.";
+        }
+    }
+
+    private void AppSettingsSaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
+            ? null
+            : DefaultVideoFolderTextBox.Text.Trim();
+
+        _settings.DefaultThumbnailFolder = string.IsNullOrWhiteSpace(DefaultThumbnailFolderTextBox.Text)
+            ? null
+            : DefaultThumbnailFolderTextBox.Text.Trim();
+
+        _settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTimeTextBox.Text)
+            ? null
+            : DefaultSchedulingTimeTextBox.Text.Trim();
+
+        _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
+
+        _settings.ExternalImageEditorPath = string.IsNullOrWhiteSpace(ExternalImageEditorPathTextBox.Text)
+            ? null
+            : ExternalImageEditorPathTextBox.Text.Trim();
+
+        SaveSettings();
+        StatusTextBlock.Text = "App-Einstellungen gespeichert.";
     }
 
     #endregion
