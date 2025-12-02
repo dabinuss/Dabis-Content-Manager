@@ -443,12 +443,43 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog(this) == true)
         {
             ThumbnailPathTextBox.Text = dlg.FileName;
+            UpdateThumbnailPreview(dlg.FileName); // NEU
         }
     }
 
     private void ThumbnailClearButton_Click(object sender, RoutedEventArgs e)
     {
         ThumbnailPathTextBox.Text = string.Empty;
+        UpdateThumbnailPreview(null); // NEU
+    }
+
+    private void UpdateThumbnailPreview(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            ThumbnailPreviewBorder.Visibility = Visibility.Collapsed;
+            ThumbnailPreviewImage.Source = null;
+            return;
+        }
+
+        try
+        {
+            var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(path);
+            bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            bitmap.DecodePixelHeight = 54; // Kleine Preview
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            ThumbnailPreviewImage.Source = bitmap;
+            ThumbnailPreviewBorder.Visibility = Visibility.Visible;
+        }
+        catch
+        {
+            ThumbnailPreviewBorder.Visibility = Visibility.Collapsed;
+            ThumbnailPreviewImage.Source = null;
+        }
     }
 
     private async void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
@@ -1443,9 +1474,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ScheduleCheckBox_Changed(object? sender, RoutedEventArgs e)
+    private void ScheduleCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        UpdateScheduleControlsEnabled();
+        /*
+        if (SchedulePanel != null)
+        {
+            SchedulePanel.Visibility = ScheduleCheckBox.IsChecked == true
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+        */
     }
 
     private void UpdateScheduleControlsEnabled()
