@@ -12,10 +12,13 @@ public interface ILlmClient
     bool IsReady { get; }
 
     /// <summary>
+    /// Versucht den Client zu initialisieren. Gibt true bei Erfolg zurück.
+    /// Bei bereits initialisierten Clients gibt dies ebenfalls true zurück.
+    /// </summary>
+    bool TryInitialize();
+
+    /// <summary>
     /// Führt eine Completion-Anfrage durch und gibt die Antwort als String zurück.
     /// </summary>
-    /// <param name="prompt">Der Eingabe-Prompt.</param>
-    /// <param name="cancellationToken">Abbruch-Token.</param>
-    /// <returns>Die generierte Antwort.</returns>
     Task<string> CompleteAsync(string prompt, CancellationToken cancellationToken = default);
 }

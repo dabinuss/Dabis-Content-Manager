@@ -99,6 +99,7 @@ public partial class MainWindow : Window
     {
         if (settings.IsLocalMode && !string.IsNullOrWhiteSpace(settings.LocalModelPath))
         {
+            // Erstelle den Client, aber initialisiere noch nicht!
             return new LocalLlmClient(settings);
         }
 
@@ -110,7 +111,7 @@ public partial class MainWindow : Window
         // Alten Client disposen falls nötig
         if (_llmClient is IDisposable disposable)
         {
-            disposable.Dispose();
+            try { disposable.Dispose(); } catch { }
         }
 
         _llmClient = CreateLlmClient(_settings.Llm);
@@ -121,6 +122,7 @@ public partial class MainWindow : Window
             fallbackService,
             _settings.Llm);
 
+        // Status-Update (ohne Initialisierung!)
         UpdateLlmStatusText();
     }
 
@@ -1256,24 +1258,40 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_llmClient.IsReady)
+        // Prüfe ob LocalLlmClient
+        if (_llmClient is LocalLlmClient localClient)
         {
-            var fileName = Path.GetFileName(llm.LocalModelPath);
-            LlmStatusTextBlock.Text = $"Bereit: {fileName}";
-            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
-        }
-        else
-        {
-            // Client nicht bereit – Fehler beim Laden?
-            if (_llmClient is LocalLlmClient localClient && !string.IsNullOrWhiteSpace(localClient.InitializationError))
+            // Versuche Initialisierung JETZT (nach dem Speichern, nicht beim App-Start)
+            if (!localClient.IsReady && string.IsNullOrEmpty(localClient.InitializationError))
+            {
+                // Noch nicht initialisiert - zeige "Bereit zum Laden"
+                var fileName = Path.GetFileName(llm.LocalModelPath);
+                LlmStatusTextBlock.Text = $"Konfiguriert: {fileName} (wird bei Nutzung geladen)";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.DarkGreen;
+                return;
+            }
+
+            if (localClient.IsReady)
+            {
+                var fileName = Path.GetFileName(llm.LocalModelPath);
+                LlmStatusTextBlock.Text = $"Bereit: {fileName}";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
+            }
+            else if (!string.IsNullOrWhiteSpace(localClient.InitializationError))
             {
                 LlmStatusTextBlock.Text = $"Fehler: {localClient.InitializationError}";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
             }
             else
             {
-                LlmStatusTextBlock.Text = "Modell wird geladen...";
+                LlmStatusTextBlock.Text = "Status unbekannt";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
             }
-            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+        }
+        else
+        {
+            LlmStatusTextBlock.Text = "Client nicht konfiguriert";
+            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Gray;
         }
     }
 
