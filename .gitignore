@@ -65,3 +65,6 @@ secrets.json
 # Local tooling
 *.jfm
 *.rsp
+
+# LLM
+*.gguf
