@@ -26,7 +26,6 @@ public partial class MainWindow : Window
     private readonly ISettingsProvider _settingsProvider;
     private readonly YouTubePlatformClient _youTubeClient;
     private readonly UploadHistoryService _uploadHistoryService;
-    private readonly ILlmService _llmService;
 
     private ILlmClient _llmClient;
     private IContentSuggestionService _contentSuggestionService;
@@ -39,6 +38,9 @@ public partial class MainWindow : Window
     private readonly List<YouTubePlaylistListItem> _youTubePlaylists = new();
 
     private List<UploadHistoryEntry> _allHistoryEntries = new();
+
+    // CancellationTokenSource für laufende LLM-Operationen
+    private CancellationTokenSource? _currentLlmCts;
 
     private sealed class YouTubePlaylistListItem
     {
@@ -68,7 +70,6 @@ public partial class MainWindow : Window
         LoadSettings();
 
         // LLM-Infrastruktur initialisieren
-        _llmService = new DummyLlmService(_settings.Llm);
         _llmClient = CreateLlmClient(_settings.Llm);
 
         // Content-Suggestion-Service mit LLM-Unterstützung
@@ -93,6 +94,52 @@ public partial class MainWindow : Window
 
         // Auto-Reconnect nach dem Laden des Fensters
         Loaded += MainWindow_Loaded;
+
+        // Cleanup beim Schließen
+        Closing += MainWindow_Closing;
+    }
+
+    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        // Laufende LLM-Operationen abbrechen
+        CancelCurrentLlmOperation();
+
+        // LLM-Client disposen
+        if (_llmClient is IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+            }
+            catch
+            {
+                // Ignorieren
+            }
+        }
+    }
+
+    private void CancelCurrentLlmOperation()
+    {
+        try
+        {
+            _currentLlmCts?.Cancel();
+            _currentLlmCts?.Dispose();
+        }
+        catch
+        {
+            // Ignorieren
+        }
+        finally
+        {
+            _currentLlmCts = null;
+        }
+    }
+
+    private CancellationToken GetNewLlmCancellationToken()
+    {
+        CancelCurrentLlmOperation();
+        _currentLlmCts = new CancellationTokenSource();
+        return _currentLlmCts.Token;
     }
 
     private static ILlmClient CreateLlmClient(LlmSettings settings)
@@ -108,10 +155,20 @@ public partial class MainWindow : Window
 
     private void RecreateLlmClient()
     {
+        // Laufende Operationen abbrechen
+        CancelCurrentLlmOperation();
+
         // Alten Client disposen falls nötig
         if (_llmClient is IDisposable disposable)
         {
-            try { disposable.Dispose(); } catch { }
+            try
+            {
+                disposable.Dispose();
+            }
+            catch
+            {
+                // Ignorieren
+            }
         }
 
         _llmClient = CreateLlmClient(_settings.Llm);
@@ -259,8 +316,9 @@ public partial class MainWindow : Window
         if (LlmModeComboBox is not null)
         {
             var items = LlmModeComboBox.Items.OfType<ComboBoxItem>().ToList();
+            var modeString = llm.Mode.ToString();
             var selected = items.FirstOrDefault(i =>
-                i.Tag is string tag && string.Equals(tag, llm.Mode, StringComparison.OrdinalIgnoreCase));
+                i.Tag is string tag && string.Equals(tag, modeString, StringComparison.OrdinalIgnoreCase));
             if (selected is not null)
             {
                 LlmModeComboBox.SelectedItem = selected;
@@ -522,10 +580,16 @@ public partial class MainWindow : Window
         _settings.Persona ??= new ChannelPersona();
 
         StatusTextBlock.Text = "Generiere Titelvorschläge...";
+        GenerateTitleButton.IsEnabled = false;
+
+        var cancellationToken = GetNewLlmCancellationToken();
 
         try
         {
-            var titles = await _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona);
+            var titles = await _contentSuggestionService.SuggestTitlesAsync(
+                project,
+                _settings.Persona,
+                cancellationToken);
 
             if (titles is null || titles.Count == 0)
             {
@@ -537,9 +601,17 @@ public partial class MainWindow : Window
             TitleTextBox.Text = titles[0];
             StatusTextBlock.Text = $"Titelvorschlag eingefügt. ({titles.Count} Vorschläge)";
         }
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = "Titelgenerierung abgebrochen.";
+        }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Fehler bei Titelgenerierung: {ex.Message}";
+        }
+        finally
+        {
+            GenerateTitleButton.IsEnabled = true;
         }
     }
 
@@ -550,10 +622,16 @@ public partial class MainWindow : Window
         _settings.Persona ??= new ChannelPersona();
 
         StatusTextBlock.Text = "Generiere Beschreibungsvorschlag...";
+        GenerateDescriptionButton.IsEnabled = false;
+
+        var cancellationToken = GetNewLlmCancellationToken();
 
         try
         {
-            var description = await _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona);
+            var description = await _contentSuggestionService.SuggestDescriptionAsync(
+                project,
+                _settings.Persona,
+                cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(description))
             {
@@ -565,9 +643,17 @@ public partial class MainWindow : Window
                 StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
             }
         }
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = "Beschreibungsgenerierung abgebrochen.";
+        }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Fehler bei Beschreibungsgenerierung: {ex.Message}";
+        }
+        finally
+        {
+            GenerateDescriptionButton.IsEnabled = true;
         }
     }
 
@@ -578,10 +664,16 @@ public partial class MainWindow : Window
         _settings.Persona ??= new ChannelPersona();
 
         StatusTextBlock.Text = "Generiere Tag-Vorschläge...";
+        GenerateTagsButton.IsEnabled = false;
+
+        var cancellationToken = GetNewLlmCancellationToken();
 
         try
         {
-            var tags = await _contentSuggestionService.SuggestTagsAsync(project, _settings.Persona);
+            var tags = await _contentSuggestionService.SuggestTagsAsync(
+                project,
+                _settings.Persona,
+                cancellationToken);
 
             if (tags is not null && tags.Count > 0)
             {
@@ -594,9 +686,17 @@ public partial class MainWindow : Window
                 StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
             }
         }
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = "Tag-Generierung abgebrochen.";
+        }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Fehler bei Tag-Generierung: {ex.Message}";
+        }
+        finally
+        {
+            GenerateTagsButton.IsEnabled = true;
         }
     }
 
@@ -1159,11 +1259,18 @@ public partial class MainWindow : Window
         if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
             modeItem.Tag is string modeTag)
         {
-            llm.Mode = modeTag;
+            if (Enum.TryParse<LlmMode>(modeTag, ignoreCase: true, out var mode))
+            {
+                llm.Mode = mode;
+            }
+            else
+            {
+                llm.Mode = LlmMode.Off;
+            }
         }
         else
         {
-            llm.Mode = "Off";
+            llm.Mode = LlmMode.Off;
         }
 
         // Modellpfad
@@ -1303,7 +1410,7 @@ public partial class MainWindow : Window
     {
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.Invoke(() => ShowUploadProgress(message));
+            Dispatcher.BeginInvoke(() => ShowUploadProgress(message));
             return;
         }
 
@@ -1319,7 +1426,7 @@ public partial class MainWindow : Window
     {
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.Invoke(() => ReportUploadProgress(info));
+            Dispatcher.BeginInvoke(() => ReportUploadProgress(info));
             return;
         }
 
@@ -1345,7 +1452,7 @@ public partial class MainWindow : Window
     {
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.Invoke(HideUploadProgress);
+            Dispatcher.BeginInvoke(HideUploadProgress);
             return;
         }
 

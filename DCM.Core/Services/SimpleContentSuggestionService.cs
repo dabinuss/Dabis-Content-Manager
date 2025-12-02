@@ -16,7 +16,10 @@ public sealed class SimpleContentSuggestionService : IContentSuggestionService
         _llmService = llmService ?? throw new ArgumentNullException(nameof(llmService));
     }
 
-    public async Task<IReadOnlyList<string>> SuggestTitlesAsync(UploadProject project, ChannelPersona persona)
+    public async Task<IReadOnlyList<string>> SuggestTitlesAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
         if (!_llmService.IsAvailable)
         {
@@ -25,7 +28,7 @@ public sealed class SimpleContentSuggestionService : IContentSuggestionService
 
         var context = BuildContext(project, persona);
         var prompt = $"Generiere 3 YouTube-Titel für folgendes Video:\n{context}";
-        var result = await _llmService.SummarizeAsync(prompt);
+        var result = await _llmService.SummarizeAsync(prompt, cancellationToken);
 
         if (string.IsNullOrWhiteSpace(result))
         {
@@ -41,7 +44,10 @@ public sealed class SimpleContentSuggestionService : IContentSuggestionService
         return titles.Count > 0 ? titles : new[] { result };
     }
 
-    public async Task<string?> SuggestDescriptionAsync(UploadProject project, ChannelPersona persona)
+    public async Task<string?> SuggestDescriptionAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
         if (!_llmService.IsAvailable)
         {
@@ -50,12 +56,15 @@ public sealed class SimpleContentSuggestionService : IContentSuggestionService
 
         var context = BuildContext(project, persona);
         var prompt = $"Schreibe eine YouTube-Beschreibung für folgendes Video:\n{context}";
-        var result = await _llmService.SummarizeAsync(prompt);
+        var result = await _llmService.SummarizeAsync(prompt, cancellationToken);
 
         return string.IsNullOrWhiteSpace(result) ? "[Keine Antwort vom LLM]" : result;
     }
 
-    public async Task<IReadOnlyList<string>> SuggestTagsAsync(UploadProject project, ChannelPersona persona)
+    public async Task<IReadOnlyList<string>> SuggestTagsAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
         if (!_llmService.IsAvailable)
         {
@@ -64,7 +73,7 @@ public sealed class SimpleContentSuggestionService : IContentSuggestionService
 
         var context = BuildContext(project, persona);
         var prompt = $"Generiere 10-15 relevante YouTube-Tags für folgendes Video:\n{context}";
-        var topics = await _llmService.ExtractTopicsAsync(prompt);
+        var topics = await _llmService.ExtractTopicsAsync(prompt, cancellationToken);
 
         return topics.Count > 0 ? topics : new[] { "[Keine Antwort vom LLM]" };
     }

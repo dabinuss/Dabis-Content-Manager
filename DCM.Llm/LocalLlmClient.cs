@@ -13,8 +13,8 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     private readonly object _lock = new();
 
     private LLamaWeights? _model;
-    private ModelParams? _modelParams;  // Speichern für StatelessExecutor
-    private StatelessExecutor? _executor;  // GEÄNDERT
+    private ModelParams? _modelParams;
+    private StatelessExecutor? _executor;
     private bool _initialized;
     private bool _initializationAttempted;
     private bool _disposed;
@@ -33,15 +33,27 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     {
         get
         {
-            if (!_initializationAttempted)
+            lock (_lock)
             {
-                return false;
+                if (!_initializationAttempted)
+                {
+                    return false;
+                }
+                return _initialized && _executor is not null;
             }
-            return _initialized && _executor is not null;
         }
     }
 
-    public string? InitializationError => _initError;
+    public string? InitializationError
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _initError;
+            }
+        }
+    }
 
     private void ValidateModelPath()
     {
@@ -60,7 +72,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         try
         {
             var fileInfo = new FileInfo(_settings.LocalModelPath);
-            
+
             if (fileInfo.Length < MinimumModelSizeBytes)
             {
                 _initError = $"Datei zu klein ({fileInfo.Length / 1024 / 1024} MB).";
@@ -88,13 +100,13 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             var buffer = new byte[4];
             var bytesRead = fs.Read(buffer, 0, 4);
-            
+
             if (bytesRead < 4)
                 return false;
 
-            return buffer[0] == GgufMagic[0] 
-                && buffer[1] == GgufMagic[1] 
-                && buffer[2] == GgufMagic[2] 
+            return buffer[0] == GgufMagic[0]
+                && buffer[1] == GgufMagic[1]
+                && buffer[2] == GgufMagic[2]
                 && buffer[3] == GgufMagic[3];
         }
         catch
@@ -105,13 +117,13 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
     public bool TryInitialize()
     {
-        if (_initializationAttempted)
-        {
-            return _initialized;
-        }
-
         lock (_lock)
         {
+            if (_disposed)
+            {
+                return false;
+            }
+
             if (_initializationAttempted)
             {
                 return _initialized;
@@ -127,7 +139,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[LLM] Starte Laden von: {_settings.LocalModelPath}");
-                
+
                 _modelParams = new ModelParams(_settings.LocalModelPath!)
                 {
                     ContextSize = 2048,
@@ -136,17 +148,15 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
                 };
 
                 System.Diagnostics.Debug.WriteLine("[LLM] ModelParams erstellt, lade Weights...");
-                
+
                 _model = LLamaWeights.LoadFromFile(_modelParams);
-                
+
                 System.Diagnostics.Debug.WriteLine("[LLM] Weights geladen, erstelle StatelessExecutor...");
-                
-                // GEÄNDERT: StatelessExecutor statt InteractiveExecutor
-                // Braucht keinen Context, startet bei jeder Anfrage frisch
+
                 _executor = new StatelessExecutor(_model, _modelParams);
-                
+
                 System.Diagnostics.Debug.WriteLine("[LLM] Executor erstellt - ERFOLG!");
-                
+
                 _initialized = true;
                 _initError = null;
                 return true;
@@ -177,12 +187,46 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
     private void CleanupAfterError()
     {
+        // Hinweis: Diese Methode wird innerhalb eines Locks aufgerufen
         _initialized = false;
-        _executor = null;
+
+        // StatelessExecutor disposen falls möglich
+        DisposeExecutor();
+
         _modelParams = null;
-        
-        try { _model?.Dispose(); } catch { }
+
+        try
+        {
+            _model?.Dispose();
+        }
+        catch
+        {
+            // Ignorieren
+        }
         _model = null;
+    }
+
+    private void DisposeExecutor()
+    {
+        if (_executor is null)
+        {
+            return;
+        }
+
+        // StatelessExecutor implementiert IDisposable in neueren LLamaSharp-Versionen
+        if (_executor is IDisposable disposableExecutor)
+        {
+            try
+            {
+                disposableExecutor.Dispose();
+            }
+            catch
+            {
+                // Ignorieren
+            }
+        }
+
+        _executor = null;
     }
 
     public async Task<string> CompleteAsync(string prompt, CancellationToken cancellationToken = default)
@@ -192,20 +236,33 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             return string.Empty;
         }
 
-        if (!_initializationAttempted)
+        // Thread-safe Prüfung und ggf. Initialisierung
+        StatelessExecutor? executor;
+        lock (_lock)
         {
-            TryInitialize();
-        }
+            if (_disposed)
+            {
+                return "[LLM wurde disposed]";
+            }
 
-        if (!_initialized || _executor is null)
-        {
-            return $"[LLM nicht verfügbar: {_initError ?? "Unbekannter Fehler"}]";
+            if (!_initializationAttempted)
+            {
+                // Initialisierung innerhalb des Locks
+                TryInitializeInternal();
+            }
+
+            if (!_initialized || _executor is null)
+            {
+                return $"[LLM nicht verfügbar: {_initError ?? "Unbekannter Fehler"}]";
+            }
+
+            executor = _executor;
         }
 
         try
         {
             System.Diagnostics.Debug.WriteLine($"[LLM] CompleteAsync gestartet, Prompt-Länge: {prompt.Length}");
-            
+
             var samplingPipeline = new DefaultSamplingPipeline
             {
                 Temperature = _settings.Temperature > 0 ? _settings.Temperature : 0.7f
@@ -221,11 +278,11 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             var result = new StringBuilder();
             var tokenCount = 0;
 
-            await foreach (var token in _executor.InferAsync(prompt, inferenceParams, cancellationToken))
+            await foreach (var token in executor.InferAsync(prompt, inferenceParams, cancellationToken))
             {
                 result.Append(token);
                 tokenCount++;
-                
+
                 if (result.Length > 1500 || tokenCount > 400)
                 {
                     System.Diagnostics.Debug.WriteLine($"[LLM] Limit erreicht: {result.Length} chars, {tokenCount} tokens");
@@ -234,7 +291,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             }
 
             System.Diagnostics.Debug.WriteLine($"[LLM] CompleteAsync fertig: {result.Length} chars, {tokenCount} tokens");
-            
+
             return result.ToString().Trim();
         }
         catch (OperationCanceledException)
@@ -248,13 +305,53 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         }
     }
 
-    public void Dispose()
+    /// <summary>
+    /// Interne Initialisierung ohne erneuten Lock-Versuch.
+    /// MUSS innerhalb eines Locks aufgerufen werden.
+    /// </summary>
+    private void TryInitializeInternal()
     {
-        if (_disposed)
+        if (_initializationAttempted)
         {
             return;
         }
 
+        _initializationAttempted = true;
+
+        if (!string.IsNullOrEmpty(_initError))
+        {
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"[LLM] Starte Laden von: {_settings.LocalModelPath}");
+
+            _modelParams = new ModelParams(_settings.LocalModelPath!)
+            {
+                ContextSize = 2048,
+                GpuLayerCount = 35,
+                Threads = Math.Max(1, Environment.ProcessorCount / 2)
+            };
+
+            _model = LLamaWeights.LoadFromFile(_modelParams);
+            _executor = new StatelessExecutor(_model, _modelParams);
+
+            System.Diagnostics.Debug.WriteLine("[LLM] Executor erstellt - ERFOLG!");
+
+            _initialized = true;
+            _initError = null;
+        }
+        catch (Exception ex)
+        {
+            _initError = $"Laden fehlgeschlagen: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[LLM] Exception: {ex}");
+            CleanupAfterError();
+        }
+    }
+
+    public void Dispose()
+    {
         lock (_lock)
         {
             if (_disposed)
@@ -263,10 +360,22 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             }
 
             _disposed = true;
-            _executor = null;
+            _initialized = false;
+
+            // Executor disposen
+            DisposeExecutor();
+
             _modelParams = null;
-            
-            try { _model?.Dispose(); } catch { }
+
+            // Model disposen
+            try
+            {
+                _model?.Dispose();
+            }
+            catch
+            {
+                // Ignorieren
+            }
             _model = null;
         }
     }

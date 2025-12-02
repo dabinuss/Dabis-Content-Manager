@@ -9,8 +9,13 @@ namespace DCM.Core.Services;
 /// </summary>
 public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
 {
-    public Task<IReadOnlyList<string>> SuggestTitlesAsync(UploadProject project, ChannelPersona persona)
+    public Task<IReadOnlyList<string>> SuggestTitlesAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var suggestions = new List<string>();
 
         // Dateiname als Basis
@@ -61,8 +66,13 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         return Task.FromResult<IReadOnlyList<string>>(suggestions);
     }
 
-    public Task<string?> SuggestDescriptionAsync(UploadProject project, ChannelPersona persona)
+    public Task<string?> SuggestDescriptionAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var parts = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(project.Title))
@@ -93,8 +103,13 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         return Task.FromResult<string?>(string.Join("\n", parts));
     }
 
-    public Task<IReadOnlyList<string>> SuggestTagsAsync(UploadProject project, ChannelPersona persona)
+    public Task<IReadOnlyList<string>> SuggestTagsAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var tags = new List<string>();
 
         // Tags aus Persona ableiten

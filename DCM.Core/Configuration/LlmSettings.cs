@@ -1,14 +1,32 @@
 namespace DCM.Core.Configuration;
 
+/// <summary>
+/// Definiert die verfügbaren LLM-Modi.
+/// </summary>
+public enum LlmMode
+{
+    /// <summary>
+    /// LLM-Funktionen sind deaktiviert.
+    /// </summary>
+    Off,
+
+    /// <summary>
+    /// Lokales GGUF-Modell via LLamaSharp.
+    /// </summary>
+    Local
+
+    // Zukünftig: Api
+}
+
 public sealed class LlmSettings
 {
     /// <summary>
-    /// LLM-Modus: "Off", "Local", oder zukünftig "API".
+    /// LLM-Modus: Off oder Local.
     /// </summary>
-    public string Mode { get; set; } = "Off";
+    public LlmMode Mode { get; set; } = LlmMode.Off;
 
     /// <summary>
-    /// Pfad zur lokalen GGUF-Modelldatei (für Mode == "Local").
+    /// Pfad zur lokalen GGUF-Modelldatei (für Mode == Local).
     /// </summary>
     public string? LocalModelPath { get; set; }
 
@@ -43,10 +61,10 @@ public sealed class LlmSettings
     /// <summary>
     /// Gibt an, ob der Local-Modus aktiv ist.
     /// </summary>
-    public bool IsLocalMode => string.Equals(Mode, "Local", StringComparison.OrdinalIgnoreCase);
+    public bool IsLocalMode => Mode == LlmMode.Local;
 
     /// <summary>
     /// Gibt an, ob LLM-Funktionen deaktiviert sind.
     /// </summary>
-    public bool IsOff => string.Equals(Mode, "Off", StringComparison.OrdinalIgnoreCase);
+    public bool IsOff => Mode == LlmMode.Off;
 }

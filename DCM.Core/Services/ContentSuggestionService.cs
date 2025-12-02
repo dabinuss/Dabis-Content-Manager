@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using DCM.Core.Configuration;
@@ -17,6 +16,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
     private readonly IFallbackSuggestionService _fallbackSuggestionService;
     private readonly LlmSettings _settings;
     private readonly Random _random = new();
+    private readonly object _initLock = new();
 
     private const int MaxTranscriptCharsForDescription = 4000;
     private const int MaxTranscriptCharsForTags = 2000;
@@ -26,7 +26,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
     private const int MinimumTranscriptLength = 50;
 
     // Variationswörter für unterschiedliche Generierungen
-    private static readonly string[] TitleStyles = new[]
+    private static readonly string[] TitleStyles =
     {
         "kreativ und aufmerksamkeitsstark",
         "informativ und klar",
@@ -38,7 +38,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         "einladend und freundlich"
     };
 
-    private static readonly string[] DescriptionStyles = new[]
+    private static readonly string[] DescriptionStyles =
     {
         "einladend und neugierig machend",
         "informativ und sachlich",
@@ -50,7 +50,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         "spannend und fesselnd"
     };
 
-    private static readonly string[] TagFocuses = new[]
+    private static readonly string[] TagFocuses =
     {
         "Fokus auf Hauptthemen",
         "Fokus auf Zielgruppe",
@@ -74,20 +74,32 @@ public sealed class ContentSuggestionService : IContentSuggestionService
 
     /// <summary>
     /// Prüft ob LLM verfügbar ist und initialisiert es bei Bedarf.
+    /// Thread-safe durch internes Locking.
     /// </summary>
     private bool EnsureLlmReady()
     {
-        if (!IsLocalMode())
+        if (!_settings.IsLocalMode)
         {
             return false;
         }
 
+        // Schneller Check ohne Lock
         if (_llmClient.IsReady)
         {
             return true;
         }
 
-        return _llmClient.TryInitialize();
+        // Thread-safe Initialisierung
+        lock (_initLock)
+        {
+            // Double-check nach Lock
+            if (_llmClient.IsReady)
+            {
+                return true;
+            }
+
+            return _llmClient.TryInitialize();
+        }
     }
 
     /// <summary>
@@ -103,7 +115,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         }
 
         var trimmed = project.TranscriptText.Trim();
-        
+
         // Muss echten Inhalt haben, nicht nur Whitespace oder kurze Fragmente
         return trimmed.Length >= MinimumTranscriptLength;
     }
@@ -119,60 +131,67 @@ public sealed class ContentSuggestionService : IContentSuggestionService
     /// <summary>
     /// Generiert eine zufällige Session-ID für Cache-Busting.
     /// </summary>
-    private string GetSessionId()
+    private static string GetSessionId()
     {
         return Guid.NewGuid().ToString("N")[..8];
     }
 
     #region SuggestTitlesAsync
 
-    public async Task<IReadOnlyList<string>> SuggestTitlesAsync(UploadProject project, ChannelPersona persona)
+    public async Task<IReadOnlyList<string>> SuggestTitlesAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
         // STRIKTE Prüfung: Ohne Transkript -> Fallback
         if (!HasTranscript(project))
         {
             System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: KEIN Transkript vorhanden -> Fallback");
-            return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
         }
 
         if (!EnsureLlmReady())
         {
             System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: LLM nicht bereit -> Fallback");
-            return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
         }
 
         try
         {
-            var prompt = BuildTitlePrompt(project, persona);
+            var prompt = BuildTitlePrompt(project);
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Titel-Prompt Länge: {prompt.Length}");
-            
-            var response = await _llmClient.CompleteAsync(prompt);
+
+            var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Titel-Response: '{response}'");
 
             if (string.IsNullOrWhiteSpace(response) || IsErrorResponse(response))
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: Ungültige Response -> Fallback");
-                return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
             }
 
-            var titles = ParseTitleResponse(response, persona);
+            var titles = ParseTitleResponse(response);
 
             if (titles.Count == 0)
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: Keine Titel geparsed -> Fallback");
-                return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
             }
 
             return titles;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Titel-Exception: {ex.Message}");
-            return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
         }
     }
 
-    private string BuildTitlePrompt(UploadProject project, ChannelPersona persona)
+    private string BuildTitlePrompt(UploadProject project)
     {
         var sb = new StringBuilder();
         var style = GetRandomVariation(TitleStyles);
@@ -189,7 +208,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         sb.AppendLine($"[Session: {sessionId}]");
         sb.AppendLine($"Stil: {style}");
         sb.AppendLine();
-        
+
         // Custom-Anweisung als Kontext, NICHT als direkte Anweisung
         if (!string.IsNullOrWhiteSpace(_settings.TitleCustomPrompt))
         {
@@ -209,11 +228,11 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         return sb.ToString();
     }
 
-    private List<string> ParseTitleResponse(string response, ChannelPersona persona)
+    private List<string> ParseTitleResponse(string response)
     {
         // Extrahiere die Custom-Prompt-Wörter um sie zu filtern
         var customPromptWords = ExtractFilterWords(_settings.TitleCustomPrompt);
-        
+
         return response
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(line => !string.IsNullOrWhiteSpace(line))
@@ -232,33 +251,36 @@ public sealed class ContentSuggestionService : IContentSuggestionService
 
     #region SuggestDescriptionAsync
 
-    public async Task<string?> SuggestDescriptionAsync(UploadProject project, ChannelPersona persona)
+    public async Task<string?> SuggestDescriptionAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
         // STRIKTE Prüfung: Ohne Transkript -> Fallback
         if (!HasTranscript(project))
         {
             System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: KEIN Transkript vorhanden -> Fallback");
-            return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
         }
 
         if (!EnsureLlmReady())
         {
             System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: LLM nicht bereit -> Fallback");
-            return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
         }
 
         try
         {
-            var prompt = BuildDescriptionPrompt(project, persona);
+            var prompt = BuildDescriptionPrompt(project);
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Beschreibung-Prompt Länge: {prompt.Length}");
-            
-            var response = await _llmClient.CompleteAsync(prompt);
+
+            var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Beschreibung-Response Länge: {response?.Length ?? 0}");
 
             if (string.IsNullOrWhiteSpace(response) || IsErrorResponse(response))
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Ungültige Response -> Fallback");
-                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
             var cleaned = CleanDescriptionResponse(response, project);
@@ -266,7 +288,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
             if (string.IsNullOrWhiteSpace(cleaned) || cleaned.Length < 20)
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Zu kurz -> Fallback");
-                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
             // Prüfe auf Prompt-Leakage
@@ -274,26 +296,30 @@ public sealed class ContentSuggestionService : IContentSuggestionService
             if (ContainsPromptLeakage(cleaned, customPromptWords))
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Prompt-Leakage erkannt -> Fallback");
-                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
             // Prüfe ob die Beschreibung nur eine Kopie des Titels ist
             if (IsDescriptionJustTitle(cleaned, project))
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Ist nur Titel-Kopie -> Fallback");
-                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
             return cleaned;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Beschreibung-Exception: {ex.Message}");
-            return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
         }
     }
 
-    private string BuildDescriptionPrompt(UploadProject project, ChannelPersona persona)
+    private string BuildDescriptionPrompt(UploadProject project)
     {
         var sb = new StringBuilder();
         var style = GetRandomVariation(DescriptionStyles);
@@ -391,14 +417,14 @@ public sealed class ContentSuggestionService : IContentSuggestionService
 
         // Prüfe auf typische "Titel als Beschreibung"-Muster
         var descLower = description.ToLowerInvariant();
-        if (descLower.StartsWith("in diesem video") || 
+        if (descLower.StartsWith("in diesem video") ||
             descLower.StartsWith("dieses video") ||
             descLower.StartsWith("video über"))
         {
             // Diese Phrasen sind okay, aber prüfe ob danach nur Titel kommt
             var afterPhrase = Regex.Replace(descLower, @"^(in diesem video|dieses video|video über)[:\s]*", "").Trim();
             var titleLower = project.Title.ToLowerInvariant();
-            
+
             if (CalculateSimilarity(afterPhrase, titleLower) > 0.7)
             {
                 return true;
@@ -420,13 +446,13 @@ public sealed class ContentSuggestionService : IContentSuggestionService
 
         // Lowercase
         var normalized = text.ToLowerInvariant();
-        
+
         // Nur Buchstaben, Zahlen und Leerzeichen behalten
         normalized = Regex.Replace(normalized, @"[^\p{L}\p{N}\s]", " ");
-        
+
         // Mehrfache Leerzeichen zu einem
         normalized = Regex.Replace(normalized, @"\s+", " ");
-        
+
         return normalized.Trim();
     }
 
@@ -474,7 +500,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
             .ToList();
 
         var result = string.Join("\n", lines).Trim();
-        
+
         // Anführungszeichen am Anfang/Ende entfernen
         result = RemoveQuotes(result);
 
@@ -483,7 +509,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         {
             result = RemoveTitleFromStart(result, project.Title);
         }
-        
+
         return result;
     }
 
@@ -509,18 +535,18 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         // Finde die Position wo der Titel endet
         // Wir müssen im Original-String arbeiten, nicht im normalisierten
         var lines = description.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        
+
         if (lines.Length > 0)
         {
             var firstLineNorm = NormalizeForComparison(lines[0]);
             var similarity = CalculateSimilarity(firstLineNorm, titleNorm);
-            
+
             if (similarity > 0.8) // Erste Zeile ist sehr ähnlich zum Titel
             {
                 // Entferne die erste Zeile
                 var remainingLines = lines.Skip(1).ToArray();
                 var result = string.Join("\n", remainingLines).Trim();
-                
+
                 // Nur zurückgeben wenn noch genug Inhalt übrig ist
                 if (result.Length >= 30)
                 {
@@ -536,33 +562,36 @@ public sealed class ContentSuggestionService : IContentSuggestionService
 
     #region SuggestTagsAsync
 
-    public async Task<IReadOnlyList<string>> SuggestTagsAsync(UploadProject project, ChannelPersona persona)
+    public async Task<IReadOnlyList<string>> SuggestTagsAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
         // STRIKTE Prüfung: Ohne Transkript -> Fallback
         if (!HasTranscript(project))
         {
             System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: KEIN Transkript vorhanden -> Fallback");
-            return await _fallbackSuggestionService.SuggestTagsAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
         }
 
         if (!EnsureLlmReady())
         {
             System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: LLM nicht bereit -> Fallback");
-            return await _fallbackSuggestionService.SuggestTagsAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
         }
 
         try
         {
-            var prompt = BuildTagsPrompt(project, persona);
+            var prompt = BuildTagsPrompt(project);
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Tags-Prompt Länge: {prompt.Length}");
-            
-            var response = await _llmClient.CompleteAsync(prompt);
+
+            var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Tags-Response: '{response}'");
 
             if (string.IsNullOrWhiteSpace(response) || IsErrorResponse(response))
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: Ungültige Response -> Fallback");
-                return await _fallbackSuggestionService.SuggestTagsAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
             }
 
             var tags = ParseTagsResponse(response);
@@ -570,19 +599,23 @@ public sealed class ContentSuggestionService : IContentSuggestionService
             if (tags.Count == 0)
             {
                 System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: Keine Tags geparsed -> Fallback");
-                return await _fallbackSuggestionService.SuggestTagsAsync(project, persona);
+                return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
             }
 
             return tags;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Tags-Exception: {ex.Message}");
-            return await _fallbackSuggestionService.SuggestTagsAsync(project, persona);
+            return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
         }
     }
 
-    private string BuildTagsPrompt(UploadProject project, ChannelPersona persona)
+    private string BuildTagsPrompt(UploadProject project)
     {
         var sb = new StringBuilder();
         var focus = GetRandomVariation(TagFocuses);
@@ -676,10 +709,10 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         }
 
         var cleaned = input.Trim();
-        
+
         // Entferne führende Nummern, Hashtags, Aufzählungszeichen
         cleaned = CleanTagPrefix(cleaned);
-        
+
         // Entferne Anführungszeichen
         cleaned = RemoveQuotes(cleaned);
 
@@ -695,7 +728,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         foreach (var word in words)
         {
             var trimmedWord = word.Trim();
-            
+
             // Nur Buchstaben und evtl. Zahlen erlauben
             if (!string.IsNullOrWhiteSpace(trimmedWord) && IsValidSingleWordTag(trimmedWord))
             {
@@ -902,11 +935,6 @@ public sealed class ContentSuggestionService : IContentSuggestionService
 
     #region Shared Helper Methods
 
-    private bool IsLocalMode()
-    {
-        return string.Equals(_settings.Mode, "Local", StringComparison.OrdinalIgnoreCase);
-    }
-
     /// <summary>
     /// Prüft ob eine Response eine Fehler- oder Meta-Antwort ist.
     /// </summary>
@@ -918,14 +946,14 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         }
 
         var lower = response.ToLowerInvariant();
-        
+
         // Fehlermuster erkennen
         if (response.StartsWith("[") || response.StartsWith("<"))
         {
             return true;
         }
 
-        if (lower.Contains("kein transkript") || 
+        if (lower.Contains("kein transkript") ||
             lower.Contains("keine informationen") ||
             lower.Contains("nicht möglich") ||
             lower.Contains("nicht verfügbar") ||
@@ -963,7 +991,7 @@ public sealed class ContentSuggestionService : IContentSuggestionService
         }
 
         var lower = trimmed.ToLowerInvariant();
-        
+
         if (lower.StartsWith("titel") ||
             lower.StartsWith("beschreibung") ||
             lower.StartsWith("tags") ||
