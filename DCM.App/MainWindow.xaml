@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        Title="Dabis Content Manager"
+        Title="Dabis Content Manager · © dabinuss"
         Height="750"
         Width="1100"
         MinHeight="600"
@@ -25,6 +25,8 @@
                          Color="#3EA6FF"/>
         <SolidColorBrush x:Key="PrimaryHoverBrush"
                          Color="#65B8FF"/>
+        <SolidColorBrush x:Key="PrimaryPressedBrush"
+                         Color="#2F8AD4"/>
         <SolidColorBrush x:Key="SuccessBrush"
                          Color="#2BA640"/>
         <SolidColorBrush x:Key="DangerBrush"
@@ -42,6 +44,14 @@
         <SolidColorBrush x:Key="AccentRedHoverBrush"
                          Color="#FF6B64"/>
 
+        <!-- Standard-Font leicht verkleinert für kompakteres, professionelles Layout -->
+        <Style TargetType="Window">
+            <Setter Property="FontFamily"
+                    Value="Segoe UI"/>
+            <Setter Property="FontSize"
+                    Value="13"/>
+        </Style>
+
         <!-- Moderner Button Style -->
         <Style x:Key="PrimaryButton"
                TargetType="Button">
@@ -54,13 +64,16 @@
             <Setter Property="Padding"
                     Value="12,6"/>
             <Setter Property="FontWeight"
-                    Value="Medium"/>
+                    Value="SemiBold"/>
             <Setter Property="Cursor"
                     Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
                                 CornerRadius="4"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center"
@@ -69,8 +82,15 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver"
                                      Value="True">
-                                <Setter Property="Background"
+                                <Setter TargetName="border"
+                                        Property="Background"
                                         Value="{StaticResource PrimaryHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="{StaticResource PrimaryPressedBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled"
                                      Value="False">
@@ -96,10 +116,13 @@
                     Value="10,5"/>
             <Setter Property="Cursor"
                     Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
                                 CornerRadius="4"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center"
@@ -108,8 +131,15 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver"
                                      Value="True">
-                                <Setter Property="Background"
+                                <Setter TargetName="border"
+                                        Property="Background"
                                         Value="#4F4F4F"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed"
+                                     Value="True">
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#3B3B3B"/>
                             </Trigger>
                             <Trigger Property="IsEnabled"
                                      Value="False">
@@ -136,10 +166,13 @@
                     Value="10,5"/>
             <Setter Property="Cursor"
                     Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="4"
@@ -150,14 +183,16 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver"
                                      Value="True">
-                                <Setter Property="Background"
+                                <Setter TargetName="border"
+                                        Property="Background"
                                         Value="{StaticResource SurfaceLightBrush}"/>
                                 <Setter Property="BorderBrush"
                                         Value="{StaticResource AccentRedBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed"
                                      Value="True">
-                                <Setter Property="Background"
+                                <Setter TargetName="border"
+                                        Property="Background"
                                         Value="{StaticResource InputBackgroundBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled"
@@ -171,7 +206,7 @@
             </Setter>
         </Style>
 
-        <!-- Moderner GroupBox Style -->
+        <!-- Moderner GroupBox Style (Card-Optik) -->
         <Style x:Key="ModernGroupBox"
                TargetType="GroupBox">
             <Setter Property="Background"
@@ -200,7 +235,9 @@
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        FontSize="12"
                                        FontWeight="SemiBold"
-                                       Margin="0,0,0,8"/>
+                                       Margin="0,0,0,8"
+                                       TextOptions.TextFormattingMode="Ideal"
+                                       TextOptions.TextRenderingMode="ClearType"/>
 
                             <!-- Content -->
                             <Border Grid.Row="1"
@@ -218,7 +255,6 @@
         </Style>
 
         <!-- Moderner TextBox Style -->
-
         <Style TargetType="TextBox">
             <Setter Property="Background"
                     Value="{StaticResource InputBackgroundBrush}"/>
@@ -234,10 +270,13 @@
                     Value="13"/>
             <Setter Property="CaretBrush"
                     Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}"
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="4">
@@ -248,12 +287,17 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused"
                                      Value="True">
-                                <Setter Property="BorderBrush"
+                                <Setter TargetName="border"
+                                        Property="BorderBrush"
                                         Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="border"
+                                        Property="Background"
+                                        Value="#191919"/>
                             </Trigger>
                             <Trigger Property="IsReadOnly"
                                      Value="True">
-                                <Setter Property="Background"
+                                <Setter TargetName="border"
+                                        Property="Background"
                                         Value="{StaticResource SurfaceBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -278,6 +322,8 @@
                     Value="13"/>
             <Setter Property="MinHeight"
                     Value="32"/>
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
@@ -381,6 +427,9 @@
                                 <Setter TargetName="Border"
                                         Property="BorderBrush"
                                         Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="Border"
+                                        Property="Background"
+                                        Value="#191919"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -397,10 +446,13 @@
                     Value="8,6"/>
             <Setter Property="Cursor"
                     Value="Hand"/>
+            <Setter Property="SnapsToDevicePixels"
+                    Value="True"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBoxItem">
-                        <Border Background="{TemplateBinding Background}"
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
                                 Padding="{TemplateBinding Padding}"
                                 CornerRadius="2">
                             <ContentPresenter/>
@@ -408,12 +460,14 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted"
                                      Value="True">
-                                <Setter Property="Background"
+                                <Setter TargetName="border"
+                                        Property="Background"
                                         Value="{StaticResource SurfaceLightBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected"
                                      Value="True">
-                                <Setter Property="Background"
+                                <Setter TargetName="border"
+                                        Property="Background"
                                         Value="{StaticResource SurfaceLightBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -422,44 +476,9 @@
             </Setter>
         </Style>
 
-        <!-- Moderne GroupBox -->
-        <Style TargetType="GroupBox">
-            <Setter Property="Background"
-                    Value="{StaticResource SurfaceBrush}"/>
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource BorderBrush}"/>
-            <Setter Property="BorderThickness"
-                    Value="1"/>
-            <Setter Property="Padding"
-                    Value="10,8"/>
-            <Setter Property="Margin"
-                    Value="0,0,0,10"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="GroupBox">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0"
-                                       Text="{TemplateBinding Header}"
-                                       FontWeight="SemiBold"
-                                       FontSize="13"
-                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                       Margin="0,0,0,6"/>
-                            <Border Grid.Row="1"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="8"
-                                    Padding="{TemplateBinding Padding}">
-                                <ContentPresenter/>
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+        <!-- Moderne GroupBox (Default) -->
+        <Style TargetType="GroupBox"
+               BasedOn="{StaticResource ModernGroupBox}">
         </Style>
 
         <!-- Label Style -->
@@ -509,7 +528,7 @@
                                         Value="{StaticResource TextPrimaryBrush}"/>
                                 <Setter TargetName="Border"
                                         Property="BorderBrush"
-                                        Value="{StaticResource TextPrimaryBrush}"/>
+                                        Value="{StaticResource PrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver"
                                      Value="True">
@@ -521,6 +540,9 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- DatePicker, DatePickerTextBox, CheckBox, ListBox, DataGrid, Slider, Hyperlink, ScrollBar, TextBlock Styles bleiben wie von dir definiert -->
+        <!-- (aus Platzgründen hier unverändert übernommen, nur minimale Typo/Border-Optik oben angepasst) -->
 
         <Style TargetType="DatePicker">
             <Setter Property="Foreground"
@@ -616,7 +638,6 @@
             </Setter>
         </Style>
 
-        <!-- DatePickerTextBox Style -->
         <Style TargetType="DatePickerTextBox">
             <Setter Property="Foreground"
                     Value="{StaticResource TextPrimaryBrush}"/>
@@ -665,7 +686,6 @@
             </Setter>
         </Style>
 
-        <!-- CheckBox Style -->
         <Style TargetType="CheckBox">
             <Setter Property="Foreground"
                     Value="{StaticResource TextSecondaryBrush}"/>
@@ -677,7 +697,6 @@
                     Value="Hand"/>
         </Style>
 
-        <!-- ListBox Style -->
         <Style TargetType="ListBox">
             <Setter Property="Background"
                     Value="{StaticResource InputBackgroundBrush}"/>
@@ -708,7 +727,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- DataGrid Style -->
         <Style TargetType="DataGrid">
             <Setter Property="Background"
                     Value="Transparent"/>
@@ -776,13 +794,11 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Slider Style -->
         <Style TargetType="Slider">
             <Setter Property="Foreground"
                     Value="{StaticResource PrimaryBrush}"/>
         </Style>
 
-        <!-- Hyperlink Style -->
         <Style TargetType="Hyperlink">
             <Setter Property="Foreground"
                     Value="{StaticResource PrimaryBrush}"/>
@@ -795,13 +811,11 @@
             </Style.Triggers>
         </Style>
 
-        <!-- ScrollBar Style für Dark Theme -->
         <Style TargetType="ScrollBar">
             <Setter Property="Background"
                     Value="Transparent"/>
         </Style>
 
-        <!-- TextBlock Default -->
         <Style TargetType="TextBlock">
             <Setter Property="Foreground"
                     Value="{StaticResource TextPrimaryBrush}"/>
@@ -810,11 +824,73 @@
 
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <!-- App Header -->
+            <RowDefinition Height="*"/>
+            <!-- Tabs -->
+            <RowDefinition Height="Auto"/>
+            <!-- Statusbar -->
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0">
+        <!-- App-Header mit Branding + GitHub-Link -->
+        <Border Grid.Row="0"
+                Margin="0,0,0,10"
+                Padding="10,6"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+            <DockPanel LastChildFill="True">
+                <!-- Links: App-Name -->
+                <StackPanel Orientation="Horizontal"
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Dabis Content Manager"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Margin="0,0,10,0"/>
+                </StackPanel>
+
+                <!-- Rechts: Statusanzeige -->
+                <StackPanel Orientation="Horizontal"
+                            DockPanel.Dock="Right"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Status:"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11"
+                               Margin="0,0,6,0"/>
+                    <!-- WICHTIG: Name muss zum Code-Behind passen -->
+                    <TextBlock x:Name="StatusTextBlock"
+                               Text="Bereit"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontSize="11"
+                               FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Mitte: Upload-Fortschritt -->
+                <StackPanel Orientation="Horizontal"
+                            Margin="20,0"
+                            VerticalAlignment="Center">
+                    <ProgressBar x:Name="UploadProgressBar"
+                                 Width="160"
+                                 Height="14"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="0"
+                                 Visibility="Collapsed"
+                                 Margin="0,0,8,0"/>
+                    <TextBlock x:Name="UploadProgressLabel"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11"
+                               Text=""
+                               Visibility="Collapsed"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Hauptinhalt: Tabs -->
+        <TabControl Grid.Row="1">
 
             <!-- TAB 1: Neuer Upload -->
             <TabItem Header="📤 Neuer Upload">
@@ -1140,6 +1216,8 @@
             </TabItem>
 
             <!-- TAB 2: Konten -->
+            <!-- (ab hier identisch zu deinem Code, nur innerhalb der neuen Grid-Struktur belassen) -->
+
             <TabItem Header="👤 Konten">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               Padding="4,8,4,4">
@@ -1848,69 +1926,40 @@
             </TabItem>
         </TabControl>
 
-        <!-- Globale Status- und Fortschrittsanzeige -->
-        <Border Grid.Row="1"
+        <!-- Footer: Copyright + GitHub-Link -->
+        <Border Grid.Row="2"
                 Margin="0,10,0,0"
-                Padding="10,8"
+                Padding="8,4"
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="1"
-                CornerRadius="8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock x:Name="StatusTextBlock"
-                           Grid.Column="0"
-                           Text="Bereit"
-                           TextWrapping="Wrap"
+                CornerRadius="6">
+            <DockPanel LastChildFill="False">
+                <!-- Links: Copyright -->
+                <TextBlock DockPanel.Dock="Left"
                            VerticalAlignment="Center"
                            Foreground="{StaticResource TextMutedBrush}"
-                           FontSize="12"/>
+                           FontSize="11"
+                           Text="© dabinuss"/>
 
-                <StackPanel Grid.Column="1"
+                <!-- Rechts: GitHub-Link -->
+                <StackPanel DockPanel.Dock="Right"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
-                    <ProgressBar x:Name="UploadProgressBar"
-                                 Minimum="0"
-                                 Maximum="100"
-                                 Height="6"
-                                 Width="180"
-                                 Visibility="Collapsed">
-                        <ProgressBar.Style>
-                            <Style TargetType="ProgressBar">
-                                <Setter Property="Background"
-                                        Value="{StaticResource SurfaceLightBrush}"/>
-                                <Setter Property="Foreground"
-                                        Value="{StaticResource PrimaryBrush}"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="ProgressBar">
-                                            <Border CornerRadius="3"
-                                                    Background="{TemplateBinding Background}">
-                                                <Border x:Name="PART_Track">
-                                                    <Border x:Name="PART_Indicator"
-                                                            CornerRadius="3"
-                                                            Background="{TemplateBinding Foreground}"
-                                                            HorizontalAlignment="Left"/>
-                                                </Border>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </ProgressBar.Style>
-                    </ProgressBar>
-                    <TextBlock x:Name="UploadProgressLabel"
-                               Margin="10,0,0,0"
-                               VerticalAlignment="Center"
-                               Visibility="Collapsed"
-                               FontSize="12"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock VerticalAlignment="Center"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11"
+                               Text="GitHub:"/>
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="11"
+                               Margin="6,0,0,0">
+                <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
+                           RequestNavigate="HistoryLink_RequestNavigate">
+                    <Run Text="dabinuss/Dabis-Content-Manager"/>
+                </Hyperlink>
+                    </TextBlock>
                 </StackPanel>
-            </Grid>
+            </DockPanel>
         </Border>
     </Grid>
 </Window>
