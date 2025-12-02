@@ -68,3 +68,6 @@ secrets.json
 
 # LLM
 *.gguf
+
+# Releases
+releases/
