@@ -1,202 +1,113 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using DCM.Core.Models;
 
 namespace DCM.Core.Services;
 
+/// <summary>
+/// Einfache Implementierung des IContentSuggestionService ohne LLM.
+/// Delegiert an ILlmService für Abwärtskompatibilität.
+/// </summary>
 public sealed class SimpleContentSuggestionService : IContentSuggestionService
 {
-    public Task<IReadOnlyList<string>> SuggestTitlesAsync(UploadProject project, ChannelPersona persona)
+    private readonly ILlmService _llmService;
+
+    public SimpleContentSuggestionService(ILlmService llmService)
     {
-        var result = new List<string>();
+        _llmService = llmService ?? throw new ArgumentNullException(nameof(llmService));
+    }
 
-        var fileNameBase = GetBaseTitleFromFile(project.VideoFilePath);
-        var baseTitle = string.IsNullOrWhiteSpace(project.Title)
-            ? fileNameBase
-            : project.Title.Trim();
-
-        if (string.IsNullOrWhiteSpace(baseTitle))
+    public async Task<IReadOnlyList<string>> SuggestTitlesAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_llmService.IsAvailable)
         {
-            baseTitle = "Neues Video";
+            return new[] { "[LLM nicht konfiguriert]" };
         }
 
-        // 1. Basis
-        result.Add(baseTitle);
+        var context = BuildContext(project, persona);
+        var prompt = $"Generiere 3 YouTube-Titel für folgendes Video:\n{context}";
+        var result = await _llmService.SummarizeAsync(prompt, cancellationToken);
 
-        // 2. Highlights / Best Moments
-        result.Add($"{baseTitle} | Highlights");
-        result.Add($"{baseTitle} – Best Moments");
-
-        // Optionaler ToneOfVoice-Schlenker (z. B. „– sarkastische Highlights“)
-        if (!string.IsNullOrWhiteSpace(persona.ToneOfVoice))
+        if (string.IsNullOrWhiteSpace(result))
         {
-            var tone = persona.ToneOfVoice.Trim();
-            result.Add($"{baseTitle} – {tone} Highlights");
+            return new[] { "[Keine Antwort vom LLM]" };
         }
 
-        // Auf 3–4 sinnvolle Titel reduzieren & duplikate entfernen
-        var distinct = result
+        var titles = result
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(t => !string.IsNullOrWhiteSpace(t))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
             .Take(4)
             .ToList();
 
-        if (distinct.Count == 0)
-        {
-            distinct.Add("Neues Video");
-        }
-
-        return Task.FromResult<IReadOnlyList<string>>(distinct);
+        return titles.Count > 0 ? titles : new[] { result };
     }
 
-    public Task<string?> SuggestDescriptionAsync(UploadProject project, ChannelPersona persona)
+    public async Task<string?> SuggestDescriptionAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
     {
-        var lines = new List<string>();
-
-        var baseTitle = !string.IsNullOrWhiteSpace(project.Title)
-            ? project.Title.Trim()
-            : GetBaseTitleFromFile(project.VideoFilePath);
-
-        if (!string.IsNullOrWhiteSpace(baseTitle))
+        if (!_llmService.IsAvailable)
         {
-            lines.Add(baseTitle);
-            lines.Add(string.Empty);
+            return "[LLM nicht konfiguriert]";
         }
 
-        // Optional: ContentType / Kanalinfo
-        if (!string.IsNullOrWhiteSpace(persona.ContentType) ||
-            !string.IsNullOrWhiteSpace(persona.TargetAudience))
+        var context = BuildContext(project, persona);
+        var prompt = $"Schreibe eine YouTube-Beschreibung für folgendes Video:\n{context}";
+        var result = await _llmService.SummarizeAsync(prompt, cancellationToken);
+
+        return string.IsNullOrWhiteSpace(result) ? "[Keine Antwort vom LLM]" : result;
+    }
+
+    public async Task<IReadOnlyList<string>> SuggestTagsAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_llmService.IsAvailable)
         {
-            var parts = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(persona.ContentType))
-            {
-                parts.Add(persona.ContentType.Trim());
-            }
-
-            if (!string.IsNullOrWhiteSpace(persona.TargetAudience))
-            {
-                parts.Add($"für {persona.TargetAudience.Trim()}");
-            }
-
-            lines.Add(string.Join(" – ", parts));
-            lines.Add(string.Empty);
+            return new[] { "[LLM nicht konfiguriert]" };
         }
 
-        // Transcript: erste 1–3 „Lesbare“ Zeilen
+        var context = BuildContext(project, persona);
+        var prompt = $"Generiere 10-15 relevante YouTube-Tags für folgendes Video:\n{context}";
+        var topics = await _llmService.ExtractTopicsAsync(prompt, cancellationToken);
+
+        return topics.Count > 0 ? topics : new[] { "[Keine Antwort vom LLM]" };
+    }
+
+    private static string BuildContext(UploadProject project, ChannelPersona persona)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(project.Title))
+            parts.Add($"Titel: {project.Title}");
+
+        if (!string.IsNullOrWhiteSpace(project.VideoFilePath))
+            parts.Add($"Dateiname: {Path.GetFileNameWithoutExtension(project.VideoFilePath)}");
+
         if (!string.IsNullOrWhiteSpace(project.TranscriptText))
         {
-            var raw = project.TranscriptText
-                .Replace("\r\n", "\n", StringComparison.Ordinal)
-                .Replace("\r", "\n", StringComparison.Ordinal);
-
-            var transcriptLines = raw
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(l => l.Length > 0)
-                .Take(3);
-
-            lines.AddRange(transcriptLines);
+            var snippet = project.TranscriptText.Length > 500
+                ? project.TranscriptText[..500] + "..."
+                : project.TranscriptText;
+            parts.Add($"Transkript: {snippet}");
         }
 
-        if (lines.Count == 0)
-        {
-            return Task.FromResult<string?>(null);
-        }
-
-        var text = string.Join(Environment.NewLine, lines);
-        return Task.FromResult<string?>(text);
-    }
-
-    public Task<IReadOnlyList<string>> SuggestTagsAsync(UploadProject project, ChannelPersona persona)
-    {
-        var tags = new List<string>();
-
-        // Dateiname tokenisieren
-        var baseName = GetBaseTitleFromFile(project.VideoFilePath);
-        if (!string.IsNullOrWhiteSpace(baseName))
-        {
-            foreach (var token in Tokenize(baseName))
-            {
-                tags.Add(token);
-            }
-        }
-
-        // Titel ebenfalls tokenisieren
-        if (!string.IsNullOrWhiteSpace(project.Title))
-        {
-            foreach (var token in Tokenize(project.Title))
-            {
-                tags.Add(token);
-            }
-        }
-
-        // 2–3 Standardtags aus ContentType / TargetAudience
         if (!string.IsNullOrWhiteSpace(persona.ContentType))
-        {
-            foreach (var token in Tokenize(persona.ContentType))
-            {
-                tags.Add(token);
-            }
-        }
+            parts.Add($"Content-Typ: {persona.ContentType}");
+
+        if (!string.IsNullOrWhiteSpace(persona.ToneOfVoice))
+            parts.Add($"Tonfall: {persona.ToneOfVoice}");
 
         if (!string.IsNullOrWhiteSpace(persona.TargetAudience))
-        {
-            foreach (var token in Tokenize(persona.TargetAudience))
-            {
-                tags.Add(token);
-            }
-        }
+            parts.Add($"Zielgruppe: {persona.TargetAudience}");
 
-        var distinct = tags
-            .Where(t => !string.IsNullOrWhiteSpace(t))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Take(15)
-            .ToList();
+        if (!string.IsNullOrWhiteSpace(persona.Language))
+            parts.Add($"Sprache: {persona.Language}");
 
-        return Task.FromResult<IReadOnlyList<string>>(distinct);
-    }
-
-    private static string GetBaseTitleFromFile(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-            return string.Empty;
-
-        var fileName = Path.GetFileNameWithoutExtension(path);
-        return fileName ?? string.Empty;
-    }
-
-    private static IEnumerable<string> Tokenize(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-            yield break;
-
-        // Trenner: Leerzeichen, -, _
-        var rough = input
-            .Replace('-', ' ')
-            .Replace('_', ' ');
-
-        foreach (var part in rough.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            var cleaned = NormalizeToken(part);
-            if (!string.IsNullOrWhiteSpace(cleaned))
-                yield return cleaned;
-        }
-    }
-
-    private static string NormalizeToken(string token)
-    {
-        // Nur Buchstaben/Ziffern/#, alles kleinschreiben
-        var filtered = token
-            .Where(ch => char.IsLetterOrDigit(ch) || ch == '#')
-            .ToArray();
-
-        if (filtered.Length == 0)
-            return string.Empty;
-
-        return new string(filtered).ToLowerInvariant();
+        return string.Join("\n", parts);
     }
 }

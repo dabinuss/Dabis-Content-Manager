@@ -2,7 +2,10 @@ using DCM.Core.Models;
 
 namespace DCM.Core.Services;
 
-public interface IContentSuggestionService
+/// <summary>
+/// Fallback-Service für Content-Vorschläge, wenn das LLM nicht verfügbar ist.
+/// </summary>
+public interface IFallbackSuggestionService
 {
     Task<IReadOnlyList<string>> SuggestTitlesAsync(
         UploadProject project,

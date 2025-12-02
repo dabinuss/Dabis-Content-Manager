@@ -1,33 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
-using Microsoft.Win32;
+using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
 using DCM.Core.Services;
+using DCM.Llm;
 using DCM.YouTube;
+
 using WinForms = System.Windows.Forms;
 
 namespace DCM.App;
 
 public partial class MainWindow : Window
 {
-    private const long MaxThumbnailSizeBytes = 1 * 1024 * 1024; // 1 MB
-
     private readonly TemplateService _templateService = new();
     private readonly ITemplateRepository _templateRepository;
     private readonly ISettingsProvider _settingsProvider;
     private readonly YouTubePlatformClient _youTubeClient;
-    private readonly IContentSuggestionService _contentSuggestionService;
     private readonly UploadHistoryService _uploadHistoryService;
+    private readonly SimpleFallbackSuggestionService _fallbackSuggestionService;
+
+    private ILlmClient _llmClient;
+    private IContentSuggestionService _contentSuggestionService;
     private UploadService _uploadService;
     private AppSettings _settings = new();
 
@@ -38,6 +37,8 @@ public partial class MainWindow : Window
 
     private List<UploadHistoryEntry> _allHistoryEntries = new();
 
+    private CancellationTokenSource? _currentLlmCts;
+
     private sealed class YouTubePlaylistListItem
     {
         public YouTubePlaylistListItem(string id, string title)
@@ -47,9 +48,7 @@ public partial class MainWindow : Window
         }
 
         public string Id { get; }
-
         public string Title { get; }
-
         public override string ToString() => Title;
     }
 
@@ -57,24 +56,110 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // JSON-Konfigsystem initialisieren
         _settingsProvider = new JsonSettingsProvider();
         _templateRepository = new JsonTemplateRepository();
         _youTubeClient = new YouTubePlatformClient();
-        _contentSuggestionService = new SimpleContentSuggestionService();
         _uploadHistoryService = new UploadHistoryService();
-        _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
+        _fallbackSuggestionService = new SimpleFallbackSuggestionService();
 
         LoadSettings();
+
+        _llmClient = CreateLlmClient(_settings.Llm);
+        _contentSuggestionService = new ContentSuggestionService(
+            _llmClient,
+            _fallbackSuggestionService,
+            _settings.Llm);
+
+        _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
+
         InitializePlatformComboBox();
         InitializeLanguageComboBox();
         InitializeSchedulingDefaults();
+        InitializeLlmSettingsTab();
         LoadTemplates();
-        UpdateYouTubeStatusText(); // Anfangsstatus
+        UpdateYouTubeStatusText();
         LoadUploadHistory();
 
-        // Auto-Reconnect nach dem Laden des Fensters
+        LlmTemperatureSlider.ValueChanged += LlmTemperatureSlider_ValueChanged;
+
         Loaded += MainWindow_Loaded;
+        Closing += MainWindow_Closing;
+    }
+
+    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        CancelCurrentLlmOperation();
+
+        if (_llmClient is IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+            }
+            catch
+            {
+                // Ignorieren
+            }
+        }
+    }
+
+    private void CancelCurrentLlmOperation()
+    {
+        try
+        {
+            _currentLlmCts?.Cancel();
+            _currentLlmCts?.Dispose();
+        }
+        catch
+        {
+            // Ignorieren
+        }
+        finally
+        {
+            _currentLlmCts = null;
+        }
+    }
+
+    private CancellationToken GetNewLlmCancellationToken()
+    {
+        CancelCurrentLlmOperation();
+        _currentLlmCts = new CancellationTokenSource();
+        return _currentLlmCts.Token;
+    }
+
+    private static ILlmClient CreateLlmClient(LlmSettings settings)
+    {
+        if (settings.IsLocalMode && !string.IsNullOrWhiteSpace(settings.LocalModelPath))
+        {
+            return new LocalLlmClient(settings);
+        }
+
+        return new NullLlmClient();
+    }
+
+    private void RecreateLlmClient()
+    {
+        CancelCurrentLlmOperation();
+
+        if (_llmClient is IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+            }
+            catch
+            {
+                // Ignorieren
+            }
+        }
+
+        _llmClient = CreateLlmClient(_settings.Llm);
+        _contentSuggestionService = new ContentSuggestionService(
+            _llmClient,
+            _fallbackSuggestionService,
+            _settings.Llm);
+
+        UpdateLlmStatusText();
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -83,6 +168,8 @@ public partial class MainWindow : Window
         {
             await TryAutoConnectYouTubeAsync();
         }
+
+        UpdateLlmStatusText();
     }
 
     #region Initial Load
@@ -99,145 +186,104 @@ public partial class MainWindow : Window
             StatusTextBlock.Text = $"Einstellungen konnten nicht geladen werden: {ex.Message}";
         }
 
-        // Safety: Persona nie null lassen
         _settings.Persona ??= new ChannelPersona();
+        _settings.Llm ??= new LlmSettings();
 
         ApplySettingsToUi();
     }
 
     private void ApplySettingsToUi()
     {
-        // App-Einstellungen-Tab
-        if (DefaultVideoFolderTextBox is not null)
-        {
-            DefaultVideoFolderTextBox.Text = _settings.DefaultVideoFolder ?? string.Empty;
-        }
+        DefaultVideoFolderTextBox.Text = _settings.DefaultVideoFolder ?? string.Empty;
+        DefaultThumbnailFolderTextBox.Text = _settings.DefaultThumbnailFolder ?? string.Empty;
 
-        if (DefaultThumbnailFolderTextBox is not null)
-        {
-            DefaultThumbnailFolderTextBox.Text = _settings.DefaultThumbnailFolder ?? string.Empty;
-        }
+        DefaultSchedulingTimeTextBox.Text = string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime)
+            ? Constants.DefaultSchedulingTime
+            : _settings.DefaultSchedulingTime;
 
-        if (DefaultSchedulingTimeTextBox is not null)
-        {
-            DefaultSchedulingTimeTextBox.Text = string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime)
-                ? "18:00"
-                : _settings.DefaultSchedulingTime;
-        }
+        SelectComboBoxItemByTag(DefaultVisibilityComboBox, _settings.DefaultVisibility);
 
-        if (DefaultVisibilityComboBox is not null)
-        {
-            var items = DefaultVisibilityComboBox.Items.OfType<ComboBoxItem>().ToList();
-            var selected = items.FirstOrDefault(i =>
-                i.Tag is VideoVisibility vv && vv == _settings.DefaultVisibility);
-            if (selected is not null)
-            {
-                DefaultVisibilityComboBox.SelectedItem = selected;
-            }
-        }
+        ConfirmBeforeUploadCheckBox.IsChecked = _settings.ConfirmBeforeUpload;
+        AutoApplyDefaultTemplateCheckBox.IsChecked = _settings.AutoApplyDefaultTemplate;
+        OpenBrowserAfterUploadCheckBox.IsChecked = _settings.OpenBrowserAfterUpload;
+        AutoConnectYouTubeCheckBox.IsChecked = _settings.AutoConnectYouTube;
 
-        if (ConfirmBeforeUploadCheckBox is not null)
-        {
-            ConfirmBeforeUploadCheckBox.IsChecked = _settings.ConfirmBeforeUpload;
-        }
-
-        if (AutoApplyDefaultTemplateCheckBox is not null)
-        {
-            AutoApplyDefaultTemplateCheckBox.IsChecked = _settings.AutoApplyDefaultTemplate;
-        }
-
-        if (OpenBrowserAfterUploadCheckBox is not null)
-        {
-            OpenBrowserAfterUploadCheckBox.IsChecked = _settings.OpenBrowserAfterUpload;
-        }
-
-        if (AutoConnectYouTubeCheckBox is not null)
-        {
-            AutoConnectYouTubeCheckBox.IsChecked = _settings.AutoConnectYouTube;
-        }
-
-        // Kanalprofil-Tab
         var persona = _settings.Persona ?? new ChannelPersona();
         _settings.Persona = persona;
 
-        if (ChannelPersonaNameTextBox is not null)
-        {
-            ChannelPersonaNameTextBox.Text = persona.Name ?? string.Empty;
-        }
+        ChannelPersonaNameTextBox.Text = persona.Name ?? string.Empty;
+        ChannelPersonaChannelNameTextBox.Text = persona.ChannelName ?? string.Empty;
+        ChannelPersonaLanguageTextBox.Text = persona.Language ?? string.Empty;
+        ChannelPersonaToneOfVoiceTextBox.Text = persona.ToneOfVoice ?? string.Empty;
+        ChannelPersonaContentTypeTextBox.Text = persona.ContentType ?? string.Empty;
+        ChannelPersonaTargetAudienceTextBox.Text = persona.TargetAudience ?? string.Empty;
+        ChannelPersonaAdditionalInstructionsTextBox.Text = persona.AdditionalInstructions ?? string.Empty;
 
-        if (ChannelPersonaChannelNameTextBox is not null)
-        {
-            ChannelPersonaChannelNameTextBox.Text = persona.ChannelName ?? string.Empty;
-        }
+        ApplyLlmSettingsToUi();
+    }
 
-        if (ChannelPersonaLanguageTextBox is not null)
-        {
-            ChannelPersonaLanguageTextBox.Text = persona.Language ?? string.Empty;
-        }
+    private void ApplyLlmSettingsToUi()
+    {
+        var llm = _settings.Llm ?? new LlmSettings();
 
-        if (ChannelPersonaToneOfVoiceTextBox is not null)
-        {
-            ChannelPersonaToneOfVoiceTextBox.Text = persona.ToneOfVoice ?? string.Empty;
-        }
+        SelectComboBoxItemByTag(LlmModeComboBox, llm.Mode.ToString());
 
-        if (ChannelPersonaContentTypeTextBox is not null)
-        {
-            ChannelPersonaContentTypeTextBox.Text = persona.ContentType ?? string.Empty;
-        }
+        LlmModelPathTextBox.Text = llm.LocalModelPath ?? string.Empty;
+        LlmMaxTokensTextBox.Text = llm.MaxTokens.ToString();
+        LlmTemperatureSlider.Value = llm.Temperature;
+        LlmTemperatureValueText.Text = llm.Temperature.ToString("F1", CultureInfo.InvariantCulture);
 
-        if (ChannelPersonaTargetAudienceTextBox is not null)
-        {
-            ChannelPersonaTargetAudienceTextBox.Text = persona.TargetAudience ?? string.Empty;
-        }
+        LlmTitleCustomPromptTextBox.Text = llm.TitleCustomPrompt ?? string.Empty;
+        LlmDescriptionCustomPromptTextBox.Text = llm.DescriptionCustomPrompt ?? string.Empty;
+        LlmTagsCustomPromptTextBox.Text = llm.TagsCustomPrompt ?? string.Empty;
 
-        if (ChannelPersonaAdditionalInstructionsTextBox is not null)
+        UpdateLlmControlsEnabled();
+    }
+
+    private static void SelectComboBoxItemByTag<T>(System.Windows.Controls.ComboBox comboBox, T value)
+    {
+        var items = comboBox.Items.OfType<ComboBoxItem>().ToList();
+
+        foreach (var item in items)
         {
-            ChannelPersonaAdditionalInstructionsTextBox.Text = persona.AdditionalInstructions ?? string.Empty;
+            if (item.Tag is T tag && EqualityComparer<T>.Default.Equals(tag, value))
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+
+            if (item.Tag is string tagString && value?.ToString() == tagString)
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
         }
     }
 
     private void InitializePlatformComboBox()
     {
-        // Upload-Tab
         PlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
         PlatformComboBox.SelectedItem = _settings.DefaultPlatform;
 
-        // Templates-Tab
         TemplatePlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
 
-        // Sichtbarkeit-Combo im Upload-Tab nach Settings
-        if (VisibilityComboBox is not null)
-        {
-            var items = VisibilityComboBox.Items.OfType<ComboBoxItem>().ToList();
-            var selected = items.FirstOrDefault(i =>
-                i.Tag is VideoVisibility vv && vv == _settings.DefaultVisibility);
-            if (selected is not null)
-            {
-                VisibilityComboBox.SelectedItem = selected;
-            }
-        }
+        SelectComboBoxItemByTag(VisibilityComboBox, _settings.DefaultVisibility);
     }
 
     private void InitializeLanguageComboBox()
     {
-        if (ChannelPersonaLanguageTextBox is null)
-            return;
-
-        // Nur neutrale Sprachen (keine Länder-Kombinationen wie "Deutsch (Belgien)")
         var cultures = CultureInfo
             .GetCultures(CultureTypes.NeutralCultures)
-            .Where(c => !string.IsNullOrWhiteSpace(c.Name)) // Invariant ausschließen
+            .Where(c => !string.IsNullOrWhiteSpace(c.Name))
             .OrderBy(c => c.DisplayName)
             .Select(c => $"{c.DisplayName} ({c.Name})")
             .ToList();
 
         ChannelPersonaLanguageTextBox.ItemsSource = cultures;
-        // Text bleibt das, was wir in ApplySettingsToUi gesetzt haben (ComboBox ist editierbar)
     }
 
     private void InitializeSchedulingDefaults()
     {
-        // Default: nächster Tag, Uhrzeit aus Settings oder 18:00 Uhr
         TimeSpan defaultTime;
 
         if (!string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime) &&
@@ -247,12 +293,17 @@ public partial class MainWindow : Window
         }
         else
         {
-            defaultTime = new TimeSpan(18, 0, 0);
+            defaultTime = TimeSpan.Parse(Constants.DefaultSchedulingTime);
         }
 
         ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
         ScheduleTimeTextBox.Text = defaultTime.ToString(@"hh\:mm");
         UpdateScheduleControlsEnabled();
+    }
+
+    private void InitializeLlmSettingsTab()
+    {
+        ApplyLlmSettingsToUi();
     }
 
     private void LoadTemplates()
@@ -308,13 +359,19 @@ public partial class MainWindow : Window
     private void TemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_settings.AutoApplyDefaultTemplate)
+        {
             return;
+        }
 
         if (TemplateComboBox.SelectedItem is not Template tmpl)
+        {
             return;
+        }
 
         if (!string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
+        {
             return;
+        }
 
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
@@ -324,10 +381,6 @@ public partial class MainWindow : Window
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
     {
-        // InitialDirectory-Priorität:
-        // 1) DefaultVideoFolder (falls gesetzt)
-        // 2) LastVideoFolder
-        // 3) Eigene Videos
         string initialDirectory;
 
         if (!string.IsNullOrWhiteSpace(_settings.DefaultVideoFolder) &&
@@ -390,77 +443,165 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog(this) == true)
         {
             ThumbnailPathTextBox.Text = dlg.FileName;
-            // DefaultThumbnailFolder bleibt über den App-Settings-Tab konfigurierbar.
+            UpdateThumbnailPreview(dlg.FileName); // NEU
         }
     }
 
     private void ThumbnailClearButton_Click(object sender, RoutedEventArgs e)
     {
         ThumbnailPathTextBox.Text = string.Empty;
+        UpdateThumbnailPreview(null); // NEU
+    }
+
+    private void UpdateThumbnailPreview(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            ThumbnailPreviewBorder.Visibility = Visibility.Collapsed;
+            ThumbnailPreviewImage.Source = null;
+            return;
+        }
+
+        try
+        {
+            var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(path);
+            bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            bitmap.DecodePixelHeight = 54; // Kleine Preview
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            ThumbnailPreviewImage.Source = bitmap;
+            ThumbnailPreviewBorder.Visibility = Visibility.Visible;
+        }
+        catch
+        {
+            ThumbnailPreviewBorder.Visibility = Visibility.Collapsed;
+            ThumbnailPreviewImage.Source = null;
+        }
     }
 
     private async void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
     {
         var project = BuildUploadProjectFromUi(includeScheduling: false);
-
         _settings.Persona ??= new ChannelPersona();
 
-        var titles = await _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona);
+        StatusTextBlock.Text = "Generiere Titelvorschläge...";
+        GenerateTitleButton.IsEnabled = false;
 
-        if (titles is null || titles.Count == 0)
+        var cancellationToken = GetNewLlmCancellationToken();
+
+        try
         {
-            var path = project.VideoFilePath;
+            var titles = await _contentSuggestionService.SuggestTitlesAsync(
+                project,
+                _settings.Persona,
+                cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(path))
+            if (titles is null || titles.Count == 0)
             {
-                TitleTextBox.Text = "Neues Video";
+                TitleTextBox.Text = "[Keine Vorschläge]";
+                StatusTextBlock.Text = "Keine Titelvorschläge erhalten.";
                 return;
             }
 
-            var fileName = Path.GetFileNameWithoutExtension(path);
-            TitleTextBox.Text = string.IsNullOrWhiteSpace(fileName) ? "Neues Video" : fileName;
-            return;
+            TitleTextBox.Text = titles[0];
+            StatusTextBlock.Text = $"Titelvorschlag eingefügt. ({titles.Count} Vorschläge)";
         }
-
-        TitleTextBox.Text = titles[0];
-        StatusTextBlock.Text = "Titelvorschlag eingefügt.";
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = "Titelgenerierung abgebrochen.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehler bei Titelgenerierung: {ex.Message}";
+        }
+        finally
+        {
+            GenerateTitleButton.IsEnabled = true;
+        }
     }
 
     private async void GenerateDescriptionButton_Click(object sender, RoutedEventArgs e)
     {
         var project = BuildUploadProjectFromUi(includeScheduling: false);
-
         _settings.Persona ??= new ChannelPersona();
 
-        var description = await _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona);
+        StatusTextBlock.Text = "Generiere Beschreibungsvorschlag...";
+        GenerateDescriptionButton.IsEnabled = false;
 
-        if (!string.IsNullOrWhiteSpace(description))
+        var cancellationToken = GetNewLlmCancellationToken();
+
+        try
         {
-            DescriptionTextBox.Text = description;
-            StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
+            var description = await _contentSuggestionService.SuggestDescriptionAsync(
+                project,
+                _settings.Persona,
+                cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                DescriptionTextBox.Text = description;
+                StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
+            }
+            else
+            {
+                StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
+            }
         }
-        else
+        catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
+            StatusTextBlock.Text = "Beschreibungsgenerierung abgebrochen.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehler bei Beschreibungsgenerierung: {ex.Message}";
+        }
+        finally
+        {
+            GenerateDescriptionButton.IsEnabled = true;
         }
     }
 
     private async void GenerateTagsButton_Click(object sender, RoutedEventArgs e)
     {
         var project = BuildUploadProjectFromUi(includeScheduling: false);
-
         _settings.Persona ??= new ChannelPersona();
 
-        var tags = await _contentSuggestionService.SuggestTagsAsync(project, _settings.Persona);
+        StatusTextBlock.Text = "Generiere Tag-Vorschläge...";
+        GenerateTagsButton.IsEnabled = false;
 
-        if (tags is not null && tags.Count > 0)
+        var cancellationToken = GetNewLlmCancellationToken();
+
+        try
         {
-            TagsTextBox.Text = string.Join(", ", tags);
-            StatusTextBlock.Text = "Tag-Vorschläge eingefügt.";
+            var tags = await _contentSuggestionService.SuggestTagsAsync(
+                project,
+                _settings.Persona,
+                cancellationToken);
+
+            if (tags is not null && tags.Count > 0)
+            {
+                TagsTextBox.Text = string.Join(", ", tags);
+                StatusTextBlock.Text = $"Tag-Vorschläge eingefügt. ({tags.Count} Tags)";
+            }
+            else
+            {
+                StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
+            }
         }
-        else
+        catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
+            StatusTextBlock.Text = "Tag-Generierung abgebrochen.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fehler bei Tag-Generierung: {ex.Message}";
+        }
+        finally
+        {
+            GenerateTagsButton.IsEnabled = true;
         }
     }
 
@@ -468,7 +609,6 @@ public partial class MainWindow : Window
     {
         Template? tmpl = TemplateComboBox.SelectedItem as Template;
 
-        // Fallback: Auswahl im Templates-Tab
         if (tmpl is null && TemplateListBox.SelectedItem is Template tabTemplate)
         {
             tmpl = tabTemplate;
@@ -489,7 +629,6 @@ public partial class MainWindow : Window
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
     {
-        // Optionale Bestätigung vor dem Upload
         if (_settings.ConfirmBeforeUpload)
         {
             var confirmResult = System.Windows.MessageBox.Show(
@@ -508,7 +647,6 @@ public partial class MainWindow : Window
 
         var project = BuildUploadProjectFromUi(includeScheduling: true);
 
-        // Milder Check für Thumbnail – nur Hinweis, kein Abbruch.
         if (!string.IsNullOrWhiteSpace(project.ThumbnailPath) &&
             !File.Exists(project.ThumbnailPath))
         {
@@ -517,11 +655,10 @@ public partial class MainWindow : Window
         }
         else if (!string.IsNullOrWhiteSpace(project.ThumbnailPath))
         {
-            // 1-MB-Größenlimit
             var fileInfo = new FileInfo(project.ThumbnailPath);
-            if (fileInfo.Length > MaxThumbnailSizeBytes)
+            if (fileInfo.Length > Constants.MaxThumbnailSizeBytes)
             {
-                StatusTextBlock.Text = "Thumbnail ist größer als 1 MB und wird nicht verwendet.";
+                StatusTextBlock.Text = "Thumbnail ist größer als 2 MB und wird nicht verwendet.";
                 project.ThumbnailPath = string.Empty;
             }
         }
@@ -557,7 +694,6 @@ public partial class MainWindow : Window
                 progressReporter,
                 CancellationToken.None);
 
-            // Upload-Historie speichern
             _uploadHistoryService.AddEntry(project, result);
             LoadUploadHistory();
 
@@ -601,12 +737,10 @@ public partial class MainWindow : Window
 
     private void TemplateNewButton_Click(object sender, RoutedEventArgs e)
     {
-        // Neues Template direkt in die Liste aufnehmen
         var tmpl = new Template
         {
             Name = "Neues Template",
             Platform = PlatformType.YouTube,
-            // Falls es noch keinen Default für YouTube gibt, dieses als Default markieren
             IsDefault = !_loadedTemplates.Any(t => t.Platform == PlatformType.YouTube && t.IsDefault),
             Body = string.Empty
         };
@@ -682,7 +816,6 @@ public partial class MainWindow : Window
             var description = TemplateDescriptionTextBox.Text;
             var body = TemplateBodyEditorTextBox.Text ?? string.Empty;
 
-            // Optional: Warnung bei doppelten Namen pro Plattform
             var duplicate = _loadedTemplates
                 .FirstOrDefault(t =>
                     t.Platform == platform &&
@@ -693,7 +826,6 @@ public partial class MainWindow : Window
             {
                 StatusTextBlock.Text =
                     $"Hinweis: Es existiert bereits ein Template mit diesem Namen für Plattform {platform}.";
-                // Wir speichern trotzdem, nur Hinweis.
             }
 
             _currentEditingTemplate.Name = name;
@@ -702,7 +834,6 @@ public partial class MainWindow : Window
             _currentEditingTemplate.Description = string.IsNullOrWhiteSpace(description) ? null : description;
             _currentEditingTemplate.Body = body;
 
-            // Nur ein Default-Template pro Plattform erzwingen
             if (isDefault)
             {
                 foreach (var other in _loadedTemplates.Where(t =>
@@ -761,11 +892,9 @@ public partial class MainWindow : Window
 
     private void RefreshTemplateBindings()
     {
-        // Liste
         TemplateListBox.ItemsSource = null;
         TemplateListBox.ItemsSource = _loadedTemplates;
 
-        // Auswahl im Upload-Tab
         TemplateComboBox.ItemsSource = null;
         TemplateComboBox.ItemsSource = _loadedTemplates;
     }
@@ -818,7 +947,6 @@ public partial class MainWindow : Window
             SaveSettings();
             StatusTextBlock.Text = $"Standard-Playlist gesetzt: {item.Title}";
 
-            // Auswahl im Upload-Tab (PlaylistComboBox) synchronisieren
             if (PlaylistComboBox.ItemsSource is not null)
             {
                 var selected = _youTubePlaylists.FirstOrDefault(p => p.Id == item.Id);
@@ -976,13 +1104,188 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Events – LLM-Einstellungen
+
+    private void LlmModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateLlmControlsEnabled();
+    }
+
+    private void LlmTemperatureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (LlmTemperatureValueText is not null)
+        {
+            LlmTemperatureValueText.Text = e.NewValue.ToString("F1", CultureInfo.InvariantCulture);
+        }
+    }
+
+    private void LlmModelPathBrowseButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "GGUF-Modelldatei auswählen",
+            Filter = "GGUF-Modelle|*.gguf|Alle Dateien|*.*"
+        };
+
+        if (!string.IsNullOrWhiteSpace(_settings.Llm?.LocalModelPath))
+        {
+            var dir = Path.GetDirectoryName(_settings.Llm.LocalModelPath);
+            if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+            {
+                dlg.InitialDirectory = dir;
+            }
+        }
+
+        if (dlg.ShowDialog(this) == true)
+        {
+            LlmModelPathTextBox.Text = dlg.FileName;
+        }
+    }
+
+    private void LlmSettingsSaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.Llm ??= new LlmSettings();
+        var llm = _settings.Llm;
+
+        if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
+            modeItem.Tag is string modeTag)
+        {
+            if (Enum.TryParse<LlmMode>(modeTag, ignoreCase: true, out var mode))
+            {
+                llm.Mode = mode;
+            }
+            else
+            {
+                llm.Mode = LlmMode.Off;
+            }
+        }
+        else
+        {
+            llm.Mode = LlmMode.Off;
+        }
+
+        llm.LocalModelPath = string.IsNullOrWhiteSpace(LlmModelPathTextBox.Text)
+            ? null
+            : LlmModelPathTextBox.Text.Trim();
+
+        if (int.TryParse(LlmMaxTokensTextBox.Text, out var maxTokens))
+        {
+            llm.MaxTokens = Math.Clamp(maxTokens, 64, 1024);
+        }
+        else
+        {
+            llm.MaxTokens = 256;
+        }
+
+        llm.Temperature = (float)LlmTemperatureSlider.Value;
+
+        llm.TitleCustomPrompt = string.IsNullOrWhiteSpace(LlmTitleCustomPromptTextBox.Text)
+            ? null
+            : LlmTitleCustomPromptTextBox.Text.Trim();
+
+        llm.DescriptionCustomPrompt = string.IsNullOrWhiteSpace(LlmDescriptionCustomPromptTextBox.Text)
+            ? null
+            : LlmDescriptionCustomPromptTextBox.Text.Trim();
+
+        llm.TagsCustomPrompt = string.IsNullOrWhiteSpace(LlmTagsCustomPromptTextBox.Text)
+            ? null
+            : LlmTagsCustomPromptTextBox.Text.Trim();
+
+        SaveSettings();
+        RecreateLlmClient();
+
+        StatusTextBlock.Text = "LLM-Einstellungen gespeichert.";
+    }
+
+    private void UpdateLlmControlsEnabled()
+    {
+        var isLocalMode = false;
+
+        if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
+            modeItem.Tag is string modeTag)
+        {
+            isLocalMode = string.Equals(modeTag, "Local", StringComparison.OrdinalIgnoreCase);
+        }
+
+        LlmModelPathTextBox.IsEnabled = isLocalMode;
+        LlmModelPathBrowseButton.IsEnabled = isLocalMode;
+    }
+
+    private void UpdateLlmStatusText()
+    {
+        var llm = _settings.Llm ?? new LlmSettings();
+
+        if (llm.IsOff)
+        {
+            LlmStatusTextBlock.Text = "Deaktiviert";
+            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Gray;
+            return;
+        }
+
+        if (!llm.IsLocalMode)
+        {
+            LlmStatusTextBlock.Text = "Unbekannter Modus";
+            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(llm.LocalModelPath))
+        {
+            LlmStatusTextBlock.Text = "Kein Modellpfad konfiguriert";
+            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+            return;
+        }
+
+        if (!File.Exists(llm.LocalModelPath))
+        {
+            LlmStatusTextBlock.Text = "Modelldatei nicht gefunden";
+            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+            return;
+        }
+
+        if (_llmClient is LocalLlmClient localClient)
+        {
+            if (!localClient.IsReady && string.IsNullOrEmpty(localClient.InitializationError))
+            {
+                var fileName = Path.GetFileName(llm.LocalModelPath);
+                LlmStatusTextBlock.Text = $"Konfiguriert: {fileName} (wird bei Nutzung geladen)";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.DarkGreen;
+                return;
+            }
+
+            if (localClient.IsReady)
+            {
+                var fileName = Path.GetFileName(llm.LocalModelPath);
+                LlmStatusTextBlock.Text = $"Bereit: {fileName}";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
+            }
+            else if (!string.IsNullOrWhiteSpace(localClient.InitializationError))
+            {
+                LlmStatusTextBlock.Text = $"Fehler: {localClient.InitializationError}";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                LlmStatusTextBlock.Text = "Status unbekannt";
+                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+            }
+        }
+        else
+        {
+            LlmStatusTextBlock.Text = "Client nicht konfiguriert";
+            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Gray;
+        }
+    }
+
+    #endregion
+
     #region Upload Progress UI
 
     private void ShowUploadProgress(string message)
     {
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.Invoke(() => ShowUploadProgress(message));
+            Dispatcher.BeginInvoke(() => ShowUploadProgress(message));
             return;
         }
 
@@ -998,7 +1301,7 @@ public partial class MainWindow : Window
     {
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.Invoke(() => ReportUploadProgress(info));
+            Dispatcher.BeginInvoke(() => ReportUploadProgress(info));
             return;
         }
 
@@ -1024,7 +1327,7 @@ public partial class MainWindow : Window
     {
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.Invoke(HideUploadProgress);
+            Dispatcher.BeginInvoke(HideUploadProgress);
             return;
         }
 
@@ -1041,7 +1344,6 @@ public partial class MainWindow : Window
 
     private UploadProject BuildUploadProjectFromUi(bool includeScheduling)
     {
-        // Plattform
         var platform = PlatformType.YouTube;
         if (PlatformComboBox.SelectedItem is PlatformType selectedPlatform)
         {
@@ -1052,14 +1354,12 @@ public partial class MainWindow : Window
             platform = _settings.DefaultPlatform;
         }
 
-        // Sichtbarkeit
         var visibility = _settings.DefaultVisibility;
         if (VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)
         {
             visibility = visEnum;
         }
 
-        // Playlist (Upload-Tab-Auswahl bevorzugen)
         string? playlistId = null;
         if (PlaylistComboBox.SelectedItem is YouTubePlaylistListItem plItem)
         {
@@ -1070,7 +1370,6 @@ public partial class MainWindow : Window
             playlistId = _settings.DefaultPlaylistId;
         }
 
-        // Scheduling
         DateTimeOffset? scheduledTime = null;
         if (includeScheduling && ScheduleCheckBox.IsChecked == true)
         {
@@ -1086,8 +1385,7 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    // Fallback: 18:00 Uhr
-                    timeOfDay = new TimeSpan(18, 0, 0);
+                    timeOfDay = TimeSpan.Parse(Constants.DefaultSchedulingTime);
                 }
 
                 var localDateTime = date.Date + timeOfDay;
@@ -1108,11 +1406,7 @@ public partial class MainWindow : Window
             TranscriptText = TranscriptTextBox.Text
         };
 
-        // Tags aus UI übernehmen
-        if (TagsTextBox is not null)
-        {
-            project.SetTagsFromCsv(TagsTextBox.Text ?? string.Empty);
-        }
+        project.SetTagsFromCsv(TagsTextBox.Text ?? string.Empty);
 
         return project;
     }
@@ -1143,7 +1437,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async System.Threading.Tasks.Task RefreshYouTubePlaylistsAsync()
+    private async Task RefreshYouTubePlaylistsAsync()
     {
         if (!_youTubeClient.IsConnected)
         {
@@ -1180,9 +1474,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ScheduleCheckBox_Changed(object? sender, RoutedEventArgs e)
+    private void ScheduleCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        UpdateScheduleControlsEnabled();
+        /*
+        if (SchedulePanel != null)
+        {
+            SchedulePanel.Visibility = ScheduleCheckBox.IsChecked == true
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+        */
     }
 
     private void UpdateScheduleControlsEnabled()
@@ -1192,19 +1493,13 @@ public partial class MainWindow : Window
         ScheduleTimeTextBox.IsEnabled = enabled;
     }
 
-    /// <summary>
-    /// Versucht beim Programmstart automatisch mit YouTube zu verbinden,
-    /// falls bereits Tokens vorhanden sind. Es wird dabei garantiert
-    /// kein Browser geöffnet.
-    /// </summary>
-    private async System.Threading.Tasks.Task TryAutoConnectYouTubeAsync()
+    private async Task TryAutoConnectYouTubeAsync()
     {
         try
         {
             var connected = await _youTubeClient.TryConnectSilentAsync(CancellationToken.None);
             if (!connected)
             {
-                // Kein Auto-Login möglich (z.B. keine Tokens) → still bleiben.
                 return;
             }
 
@@ -1214,7 +1509,7 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // Auto-Login ist nur Komfort – bei Fehler kann der User normal verbinden.
+            // Auto-Login ist nur Komfort
         }
     }
 
@@ -1237,19 +1532,20 @@ public partial class MainWindow : Window
 
     private void ApplyHistoryFilter()
     {
+        // Schutz vor Aufrufen während InitializeComponent()
         if (HistoryDataGrid is null)
+        {
             return;
+        }
 
         IEnumerable<UploadHistoryEntry> filtered = _allHistoryEntries;
 
-        // Plattform-Filter
         if (HistoryPlatformFilterComboBox?.SelectedItem is ComboBoxItem pItem &&
             pItem.Tag is PlatformType platformFilter)
         {
             filtered = filtered.Where(e => e.Platform == platformFilter);
         }
 
-        // Status-Filter
         if (HistoryStatusFilterComboBox?.SelectedItem is ComboBoxItem sItem &&
             sItem.Tag is string statusTag)
         {
@@ -1312,7 +1608,7 @@ public partial class MainWindow : Window
             }
             catch
             {
-                // Fehler beim Öffnen des Browsers ignorieren.
+                // Fehler ignorieren
             }
         }
     }
@@ -1328,7 +1624,7 @@ public partial class MainWindow : Window
         }
         catch
         {
-            // Fehler beim Öffnen des Browsers ignorieren.
+            // Fehler ignorieren
         }
 
         e.Handled = true;
