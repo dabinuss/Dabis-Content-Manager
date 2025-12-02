@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 using DCM.Core.Models;
 
@@ -9,23 +5,7 @@ namespace DCM.Core.Configuration;
 
 public sealed class JsonTemplateRepository : ITemplateRepository
 {
-    private const string FolderName = "DabisContentManager";
-    private const string FileName = "templates.json";
-
-    private static string GetFolderPath()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var folder = Path.Combine(appData, FolderName);
-
-        if (!Directory.Exists(folder))
-        {
-            Directory.CreateDirectory(folder);
-        }
-
-        return folder;
-    }
-
-    private static string GetFilePath() => Path.Combine(GetFolderPath(), FileName);
+    private static string GetFilePath() => Path.Combine(Constants.GetAppDataFolder(), Constants.TemplatesFileName);
 
     public IEnumerable<Template> Load()
     {
@@ -33,27 +13,32 @@ public sealed class JsonTemplateRepository : ITemplateRepository
 
         if (!File.Exists(path))
         {
-            // Falls keine Datei existiert: Standardtemplate erzeugen
             var defaults = GetDefaultTemplates().ToArray();
             Save(defaults);
             return defaults;
         }
 
-        var json = File.ReadAllText(path);
-        var options = new JsonSerializerOptions
+        try
         {
-            PropertyNameCaseInsensitive = true
-        };
+            var json = File.ReadAllText(path);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
 
-        var list = JsonSerializer.Deserialize<List<Template>>(json, options);
-        return list ?? Enumerable.Empty<Template>();
+            var list = JsonSerializer.Deserialize<List<Template>>(json, options);
+            return list ?? Enumerable.Empty<Template>();
+        }
+        catch
+        {
+            return Enumerable.Empty<Template>();
+        }
     }
 
     public void Save(IEnumerable<Template> templates)
     {
         var path = GetFilePath();
 
-        // Sicherheitsnetz: einfaches Backup der bisherigen Datei
         if (File.Exists(path))
         {
             var backupPath = path + ".bak";
@@ -63,7 +48,7 @@ public sealed class JsonTemplateRepository : ITemplateRepository
             }
             catch
             {
-                // Backup-Fehler sind für den Hauptspeichervorgang nicht kritisch.
+                // Backup-Fehler sind nicht kritisch.
             }
         }
 
