@@ -71,3 +71,6 @@ secrets.json
 
 # Releases
 releases/
+
+# GH-Pages
+docs/
