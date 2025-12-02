@@ -523,9 +523,9 @@
                               Padding="4">
                     <Grid Margin="8">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>  <!-- Ordner -->
-                            <RowDefinition Height="Auto"/>  <!-- Upload-Defaults -->
-                            <RowDefinition Height="Auto"/>  <!-- Speichern-Button -->
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <!-- Ordner -->
@@ -609,6 +609,146 @@
                                     Content="Speichern"
                                     MinWidth="100"
                                     Click="AppSettingsSaveButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 7: LLM-Einstellungen -->
+            <TabItem Header="LLM-Einstellungen">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto"
+                              Padding="4">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Allgemein -->
+                        <GroupBox Header="Allgemein" Grid.Row="0" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Modus:"
+                                           VerticalAlignment="Center"
+                                           Width="140"/>
+                                    <ComboBox x:Name="LlmModeComboBox"
+                                              MinWidth="180"
+                                              SelectionChanged="LlmModeComboBox_SelectionChanged">
+                                        <ComboBoxItem Content="Aus" Tag="Off"/>
+                                        <ComboBoxItem Content="Lokal (GGUF)" Tag="Local"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Modellpfad (GGUF):"
+                                           VerticalAlignment="Center"
+                                           Width="140"/>
+                                    <TextBox x:Name="LlmModelPathTextBox"
+                                             MinWidth="350"
+                                             Margin="0,0,8,0"
+                                             ToolTip="Pfad zur lokalen GGUF-Modelldatei"/>
+                                    <Button x:Name="LlmModelPathBrowseButton"
+                                            Content="Durchsuchen..."
+                                            MinWidth="100"
+                                            Click="LlmModelPathBrowseButton_Click"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                                    <Label Content="Status:"
+                                           VerticalAlignment="Center"
+                                           Width="140"/>
+                                    <TextBlock x:Name="LlmStatusTextBlock"
+                                               VerticalAlignment="Center"
+                                               Text="Nicht konfiguriert"
+                                               Foreground="Gray"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Generierung -->
+                        <GroupBox Header="Generierungs-Parameter" Grid.Row="1" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Label Content="Max Tokens:"
+                                           VerticalAlignment="Center"
+                                           Width="140"/>
+                                    <TextBox x:Name="LlmMaxTokensTextBox"
+                                             Width="80"
+                                             Text="256"
+                                             ToolTip="Maximale Anzahl generierter Tokens (64-1024)"/>
+                                    <TextBlock VerticalAlignment="Center"
+                                               Margin="8,0,0,0"
+                                               Foreground="Gray"
+                                               Text="(64-1024, Standard: 256)"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                                    <Label Content="Temperature:"
+                                           VerticalAlignment="Center"
+                                           Width="140"/>
+                                    <Slider x:Name="LlmTemperatureSlider"
+                                            Width="200"
+                                            Minimum="0"
+                                            Maximum="1"
+                                            Value="0.3"
+                                            TickFrequency="0.1"
+                                            IsSnapToTickEnabled="True"
+                                            ToolTip="0.0 = deterministisch, 1.0 = kreativ"/>
+                                    <TextBlock x:Name="LlmTemperatureValueText"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"
+                                               Width="40"
+                                               Text="0.3"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Custom-Prompts -->
+                        <GroupBox Header="Custom-Anweisungen (optional)" Grid.Row="2" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="Diese Anweisungen werden dem jeweiligen Standard-Prompt vorangestellt."
+                                           Foreground="Gray"
+                                           Margin="0,0,0,8"/>
+
+                                <Label Content="Titel-Anweisung:"/>
+                                <TextBox x:Name="LlmTitleCustomPromptTextBox"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MinHeight="50"
+                                         Margin="0,0,0,8"
+                                         ToolTip="z. B. 'Verwende Emojis am Anfang'"/>
+
+                                <Label Content="Beschreibungs-Anweisung:"/>
+                                <TextBox x:Name="LlmDescriptionCustomPromptTextBox"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MinHeight="50"
+                                         Margin="0,0,0,8"
+                                         ToolTip="z. B. 'Füge immer einen Call-to-Action hinzu'"/>
+
+                                <Label Content="Tags-Anweisung:"/>
+                                <TextBox x:Name="LlmTagsCustomPromptTextBox"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MinHeight="50"
+                                         ToolTip="z. B. 'Bevorzuge deutsche Tags'"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- Speichern -->
+                        <StackPanel Grid.Row="3"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right">
+                            <Button x:Name="LlmSettingsSaveButton"
+                                    Content="Speichern"
+                                    MinWidth="100"
+                                    Click="LlmSettingsSaveButton_Click"/>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>

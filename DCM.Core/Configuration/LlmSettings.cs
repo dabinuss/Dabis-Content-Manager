@@ -3,9 +3,9 @@ namespace DCM.Core.Configuration;
 public sealed class LlmSettings
 {
     /// <summary>
-    /// LLM-Modus: "None", "Local", oder zukünftig "Cloud".
+    /// LLM-Modus: "Off", "Local", oder zukünftig "API".
     /// </summary>
-    public string Mode { get; set; } = "None";
+    public string Mode { get; set; } = "Off";
 
     /// <summary>
     /// Pfad zur lokalen GGUF-Modelldatei (für Mode == "Local").
@@ -23,7 +23,30 @@ public sealed class LlmSettings
     public float Temperature { get; set; } = 0.3f;
 
     /// <summary>
+    /// Optionale Custom-Anweisung für Titel-Generierung.
+    /// Wird dem Standard-Prompt vorangestellt.
+    /// </summary>
+    public string? TitleCustomPrompt { get; set; }
+
+    /// <summary>
+    /// Optionale Custom-Anweisung für Beschreibungs-Generierung.
+    /// Wird dem Standard-Prompt vorangestellt.
+    /// </summary>
+    public string? DescriptionCustomPrompt { get; set; }
+
+    /// <summary>
+    /// Optionale Custom-Anweisung für Tag-Generierung.
+    /// Wird dem Standard-Prompt vorangestellt.
+    /// </summary>
+    public string? TagsCustomPrompt { get; set; }
+
+    /// <summary>
     /// Gibt an, ob der Local-Modus aktiv ist.
     /// </summary>
     public bool IsLocalMode => string.Equals(Mode, "Local", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Gibt an, ob LLM-Funktionen deaktiviert sind.
+    /// </summary>
+    public bool IsOff => string.Equals(Mode, "Off", StringComparison.OrdinalIgnoreCase);
 }
