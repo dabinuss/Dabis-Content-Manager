@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dabis Content Manager</title>
-    <meta name="description" content="Dabis Content Manager – von der fertigen Videodatei zum kompletten YouTube-Uploadprojekt in unter einer Minute.">
+    <meta name="description" content="Dabis Content Manager – Desktop-Tool für Content Creator. Videos hochladen, planen und mit lokaler KI optimieren.">
     <style>
         :root {
             --bg: #050609;
@@ -77,6 +77,11 @@
             border-radius: 999px;
             background: var(--accent);
             box-shadow: 0 0 10px rgba(255, 61, 0, 0.8);
+        }
+
+        .top-links {
+            display: flex;
+            gap: 8px;
         }
 
         .top-links a {
@@ -193,6 +198,21 @@
             color: var(--text-muted);
         }
 
+        .requirements {
+            margin-top: 20px;
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: left;
+        }
+
+        .requirements strong {
+            color: var(--text-main);
+        }
+
         /* Features */
 
         .features-card {
@@ -299,18 +319,18 @@
         <div class="top-bar">
             <div class="badge">
                 <span class="badge-dot"></span>
-                <span>Desktop-App für Creator</span>
+                <span>Windows · .NET 9 · Lokal &amp; Offline</span>
             </div>
             <div class="top-links">
-                <a href="https://github.com/dabinuss/Dabis-Content-Manager" target="_blank" rel="noopener">GitHub&nbsp;Projekt</a>
+                <a href="https://github.com/dabinuss/Dabis-Content-Manager" target="_blank" rel="noopener">GitHub</a>
             </div>
         </div>
 
         <header>
             <img src="logo.png" alt="Dabis Content Manager Logo">
             <h1>Dabis Content Manager</h1>
-            <p class="subtitle">Von der Videodatei zum fertigen YouTube-Uploadprojekt – ohne Studio, Tabs oder Copy &amp; Paste.</p>
-            <p class="tagline">Alle Einstellungen an einem Ort: Titel, Beschreibung, Tags, Sichtbarkeit, Playlist, Zeitplan.</p>
+            <p class="subtitle">Desktop-Tool für Content Creator – Videos hochladen, planen und mit lokaler KI optimieren.</p>
+            <p class="tagline">Titel, Beschreibung, Tags, Thumbnail, Playlist, Zeitplan – alles in einer App statt im Browser.</p>
         </header>
 
         <section class="content-layout">
@@ -318,60 +338,89 @@
                 <div class="buttons">
                     <a class="btn btn-primary" href="https://github.com/dabinuss/Dabis-Content-Manager/releases" target="_blank" rel="noopener">
                         <span class="emoji">🚀</span>
-                        <span>Download herunterladen</span>
+                        <span>Download</span>
                     </a>
                     <a class="btn btn-secondary" href="https://github.com/dabinuss/Dabis-Content-Manager" target="_blank" rel="noopener">
-                        <span class="emoji">🔧</span>
-                        <span>Code auf GitHub ansehen</span>
+                        <span class="emoji">📂</span>
+                        <span>Quellcode auf GitHub</span>
                     </a>
                 </div>
-                <p class="meta">Läuft lokal auf Windows. Keine Cloud, kein Account-Zwang – dein Content, deine Daten.</p>
+                <p class="meta">Läuft lokal auf deinem Rechner. Keine Cloud, kein Tracking – dein Content, deine Daten.</p>
+
+                <div class="requirements">
+                    <strong>Voraussetzungen:</strong> Windows 10/11, .NET 9 Runtime, YouTube API Client-Secrets.<br>
+                    <strong>Optional:</strong> GGUF-Modell für lokale KI-Vorschläge (z.B. von Hugging Face).
+                </div>
             </div>
 
             <aside class="features-card" aria-label="Funktionsübersicht">
                 <div class="features-header">
-                    <h2>Warum Dabis Content Manager?</h2>
-                    <p>Optimiert für YouTube-Creator, die ihre Uploads lieber in Minuten statt in Tabs organisieren.</p>
+                    <h2>Was kann die App?</h2>
+                    <p>Alles, was du für den YouTube-Upload brauchst – ohne Browser-Tabs und Copy & Paste.</p>
                 </div>
 
                 <div class="features">
                     <div class="feature-row">
-                        <div class="feature-icon">🎬</div>
+                        <div class="feature-icon">📤</div>
                         <div class="feature-content">
-                            <h3>Upload in einem Schritt</h3>
-                            <p>Video wählen, Metadaten setzen, Upload starten. Alles in einer kompakten Oberfläche.</p>
+                            <h3>YouTube-Upload</h3>
+                            <p>Videos direkt hochladen, inkl. Thumbnail. Sichtbarkeit wählen: öffentlich, nicht gelistet oder privat.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-row">
+                        <div class="feature-icon">📅</div>
+                        <div class="feature-content">
+                            <h3>Geplante Veröffentlichung</h3>
+                            <p>Datum und Uhrzeit für den Release festlegen – ideal für vorproduzierten Content.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-row">
+                        <div class="feature-icon">🎵</div>
+                        <div class="feature-content">
+                            <h3>Playlist-Zuweisung</h3>
+                            <p>Video beim Upload direkt einer Playlist hinzufügen. Spart nachträgliches Organisieren.</p>
                         </div>
                     </div>
 
                     <div class="feature-row">
                         <div class="feature-icon">🤖</div>
                         <div class="feature-content">
-                            <h3>Intelligente Vorschläge</h3>
-                            <p>Strukturierte Titel- und Beschreibungsvorschläge auf Basis deiner Templates und Kanalpersona.</p>
+                            <h3>Lokale KI-Vorschläge</h3>
+                            <p>Titel, Beschreibung und Tags generieren lassen – offline, basierend auf deinem Transkript.</p>
                         </div>
                     </div>
 
                     <div class="feature-row">
-                        <div class="feature-icon">🔗</div>
+                        <div class="feature-icon">📝</div>
                         <div class="feature-content">
-                            <h3>YouTube-Integration</h3>
-                            <p>Einmal anmelden, verbunden bleiben. Upload direkt aus der App inklusive Playlist-Zuordnung.</p>
+                            <h3>Beschreibungs-Templates</h3>
+                            <p>Wiederverwendbare Vorlagen mit Platzhaltern. Einheitliche Beschreibungen ohne Tippen.</p>
                         </div>
                     </div>
 
                     <div class="feature-row">
-                        <div class="feature-icon">📁</div>
+                        <div class="feature-icon">👤</div>
+                        <div class="feature-content">
+                            <h3>Kanalprofil</h3>
+                            <p>Sprache, Tonfall und Zielgruppe hinterlegen – für passendere KI-Vorschläge.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-row">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-content">
+                            <h3>Upload-Historie</h3>
+                            <p>Alle Uploads auf einen Blick: Datum, Titel, Status und Direktlink zum Video.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-row">
+                        <div class="feature-icon">🔒</div>
                         <div class="feature-content">
                             <h3>Lokale Speicherung</h3>
-                            <p>Settings, Tokens und Templates bleiben auf deinem System – keine externe Cloud, kein Tracking.</p>
-                        </div>
-                    </div>
-
-                    <div class="feature-row">
-                        <div class="feature-icon">⚡</div>
-                        <div class="feature-content">
-                            <h3>Schlank & fokussiert</h3>
-                            <p>Keine Editor-Spielereien, keine Statistiken – nur ein klarer Workflow vom File zum fertigen Upload.</p>
+                            <p>Settings, Tokens und Templates bleiben auf deinem System. Keine externe Cloud.</p>
                         </div>
                     </div>
                 </div>
@@ -379,8 +428,8 @@
         </section>
 
         <footer>
-            <span>© 2025 Dabinuss · Dabis Content Manager</span>
-            <span><a href="https://github.com/dabinuss/Dabis-Content-Manager" target="_blank" rel="noopener">Projekt auf GitHub</a></span>
+            <span>© 2025 dabinuss · MIT-Lizenz</span>
+            <span><a href="https://github.com/dabinuss/Dabis-Content-Manager" target="_blank" rel="noopener">GitHub: dabinuss/Dabis-Content-Manager</a></span>
         </footer>
     </main>
 
