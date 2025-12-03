@@ -22,7 +22,7 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
     public YouTubePlatformClient()
     {
-        var baseFolder = Constants.GetAppDataFolder();
+        var baseFolder = Constants.AppDataFolder;
         _clientSecretsPath = Path.Combine(baseFolder, Constants.YouTubeClientSecretsFileName);
         _tokenFolder = Path.Combine(baseFolder, Constants.YouTubeTokensFolderName);
     }

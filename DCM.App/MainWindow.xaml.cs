@@ -25,7 +25,7 @@ public partial class MainWindow : Window
 
     private ILlmClient _llmClient;
     private IContentSuggestionService _contentSuggestionService;
-    private UploadService _uploadService;
+    private readonly UploadService _uploadService;
     private AppSettings _settings = new();
 
     private readonly List<Template> _loadedTemplates = new();
@@ -737,7 +737,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void HistoryLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    private void OpenUrlInBrowser(object sender, RequestNavigateEventArgs e)
     {
         try
         {
@@ -760,15 +760,9 @@ public partial class MainWindow : Window
 
     private UploadProject BuildUploadProjectFromUi(bool includeScheduling)
     {
-        var platform = PlatformType.YouTube;
-        if (PlatformComboBox.SelectedItem is PlatformType selectedPlatform)
-        {
-            platform = selectedPlatform;
-        }
-        else
-        {
-            platform = _settings.DefaultPlatform;
-        }
+        var platform = PlatformComboBox.SelectedItem is PlatformType selectedPlatform
+            ? selectedPlatform
+            : _settings.DefaultPlatform;
 
         var visibility = _settings.DefaultVisibility;
         if (VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)

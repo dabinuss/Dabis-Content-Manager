@@ -25,7 +25,7 @@ public sealed class UploadHistoryService
         }
         else
         {
-            _filePath = Path.Combine(Constants.GetAppDataFolder(), Constants.UploadHistoryFileName);
+            _filePath = Path.Combine(Constants.AppDataFolder, Constants.UploadHistoryFileName);
         }
     }
 

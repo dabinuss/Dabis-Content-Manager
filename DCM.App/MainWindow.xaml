@@ -1610,7 +1610,7 @@
                                         <DataTemplate>
                                             <TextBlock TextTrimming="CharacterEllipsis">
                                                 <Hyperlink NavigateUri="{Binding VideoUrl}"
-                                                           RequestNavigate="HistoryLink_RequestNavigate">
+                                                           RequestNavigate="OpenUrlInBrowser">
                                                     <Run Text="{Binding VideoUrl}"/>
                                                 </Hyperlink>
                                             </TextBlock>
@@ -1953,8 +1953,8 @@
                     <TextBlock VerticalAlignment="Center"
                                FontSize="11"
                                Margin="6,0,0,0">
-                <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
-                           RequestNavigate="HistoryLink_RequestNavigate">
+                        <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
+                            RequestNavigate="OpenUrlInBrowser">
                     <Run Text="dabinuss/Dabis-Content-Manager"/>
                 </Hyperlink>
                     </TextBlock>

@@ -4,7 +4,7 @@ namespace DCM.Core.Configuration;
 
 public sealed class JsonSettingsProvider : ISettingsProvider
 {
-    private static string GetFilePath() => Path.Combine(Constants.GetAppDataFolder(), Constants.SettingsFileName);
+    private static string GetFilePath() => Path.Combine(Constants.AppDataFolder, Constants.SettingsFileName);
 
     public AppSettings Load()
     {

@@ -5,7 +5,7 @@ namespace DCM.Core.Configuration;
 
 public sealed class JsonTemplateRepository : ITemplateRepository
 {
-    private static string GetFilePath() => Path.Combine(Constants.GetAppDataFolder(), Constants.TemplatesFileName);
+    private static string GetFilePath() => Path.Combine(Constants.AppDataFolder, Constants.TemplatesFileName);
 
     public IEnumerable<Template> Load()
     {

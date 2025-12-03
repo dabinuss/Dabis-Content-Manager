@@ -55,20 +55,37 @@ public static class Constants
     /// </summary>
     public const string DefaultSchedulingTime = "18:00";
 
+    private static string? _appDataFolder;
+
+    /// <summary>
+    /// Pfad zum AppData-Ordner der Anwendung.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string AppDataFolder
+    {
+        get
+        {
+            if (_appDataFolder is not null)
+            {
+                return _appDataFolder;
+            }
+
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            _appDataFolder = Path.Combine(appData, AppDataFolderName);
+
+            if (!Directory.Exists(_appDataFolder))
+            {
+                Directory.CreateDirectory(_appDataFolder);
+            }
+
+            return _appDataFolder;
+        }
+    }
+
     /// <summary>
     /// Gibt den Pfad zum AppData-Ordner der Anwendung zurück.
     /// Erstellt den Ordner falls er nicht existiert.
     /// </summary>
-    public static string GetAppDataFolder()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var folder = Path.Combine(appData, AppDataFolderName);
-
-        if (!Directory.Exists(folder))
-        {
-            Directory.CreateDirectory(folder);
-        }
-
-        return folder;
-    }
+    [Obsolete("Verwende Constants.AppDataFolder stattdessen.")]
+    public static string GetAppDataFolder() => AppDataFolder;
 }
