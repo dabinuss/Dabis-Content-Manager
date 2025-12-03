@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using DCM.Core.Configuration;
+using DCM.Core.Logging;
 using DCM.Core.Models;
 
 namespace DCM.Core.Services;
@@ -15,6 +16,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     private readonly ILlmClient _llmClient;
     private readonly IFallbackSuggestionService _fallbackSuggestionService;
     private readonly LlmSettings _settings;
+    private readonly IAppLogger _logger;
     private readonly Random _random = new();
     private readonly object _initLock = new();
 
@@ -62,11 +64,13 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     public ContentSuggestionService(
         ILlmClient llmClient,
         IFallbackSuggestionService fallbackSuggestionService,
-        LlmSettings settings)
+        LlmSettings settings,
+        IAppLogger? logger = null)
     {
         _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
         _fallbackSuggestionService = fallbackSuggestionService ?? throw new ArgumentNullException(nameof(fallbackSuggestionService));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _logger = logger ?? AppLogger.Instance;
     }
 
     private bool EnsureLlmReady()
@@ -88,7 +92,19 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                 return true;
             }
 
-            return _llmClient.TryInitialize();
+            _logger.Debug("Initialisiere LLM-Client...", "ContentSuggestion");
+            var result = _llmClient.TryInitialize();
+            
+            if (result)
+            {
+                _logger.Info("LLM-Client erfolgreich initialisiert", "ContentSuggestion");
+            }
+            else
+            {
+                _logger.Warning("LLM-Client konnte nicht initialisiert werden", "ContentSuggestion");
+            }
+            
+            return result;
         }
     }
 
@@ -122,27 +138,27 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     {
         if (!HasTranscript(project))
         {
-            System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: KEIN Transkript vorhanden -> Fallback");
+            _logger.Debug("Titel: Kein Transkript vorhanden -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
         }
 
         if (!EnsureLlmReady())
         {
-            System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: LLM nicht bereit -> Fallback");
+            _logger.Debug("Titel: LLM nicht bereit -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
         }
 
         try
         {
             var prompt = BuildTitlePrompt(project);
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Titel-Prompt Länge: {prompt.Length}");
+            _logger.Debug($"Titel-Prompt erstellt, Länge: {prompt.Length} Zeichen", "ContentSuggestion");
 
             var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Titel-Response: '{response}'");
+            _logger.Debug($"Titel-Response erhalten, Länge: {response?.Length ?? 0} Zeichen", "ContentSuggestion");
 
             if (string.IsNullOrWhiteSpace(response) || TextCleaningUtility.IsErrorResponse(response))
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: Ungültige Response -> Fallback");
+                _logger.Warning("Titel: Ungültige LLM-Response -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
             }
 
@@ -150,19 +166,21 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
             if (titles.Count == 0)
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Titel: Keine Titel geparsed -> Fallback");
+                _logger.Warning("Titel: Keine Titel aus Response geparsed -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
             }
 
+            _logger.Info($"Titel: {titles.Count} Vorschläge generiert", "ContentSuggestion");
             return titles;
         }
         catch (OperationCanceledException)
         {
+            _logger.Debug("Titel-Generierung abgebrochen", "ContentSuggestion");
             throw;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Titel-Exception: {ex.Message}");
+            _logger.Error($"Titel-Generierung fehlgeschlagen: {ex.Message}", "ContentSuggestion", ex);
             return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
         }
     }
@@ -232,27 +250,27 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     {
         if (!HasTranscript(project))
         {
-            System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: KEIN Transkript vorhanden -> Fallback");
+            _logger.Debug("Beschreibung: Kein Transkript vorhanden -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
         }
 
         if (!EnsureLlmReady())
         {
-            System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: LLM nicht bereit -> Fallback");
+            _logger.Debug("Beschreibung: LLM nicht bereit -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
         }
 
         try
         {
             var prompt = BuildDescriptionPrompt(project);
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Beschreibung-Prompt Länge: {prompt.Length}");
+            _logger.Debug($"Beschreibung-Prompt erstellt, Länge: {prompt.Length} Zeichen", "ContentSuggestion");
 
             var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Beschreibung-Response Länge: {response?.Length ?? 0}");
+            _logger.Debug($"Beschreibung-Response erhalten, Länge: {response?.Length ?? 0} Zeichen", "ContentSuggestion");
 
             if (string.IsNullOrWhiteSpace(response) || TextCleaningUtility.IsErrorResponse(response))
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Ungültige Response -> Fallback");
+                _logger.Warning("Beschreibung: Ungültige LLM-Response -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
@@ -260,32 +278,34 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
             if (string.IsNullOrWhiteSpace(cleaned) || cleaned.Length < 20)
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Zu kurz -> Fallback");
+                _logger.Warning("Beschreibung: Bereinigte Response zu kurz -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
             var customPromptWords = ExtractFilterWords(_settings.DescriptionCustomPrompt);
             if (ContainsPromptLeakage(cleaned, customPromptWords))
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Prompt-Leakage erkannt -> Fallback");
+                _logger.Warning("Beschreibung: Prompt-Leakage erkannt -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
             if (IsDescriptionJustTitle(cleaned, project))
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Beschreibung: Ist nur Titel-Kopie -> Fallback");
+                _logger.Warning("Beschreibung: Ist nur Titel-Kopie -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
+            _logger.Info($"Beschreibung generiert, Länge: {cleaned.Length} Zeichen", "ContentSuggestion");
             return cleaned;
         }
         catch (OperationCanceledException)
         {
+            _logger.Debug("Beschreibung-Generierung abgebrochen", "ContentSuggestion");
             throw;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Beschreibung-Exception: {ex.Message}");
+            _logger.Error($"Beschreibung-Generierung fehlgeschlagen: {ex.Message}", "ContentSuggestion", ex);
             return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
         }
     }
@@ -469,27 +489,27 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     {
         if (!HasTranscript(project))
         {
-            System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: KEIN Transkript vorhanden -> Fallback");
+            _logger.Debug("Tags: Kein Transkript vorhanden -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
         }
 
         if (!EnsureLlmReady())
         {
-            System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: LLM nicht bereit -> Fallback");
+            _logger.Debug("Tags: LLM nicht bereit -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
         }
 
         try
         {
             var prompt = BuildTagsPrompt(project);
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Tags-Prompt Länge: {prompt.Length}");
+            _logger.Debug($"Tags-Prompt erstellt, Länge: {prompt.Length} Zeichen", "ContentSuggestion");
 
             var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Tags-Response: '{response}'");
+            _logger.Debug($"Tags-Response erhalten, Länge: {response?.Length ?? 0} Zeichen", "ContentSuggestion");
 
             if (string.IsNullOrWhiteSpace(response) || TextCleaningUtility.IsErrorResponse(response))
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: Ungültige Response -> Fallback");
+                _logger.Warning("Tags: Ungültige LLM-Response -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
             }
 
@@ -497,19 +517,21 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
             if (tags.Count == 0)
             {
-                System.Diagnostics.Debug.WriteLine("[ContentSuggestion] Tags: Keine Tags geparsed -> Fallback");
+                _logger.Warning("Tags: Keine Tags aus Response geparsed -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
             }
 
+            _logger.Info($"Tags: {tags.Count} Vorschläge generiert", "ContentSuggestion");
             return tags;
         }
         catch (OperationCanceledException)
         {
+            _logger.Debug("Tags-Generierung abgebrochen", "ContentSuggestion");
             throw;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ContentSuggestion] Tags-Exception: {ex.Message}");
+            _logger.Error($"Tags-Generierung fehlgeschlagen: {ex.Message}", "ContentSuggestion", ex);
             return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
         }
     }

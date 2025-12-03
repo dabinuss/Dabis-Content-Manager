@@ -17,7 +17,7 @@ namespace DCM.App;
 
 public partial class MainWindow : Window
 {
-    private readonly TemplateService _templateService = new();
+    private readonly TemplateService _templateService;
     private readonly ITemplateRepository _templateRepository;
     private readonly ISettingsProvider _settingsProvider;
     private readonly YouTubePlatformClient _youTubeClient;
@@ -49,11 +49,12 @@ public partial class MainWindow : Window
         _logger = AppLogger.Instance;
         _logger.Info("Anwendung gestartet", "MainWindow");
 
-        _settingsProvider = new JsonSettingsProvider();
-        _templateRepository = new JsonTemplateRepository();
-        _youTubeClient = new YouTubePlatformClient();
-        _uploadHistoryService = new UploadHistoryService();
-        _fallbackSuggestionService = new SimpleFallbackSuggestionService();
+        _templateService = new TemplateService(_logger);
+        _settingsProvider = new JsonSettingsProvider(_logger);
+        _templateRepository = new JsonTemplateRepository(_logger);
+        _youTubeClient = new YouTubePlatformClient(_logger);
+        _uploadHistoryService = new UploadHistoryService(null, _logger);
+        _fallbackSuggestionService = new SimpleFallbackSuggestionService(_logger);
 
         LoadSettings();
 
@@ -61,9 +62,10 @@ public partial class MainWindow : Window
         _contentSuggestionService = new ContentSuggestionService(
             _llmClient,
             _fallbackSuggestionService,
-            _settings.Llm);
+            _settings.Llm,
+            _logger);
 
-        _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService);
+        _uploadService = new UploadService(new IPlatformClient[] { _youTubeClient }, _templateService, _logger);
 
         InitializePlatformComboBox();
         InitializeLanguageComboBox();
@@ -228,11 +230,11 @@ public partial class MainWindow : Window
         return _currentLlmCts.Token;
     }
 
-    private static ILlmClient CreateLlmClient(LlmSettings settings)
+    private ILlmClient CreateLlmClient(LlmSettings settings)
     {
         if (settings.IsLocalMode && !string.IsNullOrWhiteSpace(settings.LocalModelPath))
         {
-            return new LocalLlmClient(settings);
+            return new LocalLlmClient(settings, _logger);
         }
 
         return new NullLlmClient();
@@ -258,7 +260,8 @@ public partial class MainWindow : Window
         _contentSuggestionService = new ContentSuggestionService(
             _llmClient,
             _fallbackSuggestionService,
-            _settings.Llm);
+            _settings.Llm,
+            _logger);
 
         UpdateLlmStatusText();
     }

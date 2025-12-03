@@ -1,9 +1,17 @@
 using System.Text.Json;
+using DCM.Core.Logging;
 
 namespace DCM.Core.Configuration;
 
 public sealed class JsonSettingsProvider : ISettingsProvider
 {
+    private readonly IAppLogger _logger;
+
+    public JsonSettingsProvider(IAppLogger? logger = null)
+    {
+        _logger = logger ?? AppLogger.Instance;
+    }
+
     private static string GetFilePath() => Path.Combine(Constants.AppDataFolder, Constants.SettingsFileName);
 
     public AppSettings Load()
@@ -12,6 +20,7 @@ public sealed class JsonSettingsProvider : ISettingsProvider
 
         if (!File.Exists(path))
         {
+            _logger.Debug("Einstellungsdatei existiert nicht, verwende Standardwerte", "Settings");
             return new AppSettings();
         }
 
@@ -24,10 +33,12 @@ public sealed class JsonSettingsProvider : ISettingsProvider
             };
 
             var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
+            _logger.Debug("Einstellungen erfolgreich geladen", "Settings");
             return settings ?? new AppSettings();
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.Error($"Fehler beim Laden der Einstellungen: {ex.Message}", "Settings", ex);
             return new AppSettings();
         }
     }
@@ -36,12 +47,34 @@ public sealed class JsonSettingsProvider : ISettingsProvider
     {
         var path = GetFilePath();
 
-        var options = new JsonSerializerOptions
+        try
         {
-            WriteIndented = true
-        };
+            // Backup erstellen
+            if (File.Exists(path))
+            {
+                try
+                {
+                    File.Copy(path, path + ".bak", overwrite: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning($"Backup der Einstellungen fehlgeschlagen: {ex.Message}", "Settings");
+                }
+            }
 
-        var json = JsonSerializer.Serialize(settings, options);
-        File.WriteAllText(path, json);
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+
+            var json = JsonSerializer.Serialize(settings, options);
+            File.WriteAllText(path, json);
+            _logger.Debug("Einstellungen erfolgreich gespeichert", "Settings");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Fehler beim Speichern der Einstellungen: {ex.Message}", "Settings", ex);
+            throw;
+        }
     }
 }

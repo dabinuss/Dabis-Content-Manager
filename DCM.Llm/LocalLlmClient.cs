@@ -1,5 +1,6 @@
 using System.Text;
 using DCM.Core.Configuration;
+using DCM.Core.Logging;
 using DCM.Core.Services;
 using LLama;
 using LLama.Common;
@@ -10,6 +11,7 @@ namespace DCM.Llm;
 public sealed class LocalLlmClient : ILlmClient, IDisposable
 {
     private readonly LlmSettings _settings;
+    private readonly IAppLogger _logger;
     private readonly object _lock = new();
 
     private LLamaWeights? _model;
@@ -23,9 +25,10 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     private const long MinimumModelSizeBytes = 50 * 1024 * 1024;
     private static readonly byte[] GgufMagic = { 0x47, 0x47, 0x55, 0x46 };
 
-    public LocalLlmClient(LlmSettings settings)
+    public LocalLlmClient(LlmSettings settings, IAppLogger? logger = null)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _logger = logger ?? AppLogger.Instance;
         ValidateModelPath();
     }
 
@@ -66,12 +69,14 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         if (string.IsNullOrWhiteSpace(_settings.LocalModelPath))
         {
             _initError = "Kein Modellpfad konfiguriert.";
+            _logger.Warning(_initError, "LocalLlm");
             return;
         }
 
         if (!File.Exists(_settings.LocalModelPath))
         {
             _initError = "Modelldatei nicht gefunden.";
+            _logger.Warning($"{_initError}: {_settings.LocalModelPath}", "LocalLlm");
             return;
         }
 
@@ -82,20 +87,24 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             if (fileInfo.Length < MinimumModelSizeBytes)
             {
                 _initError = $"Datei zu klein ({fileInfo.Length / 1024 / 1024} MB).";
+                _logger.Warning(_initError, "LocalLlm");
                 return;
             }
 
             if (!IsValidGgufFile(_settings.LocalModelPath))
             {
                 _initError = "Keine gültige GGUF-Datei.";
+                _logger.Warning(_initError, "LocalLlm");
                 return;
             }
 
             _initError = null;
+            _logger.Debug($"Modellpfad validiert: {_settings.LocalModelPath}", "LocalLlm");
         }
         catch (Exception ex)
         {
             _initError = $"Dateizugriff fehlgeschlagen: {ex.Message}";
+            _logger.Error(_initError, "LocalLlm", ex);
         }
     }
 
@@ -131,9 +140,6 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         }
     }
 
-    /// <summary>
-    /// Kernlogik für Initialisierung. MUSS innerhalb eines Locks aufgerufen werden.
-    /// </summary>
     private bool TryInitializeCore()
     {
         if (_disposed)
@@ -155,7 +161,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"[LLM] Starte Laden von: {_settings.LocalModelPath}");
+            _logger.Info($"Lade LLM-Modell: {_settings.LocalModelPath}", "LocalLlm");
 
             _modelParams = new ModelParams(_settings.LocalModelPath!)
             {
@@ -164,15 +170,15 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
                 Threads = Math.Max(1, Environment.ProcessorCount / 2)
             };
 
-            System.Diagnostics.Debug.WriteLine("[LLM] ModelParams erstellt, lade Weights...");
+            _logger.Debug("ModelParams erstellt, lade Weights...", "LocalLlm");
 
             _model = LLamaWeights.LoadFromFile(_modelParams);
 
-            System.Diagnostics.Debug.WriteLine("[LLM] Weights geladen, erstelle StatelessExecutor...");
+            _logger.Debug("Weights geladen, erstelle StatelessExecutor...", "LocalLlm");
 
             _executor = new StatelessExecutor(_model, _modelParams);
 
-            System.Diagnostics.Debug.WriteLine("[LLM] Executor erstellt - ERFOLG!");
+            _logger.Info("LLM-Modell erfolgreich geladen", "LocalLlm");
 
             _initialized = true;
             _initError = null;
@@ -181,21 +187,21 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         catch (DllNotFoundException ex)
         {
             _initError = $"Native Bibliothek fehlt: {ex.Message}";
-            System.Diagnostics.Debug.WriteLine($"[LLM] DllNotFoundException: {ex}");
+            _logger.Error(_initError, "LocalLlm", ex);
             CleanupAfterError();
             return false;
         }
         catch (BadImageFormatException ex)
         {
             _initError = "Architektur-Konflikt (32/64-bit).";
-            System.Diagnostics.Debug.WriteLine($"[LLM] BadImageFormatException: {ex}");
+            _logger.Error(_initError, "LocalLlm", ex);
             CleanupAfterError();
             return false;
         }
         catch (Exception ex)
         {
             _initError = $"Laden fehlgeschlagen: {ex.Message}";
-            System.Diagnostics.Debug.WriteLine($"[LLM] Exception: {ex}");
+            _logger.Error(_initError, "LocalLlm", ex);
             CleanupAfterError();
             return false;
         }
@@ -251,11 +257,11 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         StatelessExecutor executor;
         InferenceParams inferenceParams;
 
-        // Thread-safe Prüfung, Initialisierung und Snapshot des Executors
         lock (_lock)
         {
             if (_disposed)
             {
+                _logger.Warning("CompleteAsync aufgerufen nach Dispose", "LocalLlm");
                 return "[LLM wurde disposed]";
             }
 
@@ -266,13 +272,12 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
             if (!_initialized || _executor is null)
             {
+                _logger.Warning($"LLM nicht verfügbar: {_initError ?? "Unbekannter Fehler"}", "LocalLlm");
                 return $"[LLM nicht verfügbar: {_initError ?? "Unbekannter Fehler"}]";
             }
 
-            // Snapshot des Executors - nach diesem Punkt kein Zugriff auf _executor außerhalb des Locks
             executor = _executor;
 
-            // InferenceParams hier erstellen, damit wir sie außerhalb des Locks nutzen können
             var samplingPipeline = new DefaultSamplingPipeline
             {
                 Temperature = _settings.Temperature > 0 ? _settings.Temperature : 0.7f
@@ -288,18 +293,18 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
         try
         {
-            System.Diagnostics.Debug.WriteLine($"[LLM] CompleteAsync gestartet, Prompt-Länge: {prompt.Length}");
+            _logger.Debug($"LLM-Inferenz gestartet, Prompt-Länge: {prompt.Length} Zeichen", "LocalLlm");
 
             var result = new StringBuilder();
             var tokenCount = 0;
 
             await foreach (var token in executor.InferAsync(prompt, inferenceParams, cancellationToken))
             {
-                // Prüfe ob wir zwischenzeitlich disposed wurden
                 lock (_lock)
                 {
                     if (_disposed)
                     {
+                        _logger.Warning("LLM während der Generierung disposed", "LocalLlm");
                         return "[LLM wurde während der Generierung disposed]";
                     }
                 }
@@ -309,22 +314,23 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
                 if (result.Length > 1500 || tokenCount > 400)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[LLM] Limit erreicht: {result.Length} chars, {tokenCount} tokens");
+                    _logger.Debug($"LLM-Limit erreicht: {result.Length} Zeichen, {tokenCount} Tokens", "LocalLlm");
                     break;
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"[LLM] CompleteAsync fertig: {result.Length} chars, {tokenCount} tokens");
+            _logger.Debug($"LLM-Inferenz abgeschlossen: {result.Length} Zeichen, {tokenCount} Tokens", "LocalLlm");
 
             return result.ToString().Trim();
         }
         catch (OperationCanceledException)
         {
+            _logger.Debug("LLM-Inferenz abgebrochen", "LocalLlm");
             return "[Generierung abgebrochen]";
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LLM] CompleteAsync Exception: {ex}");
+            _logger.Error($"LLM-Inferenz fehlgeschlagen: {ex.Message}", "LocalLlm", ex);
             return $"[LLM-Fehler: {ex.Message}]";
         }
     }
@@ -337,6 +343,8 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             {
                 return;
             }
+
+            _logger.Debug("LocalLlmClient wird disposed", "LocalLlm");
 
             _disposed = true;
             _initialized = false;
@@ -354,6 +362,8 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             }
 
             _model = null;
+
+            _logger.Debug("LocalLlmClient disposed", "LocalLlm");
         }
     }
 }

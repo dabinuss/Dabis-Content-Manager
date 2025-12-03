@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DCM.Core.Logging;
 using DCM.Core.Models;
 
 namespace DCM.Core.Services;
@@ -7,6 +8,7 @@ public sealed class UploadHistoryService
 {
     private readonly string _filePath;
     private readonly object _lock = new();
+    private readonly IAppLogger _logger;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -17,8 +19,10 @@ public sealed class UploadHistoryService
     /// Erstellt einen UploadHistoryService.
     /// Wenn kein Pfad angegeben ist, wird der Standard-AppData-Pfad verwendet.
     /// </summary>
-    public UploadHistoryService(string? customFilePath = null)
+    public UploadHistoryService(string? customFilePath = null, IAppLogger? logger = null)
     {
+        _logger = logger ?? AppLogger.Instance;
+
         if (!string.IsNullOrWhiteSpace(customFilePath))
         {
             _filePath = customFilePath;
@@ -27,6 +31,8 @@ public sealed class UploadHistoryService
         {
             _filePath = Path.Combine(Constants.AppDataFolder, Constants.UploadHistoryFileName);
         }
+
+        _logger.Debug($"UploadHistoryService initialisiert, Pfad: {_filePath}", "UploadHistory");
     }
 
     /// <summary>
@@ -39,6 +45,7 @@ public sealed class UploadHistoryService
         {
             if (!File.Exists(_filePath))
             {
+                _logger.Debug("Historiendatei existiert nicht, gebe leere Liste zurück", "UploadHistory");
                 return Array.Empty<UploadHistoryEntry>();
             }
 
@@ -46,10 +53,13 @@ public sealed class UploadHistoryService
             {
                 var json = File.ReadAllText(_filePath);
                 var list = JsonSerializer.Deserialize<List<UploadHistoryEntry>>(json, JsonOptions);
-                return list ?? new List<UploadHistoryEntry>();
+                var result = list ?? new List<UploadHistoryEntry>();
+                _logger.Debug($"Historie geladen: {result.Count} Einträge", "UploadHistory");
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.Error($"Fehler beim Laden der Historie: {ex.Message}", "UploadHistory", ex);
                 return Array.Empty<UploadHistoryEntry>();
             }
         }
@@ -92,6 +102,7 @@ public sealed class UploadHistoryService
             };
 
             entries.Add(entry);
+            _logger.Debug($"Historieneintrag hinzugefügt: {title} ({(result.Success ? "Erfolg" : "Fehler")})", "UploadHistory");
 
             if (File.Exists(_filePath))
             {
@@ -99,14 +110,22 @@ public sealed class UploadHistoryService
                 {
                     File.Copy(_filePath, _filePath + ".bak", overwrite: true);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Backup ist Komfort, Fehler ignorieren.
+                    _logger.Warning($"Backup der Historie fehlgeschlagen: {ex.Message}", "UploadHistory");
                 }
             }
 
-            var json = JsonSerializer.Serialize(entries, JsonOptions);
-            File.WriteAllText(_filePath, json);
+            try
+            {
+                var json = JsonSerializer.Serialize(entries, JsonOptions);
+                File.WriteAllText(_filePath, json);
+                _logger.Debug($"Historie gespeichert: {entries.Count} Einträge", "UploadHistory");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Fehler beim Speichern der Historie: {ex.Message}", "UploadHistory", ex);
+            }
         }
     }
 
@@ -122,11 +141,16 @@ public sealed class UploadHistoryService
                 try
                 {
                     File.Delete(_filePath);
+                    _logger.Info("Upload-Historie gelöscht", "UploadHistory");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Fehler ignorieren.
+                    _logger.Error($"Fehler beim Löschen der Historie: {ex.Message}", "UploadHistory", ex);
                 }
+            }
+            else
+            {
+                _logger.Debug("Historie-Datei existiert nicht, nichts zu löschen", "UploadHistory");
             }
         }
     }
@@ -144,8 +168,9 @@ public sealed class UploadHistoryService
             var list = JsonSerializer.Deserialize<List<UploadHistoryEntry>>(json, JsonOptions);
             return list ?? new List<UploadHistoryEntry>();
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.Warning($"Fehler beim internen Laden der Historie: {ex.Message}", "UploadHistory");
             return new List<UploadHistoryEntry>();
         }
     }

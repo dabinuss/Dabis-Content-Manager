@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
+using DCM.Core.Logging;
 using DCM.Core.Models;
 
 namespace DCM.Core.Services;
@@ -11,28 +9,43 @@ public sealed partial class TemplateService
     private static readonly Regex PlaceholderRegex =
         new(@"\{\{\s*(?<name>[A-Za-z0-9_]+)\s*\}\}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+    private readonly IAppLogger _logger;
+
+    public TemplateService(IAppLogger? logger = null)
+    {
+        _logger = logger ?? AppLogger.Instance;
+    }
+
     public string ApplyTemplate(string template, IDictionary<string, string?> values)
     {
         if (template is null) throw new ArgumentNullException(nameof(template));
         if (values is null) throw new ArgumentNullException(nameof(values));
 
-        return PlaceholderRegex.Replace(template, match =>
+        var replacementCount = 0;
+
+        var result = PlaceholderRegex.Replace(template, match =>
         {
             var key = match.Groups["name"].Value.ToUpperInvariant();
 
             if (values.TryGetValue(key, out var value) && value is not null)
             {
+                replacementCount++;
                 return value;
             }
 
-            // Unbekannte oder leere Platzhalter werden einfach durch "" ersetzt
+            _logger.Debug($"Platzhalter '{key}' nicht gefunden oder leer", "TemplateService");
             return string.Empty;
         });
+
+        _logger.Debug($"Template angewendet: {replacementCount} Platzhalter ersetzt", "TemplateService");
+        return result;
     }
 
     public string ApplyTemplate(string template, UploadProject project)
     {
         if (project is null) throw new ArgumentNullException(nameof(project));
+
+        _logger.Debug($"Template wird auf Projekt '{project.Title}' angewendet", "TemplateService");
 
         string? transcriptSnippet = null;
 
@@ -78,7 +91,7 @@ public sealed partial class TemplateService
             ["DAY"] = DateTime.Now.ToString("dd"),
             ["VIDEOFILE"] = string.IsNullOrWhiteSpace(project.VideoFilePath)
                 ? string.Empty
-                : System.IO.Path.GetFileName(project.VideoFilePath),
+                : Path.GetFileName(project.VideoFilePath),
             ["VIDEOPATH"] = project.VideoFilePath ?? string.Empty,
             ["SCHEDULEDDATE"] = project.ScheduledTime?.ToString("yyyy-MM-dd") ?? string.Empty,
             ["SCHEDULEDTIME"] = project.ScheduledTime?.ToString("HH:mm") ?? string.Empty,

@@ -1,10 +1,18 @@
 using System.Text.Json;
+using DCM.Core.Logging;
 using DCM.Core.Models;
 
 namespace DCM.Core.Configuration;
 
 public sealed class JsonTemplateRepository : ITemplateRepository
 {
+    private readonly IAppLogger _logger;
+
+    public JsonTemplateRepository(IAppLogger? logger = null)
+    {
+        _logger = logger ?? AppLogger.Instance;
+    }
+
     private static string GetFilePath() => Path.Combine(Constants.AppDataFolder, Constants.TemplatesFileName);
 
     public IEnumerable<Template> Load()
@@ -13,6 +21,7 @@ public sealed class JsonTemplateRepository : ITemplateRepository
 
         if (!File.Exists(path))
         {
+            _logger.Debug("Template-Datei existiert nicht, erstelle Standardtemplates", "Templates");
             var defaults = GetDefaultTemplates().ToArray();
             Save(defaults);
             return defaults;
@@ -27,10 +36,13 @@ public sealed class JsonTemplateRepository : ITemplateRepository
             };
 
             var list = JsonSerializer.Deserialize<List<Template>>(json, options);
-            return list ?? Enumerable.Empty<Template>();
+            var result = list ?? Enumerable.Empty<Template>();
+            _logger.Debug($"Templates geladen: {result.Count()} Einträge", "Templates");
+            return result;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.Error($"Fehler beim Laden der Templates: {ex.Message}", "Templates", ex);
             return Enumerable.Empty<Template>();
         }
     }
@@ -39,26 +51,35 @@ public sealed class JsonTemplateRepository : ITemplateRepository
     {
         var path = GetFilePath();
 
-        if (File.Exists(path))
+        try
         {
-            var backupPath = path + ".bak";
-            try
+            if (File.Exists(path))
             {
-                File.Copy(path, backupPath, overwrite: true);
+                try
+                {
+                    File.Copy(path, path + ".bak", overwrite: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning($"Backup der Templates fehlgeschlagen: {ex.Message}", "Templates");
+                }
             }
-            catch
+
+            var options = new JsonSerializerOptions
             {
-                // Backup-Fehler sind nicht kritisch.
-            }
+                WriteIndented = true
+            };
+
+            var templateList = templates.ToList();
+            var json = JsonSerializer.Serialize(templateList, options);
+            File.WriteAllText(path, json);
+            _logger.Debug($"Templates gespeichert: {templateList.Count} Einträge", "Templates");
         }
-
-        var options = new JsonSerializerOptions
+        catch (Exception ex)
         {
-            WriteIndented = true
-        };
-
-        var json = JsonSerializer.Serialize(templates, options);
-        File.WriteAllText(path, json);
+            _logger.Error($"Fehler beim Speichern der Templates: {ex.Message}", "Templates", ex);
+            throw;
+        }
     }
 
     private static IEnumerable<Template> GetDefaultTemplates()

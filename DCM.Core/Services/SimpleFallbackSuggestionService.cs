@@ -1,4 +1,4 @@
-using System.IO;
+using DCM.Core.Logging;
 using DCM.Core.Models;
 
 namespace DCM.Core.Services;
@@ -9,12 +9,21 @@ namespace DCM.Core.Services;
 /// </summary>
 public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
 {
+    private readonly IAppLogger _logger;
+
+    public SimpleFallbackSuggestionService(IAppLogger? logger = null)
+    {
+        _logger = logger ?? AppLogger.Instance;
+    }
+
     public Task<IReadOnlyList<string>> SuggestTitlesAsync(
         UploadProject project,
         ChannelPersona persona,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.Debug("Fallback-Titelgenerierung gestartet", "FallbackSuggestion");
 
         var suggestions = new List<string>();
 
@@ -26,9 +35,9 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
             {
                 fileName = Path.GetFileNameWithoutExtension(project.VideoFilePath);
             }
-            catch
+            catch (Exception ex)
             {
-                // Fehler ignorieren
+                _logger.Warning($"Fehler beim Extrahieren des Dateinamens: {ex.Message}", "FallbackSuggestion");
             }
         }
 
@@ -61,6 +70,11 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         if (suggestions.Count == 0)
         {
             suggestions.Add("[Kein Titel aus Dateiname ableitbar]");
+            _logger.Warning("Keine Titelvorschläge aus Dateiname ableitbar", "FallbackSuggestion");
+        }
+        else
+        {
+            _logger.Debug($"Fallback-Titel generiert: {suggestions.Count} Vorschläge", "FallbackSuggestion");
         }
 
         return Task.FromResult<IReadOnlyList<string>>(suggestions);
@@ -72,6 +86,8 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.Debug("Fallback-Beschreibungsgenerierung gestartet", "FallbackSuggestion");
 
         var parts = new List<string>();
 
@@ -100,7 +116,10 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         parts.Add(string.Empty);
         parts.Add("[Beschreibung wurde automatisch generiert - bitte anpassen]");
 
-        return Task.FromResult<string?>(string.Join("\n", parts));
+        var result = string.Join("\n", parts);
+        _logger.Debug($"Fallback-Beschreibung generiert: {result.Length} Zeichen", "FallbackSuggestion");
+
+        return Task.FromResult<string?>(result);
     }
 
     public Task<IReadOnlyList<string>> SuggestTagsAsync(
@@ -109,6 +128,8 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.Debug("Fallback-Taggenerierung gestartet", "FallbackSuggestion");
 
         var tags = new List<string>();
 
@@ -153,9 +174,9 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
                     .Take(5);
                 tags.AddRange(words);
             }
-            catch
+            catch (Exception ex)
             {
-                // Fehler ignorieren
+                _logger.Warning($"Fehler beim Extrahieren von Tags aus Dateiname: {ex.Message}", "FallbackSuggestion");
             }
         }
 
@@ -167,6 +188,11 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         if (uniqueTags.Count == 0)
         {
             uniqueTags.Add("[Keine Tags ableitbar]");
+            _logger.Warning("Keine Fallback-Tags ableitbar", "FallbackSuggestion");
+        }
+        else
+        {
+            _logger.Debug($"Fallback-Tags generiert: {uniqueTags.Count} Tags", "FallbackSuggestion");
         }
 
         return Task.FromResult<IReadOnlyList<string>>(uniqueTags);
