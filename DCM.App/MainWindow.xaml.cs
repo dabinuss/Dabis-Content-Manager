@@ -33,24 +33,11 @@ public partial class MainWindow : Window
     private readonly List<Template> _loadedTemplates = new();
     private Template? _currentEditingTemplate;
 
-    private readonly List<YouTubePlaylistListItem> _youTubePlaylists = new();
+    private readonly List<YouTubePlaylistInfo> _youTubePlaylists = new();
 
     private List<UploadHistoryEntry> _allHistoryEntries = new();
 
     private CancellationTokenSource? _currentLlmCts;
-
-    private sealed class YouTubePlaylistListItem
-    {
-        public YouTubePlaylistListItem(string id, string title)
-        {
-            Id = id;
-            Title = title;
-        }
-
-        public string Id { get; }
-        public string Title { get; }
-        public override string ToString() => Title;
-    }
 
     public MainWindow()
     {
@@ -941,7 +928,7 @@ public partial class MainWindow : Window
 
     private void YouTubePlaylistsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (YouTubePlaylistsListBox.SelectedItem is YouTubePlaylistListItem item)
+        if (YouTubePlaylistsListBox.SelectedItem is YouTubePlaylistInfo item)
         {
             _settings.DefaultPlaylistId = item.Id;
             SaveSettings();
@@ -1361,7 +1348,7 @@ public partial class MainWindow : Window
         }
 
         string? playlistId = null;
-        if (PlaylistComboBox.SelectedItem is YouTubePlaylistListItem plItem)
+        if (PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
         {
             playlistId = plItem.Id;
         }
@@ -1452,9 +1439,8 @@ public partial class MainWindow : Window
             var playlists = await _youTubeClient.GetPlaylistsAsync(CancellationToken.None);
 
             _youTubePlaylists.Clear();
-            _youTubePlaylists.AddRange(
-                playlists.Select(p => new YouTubePlaylistListItem(p.Id, p.Title)));
-
+            _youTubePlaylists.AddRange(playlists);
+            
             YouTubePlaylistsListBox.ItemsSource = _youTubePlaylists;
             PlaylistComboBox.ItemsSource = _youTubePlaylists;
 
@@ -1472,18 +1458,6 @@ public partial class MainWindow : Window
         {
             StatusTextBlock.Text = $"Fehler beim Laden der Playlists: {ex.Message}";
         }
-    }
-
-    private void ScheduleCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        /*
-        if (SchedulePanel != null)
-        {
-            SchedulePanel.Visibility = ScheduleCheckBox.IsChecked == true
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        }
-        */
     }
 
     private void UpdateScheduleControlsEnabled()
