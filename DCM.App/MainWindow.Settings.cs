@@ -7,8 +7,6 @@ using DCM.Core.Configuration;
 using DCM.Core.Models;
 using DCM.Llm;
 
-using WinForms = System.Windows.Forms;
-
 namespace DCM.App;
 
 public partial class MainWindow
@@ -21,7 +19,7 @@ public partial class MainWindow
         {
             _settings = _settingsProvider.Load();
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             _settings = new AppSettings();
             StatusTextBlock.Text = $"Einstellungen konnten nicht geladen werden: {ex.Message}";
@@ -93,7 +91,7 @@ public partial class MainWindow
         UpdateLlmControlsEnabled();
     }
 
-    private static void SelectComboBoxItemByTag<T>(System.Windows.Controls.ComboBox comboBox, T value)
+    private static void SelectComboBoxItemByTag<T>(ComboBox comboBox, T value)
     {
         var items = comboBox.Items.OfType<ComboBoxItem>().ToList();
 
@@ -136,17 +134,16 @@ public partial class MainWindow
             initialPath = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
         }
 
-        using var dialog = new WinForms.FolderBrowserDialog
+        var dialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Description = "Standard-Videoordner auswählen",
-            SelectedPath = initialPath,
-            ShowNewFolderButton = true
+            Title = "Standard-Videoordner auswählen",
+            InitialDirectory = initialPath
         };
 
-        if (dialog.ShowDialog() == WinForms.DialogResult.OK)
+        if (dialog.ShowDialog(this) == true)
         {
-            DefaultVideoFolderTextBox.Text = dialog.SelectedPath;
-            _settings.DefaultVideoFolder = dialog.SelectedPath;
+            DefaultVideoFolderTextBox.Text = dialog.FolderName;
+            _settings.DefaultVideoFolder = dialog.FolderName;
             SaveSettings();
             StatusTextBlock.Text = "Standard-Videoordner aktualisiert.";
         }
@@ -171,17 +168,16 @@ public partial class MainWindow
             initialPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
         }
 
-        using var dialog = new WinForms.FolderBrowserDialog
+        var dialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Description = "Standard-Thumbnailordner auswählen",
-            SelectedPath = initialPath,
-            ShowNewFolderButton = true
+            Title = "Standard-Thumbnailordner auswählen",
+            InitialDirectory = initialPath
         };
 
-        if (dialog.ShowDialog() == WinForms.DialogResult.OK)
+        if (dialog.ShowDialog(this) == true)
         {
-            DefaultThumbnailFolderTextBox.Text = dialog.SelectedPath;
-            _settings.DefaultThumbnailFolder = dialog.SelectedPath;
+            DefaultThumbnailFolderTextBox.Text = dialog.FolderName;
+            _settings.DefaultThumbnailFolder = dialog.FolderName;
             SaveSettings();
             StatusTextBlock.Text = "Standard-Thumbnailordner aktualisiert.";
         }
