@@ -1044,4 +1044,64 @@ public partial class MainWindow : Window
     }
 
     #endregion
+
+    #region Sidebar Navigation
+
+    private void NavButton_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not RadioButton radioButton)
+        {
+            return;
+        }
+
+        if (radioButton.Tag is not string tagString || !int.TryParse(tagString, out var pageIndex))
+        {
+            return;
+        }
+
+        ShowPage(pageIndex);
+    }
+
+    private void ShowPage(int pageIndex)
+    {
+        // Alle Pages verstecken
+        if (PageUpload is not null) PageUpload.Visibility = Visibility.Collapsed;
+        if (PageAccounts is not null) PageAccounts.Visibility = Visibility.Collapsed;
+        if (PageChannel is not null) PageChannel.Visibility = Visibility.Collapsed;
+        if (PageTemplates is not null) PageTemplates.Visibility = Visibility.Collapsed;
+        if (PageHistory is not null) PageHistory.Visibility = Visibility.Collapsed;
+        if (PageSettings is not null) PageSettings.Visibility = Visibility.Collapsed;
+
+        // Gewählte Page anzeigen
+        switch (pageIndex)
+        {
+            case 0:
+                if (PageUpload is not null) PageUpload.Visibility = Visibility.Visible;
+                break;
+            case 1:
+                if (PageAccounts is not null) PageAccounts.Visibility = Visibility.Visible;
+                break;
+            case 2:
+                if (PageChannel is not null) PageChannel.Visibility = Visibility.Visible;
+                break;
+            case 3:
+                if (PageTemplates is not null) PageTemplates.Visibility = Visibility.Visible;
+                break;
+            case 4:
+                if (PageHistory is not null) PageHistory.Visibility = Visibility.Visible;
+                break;
+            case 5:
+                if (PageSettings is not null) PageSettings.Visibility = Visibility.Visible;
+                break;
+        }
+    }
+
+    private void YouTubeServiceIcon_Click(object sender, MouseButtonEventArgs e)
+    {
+        // Navigiere zum Konten-Tab
+        NavAccounts.IsChecked = true;
+        ShowPage(1);
+    }
+
+    #endregion
 }
