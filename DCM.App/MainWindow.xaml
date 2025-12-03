@@ -851,7 +851,7 @@
                                Margin="0,0,10,0"/>
                 </StackPanel>
 
-                <!-- Rechts: Statusanzeige -->
+                <!-- Rechts: Status + Log-Link -->
                 <StackPanel Orientation="Horizontal"
                             DockPanel.Dock="Right"
                             VerticalAlignment="Center">
@@ -859,12 +859,36 @@
                                Foreground="{StaticResource TextMutedBrush}"
                                FontSize="11"
                                Margin="0,0,6,0"/>
-                    <!-- WICHTIG: Name muss zum Code-Behind passen -->
                     <TextBlock x:Name="StatusTextBlock"
                                Text="Bereit"
                                Foreground="{StaticResource TextPrimaryBrush}"
                                FontSize="11"
                                FontWeight="SemiBold"/>
+
+                    <!-- Separator -->
+                    <TextBlock Text="|"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11"
+                               Margin="12,0,12,0"/>
+
+                    <!-- Log-Link -->
+                    <TextBlock x:Name="LogLinkTextBlock"
+                               FontSize="11"
+                               Cursor="Hand"
+                               MouseLeftButtonDown="LogLink_Click"
+                               ToolTip="Anwendungs-Log anzeigen">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+                                <Setter Property="Text" Value="📋 Log"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </StackPanel>
 
                 <!-- Mitte: Upload-Fortschritt -->

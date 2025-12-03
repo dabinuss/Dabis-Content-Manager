@@ -31,6 +31,11 @@ public static class Constants
     public const string UploadHistoryFileName = "upload_history.json";
 
     /// <summary>
+    /// Dateiname für die Log-Datei.
+    /// </summary>
+    public const string LogFileName = "app.log";
+
+    /// <summary>
     /// Ordnername für YouTube-Tokens.
     /// </summary>
     public const string YouTubeTokensFolderName = "youtube_tokens";

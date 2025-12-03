@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using DCM.Core;
 using DCM.Core.Configuration;
+using DCM.Core.Logging;
 using DCM.Core.Models;
 using DCM.Core.Services;
 using DCM.Llm;
@@ -22,6 +23,7 @@ public partial class MainWindow : Window
     private readonly YouTubePlatformClient _youTubeClient;
     private readonly UploadHistoryService _uploadHistoryService;
     private readonly SimpleFallbackSuggestionService _fallbackSuggestionService;
+    private readonly IAppLogger _logger;
 
     private ILlmClient _llmClient;
     private IContentSuggestionService _contentSuggestionService;
@@ -37,9 +39,15 @@ public partial class MainWindow : Window
 
     private CancellationTokenSource? _currentLlmCts;
 
+    private LogWindow? _logWindow;
+    private bool _isClosing;
+
     public MainWindow()
     {
         InitializeComponent();
+
+        _logger = AppLogger.Instance;
+        _logger.Info("Anwendung gestartet", "MainWindow");
 
         _settingsProvider = new JsonSettingsProvider();
         _templateRepository = new JsonTemplateRepository();
@@ -75,8 +83,27 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
+        _isClosing = true;
+
+        // Event-Handler zuerst entfernen
+        try
+        {
+            _logger.EntryAdded -= OnLogEntryAdded;
+        }
+        catch
+        {
+            // Ignorieren
+        }
+
+        _logger.Info("Anwendung wird beendet", "MainWindow");
+
+        // LogWindow schließen falls offen
+        CloseLogWindowSafely();
+
+        // LLM-Operationen abbrechen
         CancelCurrentLlmOperation();
 
+        // LLM-Client aufräumen
         if (_llmClient is IDisposable disposable)
         {
             try
@@ -90,14 +117,87 @@ public partial class MainWindow : Window
         }
     }
 
+    private void CloseLogWindowSafely()
+    {
+        var logWindow = _logWindow;
+        _logWindow = null;
+
+        if (logWindow is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (logWindow.IsLoaded)
+            {
+                logWindow.Close();
+            }
+        }
+        catch
+        {
+            // Ignorieren - Fenster könnte bereits geschlossen sein
+        }
+    }
+
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        // Event-Handler für Log-Updates registrieren (nach UI-Initialisierung)
+        _logger.EntryAdded += OnLogEntryAdded;
+
         if (_settings.AutoConnectYouTube)
         {
             await TryAutoConnectYouTubeAsync();
         }
 
         UpdateLlmStatusText();
+        UpdateLogLinkIndicator();
+    }
+
+    private void OnLogEntryAdded(LogEntry entry)
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        if (!Dispatcher.CheckAccess())
+        {
+            try
+            {
+                Dispatcher.BeginInvoke(() =>
+                {
+                    if (!_isClosing)
+                    {
+                        UpdateLogLinkIndicatorSafe();
+                    }
+                });
+            }
+            catch
+            {
+                // Dispatcher könnte bereits heruntergefahren sein
+            }
+            return;
+        }
+
+        UpdateLogLinkIndicatorSafe();
+    }
+
+    private void UpdateLogLinkIndicatorSafe()
+    {
+        if (_isClosing || LogLinkTextBlock is null)
+        {
+            return;
+        }
+
+        try
+        {
+            UpdateLogLinkIndicator();
+        }
+        catch
+        {
+            // UI-Fehler ignorieren
+        }
     }
 
     #endregion
@@ -248,6 +348,8 @@ public partial class MainWindow : Window
             VideoPathTextBox.Text = dlg.FileName;
             _settings.LastVideoFolder = Path.GetDirectoryName(dlg.FileName);
             SaveSettings();
+
+            _logger.Debug($"Video ausgewählt: {dlg.FileName}", "Upload");
         }
     }
 
@@ -282,6 +384,8 @@ public partial class MainWindow : Window
         {
             ThumbnailPathTextBox.Text = dlg.FileName;
             UpdateThumbnailPreview(dlg.FileName);
+
+            _logger.Debug($"Thumbnail ausgewählt: {dlg.FileName}", "Upload");
         }
     }
 
@@ -340,13 +444,15 @@ public partial class MainWindow : Window
 
         DescriptionTextBox.Text = result;
         StatusTextBlock.Text = $"Template \"{tmpl.Name}\" angewendet.";
+
+        _logger.Info($"Template angewendet: {tmpl.Name}", "Template");
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
     {
         if (_settings.ConfirmBeforeUpload)
         {
-            var confirmResult = System.Windows.MessageBox.Show(
+            var confirmResult = MessageBox.Show(
                 this,
                 "Upload wirklich starten?",
                 "Bestätigung",
@@ -366,6 +472,7 @@ public partial class MainWindow : Window
             !File.Exists(project.ThumbnailPath))
         {
             StatusTextBlock.Text = "Hinweis: Thumbnail-Datei wurde nicht gefunden. Upload wird ohne Thumbnail fortgesetzt.";
+            _logger.Warning($"Thumbnail nicht gefunden: {project.ThumbnailPath}", "Upload");
             project.ThumbnailPath = string.Empty;
         }
         else if (!string.IsNullOrWhiteSpace(project.ThumbnailPath))
@@ -374,6 +481,7 @@ public partial class MainWindow : Window
             if (fileInfo.Length > Constants.MaxThumbnailSizeBytes)
             {
                 StatusTextBlock.Text = "Thumbnail ist größer als 2 MB und wird nicht verwendet.";
+                _logger.Warning($"Thumbnail zu groß: {fileInfo.Length / 1024 / 1024:F2} MB", "Upload");
                 project.ThumbnailPath = string.Empty;
             }
         }
@@ -385,6 +493,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Fehlerhafte Eingaben: {ex.Message}";
+            _logger.Warning($"Validierungsfehler: {ex.Message}", "Upload");
             return;
         }
 
@@ -394,6 +503,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        _logger.Info($"Upload gestartet: {project.Title}", "Upload");
         StatusTextBlock.Text = "Upload wird vorbereitet...";
         ShowUploadProgress("Upload wird vorbereitet...");
 
@@ -415,6 +525,7 @@ public partial class MainWindow : Window
             if (result.Success)
             {
                 StatusTextBlock.Text = $"Upload erfolgreich: {result.VideoUrl}";
+                _logger.Info($"Upload erfolgreich: {result.VideoUrl}", "Upload");
 
                 if (_settings.OpenBrowserAfterUpload && result.VideoUrl is not null)
                 {
@@ -434,15 +545,18 @@ public partial class MainWindow : Window
             else
             {
                 StatusTextBlock.Text = $"Upload fehlgeschlagen: {result.ErrorMessage}";
+                _logger.Error($"Upload fehlgeschlagen: {result.ErrorMessage}", "Upload");
             }
         }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Unerwarteter Fehler beim Upload: {ex.Message}";
+            _logger.Error($"Unerwarteter Fehler beim Upload: {ex.Message}", "Upload", ex);
         }
         finally
         {
             HideUploadProgress();
+            UpdateLogLinkIndicator();
         }
     }
 
@@ -460,6 +574,8 @@ public partial class MainWindow : Window
 
         var cancellationToken = GetNewLlmCancellationToken();
 
+        _logger.Debug("Titelgenerierung gestartet", "LLM");
+
         try
         {
             var titles = await _contentSuggestionService.SuggestTitlesAsync(
@@ -471,23 +587,28 @@ public partial class MainWindow : Window
             {
                 TitleTextBox.Text = "[Keine Vorschläge]";
                 StatusTextBlock.Text = "Keine Titelvorschläge erhalten.";
+                _logger.Warning("Keine Titelvorschläge erhalten", "LLM");
                 return;
             }
 
             TitleTextBox.Text = titles[0];
             StatusTextBlock.Text = $"Titelvorschlag eingefügt. ({titles.Count} Vorschläge)";
+            _logger.Info($"Titelvorschlag generiert: {titles[0]}", "LLM");
         }
         catch (OperationCanceledException)
         {
             StatusTextBlock.Text = "Titelgenerierung abgebrochen.";
+            _logger.Debug("Titelgenerierung abgebrochen", "LLM");
         }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Fehler bei Titelgenerierung: {ex.Message}";
+            _logger.Error($"Fehler bei Titelgenerierung: {ex.Message}", "LLM", ex);
         }
         finally
         {
             GenerateTitleButton.IsEnabled = true;
+            UpdateLogLinkIndicator();
         }
     }
 
@@ -501,6 +622,8 @@ public partial class MainWindow : Window
 
         var cancellationToken = GetNewLlmCancellationToken();
 
+        _logger.Debug("Beschreibungsgenerierung gestartet", "LLM");
+
         try
         {
             var description = await _contentSuggestionService.SuggestDescriptionAsync(
@@ -512,23 +635,28 @@ public partial class MainWindow : Window
             {
                 DescriptionTextBox.Text = description;
                 StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
+                _logger.Info("Beschreibungsvorschlag generiert", "LLM");
             }
             else
             {
                 StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
+                _logger.Warning("Keine Beschreibungsvorschläge verfügbar", "LLM");
             }
         }
         catch (OperationCanceledException)
         {
             StatusTextBlock.Text = "Beschreibungsgenerierung abgebrochen.";
+            _logger.Debug("Beschreibungsgenerierung abgebrochen", "LLM");
         }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Fehler bei Beschreibungsgenerierung: {ex.Message}";
+            _logger.Error($"Fehler bei Beschreibungsgenerierung: {ex.Message}", "LLM", ex);
         }
         finally
         {
             GenerateDescriptionButton.IsEnabled = true;
+            UpdateLogLinkIndicator();
         }
     }
 
@@ -542,6 +670,8 @@ public partial class MainWindow : Window
 
         var cancellationToken = GetNewLlmCancellationToken();
 
+        _logger.Debug("Tag-Generierung gestartet", "LLM");
+
         try
         {
             var tags = await _contentSuggestionService.SuggestTagsAsync(
@@ -553,23 +683,28 @@ public partial class MainWindow : Window
             {
                 TagsTextBox.Text = string.Join(", ", tags);
                 StatusTextBlock.Text = $"Tag-Vorschläge eingefügt. ({tags.Count} Tags)";
+                _logger.Info($"Tag-Vorschläge generiert: {tags.Count} Tags", "LLM");
             }
             else
             {
                 StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
+                _logger.Warning("Keine Tag-Vorschläge verfügbar", "LLM");
             }
         }
         catch (OperationCanceledException)
         {
             StatusTextBlock.Text = "Tag-Generierung abgebrochen.";
+            _logger.Debug("Tag-Generierung abgebrochen", "LLM");
         }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Fehler bei Tag-Generierung: {ex.Message}";
+            _logger.Error($"Fehler bei Tag-Generierung: {ex.Message}", "LLM", ex);
         }
         finally
         {
             GenerateTagsButton.IsEnabled = true;
+            UpdateLogLinkIndicator();
         }
     }
 
@@ -652,6 +787,7 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Upload-Historie konnte nicht geladen werden: {ex.Message}";
+            _logger.Error($"Upload-Historie konnte nicht geladen werden: {ex.Message}", "History", ex);
         }
     }
 
@@ -693,7 +829,7 @@ public partial class MainWindow : Window
 
     private void HistoryClearButton_Click(object sender, RoutedEventArgs e)
     {
-        var confirm = System.Windows.MessageBox.Show(
+        var confirm = MessageBox.Show(
             this,
             "Die komplette Upload-Historie wirklich löschen?",
             "Bestätigung",
@@ -711,10 +847,12 @@ public partial class MainWindow : Window
             _allHistoryEntries.Clear();
             ApplyHistoryFilter();
             StatusTextBlock.Text = "Upload-Historie gelöscht.";
+            _logger.Info("Upload-Historie gelöscht", "History");
         }
         catch (Exception ex)
         {
             StatusTextBlock.Text = $"Historie konnte nicht gelöscht werden: {ex.Message}";
+            _logger.Error($"Historie konnte nicht gelöscht werden: {ex.Message}", "History", ex);
         }
     }
 
@@ -752,6 +890,80 @@ public partial class MainWindow : Window
         }
 
         e.Handled = true;
+    }
+
+    #endregion
+
+    #region Log Window
+
+    private void LogLink_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        try
+        {
+            if (_logWindow is null || !_logWindow.IsLoaded)
+            {
+                _logWindow = new LogWindow();
+                _logWindow.Owner = this;
+                _logWindow.Closed += OnLogWindowClosed;
+                _logWindow.Show();
+            }
+            else
+            {
+                _logWindow.Activate();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"LogWindow konnte nicht geöffnet werden: {ex.Message}", "MainWindow", ex);
+            MessageBox.Show(
+                this,
+                $"Log-Fenster konnte nicht geöffnet werden:\n{ex.Message}",
+                "Fehler",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private void OnLogWindowClosed(object? sender, EventArgs e)
+    {
+        if (sender is LogWindow lw)
+        {
+            lw.Closed -= OnLogWindowClosed;
+        }
+
+        _logWindow = null;
+    }
+
+    private void UpdateLogLinkIndicator()
+    {
+        if (_isClosing || LogLinkTextBlock is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (_logger.HasErrors)
+            {
+                LogLinkTextBlock.Text = $"📋 Log ({_logger.ErrorCount} ⚠)";
+                LogLinkTextBlock.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0xFF, 0x4E, 0x45));
+            }
+            else
+            {
+                LogLinkTextBlock.Text = "📋 Log";
+                LogLinkTextBlock.ClearValue(ForegroundProperty);
+            }
+        }
+        catch
+        {
+            // UI-Update-Fehler ignorieren
+        }
     }
 
     #endregion
