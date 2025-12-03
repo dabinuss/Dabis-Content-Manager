@@ -5,6 +5,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
+using System.Windows.Media.Imaging;
+using System.Windows.Media;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Logging;
@@ -12,6 +14,7 @@ using DCM.Core.Models;
 using DCM.Core.Services;
 using DCM.Llm;
 using DCM.YouTube;
+using System.Linq;
 
 namespace DCM.App;
 
@@ -272,9 +275,8 @@ public partial class MainWindow : Window
 
     private void InitializePlatformComboBox()
     {
-        PlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
-        PlatformComboBox.SelectedItem = _settings.DefaultPlatform;
-
+        // PlatformComboBox wurde durch Checkboxen ersetzt
+        // Nur noch TemplatePlatformComboBox initialisieren
         TemplatePlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
 
         SelectComboBoxItemByTag(VisibilityComboBox, _settings.DefaultVisibility);
@@ -318,114 +320,228 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Upload Events
+    #region Video Drop Zone
 
-    private void BrowseButton_Click(object sender, RoutedEventArgs e)
+    private readonly string[] _allowedVideoExtensions = { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm" };
+
+    private void VideoDrop_DragOver(object sender, DragEventArgs e)
     {
-        string initialDirectory;
+        e.Effects = DragDropEffects.None;
 
-        if (!string.IsNullOrWhiteSpace(_settings.DefaultVideoFolder) &&
-            Directory.Exists(_settings.DefaultVideoFolder))
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
         {
-            initialDirectory = _settings.DefaultVideoFolder;
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files?.Length == 1)
+            {
+                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
+                if (_allowedVideoExtensions.Contains(ext))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                    VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
+                }
+            }
         }
-        else if (!string.IsNullOrWhiteSpace(_settings.LastVideoFolder) &&
-                 Directory.Exists(_settings.LastVideoFolder))
-        {
-            initialDirectory = _settings.LastVideoFolder;
-        }
-        else
-        {
-            initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
-        }
+        e.Handled = true;
+    }
 
-        var dlg = new Microsoft.Win32.OpenFileDialog
-        {
-            Title = "Videodatei auswählen",
-            Filter = "Video-Dateien|*.mp4;*.mkv;*.mov;*.avi;*.webm|Alle Dateien|*.*",
-            InitialDirectory = initialDirectory
-        };
+    private void VideoDrop_DragLeave(object sender, DragEventArgs e)
+    {
+        VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
+    }
 
-        if (dlg.ShowDialog(this) == true)
-        {
-            VideoPathTextBox.Text = dlg.FileName;
-            _settings.LastVideoFolder = Path.GetDirectoryName(dlg.FileName);
-            SaveSettings();
+    private void VideoDrop_Drop(object sender, DragEventArgs e)
+    {
+        VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
 
-            _logger.Debug($"Video ausgewählt: {dlg.FileName}", "Upload");
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files?.Length == 1)
+            {
+                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
+                if (_allowedVideoExtensions.Contains(ext))
+                {
+                    SetVideoFile(files[0]);
+                }
+            }
         }
     }
 
-    private void ThumbnailBrowseButton_Click(object sender, RoutedEventArgs e)
+    private void VideoDropZone_Click(object sender, MouseButtonEventArgs e)
     {
-        var dlg = new Microsoft.Win32.OpenFileDialog
+        var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Thumbnail-Datei auswählen",
-            Filter = "Bilddateien|*.png;*.jpg;*.jpeg|Alle Dateien|*.*"
+            Filter = "Video-Dateien|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm|Alle Dateien|*.*",
+            Title = "Video auswählen"
         };
 
-        string initialDirectory;
-
-        if (!string.IsNullOrWhiteSpace(_settings.DefaultThumbnailFolder) &&
-            Directory.Exists(_settings.DefaultThumbnailFolder))
+        if (!string.IsNullOrEmpty(_settings?.DefaultVideoFolder) &&
+            System.IO.Directory.Exists(_settings.DefaultVideoFolder))
         {
-            initialDirectory = _settings.DefaultThumbnailFolder;
-        }
-        else if (!string.IsNullOrWhiteSpace(_settings.LastVideoFolder) &&
-                 Directory.Exists(_settings.LastVideoFolder))
-        {
-            initialDirectory = _settings.LastVideoFolder;
-        }
-        else
-        {
-            initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            dialog.InitialDirectory = _settings.DefaultVideoFolder;
         }
 
-        dlg.InitialDirectory = initialDirectory;
-
-        if (dlg.ShowDialog(this) == true)
+        if (dialog.ShowDialog() == true)
         {
-            ThumbnailPathTextBox.Text = dlg.FileName;
-            UpdateThumbnailPreview(dlg.FileName);
+            SetVideoFile(dialog.FileName);
+        }
+    }
 
-            _logger.Debug($"Thumbnail ausgewählt: {dlg.FileName}", "Upload");
+    private void SetVideoFile(string filePath)
+    {
+        VideoPathTextBox.Text = filePath;
+
+        var fileInfo = new System.IO.FileInfo(filePath);
+        VideoFileNameTextBlock.Text = fileInfo.Name;
+        VideoFileSizeTextBlock.Text = FormatFileSize(fileInfo.Length);
+
+        VideoDropEmptyState.Visibility = Visibility.Collapsed;
+        VideoDropSelectedState.Visibility = Visibility.Visible;
+
+        UpdateUploadButtonState();
+        _logger.Info($"Video ausgewählt: {fileInfo.Name}", "Upload");
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        int order = 0;
+        double size = bytes;
+        while (size >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            size /= 1024;
+        }
+        return $"{size:0.##} {sizes[order]}";
+    }
+
+    private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        UpdateUploadButtonState();
+    }
+
+    private void UpdateUploadButtonState()
+    {
+        bool hasVideo = !string.IsNullOrWhiteSpace(VideoPathTextBox.Text);
+        bool hasTitle = !string.IsNullOrWhiteSpace(TitleTextBox.Text);
+
+        UploadButton.IsEnabled = hasVideo && hasTitle;
+    }
+
+    #endregion
+
+    #region Thumbnail Drop Zone
+
+    private readonly string[] _allowedImageExtensions = { ".png", ".jpg", ".jpeg" };
+
+    private void ThumbnailDrop_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = DragDropEffects.None;
+
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files?.Length == 1)
+            {
+                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
+                if (_allowedImageExtensions.Contains(ext))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                    ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
+                }
+            }
+        }
+        e.Handled = true;
+    }
+
+    private void ThumbnailDrop_DragLeave(object sender, DragEventArgs e)
+    {
+        ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
+    }
+
+    private void ThumbnailDrop_Drop(object sender, DragEventArgs e)
+    {
+        ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
+
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files?.Length == 1)
+            {
+                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
+                if (_allowedImageExtensions.Contains(ext))
+                {
+                    SetThumbnailFile(files[0]);
+                }
+            }
+        }
+    }
+
+    private void ThumbnailDropZone_Click(object sender, MouseButtonEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Filter = "Bilder|*.png;*.jpg;*.jpeg|Alle Dateien|*.*",
+            Title = "Thumbnail auswählen"
+        };
+
+        if (!string.IsNullOrEmpty(_settings?.DefaultThumbnailFolder) &&
+            System.IO.Directory.Exists(_settings.DefaultThumbnailFolder))
+        {
+            dialog.InitialDirectory = _settings.DefaultThumbnailFolder;
+        }
+
+        if (dialog.ShowDialog() == true)
+        {
+            SetThumbnailFile(dialog.FileName);
+        }
+    }
+
+    private void SetThumbnailFile(string filePath)
+    {
+        ThumbnailPathTextBox.Text = filePath;
+
+        var fileInfo = new System.IO.FileInfo(filePath);
+        ThumbnailFileNameTextBlock.Text = fileInfo.Name;
+
+        try
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(filePath);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            ThumbnailPreviewImage.Source = bitmap;
+
+            ThumbnailEmptyState.Visibility = Visibility.Collapsed;
+            ThumbnailPreviewState.Visibility = Visibility.Visible;
+
+            _logger.Info($"Thumbnail ausgewählt: {fileInfo.Name}", "Upload");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Fehler beim Laden des Thumbnails: {ex.Message}", "Upload", ex);
         }
     }
 
     private void ThumbnailClearButton_Click(object sender, RoutedEventArgs e)
     {
         ThumbnailPathTextBox.Text = string.Empty;
-        UpdateThumbnailPreview(null);
+        ThumbnailPreviewImage.Source = null;
+
+        ThumbnailEmptyState.Visibility = Visibility.Visible;
+        ThumbnailPreviewState.Visibility = Visibility.Collapsed;
     }
 
-    private void UpdateThumbnailPreview(string? path)
+    private void VideoChangeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
-            ThumbnailPreviewBorder.Visibility = Visibility.Collapsed;
-            ThumbnailPreviewImage.Source = null;
-            return;
-        }
-
-        try
-        {
-            var bitmap = new System.Windows.Media.Imaging.BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(path);
-            bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
-            bitmap.DecodePixelHeight = 54;
-            bitmap.EndInit();
-            bitmap.Freeze();
-
-            ThumbnailPreviewImage.Source = bitmap;
-            ThumbnailPreviewBorder.Visibility = Visibility.Visible;
-        }
-        catch
-        {
-            ThumbnailPreviewBorder.Visibility = Visibility.Collapsed;
-            ThumbnailPreviewImage.Source = null;
-        }
+        // Delegiere an die Auswahl-Logik
+        VideoDropZone_Click(sender, null!);
     }
+
+    #endregion
+
+    #region Upload Events
 
     private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e)
     {
@@ -975,9 +1091,13 @@ public partial class MainWindow : Window
 
     private UploadProject BuildUploadProjectFromUi(bool includeScheduling)
     {
-        var platform = PlatformComboBox.SelectedItem is PlatformType selectedPlatform
-            ? selectedPlatform
-            : _settings.DefaultPlatform;
+        // Platform aus Checkboxen ermitteln
+        var platform = PlatformType.YouTube; // Standard
+        if (PlatformYouTubeToggle.IsChecked == true)
+        {
+            platform = PlatformType.YouTube;
+        }
+        // Später können hier weitere Plattformen hinzugefügt werden
 
         var visibility = _settings.DefaultVisibility;
         if (VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)
