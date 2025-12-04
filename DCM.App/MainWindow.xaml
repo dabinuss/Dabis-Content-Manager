@@ -23,62 +23,26 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <!-- Logo -->
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <!-- Trennlinie -->
                     <RowDefinition Height="*"/>
+                    <!-- Navigation -->
                     <RowDefinition Height="Auto"/>
+                    <!-- Footer -->
                 </Grid.RowDefinitions>
 
                 <!-- Verbundene Services -->
-                <StackPanel Grid.Row="0"
-                            Margin="12,12,12,8">
-                    <TextBlock Text="SERVICES"
-                               FontSize="{StaticResource FontSizeXS}"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               Margin="0,0,0,8"/>
-                    <WrapPanel>
-                        <!-- YouTube Service Icon -->
-                        <Border x:Name="YouTubeServiceIcon"
-                                Style="{StaticResource ServiceIconBorder}"
-                                Background="{StaticResource SurfaceLightBrush}"
-                                ToolTip="YouTube: Nicht verbunden"
-                                MouseLeftButtonDown="YouTubeServiceIcon_Click">
-                            <Grid>
-                                <Path Data="M10,5 L10,19 L22,12 Z"
-                                      Fill="#717171"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      Width="16"
-                                      Height="16"
-                                      Stretch="Uniform"/>
-                                <Ellipse x:Name="YouTubeConnectionIndicator"
-                                         Width="8"
-                                         Height="8"
-                                         Fill="#717171"
-                                         HorizontalAlignment="Right"
-                                         VerticalAlignment="Bottom"
-                                         Margin="0,0,-2,-2"/>
-                            </Grid>
-                        </Border>
 
-                        <!-- Placeholder für weitere Services -->
-                        <Border Style="{StaticResource ServiceIconBorder}"
-                                Background="{StaticResource SurfaceBrush}"
-                                ToolTip="Weitere Services bald verfügbar"
-                                Opacity="0.5">
-                            <TextBlock Text="+"
-                                       FontSize="{StaticResource FontSizeL}"
-                                       Foreground="{StaticResource TextMutedBrush}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
-                    </WrapPanel>
-                </StackPanel>
 
                 <!-- Logo / App Name -->
-                <StackPanel Grid.Row="1"
-                            Margin="12,8,12,16">
+                <StackPanel Grid.Row="0"
+                            Margin="12,16,12,16">
+                    <Image Source="/DCM.App;component/Assets/logo.png"
+                           Width="180"
+                           Height="59"
+                           Stretch="Uniform"
+                           Margin="0,8,0,8"/>
                     <TextBlock Text="Dabis Content Manager"
                                FontSize="{StaticResource FontSizeL}"
                                FontWeight="SemiBold"
@@ -90,13 +54,13 @@
                 </StackPanel>
 
                 <!-- Trennlinie -->
-                <Border Grid.Row="2"
+                <Border Grid.Row="1"
                         Height="1"
                         Background="{StaticResource BorderBrush}"
                         Margin="12,0,12,8"/>
 
                 <!-- Navigation -->
-                <StackPanel Grid.Row="3">
+                <StackPanel Grid.Row="2">
                     <RadioButton x:Name="NavUpload"
                                  Style="{StaticResource SidebarNavButton}"
                                  IsChecked="True"
@@ -221,7 +185,7 @@
                 </StackPanel>
 
                 <!-- Footer in Sidebar -->
-                <StackPanel Grid.Row="4"
+                <StackPanel Grid.Row="3"
                             Margin="12,8,12,12">
                     <Border Height="1"
                             Background="{StaticResource BorderBrush}"

@@ -69,38 +69,10 @@ public partial class MainWindow
             YouTubeAccountStatusTextBlock.Text = string.IsNullOrWhiteSpace(_youTubeClient.ChannelTitle)
                 ? "Mit YouTube verbunden."
                 : $"Verbunden als: {_youTubeClient.ChannelTitle}";
-
-            // Sidebar Service Icon aktualisieren
-            if (YouTubeConnectionIndicator is not null)
-            {
-                YouTubeConnectionIndicator.Fill = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x2B, 0xA6, 0x40)); // SuccessBrush grün
-            }
-            if (YouTubeServiceIcon is not null)
-            {
-                YouTubeServiceIcon.ToolTip = string.IsNullOrWhiteSpace(_youTubeClient.ChannelTitle)
-                    ? "YouTube: Verbunden"
-                    : $"YouTube: {_youTubeClient.ChannelTitle}";
-                YouTubeServiceIcon.Background = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x3F, 0x3F, 0x3F));
-            }
         }
         else
         {
             YouTubeAccountStatusTextBlock.Text = "Nicht mit YouTube verbunden.";
-
-            // Sidebar Service Icon aktualisieren
-            if (YouTubeConnectionIndicator is not null)
-            {
-                YouTubeConnectionIndicator.Fill = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x71, 0x71, 0x71)); // TextMutedBrush grau
-            }
-            if (YouTubeServiceIcon is not null)
-            {
-                YouTubeServiceIcon.ToolTip = "YouTube: Nicht verbunden";
-                YouTubeServiceIcon.Background = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x3F, 0x3F, 0x3F));
-            }
         }
     }
 

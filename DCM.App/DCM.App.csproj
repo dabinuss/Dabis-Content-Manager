@@ -4,6 +4,7 @@
     <ProjectReference Include="..\DCM.Core\DCM.Core.csproj" />
     <ProjectReference Include="..\DCM.Llm\DCM.Llm.csproj" />
     <ProjectReference Include="..\DCM.YouTube\DCM.YouTube.csproj" />
+    <Resource Include="Assets\logo.png" />
   </ItemGroup>
 
   <PropertyGroup>
