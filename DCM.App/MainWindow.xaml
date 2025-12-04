@@ -340,7 +340,7 @@
                         <Border x:Name="VideoDropZone"
                                 Grid.Row="0"
                                 Background="{StaticResource SurfaceBrush}"
-                                BorderThickness="1"
+                                BorderThickness="2"
                                 CornerRadius="8"
                                 MinHeight="120"
                                 Cursor="Hand"
@@ -354,7 +354,7 @@
                                 <VisualBrush>
                                     <VisualBrush.Visual>
                                         <Rectangle StrokeDashArray="8 2"
-                                                   Stroke="Gray"
+                                                   Stroke="{StaticResource BorderBrush}"
                                                    StrokeThickness="2"
                                                    Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualWidth}"
                                                    Height="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualHeight}"/>
@@ -483,14 +483,14 @@
                             <StackPanel Grid.Column="0">
 
                                 <!-- Titel -->
-                                <!-- Titel -->
-                                <GroupBox>
+                                <GroupBox Tag="{Binding ElementName=TitleTextBox}"
+                                          PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Titel"
                                                    FontSize="{StaticResource FontSizeS}"
                                                    FontWeight="{StaticResource FontWeightSemiBold}"
                                                    Foreground="{StaticResource TextMutedBrush}"
-                                                   Margin="0,0,0,4"/>
+                                                   Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -518,13 +518,14 @@
                                 </GroupBox>
 
                                 <!-- Beschreibung -->
-                                <GroupBox>
+                                <GroupBox Tag="{Binding ElementName=DescriptionTextBox}"
+                                          PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Beschreibung"
                                                    FontSize="{StaticResource FontSizeS}"
                                                    FontWeight="{StaticResource FontWeightSemiBold}"
                                                    Foreground="{StaticResource TextMutedBrush}"
-                                                   Margin="0,0,0,4"/>
+                                                   Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -532,8 +533,17 @@
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
+                                            <!-- Beschreibung TextBox -->
+                                            <TextBox x:Name="DescriptionTextBox"
+                                                     Grid.Row="0"
+                                                     AcceptsReturn="True"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     TextWrapping="Wrap"
+                                                     Height="140"/>
+
+
                                             <!-- Template & Buttons -->
-                                            <Grid Grid.Row="0">
+                                            <Grid Grid.Row="2">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
@@ -564,26 +574,19 @@
                                                     </StackPanel>
                                                 </Button>
                                             </Grid>
-
-                                            <!-- Beschreibung TextBox -->
-                                            <TextBox x:Name="DescriptionTextBox"
-                                                     Grid.Row="2"
-                                                     AcceptsReturn="True"
-                                                     VerticalScrollBarVisibility="Auto"
-                                                     TextWrapping="Wrap"
-                                                     Height="140"/>
                                         </Grid>
                                     </StackPanel>
                                 </GroupBox>
 
                                 <!-- Tags -->
-                                <GroupBox>
+                                <GroupBox Tag="{Binding ElementName=TagsTextBox}"
+                                          PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Tags"
                                                    FontSize="{StaticResource FontSizeS}"
                                                    FontWeight="{StaticResource FontWeightSemiBold}"
                                                    Foreground="{StaticResource TextMutedBrush}"
-                                                   Margin="0,0,0,4"/>
+                                                   Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -610,13 +613,14 @@
                                 </GroupBox>
 
                                 <!-- Transkript -->
-                                <GroupBox>
+                                <GroupBox Tag="{Binding ElementName=TranscriptTextBox}"
+                                          PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Transkript des Videos"
                                                    FontSize="{StaticResource FontSizeS}"
                                                    FontWeight="{StaticResource FontWeightSemiBold}"
                                                    Foreground="{StaticResource TextMutedBrush}"
-                                                   Margin="0,0,0,4"/>
+                                                   Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>

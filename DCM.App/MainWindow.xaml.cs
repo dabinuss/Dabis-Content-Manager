@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Media.Imaging;
@@ -419,6 +420,39 @@ public partial class MainWindow : Window
     {
         UpdateUploadButtonState();
     }
+
+    private void FocusTargetOnContainerClick(object sender, MouseButtonEventArgs e)
+    {
+        // Klicks auf Buttons ignorieren (damit Buttons normal funktionieren)
+        if (e.OriginalSource is DependencyObject d)
+        {
+            while (d != null)
+            {
+                if (d is ButtonBase)
+                {
+                    // Button (oder Inhalt im Button) → nichts tun
+                    return;
+                }
+
+                d = VisualTreeHelper.GetParent(d);
+            }
+        }
+
+        if (sender is FrameworkElement fe && fe.Tag is Control target && target.Focusable)
+        {
+            // Fokus setzen
+            target.Focus();
+
+            // Bei TextBox Cursor ans Ende setzen (optional, aber nice)
+            if (target is TextBox tb)
+            {
+                tb.CaretIndex = tb.Text?.Length ?? 0;
+            }
+
+            e.Handled = true;
+        }
+    }
+
 
     private void UpdateUploadButtonState()
     {
