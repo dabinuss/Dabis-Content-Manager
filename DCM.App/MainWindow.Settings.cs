@@ -71,6 +71,7 @@ public partial class MainWindow
         ChannelPersonaAdditionalInstructionsTextBox.Text = persona.AdditionalInstructions ?? string.Empty;
 
         ApplyLlmSettingsToUi();
+        ApplyTranscriptionSettingsToUi();
     }
 
     private void ApplyLlmSettingsToUi()

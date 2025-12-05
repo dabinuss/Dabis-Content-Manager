@@ -15,6 +15,7 @@ using DCM.Core.Models;
 using DCM.Core.Services;
 using DCM.Llm;
 using DCM.YouTube;
+using DCM.Transcription;
 using System.Linq;
 
 namespace DCM.App;
@@ -76,6 +77,7 @@ public partial class MainWindow : Window
         InitializeSchedulingDefaults();
         InitializeLlmSettingsTab();
         LoadTemplates();
+        InitializeTranscriptionService();
         UpdateYouTubeStatusText();
         LoadUploadHistory();
 
@@ -108,6 +110,9 @@ public partial class MainWindow : Window
 
         // LLM-Operationen abbrechen
         CancelCurrentLlmOperation();
+
+        // Transkription abbrechen und aufräumen
+        DisposeTranscriptionService();
 
         // LLM-Client aufräumen
         if (_llmClient is IDisposable disposable)
@@ -401,6 +406,12 @@ public partial class MainWindow : Window
 
         UpdateUploadButtonState();
         _logger.Info($"Video ausgewählt: {fileInfo.Name}", "Upload");
+
+        // Transkription-Button aktivieren
+        UpdateTranscriptionButtonState();
+
+        // Auto-Transkription wenn aktiviert
+        _ = TryAutoTranscribeAsync(filePath);
     }
 
     private string FormatFileSize(long bytes)

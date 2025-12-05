@@ -46,6 +46,21 @@ public static class Constants
     public const string YouTubeClientSecretsFileName = "youtube_client_secrets.json";
 
     /// <summary>
+    /// Ordnername für Whisper-Modelle.
+    /// </summary>
+    public const string WhisperModelsFolderName = "whisper_models";
+
+    /// <summary>
+    /// Ordnername für FFmpeg.
+    /// </summary>
+    public const string FFmpegFolderName = "ffmpeg";
+
+    /// <summary>
+    /// Ordnername für temporäre Transkriptionsdateien (im System-Temp).
+    /// </summary>
+    public const string TranscriptionTempFolderName = "DCM_Transcription";
+
+    /// <summary>
     /// Maximale Thumbnail-Größe in Bytes (2 MB für YouTube).
     /// </summary>
     public const long MaxThumbnailSizeBytes = 2 * 1024 * 1024;
@@ -84,6 +99,63 @@ public static class Constants
             }
 
             return _appDataFolder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Whisper-Modelle-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string WhisperModelsFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, WhisperModelsFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum FFmpeg-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string FFmpegFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, FFmpegFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum temporären Transkriptions-Ordner (im System-Temp).
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string TranscriptionTempFolder
+    {
+        get
+        {
+            var folder = Path.Combine(Path.GetTempPath(), TranscriptionTempFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
         }
     }
 

@@ -68,4 +68,9 @@ public sealed class AppSettings
     /// LLM-Einstellungen für KI-gestützte Content-Generierung.
     /// </summary>
     public LlmSettings Llm { get; set; } = new();
+
+    /// <summary>
+    /// Einstellungen für die automatische Video-Transkription.
+    /// </summary>
+    public TranscriptionSettings Transcription { get; set; } = new();
 }
