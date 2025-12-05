@@ -548,12 +548,12 @@ public partial class MainWindow
             UpdateTranscriptionStatusDisplay();
         }
     }
-
+/*
     private void TranscriptionSettingsSaveButton_Click(object sender, RoutedEventArgs e)
     {
         SaveTranscriptionSettings();
         StatusTextBlock.Text = "Transkriptions-Einstellungen gespeichert.";
     }
-
+*/
     #endregion
 }

@@ -24,26 +24,19 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <!-- Logo -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Trennlinie -->
                     <RowDefinition Height="*"/>
-                    <!-- Navigation -->
                     <RowDefinition Height="Auto"/>
-                    <!-- Footer -->
                 </Grid.RowDefinitions>
-
-                <!-- Verbundene Services -->
-
 
                 <!-- Logo / App Name -->
                 <StackPanel Grid.Row="0"
-                            Margin="12,16,12,16">
+                            Margin="{StaticResource SidebarPadding}">
                     <Image Source="/DCM.App;component/Assets/logo.png"
                            Width="180"
                            Height="59"
                            Stretch="Uniform"
-                           Margin="0,8,0,8"/>
+                           Margin="{StaticResource SpacingVerticalM}"/>
                     <TextBlock Text="Dabis Content Manager"
                                FontSize="{StaticResource FontSizeL}"
                                FontWeight="SemiBold"
@@ -68,15 +61,9 @@
                                  Checked="NavButton_Checked"
                                  Tag="0">
                         <StackPanel Orientation="Horizontal">
-
-                            <Path Data="M12,7L17,12H14V16H10V12H7L12,7M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09V15.91L12,19.85L19,15.91V8.09L12,4.15Z"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                  StrokeThickness="1"
-                                  Fill="White"
-                                  Width="24"
-                                  Height="24"
-                                  Stretch="Uniform"
-                                  Margin="0,0,24,0"/>
+                            <Path Data="{StaticResource IconUpload}"
+                                  Style="{StaticResource NavIcon}"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                             <TextBlock Text="Neuer Upload"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
@@ -89,14 +76,9 @@
                                  Checked="NavButton_Checked"
                                  Tag="1">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M16 9C22 9 22 13 22 13V15H16V13C16 13 16 11.31 14.85 9.8C14.68 9.57 14.47 9.35 14.25 9.14C14.77 9.06 15.34 9 16 9M2 13C2 13 2 9 8 9S14 13 14 13V15H2V13M9 17V19H15V17L18 20L15 23V21H9V23L6 20L9 17M8 1C6.34 1 5 2.34 5 4S6.34 7 8 7 11 5.66 11 4 9.66 1 8 1M16 1C14.34 1 13 2.34 13 4S14.34 7 16 7 19 5.66 19 4 17.66 1 16 1Z"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                  StrokeThickness="1"
-                                  Fill="White"
-                                  Width="24"
-                                  Height="24"
-                                  Stretch="Uniform"
-                                  Margin="0,0,24,0"/>
+                            <Path Data="{StaticResource IconAccounts}"
+                                  Style="{StaticResource NavIcon}"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                             <TextBlock Text="Konten"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
@@ -109,14 +91,9 @@
                                  Checked="NavButton_Checked"
                                  Tag="2">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M20,12A2,2 0 0,0 22,14V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V14C3.11,14 4,13.1 4,12A2,2 0 0,0 2,10V6C2,4.89 2.9,4 4,4H20A2,2 0 0,1 22,6V10A2,2 0 0,0 20,12M16.5,16.25C16.5,14.75 13.5,14 12,14C10.5,14 7.5,14.75 7.5,16.25V17H16.5V16.25M12,12.25A2.25,2.25 0 0,0 14.25,10A2.25,2.25 0 0,0 12,7.75A2.25,2.25 0 0,0 9.75,10A2.25,2.25 0 0,0 12,12.25Z"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                  StrokeThickness="1"
-                                  Fill="White"
-                                  Width="24"
-                                  Height="24"
-                                  Stretch="Uniform"
-                                  Margin="0,0,24,0"/>
+                            <Path Data="{StaticResource IconChannel}"
+                                  Style="{StaticResource NavIcon}"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                             <TextBlock Text="Kanalprofil"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
@@ -129,14 +106,9 @@
                                  Checked="NavButton_Checked"
                                  Tag="3">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M16,15H9V13H16V15M19,11H9V9H19V11M19,7H9V5H19V7M3,5V21H19V23H3A2,2 0 0,1 1,21V5H3M21,1A2,2 0 0,1 23,3V17C23,18.11 22.11,19 21,19H7A2,2 0 0,1 5,17V3C5,1.89 5.89,1 7,1H21M7,3V17H21V3H7Z"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                  StrokeThickness="1"
-                                  Fill="White"
-                                  Width="24"
-                                  Height="24"
-                                  Stretch="Uniform"
-                                  Margin="0,0,24,0"/>
+                            <Path Data="{StaticResource IconTemplates}"
+                                  Style="{StaticResource NavIcon}"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                             <TextBlock Text="Templates"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
@@ -149,14 +121,9 @@
                                  Checked="NavButton_Checked"
                                  Tag="4">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M15,13H16.5V15.82L18.94,17.23L18.19,18.53L15,16.69V13M19,8H5V19H9.67C9.24,18.09 9,17.07 9,16A7,7 0 0,1 16,9C17.07,9 18.09,9.24 19,9.67V8M5,21C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3H6V1H8V3H16V1H18V3H19A2,2 0 0,1 21,5V11.1C22.24,12.36 23,14.09 23,16A7,7 0 0,1 16,23C14.09,23 12.36,22.24 11.1,21H5M16,11.15A4.85,4.85 0 0,0 11.15,16C11.15,18.68 13.32,20.85 16,20.85A4.85,4.85 0 0,0 20.85,16C20.85,13.32 18.68,11.15 16,11.15Z"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                  StrokeThickness="1"
-                                  Fill="White"
-                                  Width="24"
-                                  Height="24"
-                                  Stretch="Uniform"
-                                  Margin="0,0,24,0"/>
+                            <Path Data="{StaticResource IconHistory}"
+                                  Style="{StaticResource NavIcon}"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                             <TextBlock Text="Historie"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
@@ -169,14 +136,9 @@
                                  Checked="NavButton_Checked"
                                  Tag="5">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M3,4H7A1,1 0 0,1 8,5V19A1,1 0 0,1 7,20H3A1,1 0 0,1 2,19V5A1,1 0 0,1 3,4M10,4H14A1,1 0 0,1 15,5V19A1,1 0 0,1 14,20H10A1,1 0 0,1 9,19V5A1,1 0 0,1 10,4M17,4H21A1,1 0 0,1 22,5V19A1,1 0 0,1 21,20H17A1,1 0 0,1 16,19V5A1,1 0 0,1 17,4M4,18H6V13H4V18M11,11H13V6H11V11M18,18H20V13H18V18Z"
-                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                  StrokeThickness="1"
-                                  Fill="White"
-                                  Width="24"
-                                  Height="24"
-                                  Stretch="Uniform"
-                                  Margin="0,0,24,0"/>
+                            <Path Data="{StaticResource IconSettings}"
+                                  Style="{StaticResource NavIcon}"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                             <TextBlock Text="Einstellungen"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
@@ -187,7 +149,7 @@
 
                 <!-- Footer in Sidebar -->
                 <StackPanel Grid.Row="3"
-                            Margin="12,8,12,12">
+                            Margin="{StaticResource SidebarPadding}">
                     <Border Height="1"
                             Background="{StaticResource BorderBrush}"
                             Margin="0,0,0,12"/>
@@ -195,7 +157,7 @@
                     <TextBlock x:Name="LogLinkTextBlock"
                                FontSize="{StaticResource FontSizeM}"
                                Cursor="Hand"
-                               Margin="0,0,0,8"
+                               Margin="{StaticResource SpacingVerticalM}"
                                MouseLeftButtonDown="LogLink_Click"
                                ToolTip="Anwendungs-Log anzeigen">
                         <TextBlock.Style>
@@ -216,7 +178,7 @@
                     </TextBlock>
 
                     <TextBlock FontSize="{StaticResource FontSizeS}"
-                               Margin="0,0,0,8">
+                               Margin="{StaticResource SpacingVerticalM}">
                         <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
                                    RequestNavigate="OpenUrlInBrowser">
                             <Run Text="GitHub Repository"/>
@@ -246,7 +208,7 @@
                     Background="{StaticResource SurfaceBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="0,0,0,1"
-                    Padding="16,10">
+                    Padding="{StaticResource HeaderPadding}">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal"
                                 DockPanel.Dock="Left"
@@ -273,7 +235,7 @@
                                      Maximum="100"
                                      Value="0"
                                      Visibility="Collapsed"
-                                     Margin="0,0,8,0"/>
+                                     Margin="{StaticResource SpacingHorizontalM}"/>
                         <TextBlock x:Name="UploadProgressLabel"
                                    VerticalAlignment="Center"
                                    Foreground="{StaticResource TextMutedBrush}"
@@ -286,7 +248,7 @@
 
             <!-- Content Pages -->
             <Grid Grid.Row="1"
-                  Margin="16">
+                  Margin="{StaticResource ContentPadding}">
 
                 <!-- Page 0: Neuer Upload -->
                 <ScrollViewer x:Name="PageUpload"
@@ -295,21 +257,14 @@
                     <Grid Margin="0,0,16,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="{StaticResource SpacingXL}"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- ═══════════════════════════════════════════════════════════ -->
-                        <!-- VIDEO DROP-ZONE (volle Breite)                              -->
-                        <!-- ═══════════════════════════════════════════════════════════ -->
+                        <!-- VIDEO DROP-ZONE -->
                         <Border x:Name="VideoDropZone"
                                 Grid.Row="0"
-                                Background="{StaticResource SurfaceBrush}"
-                                BorderThickness="2"
-                                CornerRadius="8"
-                                MinHeight="120"
-                                Cursor="Hand"
-                                AllowDrop="True"
+                                Style="{StaticResource VideoDropZoneStyle}"
                                 DragOver="VideoDrop_DragOver"
                                 DragLeave="VideoDrop_DragLeave"
                                 Drop="VideoDrop_Drop"
@@ -318,16 +273,17 @@
                             <Border.BorderBrush>
                                 <VisualBrush>
                                     <VisualBrush.Visual>
-                                        <Rectangle StrokeDashArray="8 2"
+                                        <Rectangle StrokeDashArray="8 4"
                                                    Stroke="{StaticResource BorderBrush}"
                                                    StrokeThickness="2"
+                                                   RadiusX="8"
+                                                   RadiusY="8"
                                                    Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualWidth}"
                                                    Height="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualHeight}"/>
                                     </VisualBrush.Visual>
                                 </VisualBrush>
                             </Border.BorderBrush>
 
-                            <!-- Container für beide Zustände -->
                             <Grid>
                                 <!-- Zustand 1: Kein Video ausgewählt -->
                                 <Grid x:Name="VideoDropEmptyState"
@@ -338,7 +294,7 @@
                                         <TextBlock Text="📁"
                                                    FontSize="{StaticResource FontSizeXXL}"
                                                    HorizontalAlignment="Center"
-                                                   Margin="0,0,0,8"/>
+                                                   Margin="{StaticResource SpacingVerticalM}"/>
                                         <TextBlock Text="Video hierher ziehen"
                                                    FontSize="{StaticResource FontSizeXL}"
                                                    FontWeight="SemiBold"
@@ -371,9 +327,9 @@
                                     <Border Grid.Column="0"
                                             Width="48"
                                             Height="48"
-                                            CornerRadius="6"
+                                            CornerRadius="{StaticResource RadiusM}"
                                             Background="{StaticResource SurfaceLightBrush}"
-                                            Margin="16,12">
+                                            Margin="{StaticResource SpacingAllXL}">
                                         <TextBlock Text="🎬"
                                                    FontSize="{StaticResource FontSize24}"
                                                    HorizontalAlignment="Center"
@@ -383,7 +339,7 @@
                                     <!-- Video Info -->
                                     <StackPanel Grid.Column="1"
                                                 VerticalAlignment="Center"
-                                                Margin="0,12">
+                                                Margin="{StaticResource SpacingVerticalL}">
                                         <TextBlock x:Name="VideoFileNameTextBlock"
                                                    Text="video.mp4"
                                                    FontSize="{StaticResource FontSizeM}"
@@ -404,7 +360,7 @@
                                             Style="{StaticResource SecondaryButton}"
                                             Click="VideoChangeButton_Click"
                                             VerticalAlignment="Center"
-                                            Margin="8,12"/>
+                                            Margin="{StaticResource SpacingAllM}"/>
 
                                     <!-- Upload Button -->
                                     <Button x:Name="UploadButton"
@@ -425,26 +381,22 @@
                             </Grid>
                         </Border>
 
-                        <!-- Verstecktes TextBox für Pfad (für Kompatibilität mit bestehendem Code) -->
+                        <!-- Verstecktes TextBox für Pfad -->
                         <TextBox x:Name="VideoPathTextBox"
                                  Visibility="Collapsed"/>
 
-                        <!-- ═══════════════════════════════════════════════════════════ -->
-                        <!-- ZWEI-SPALTEN-LAYOUT                                         -->
-                        <!-- ═══════════════════════════════════════════════════════════ -->
+                        <!-- ZWEI-SPALTEN-LAYOUT -->
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"
                                                   MinWidth="350"/>
-                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="{StaticResource SpacingXL}"/>
                                 <ColumnDefinition Width="*"
                                                   MinWidth="300"
                                                   MaxWidth="400"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- ═══════════════════════════════════════════════════════ -->
-                            <!-- LINKE SPALTE                                            -->
-                            <!-- ═══════════════════════════════════════════════════════ -->
+                            <!-- LINKE SPALTE -->
                             <StackPanel Grid.Column="0">
 
                                 <!-- Titel -->
@@ -452,9 +404,7 @@
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Titel"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -464,7 +414,7 @@
 
                                             <TextBox x:Name="TitleTextBox"
                                                      Grid.Column="0"
-                                                     Margin="0,0,8,0"
+                                                     Margin="{StaticResource SpacingHorizontalM}"
                                                      TextChanged="TitleTextBox_TextChanged"/>
                                             <Button x:Name="GenerateTitleButton"
                                                     Grid.Column="1"
@@ -487,25 +437,21 @@
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Beschreibung"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="8"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
-                                            <!-- Beschreibung TextBox -->
                                             <TextBox x:Name="DescriptionTextBox"
                                                      Grid.Row="0"
                                                      AcceptsReturn="True"
                                                      VerticalScrollBarVisibility="Auto"
                                                      TextWrapping="Wrap"
                                                      Height="140"/>
-
 
                                             <!-- Template & Buttons -->
                                             <Grid Grid.Row="2">
@@ -548,9 +494,7 @@
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Tags"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -560,7 +504,7 @@
                                             <TextBox x:Name="TagsTextBox"
                                                      Grid.Column="0"
                                                      ToolTip="Tags, kommagetrennt (z. B. lets play, gaming, deutsch)"
-                                                     Margin="0,0,8,0"/>
+                                                     Margin="{StaticResource SpacingHorizontalM}"/>
                                             <Button x:Name="GenerateTagsButton"
                                                     Grid.Column="1"
                                                     Style="{StaticResource AccentButton}"
@@ -576,21 +520,20 @@
                                         </Grid>
                                     </StackPanel>
                                 </GroupBox>
+
                                 <!-- Transkript -->
                                 <GroupBox Tag="{Binding ElementName=TranscriptTextBox}"
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
                                         <TextBlock Text="Transkript des Videos"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="6"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
                                                 <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="6"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
@@ -610,7 +553,7 @@
                                             <Grid Grid.Row="4">
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="4"/>
+                                                    <RowDefinition Height="{StaticResource SpacingS}"/>
                                                     <RowDefinition Height="Auto"/>
                                                 </Grid.RowDefinitions>
                                                 <Grid.ColumnDefinitions>
@@ -631,13 +574,12 @@
                                                              Grid.Row="0"
                                                              Grid.Column="1"
                                                              Height="20"
-                                                             Margin="8,0,0,0"
+                                                             Margin="{StaticResource SpacingHorizontalM}"
                                                              Minimum="0"
                                                              Maximum="100"
                                                              Value="0"
                                                              Visibility="Collapsed"/>
 
-                                                <!-- Status-Anzeige für Transkription -->
                                                 <TextBlock x:Name="TranscriptionPhaseTextBlock"
                                                            Grid.Row="2"
                                                            Grid.Column="0"
@@ -652,130 +594,64 @@
 
                             </StackPanel>
 
-                            <!-- ═══════════════════════════════════════════════════════ -->
-                            <!-- RECHTE SPALTE                                           -->
-                            <!-- ═══════════════════════════════════════════════════════ -->
+                            <!-- RECHTE SPALTE -->
                             <StackPanel Grid.Column="2">
 
                                 <!-- Plattform -->
                                 <GroupBox>
                                     <StackPanel>
                                         <TextBlock Text="Plattform"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
                                         <WrapPanel>
                                             <!-- YouTube Button -->
                                             <ToggleButton x:Name="PlatformYouTubeToggle"
                                                           IsChecked="True"
-                                                          Margin="0,0,8,0"
-                                                          Cursor="Hand">
-                                                <ToggleButton.Template>
-                                                    <ControlTemplate TargetType="ToggleButton">
-                                                        <Border x:Name="PlatformBorder"
-                                                                Width="90"
-                                                                Height="60"
-                                                                CornerRadius="6"
-                                                                BorderThickness="2"
-                                                                BorderBrush="{StaticResource BorderBrush}"
-                                                                Background="{StaticResource SurfaceBrush}">
-                                                            <Grid>
-                                                                <StackPanel VerticalAlignment="Center"
-                                                                            HorizontalAlignment="Center">
-                                                                    <!-- YouTube Logo -->
-                                                                    <Border Width="36"
-                                                                            Height="26"
-                                                                            CornerRadius="6"
-                                                                            Background="#FF0000"
-                                                                            Margin="0,0,0,4">
-                                                                        <TextBlock Text="▶"
-                                                                                   Foreground="White"
-                                                                                   FontSize="{StaticResource FontSizeM}"
-                                                                                   HorizontalAlignment="Center"
-                                                                                   VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <TextBlock Text="YouTube"
-                                                                               FontSize="{StaticResource FontSizeS}"
-                                                                               Foreground="{StaticResource TextSecondaryBrush}"
-                                                                               HorizontalAlignment="Center"/>
-                                                                </StackPanel>
-                                                                <!-- Checkmark Overlay -->
-                                                                <Border x:Name="CheckOverlay"
-                                                                        Background="#2000FF00"
-                                                                        CornerRadius="6"
-                                                                        Visibility="Collapsed">
-                                                                    <TextBlock Text="✓"
-                                                                               FontSize="{StaticResource FontSizeL}"
-                                                                               FontWeight="Bold"
-                                                                               Foreground="{StaticResource SuccessBrush}"
-                                                                               HorizontalAlignment="Right"
-                                                                               VerticalAlignment="Top"
-                                                                               Margin="0,4,6,0"/>
-                                                                </Border>
-                                                            </Grid>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsChecked"
-                                                                     Value="True">
-                                                                <Setter TargetName="PlatformBorder"
-                                                                        Property="BorderBrush"
-                                                                        Value="{StaticResource SuccessBrush}"/>
-                                                                <Setter TargetName="PlatformBorder"
-                                                                        Property="Background"
-                                                                        Value="#1A4CAF50"/>
-                                                                <Setter TargetName="CheckOverlay"
-                                                                        Property="Visibility"
-                                                                        Value="Visible"/>
-                                                            </Trigger>
-                                                            <Trigger Property="IsMouseOver"
-                                                                     Value="True">
-                                                                <Setter TargetName="PlatformBorder"
-                                                                        Property="Background"
-                                                                        Value="{StaticResource SurfaceLightBrush}"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </ToggleButton.Template>
+                                                          Style="{StaticResource PlatformToggleButton}">
+                                                <StackPanel VerticalAlignment="Center"
+                                                            HorizontalAlignment="Center">
+                                                    <Border Width="36"
+                                                            Height="26"
+                                                            CornerRadius="{StaticResource RadiusM}"
+                                                            Background="#FF0000"
+                                                            Margin="0,0,0,4">
+                                                        <Path Data="{StaticResource IconPlay}"
+                                                              Fill="White"
+                                                              Width="10"
+                                                              Height="10"
+                                                              Stretch="Uniform"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="YouTube"
+                                                               FontSize="{StaticResource FontSizeS}"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               HorizontalAlignment="Center"/>
+                                                </StackPanel>
                                             </ToggleButton>
 
                                             <!-- TikTok Button (deaktiviert) -->
                                             <ToggleButton IsEnabled="False"
-                                                          Opacity="0.4"
-                                                          Cursor="Arrow">
-                                                <ToggleButton.Template>
-                                                    <ControlTemplate TargetType="ToggleButton">
-                                                        <Border Width="90"
-                                                                Height="60"
-                                                                CornerRadius="6"
-                                                                BorderThickness="2"
-                                                                BorderBrush="{StaticResource BorderBrush}"
-                                                                Background="{StaticResource SurfaceBrush}">
-                                                            <StackPanel VerticalAlignment="Center"
-                                                                        HorizontalAlignment="Center">
-                                                                <!-- TikTok Logo -->
-                                                                <Border Width="36"
-                                                                        Height="26"
-                                                                        CornerRadius="6"
-                                                                        Background="Black"
-                                                                        Margin="0,0,0,4">
-                                                                    <TextBlock Text="♪"
-                                                                               Foreground="White"
-                                                                               FontSize="{StaticResource FontSizeM}"
-                                                                               HorizontalAlignment="Center"
-                                                                               VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <TextBlock Text="TikTok"
-                                                                           FontSize="{StaticResource FontSizeS}"
-                                                                           Foreground="{StaticResource TextMutedBrush}"
-                                                                           HorizontalAlignment="Center"/>
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </ControlTemplate>
-                                                </ToggleButton.Template>
-                                                <ToggleButton.ToolTip>
-                                                    <ToolTip Content="Bald verfügbar"/>
-                                                </ToggleButton.ToolTip>
+                                                          Style="{StaticResource PlatformToggleButton}"
+                                                          ToolTip="Bald verfügbar">
+                                                <StackPanel VerticalAlignment="Center"
+                                                            HorizontalAlignment="Center">
+                                                    <Border Width="36"
+                                                            Height="26"
+                                                            CornerRadius="{StaticResource RadiusM}"
+                                                            Background="Black"
+                                                            Margin="0,0,0,4">
+                                                        <TextBlock Text="♪"
+                                                                   Foreground="White"
+                                                                   FontSize="{StaticResource FontSizeM}"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Text="TikTok"
+                                                               FontSize="{StaticResource FontSizeS}"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               HorizontalAlignment="Center"/>
+                                                </StackPanel>
                                             </ToggleButton>
                                         </WrapPanel>
                                     </StackPanel>
@@ -785,35 +661,24 @@
                                 <GroupBox>
                                     <StackPanel>
                                         <TextBlock Text="Thumbnail"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="8"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
                                             <!-- Thumbnail Vorschau / Drop Zone -->
                                             <Border x:Name="ThumbnailDropZone"
                                                     Grid.Row="0"
-                                                    Background="{StaticResource InputBackgroundBrush}"
-                                                    BorderBrush="{StaticResource BorderBrush}"
-                                                    BorderThickness="2"
-                                                    CornerRadius="6"
-                                                    Width="320"
-                                                    Height="180"
-                                                    HorizontalAlignment="Left"
-                                                    Cursor="Hand"
-                                                    AllowDrop="True"
+                                                    Style="{StaticResource ThumbnailDropZoneStyle}"
                                                     DragOver="ThumbnailDrop_DragOver"
                                                     DragLeave="ThumbnailDrop_DragLeave"
                                                     Drop="ThumbnailDrop_Drop"
                                                     MouseLeftButtonDown="ThumbnailDropZone_Click">
 
-                                                <!-- Container für beide Zustände -->
                                                 <Grid>
                                                     <!-- Leerer Zustand -->
                                                     <Grid x:Name="ThumbnailEmptyState"
@@ -846,7 +711,6 @@
                                                           Visibility="Collapsed">
                                                         <Image x:Name="ThumbnailPreviewImage"
                                                                Stretch="Uniform"/>
-                                                        <!-- Overlay für Hover -->
                                                         <Border x:Name="ThumbnailOverlay"
                                                                 Background="#80000000"
                                                                 Opacity="0">
@@ -871,7 +735,7 @@
                                                            FontSize="{StaticResource FontSizeS}"
                                                            Foreground="{StaticResource TextMutedBrush}"
                                                            VerticalAlignment="Center"
-                                                           Margin="0,0,8,0"
+                                                           Margin="{StaticResource SpacingHorizontalM}"
                                                            MaxWidth="200"
                                                            TextTrimming="CharacterEllipsis"/>
                                                 <Button x:Name="ThumbnailClearButton"
@@ -882,7 +746,6 @@
                                                         FontSize="{StaticResource FontSizeS}"/>
                                             </StackPanel>
 
-                                            <!-- Verstecktes TextBox für Pfad -->
                                             <TextBox x:Name="ThumbnailPathTextBox"
                                                      Visibility="Collapsed"/>
                                         </Grid>
@@ -893,9 +756,7 @@
                                 <GroupBox>
                                     <StackPanel>
                                         <TextBlock Text="Sichtbarkeit"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
                                         <ComboBox x:Name="VisibilityComboBox">
                                             <ComboBoxItem Content="🌐 Öffentlich"
@@ -913,9 +774,7 @@
                                 <GroupBox>
                                     <StackPanel>
                                         <TextBlock Text="Playlists"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
                                         <ComboBox x:Name="PlaylistComboBox"
                                                   DisplayMemberPath="Title"
@@ -927,9 +786,7 @@
                                 <GroupBox>
                                     <StackPanel>
                                         <TextBlock Text="Veröffentlichungszeitpunkt"
-                                                   FontSize="{StaticResource FontSizeS}"
-                                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
 
                                         <CheckBox x:Name="ScheduleCheckBox"
@@ -939,11 +796,11 @@
                                         <Grid IsEnabled="{Binding IsChecked, ElementName=ScheduleCheckBox}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="{StaticResource SpacingM}"/>
                                                 <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="{StaticResource SpacingL}"/>
                                                 <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="{StaticResource SpacingM}"/>
                                                 <ColumnDefinition Width="80"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0"
@@ -993,7 +850,7 @@
                                 <Border Grid.Column="0"
                                         Width="36"
                                         Height="36"
-                                        CornerRadius="18"
+                                        CornerRadius="{StaticResource RadiusCircle}"
                                         Background="#FF4444"
                                         Margin="0,0,10,0">
                                     <TextBlock Text="YT"
@@ -1060,21 +917,21 @@
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
+                                    <RowDefinition Height="{StaticResource SpacingM}"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
+                                    <RowDefinition Height="{StaticResource SpacingM}"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
+                                    <RowDefinition Height="{StaticResource SpacingM}"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
+                                    <RowDefinition Height="{StaticResource SpacingM}"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
+                                    <RowDefinition Height="{StaticResource SpacingM}"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="10"/>
+                                    <RowDefinition Height="{StaticResource SpacingL}"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="4"/>
+                                    <RowDefinition Height="{StaticResource SpacingS}"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="10"/>
+                                    <RowDefinition Height="{StaticResource SpacingL}"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
@@ -1161,7 +1018,7 @@
                       Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="260"/>
-                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="{StaticResource SpacingL}"/>
                         <ColumnDefinition Width="*"
                                           MaxWidth="480"/>
                     </Grid.ColumnDefinitions>
@@ -1171,7 +1028,7 @@
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Bottom"
                                         Orientation="Horizontal"
-                                        Margin="0,8,0,0">
+                                        Margin="{StaticResource SpacingVerticalM}">
                                 <Button x:Name="TemplateNewButton"
                                         Content="+ Neu"
                                         Style="{StaticResource SecondaryButton}"
@@ -1202,18 +1059,18 @@
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="{StaticResource SpacingM}"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="{StaticResource SpacingM}"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="{StaticResource SpacingM}"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="{StaticResource SpacingL}"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="4"/>
+                                <RowDefinition Height="{StaticResource SpacingS}"/>
                                 <RowDefinition Height="*"
                                                MinHeight="120"/>
-                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="{StaticResource SpacingL}"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
@@ -1280,7 +1137,7 @@
                       Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="{StaticResource SpacingM}"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
@@ -1288,14 +1145,14 @@
                             Background="{StaticResource SurfaceBrush}"
                             BorderBrush="{StaticResource BorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="8"
+                            CornerRadius="{StaticResource RadiusL}"
                             Padding="10,8">
                         <StackPanel Orientation="Horizontal">
                             <Label Content="Plattform:"
                                    Margin="0,0,4,0"/>
                             <ComboBox x:Name="HistoryPlatformFilterComboBox"
                                       Width="120"
-                                      Margin="0,0,12,0"
+                                      Margin="{StaticResource SpacingHorizontalL}"
                                       SelectionChanged="HistoryFilter_Changed">
                                 <ComboBoxItem Content="Alle"
                                               IsSelected="True"/>
@@ -1307,7 +1164,7 @@
                                    Margin="0,0,4,0"/>
                             <ComboBox x:Name="HistoryStatusFilterComboBox"
                                       Width="120"
-                                      Margin="0,0,12,0"
+                                      Margin="{StaticResource SpacingHorizontalL}"
                                       SelectionChanged="HistoryFilter_Changed">
                                 <ComboBoxItem Content="Alle"
                                               IsSelected="True"/>
@@ -1328,7 +1185,7 @@
                             Background="{StaticResource SurfaceBrush}"
                             BorderBrush="{StaticResource BorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="8"
+                            CornerRadius="{StaticResource RadiusL}"
                             Padding="1">
                         <DataGrid x:Name="HistoryDataGrid"
                                   AutoGenerateColumns="False"
@@ -1372,403 +1229,483 @@
                 <ScrollViewer x:Name="PageSettings"
                               VerticalScrollBarVisibility="Auto"
                               Visibility="Collapsed">
-                    <Grid MaxWidth="650"
-                          HorizontalAlignment="Left">
+                    <Grid Margin="0,0,16,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="{StaticResource SpacingXL}"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <GroupBox Header="Ordner"
-                                  Grid.Row="0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                        <!-- Header mit Speichern-Button -->
+                        <Border Grid.Row="0"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource RadiusL}"
+                                Padding="16,12">
+                            <DockPanel>
+                                <TextBlock Text="Einstellungen"
+                                           FontSize="{StaticResource FontSizeL}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           VerticalAlignment="Center"/>
+                                <Button x:Name="SettingsSaveButton"
+                                        DockPanel.Dock="Right"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Click="SettingsSaveButton_Click"
+                                        HorizontalAlignment="Right">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="💾"
+                                                   Margin="0,0,6,0"/>
+                                        <TextBlock Text="Alle Einstellungen speichern"/>
+                                    </StackPanel>
+                                </Button>
+                            </DockPanel>
+                        </Border>
 
-                                <Label Content="Video-Ordner:"
-                                       Grid.Row="0"
-                                       Grid.Column="0"/>
-                                <TextBox x:Name="DefaultVideoFolderTextBox"
-                                         Grid.Row="0"
-                                         Grid.Column="1"
-                                         Margin="0,0,6,0"/>
-                                <Button x:Name="DefaultVideoFolderBrowseButton"
-                                        Content="Wählen..."
-                                        Grid.Row="0"
-                                        Grid.Column="2"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Click="DefaultVideoFolderBrowseButton_Click"/>
+                        <!-- ZWEI-SPALTEN-LAYOUT -->
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"
+                                                  MinWidth="350"/>
+                                <ColumnDefinition Width="{StaticResource SpacingXL}"/>
+                                <ColumnDefinition Width="*"
+                                                  MinWidth="350"/>
+                            </Grid.ColumnDefinitions>
 
-                                <Label Content="Thumbnail-Ordner:"
-                                       Grid.Row="2"
-                                       Grid.Column="0"/>
-                                <TextBox x:Name="DefaultThumbnailFolderTextBox"
-                                         Grid.Row="2"
-                                         Grid.Column="1"
-                                         Margin="0,0,6,0"/>
-                                <Button x:Name="DefaultThumbnailFolderBrowseButton"
-                                        Content="Wählen..."
-                                        Grid.Row="2"
-                                        Grid.Column="2"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Click="DefaultThumbnailFolderBrowseButton_Click"/>
-                            </Grid>
-                        </GroupBox>
+                            <!-- LINKE SPALTE -->
+                            <StackPanel Grid.Column="0">
 
-                        <GroupBox Header="Upload-Standardwerte"
-                                  Grid.Row="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="10"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                                <!-- Ordner -->
+                                <GroupBox>
+                                    <StackPanel>
+                                        <TextBlock Text="Ordner"
+                                                   Style="{StaticResource TextLabel}"
+                                                   Margin="0,-6,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                <Label Content="Standard-Zeit:"
-                                       Grid.Row="0"
-                                       Grid.Column="0"/>
-                                <TextBox x:Name="DefaultSchedulingTimeTextBox"
-                                         Grid.Row="0"
-                                         Grid.Column="1"
-                                         HorizontalAlignment="Left"
-                                         Width="90"
-                                         Text="18:00"/>
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="0"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="Video-Ordner"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBox x:Name="DefaultVideoFolderTextBox"
+                                                     Grid.Row="2"
+                                                     Grid.Column="0"
+                                                     Margin="0,0,8,0"/>
+                                            <Button x:Name="DefaultVideoFolderBrowseButton"
+                                                    Grid.Row="2"
+                                                    Grid.Column="1"
+                                                    Content="Wählen..."
+                                                    Style="{StaticResource SecondaryButton}"
+                                                    Click="DefaultVideoFolderBrowseButton_Click"/>
 
-                                <Label Content="Sichtbarkeit:"
-                                       Grid.Row="2"
-                                       Grid.Column="0"/>
-                                <ComboBox x:Name="DefaultVisibilityComboBox"
-                                          Grid.Row="2"
-                                          Grid.Column="1"
-                                          HorizontalAlignment="Left"
-                                          MinWidth="160">
-                                    <ComboBoxItem Content="🌐 Öffentlich"
-                                                  Tag="{x:Static core:VideoVisibility.Public}"/>
-                                    <ComboBoxItem Content="🔗 Nicht gelistet"
-                                                  Tag="{x:Static core:VideoVisibility.Unlisted}"/>
-                                    <ComboBoxItem Content="🔒 Privat"
-                                                  Tag="{x:Static core:VideoVisibility.Private}"/>
-                                </ComboBox>
+                                            <TextBlock Grid.Row="4"
+                                                       Grid.Column="0"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="Thumbnail-Ordner"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBox x:Name="DefaultThumbnailFolderTextBox"
+                                                     Grid.Row="6"
+                                                     Grid.Column="0"
+                                                     Margin="0,0,8,0"/>
+                                            <Button x:Name="DefaultThumbnailFolderBrowseButton"
+                                                    Grid.Row="6"
+                                                    Grid.Column="1"
+                                                    Content="Wählen..."
+                                                    Style="{StaticResource SecondaryButton}"
+                                                    Click="DefaultThumbnailFolderBrowseButton_Click"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </GroupBox>
 
-                                <StackPanel Grid.Row="4"
-                                            Grid.Column="0"
-                                            Grid.ColumnSpan="2">
-                                    <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
-                                              Content="Vor Upload um Bestätigung fragen"/>
-                                    <CheckBox x:Name="AutoApplyDefaultTemplateCheckBox"
-                                              Content="Template automatisch anwenden (wenn Beschreibung leer)"/>
-                                    <CheckBox x:Name="OpenBrowserAfterUploadCheckBox"
-                                              Content="Nach Upload Browser öffnen"/>
-                                    <CheckBox x:Name="AutoConnectYouTubeCheckBox"
-                                              Content="Beim Start automatisch mit YouTube verbinden"/>
-                                </StackPanel>
-                            </Grid>
-                        </GroupBox>
+                                <!-- Upload-Standardwerte -->
+                                <GroupBox>
+                                    <StackPanel>
+                                        <TextBlock Text="Upload-Standardwerte"
+                                                   Style="{StaticResource TextLabel}"
+                                                   Margin="0,-6,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingL}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                        <GroupBox Header="KI / LLM"
-                                  Grid.Row="2">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="0"
+                                                       Text="Standard-Zeit:"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBox x:Name="DefaultSchedulingTimeTextBox"
+                                                     Grid.Row="0"
+                                                     Grid.Column="2"
+                                                     HorizontalAlignment="Left"
+                                                     Width="90"
+                                                     Text="18:00"/>
 
-                                <Label Content="Modus:"
-                                       Grid.Row="0"
-                                       Grid.Column="0"/>
-                                <ComboBox x:Name="LlmModeComboBox"
-                                          Grid.Row="0"
-                                          Grid.Column="1"
-                                          HorizontalAlignment="Left"
-                                          MinWidth="150"
-                                          SelectionChanged="LlmModeComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="Aus"
-                                                  Tag="Off"/>
-                                    <ComboBoxItem Content="Lokal (GGUF)"
-                                                  Tag="Local"/>
-                                </ComboBox>
+                                            <TextBlock Grid.Row="2"
+                                                       Grid.Column="0"
+                                                       Text="Sichtbarkeit:"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <ComboBox x:Name="DefaultVisibilityComboBox"
+                                                      Grid.Row="2"
+                                                      Grid.Column="2"
+                                                      HorizontalAlignment="Left"
+                                                      MinWidth="160">
+                                                <ComboBoxItem Content="🌐 Öffentlich"
+                                                              Tag="{x:Static core:VideoVisibility.Public}"/>
+                                                <ComboBoxItem Content="🔗 Nicht gelistet"
+                                                              Tag="{x:Static core:VideoVisibility.Unlisted}"/>
+                                                <ComboBoxItem Content="🔒 Privat"
+                                                              Tag="{x:Static core:VideoVisibility.Private}"/>
+                                            </ComboBox>
 
-                                <Label Content="Modellpfad:"
-                                       Grid.Row="2"
-                                       Grid.Column="0"/>
-                                <TextBox x:Name="LlmModelPathTextBox"
-                                         Grid.Row="2"
-                                         Grid.Column="1"
-                                         Margin="0,0,6,0"
-                                         ToolTip="Pfad zur GGUF-Modelldatei"/>
-                                <Button x:Name="LlmModelPathBrowseButton"
-                                        Content="Wählen..."
-                                        Grid.Row="2"
-                                        Grid.Column="2"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Click="LlmModelPathBrowseButton_Click"/>
+                                            <StackPanel Grid.Row="4"
+                                                        Grid.Column="0"
+                                                        Grid.ColumnSpan="3">
+                                                <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
+                                                          Content="Vor Upload um Bestätigung fragen"/>
+                                                <CheckBox x:Name="AutoApplyDefaultTemplateCheckBox"
+                                                          Content="Template automatisch anwenden"/>
+                                                <CheckBox x:Name="OpenBrowserAfterUploadCheckBox"
+                                                          Content="Nach Upload Browser öffnen"/>
+                                                <CheckBox x:Name="AutoConnectYouTubeCheckBox"
+                                                          Content="Beim Start mit YouTube verbinden"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </GroupBox>
 
-                                <Label Content="Status:"
-                                       Grid.Row="4"
-                                       Grid.Column="0"/>
-                                <TextBlock x:Name="LlmStatusTextBlock"
-                                           Grid.Row="4"
-                                           Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Text="Nicht konfiguriert"
-                                           Foreground="{StaticResource TextMutedBrush}"/>
-                            </Grid>
-                        </GroupBox>
+                                <!-- Transkription -->
+                                <GroupBox>
+                                    <StackPanel>
+                                        <TextBlock Text="Transkription"
+                                                   Style="{StaticResource TextLabel}"
+                                                   Margin="0,-6,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingL}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                        <GroupBox Header="Generierungs-Parameter"
-                                  Grid.Row="3">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="10"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="4"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="10"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="4"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="10"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="4"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                                            <CheckBox x:Name="TranscriptionAutoCheckBox"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Grid.ColumnSpan="3"
+                                                      Content="Automatisch transkribieren bei Video-Auswahl"/>
 
-                                <Label Content="Max Tokens:"
-                                       Grid.Row="0"
-                                       Grid.Column="0"/>
-                                <StackPanel Orientation="Horizontal"
-                                            Grid.Row="0"
-                                            Grid.Column="1">
-                                    <TextBox x:Name="LlmMaxTokensTextBox"
-                                             Width="70"
-                                             Text="256"/>
-                                    <TextBlock VerticalAlignment="Center"
-                                               Margin="6,0,0,0"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="{StaticResource FontSizeS}"
-                                               Text="(64-1024)"/>
-                                </StackPanel>
+                                            <TextBlock Grid.Row="2"
+                                                       Grid.Column="0"
+                                                       Text="Modellgröße:"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <ComboBox x:Name="TranscriptionModelSizeComboBox"
+                                                      Grid.Row="2"
+                                                      Grid.Column="2"
+                                                      HorizontalAlignment="Left"
+                                                      MinWidth="200">
+                                                <ComboBoxItem Content="Tiny (~75 MB, schnell)"
+                                                              Tag="{x:Static config:WhisperModelSize.Tiny}"/>
+                                                <ComboBoxItem Content="Base (~142 MB)"
+                                                              Tag="{x:Static config:WhisperModelSize.Base}"/>
+                                                <ComboBoxItem Content="Small (~466 MB, empfohlen)"
+                                                              Tag="{x:Static config:WhisperModelSize.Small}"
+                                                              IsSelected="True"/>
+                                                <ComboBoxItem Content="Medium (~1.5 GB)"
+                                                              Tag="{x:Static config:WhisperModelSize.Medium}"/>
+                                                <ComboBoxItem Content="Large (~2.9 GB)"
+                                                              Tag="{x:Static config:WhisperModelSize.Large}"/>
+                                            </ComboBox>
 
-                                <Label Content="Temperature:"
-                                       Grid.Row="2"
-                                       Grid.Column="0"/>
-                                <StackPanel Orientation="Horizontal"
-                                            Grid.Row="2"
-                                            Grid.Column="1">
-                                    <Slider x:Name="LlmTemperatureSlider"
-                                            Width="160"
-                                            Minimum="0"
-                                            Maximum="1"
-                                            Value="0.3"
-                                            TickFrequency="0.1"
-                                            IsSnapToTickEnabled="True"/>
-                                    <TextBlock x:Name="LlmTemperatureValueText"
-                                               VerticalAlignment="Center"
-                                               Margin="6,0,0,0"
-                                               Width="30"
-                                               Text="0.3"/>
-                                </StackPanel>
+                                            <TextBlock Grid.Row="4"
+                                                       Grid.Column="0"
+                                                       Text="Sprache:"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <ComboBox x:Name="TranscriptionLanguageComboBox"
+                                                      Grid.Row="4"
+                                                      Grid.Column="2"
+                                                      HorizontalAlignment="Left"
+                                                      MinWidth="200">
+                                                <ComboBoxItem Content="Deutsch"
+                                                              Tag="de"
+                                                              IsSelected="True"/>
+                                                <ComboBoxItem Content="Englisch"
+                                                              Tag="en"/>
+                                                <ComboBoxItem Content="Automatisch erkennen"
+                                                              Tag="auto"/>
+                                            </ComboBox>
 
-                                <TextBlock Grid.Row="4"
-                                           Grid.Column="0"
-                                           Grid.ColumnSpan="2"
-                                           Text="Titel-Anweisung:"
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           FontSize="{StaticResource FontSizeM}"/>
-                                <TextBox x:Name="LlmTitleCustomPromptTextBox"
-                                         Grid.Row="6"
-                                         Grid.Column="0"
-                                         Grid.ColumnSpan="2"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         Height="40"
-                                         VerticalScrollBarVisibility="Auto"/>
+                                            <TextBlock Grid.Row="6"
+                                                       Grid.Column="0"
+                                                       Text="Status:"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock x:Name="TranscriptionStatusTextBlock"
+                                                       Grid.Row="6"
+                                                       Grid.Column="2"
+                                                       VerticalAlignment="Center"
+                                                       Text="Nicht geprüft"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
 
-                                <TextBlock Grid.Row="8"
-                                           Grid.Column="0"
-                                           Grid.ColumnSpan="2"
-                                           Text="Beschreibungs-Anweisung:"
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           FontSize="{StaticResource FontSizeM}"/>
-                                <TextBox x:Name="LlmDescriptionCustomPromptTextBox"
-                                         Grid.Row="10"
-                                         Grid.Column="0"
-                                         Grid.ColumnSpan="2"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         Height="40"
-                                         VerticalScrollBarVisibility="Auto"/>
+                                            <StackPanel Grid.Row="8"
+                                                        Grid.Column="0"
+                                                        Grid.ColumnSpan="3"
+                                                        Orientation="Horizontal">
+                                                <Button x:Name="TranscriptionDownloadButton"
+                                                        Content="📥 Dependencies herunterladen"
+                                                        Style="{StaticResource SecondaryButton}"
+                                                        Click="TranscriptionDownloadButton_Click"/>
+                                                <ProgressBar x:Name="TranscriptionDownloadProgressBar"
+                                                             Width="150"
+                                                             Height="20"
+                                                             Minimum="0"
+                                                             Maximum="100"
+                                                             Visibility="Collapsed"
+                                                             Margin="8,0,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </GroupBox>
 
-                                <TextBlock Grid.Row="12"
-                                           Grid.Column="0"
-                                           Grid.ColumnSpan="2"
-                                           Text="Tags-Anweisung:"
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           FontSize="{StaticResource FontSizeM}"/>
-                                <TextBox x:Name="LlmTagsCustomPromptTextBox"
-                                         Grid.Row="14"
-                                         Grid.Column="0"
-                                         Grid.ColumnSpan="2"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         Height="40"
-                                         VerticalScrollBarVisibility="Auto"/>
-                            </Grid>
-                        </GroupBox>
+                            </StackPanel>
 
-                        <!-- Transkription -->
-                        <GroupBox Header="Transkription"
-                                  Grid.Row="4">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="6"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="10"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                            <!-- RECHTE SPALTE -->
+                            <StackPanel Grid.Column="2">
 
-                                <!-- Auto-Transkription -->
-                                <CheckBox x:Name="TranscriptionAutoCheckBox"
-                                          Grid.Row="0"
-                                          Grid.Column="0"
-                                          Grid.ColumnSpan="3"
-                                          Content="Automatisch transkribieren bei Video-Auswahl"/>
+                                <!-- KI / LLM -->
+                                <GroupBox>
+                                    <StackPanel>
+                                        <TextBlock Text="KI / LLM"
+                                                   Style="{StaticResource TextLabel}"
+                                                   Margin="0,-6,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                <!-- Modellgröße -->
-                                <Label Content="Modellgröße:"
-                                       Grid.Row="2"
-                                       Grid.Column="0"/>
-                                <ComboBox x:Name="TranscriptionModelSizeComboBox"
-                                          Grid.Row="2"
-                                          Grid.Column="1"
-                                          HorizontalAlignment="Left"
-                                          MinWidth="150">
-                                    <ComboBoxItem Content="Tiny (~75 MB, schnell)"
-                                                  Tag="{x:Static config:WhisperModelSize.Tiny}"/>
-                                    <ComboBoxItem Content="Base (~142 MB)"
-                                                  Tag="{x:Static config:WhisperModelSize.Base}"/>
-                                    <ComboBoxItem Content="Small (~466 MB, empfohlen)"
-                                                  Tag="{x:Static config:WhisperModelSize.Small}"
-                                                  IsSelected="True"/>
-                                    <ComboBoxItem Content="Medium (~1.5 GB, genauer)"
-                                                  Tag="{x:Static config:WhisperModelSize.Medium}"/>
-                                    <ComboBoxItem Content="Large (~2.9 GB, beste Qualität)"
-                                                  Tag="{x:Static config:WhisperModelSize.Large}"/>
-                                </ComboBox>
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="0"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="Modus"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <ComboBox x:Name="LlmModeComboBox"
+                                                      Grid.Row="2"
+                                                      Grid.Column="0"
+                                                      Grid.ColumnSpan="2"
+                                                      HorizontalAlignment="Left"
+                                                      MinWidth="180"
+                                                      SelectionChanged="LlmModeComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="Aus"
+                                                              Tag="Off"/>
+                                                <ComboBoxItem Content="Lokal (GGUF)"
+                                                              Tag="Local"/>
+                                            </ComboBox>
 
-                                <!-- Sprache -->
-                                <Label Content="Sprache:"
-                                       Grid.Row="4"
-                                       Grid.Column="0"/>
-                                <ComboBox x:Name="TranscriptionLanguageComboBox"
-                                          Grid.Row="4"
-                                          Grid.Column="1"
-                                          HorizontalAlignment="Left"
-                                          MinWidth="150">
-                                    <ComboBoxItem Content="Deutsch"
-                                                  Tag="de"
-                                                  IsSelected="True"/>
-                                    <ComboBoxItem Content="Englisch"
-                                                  Tag="en"/>
-                                    <ComboBoxItem Content="Automatisch erkennen"
-                                                  Tag="auto"/>
-                                </ComboBox>
+                                            <TextBlock Grid.Row="4"
+                                                       Grid.Column="0"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="Modellpfad"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBox x:Name="LlmModelPathTextBox"
+                                                     Grid.Row="6"
+                                                     Grid.Column="0"
+                                                     Margin="0,0,8,0"
+                                                     ToolTip="Pfad zur GGUF-Modelldatei"/>
+                                            <Button x:Name="LlmModelPathBrowseButton"
+                                                    Grid.Row="6"
+                                                    Grid.Column="1"
+                                                    Content="Wählen..."
+                                                    Style="{StaticResource SecondaryButton}"
+                                                    Click="LlmModelPathBrowseButton_Click"/>
 
-                                <!-- Status -->
-                                <Label Content="Status:"
-                                       Grid.Row="6"
-                                       Grid.Column="0"/>
-                                <TextBlock x:Name="TranscriptionStatusTextBlock"
-                                           Grid.Row="6"
-                                           Grid.Column="1"
-                                           VerticalAlignment="Center"
-                                           Text="Nicht geprüft"
-                                           Foreground="{StaticResource TextMutedBrush}"/>
+                                            <StackPanel Grid.Row="8"
+                                                        Grid.Column="0"
+                                                        Grid.ColumnSpan="2"
+                                                        Orientation="Horizontal">
+                                                <TextBlock Text="Status:"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           Margin="0,0,8,0"/>
+                                                <TextBlock x:Name="LlmStatusTextBlock"
+                                                           Text="Nicht konfiguriert"
+                                                           Foreground="{StaticResource TextMutedBrush}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </GroupBox>
 
-                                <!-- Download & Speichern -->
-                                <StackPanel Grid.Row="8"
-                                            Grid.Column="0"
-                                            Grid.ColumnSpan="3"
-                                            Orientation="Horizontal">
-                                    <Button x:Name="TranscriptionDownloadButton"
-                                            Content="📥 Dependencies herunterladen"
-                                            Style="{StaticResource SecondaryButton}"
-                                            Click="TranscriptionDownloadButton_Click"
-                                            Margin="0,0,8,0"/>
-                                    <ProgressBar x:Name="TranscriptionDownloadProgressBar"
-                                                 Width="150"
-                                                 Height="20"
-                                                 Minimum="0"
-                                                 Maximum="100"
-                                                 Visibility="Collapsed"
-                                                 Margin="0,0,8,0"/>
-                                    <Button x:Name="TranscriptionSettingsSaveButton"
-                                            Content="💾 Speichern"
-                                            Style="{StaticResource PrimaryButton}"
-                                            Click="TranscriptionSettingsSaveButton_Click"/>
-                                </StackPanel>
-                            </Grid>
-                        </GroupBox>
+                                <!-- Generierungs-Parameter -->
+                                <GroupBox>
+                                    <StackPanel>
+                                        <TextBlock Text="Generierungs-Parameter"
+                                                   Style="{StaticResource TextLabel}"
+                                                   Margin="0,-6,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="5"
-                                    Orientation="Horizontal"
-                                    Margin="0,4,0,0">
-                            <Button x:Name="AppSettingsSaveButton"
-                                    Content="💾 App-Einstellungen speichern"
-                                    Style="{StaticResource PrimaryButton}"
-                                    Click="AppSettingsSaveButton_Click"
-                                    Margin="0,0,8,0"/>
-                            <Button x:Name="LlmSettingsSaveButton"
-                                    Content="💾 LLM-Einstellungen speichern"
-                                    Style="{StaticResource PrimaryButton}"
-                                    Click="LlmSettingsSaveButton_Click"/>
-                        </StackPanel>
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="0"
+                                                       Text="Max Tokens:"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <StackPanel Grid.Row="0"
+                                                        Grid.Column="2"
+                                                        Orientation="Horizontal">
+                                                <TextBox x:Name="LlmMaxTokensTextBox"
+                                                         Width="70"
+                                                         Text="256"/>
+                                                <TextBlock VerticalAlignment="Center"
+                                                           Margin="8,0,0,0"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           FontSize="{StaticResource FontSizeS}"
+                                                           Text="(64-1024)"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Row="2"
+                                                       Grid.Column="0"
+                                                       Text="Temperature:"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <StackPanel Grid.Row="2"
+                                                        Grid.Column="2"
+                                                        Orientation="Horizontal">
+                                                <Slider x:Name="LlmTemperatureSlider"
+                                                        Width="140"
+                                                        Minimum="0"
+                                                        Maximum="1"
+                                                        Value="0.3"
+                                                        TickFrequency="0.1"
+                                                        IsSnapToTickEnabled="True"/>
+                                                <TextBlock x:Name="LlmTemperatureValueText"
+                                                           VerticalAlignment="Center"
+                                                           Margin="8,0,0,0"
+                                                           Width="30"
+                                                           Text="0.3"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <!-- Prompt-Anweisungen -->
+                                <GroupBox>
+                                    <StackPanel>
+                                        <TextBlock Text="KI-Anweisungen"
+                                                   Style="{StaticResource TextLabel}"
+                                                   Margin="0,-6,0,8"/>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0"
+                                                       Text="Titel-Anweisung"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBox x:Name="LlmTitleCustomPromptTextBox"
+                                                     Grid.Row="2"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="Wrap"
+                                                     Height="50"
+                                                     VerticalScrollBarVisibility="Auto"/>
+
+                                            <TextBlock Grid.Row="4"
+                                                       Text="Beschreibungs-Anweisung"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBox x:Name="LlmDescriptionCustomPromptTextBox"
+                                                     Grid.Row="6"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="Wrap"
+                                                     Height="50"
+                                                     VerticalScrollBarVisibility="Auto"/>
+
+                                            <TextBlock Grid.Row="8"
+                                                       Text="Tags-Anweisung"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBox x:Name="LlmTagsCustomPromptTextBox"
+                                                     Grid.Row="10"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="Wrap"
+                                                     Height="50"
+                                                     VerticalScrollBarVisibility="Auto"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </GroupBox>
+
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </ScrollViewer>
-
             </Grid>
         </Grid>
     </Grid>

@@ -183,7 +183,7 @@ public partial class MainWindow
             StatusTextBlock.Text = "Standard-Thumbnailordner aktualisiert.";
         }
     }
-
+/*
     private void AppSettingsSaveButton_Click(object sender, RoutedEventArgs e)
     {
         _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
@@ -216,7 +216,7 @@ public partial class MainWindow
         SaveSettings();
         StatusTextBlock.Text = "App-Einstellungen gespeichert.";
     }
-
+*/
     #endregion
 
     #region Kanalprofil Events
@@ -297,7 +297,7 @@ public partial class MainWindow
             LlmModelPathTextBox.Text = dlg.FileName;
         }
     }
-
+/*
     private void LlmSettingsSaveButton_Click(object sender, RoutedEventArgs e)
     {
         _settings.Llm ??= new LlmSettings();
@@ -352,7 +352,7 @@ public partial class MainWindow
 
         StatusTextBlock.Text = "LLM-Einstellungen gespeichert.";
     }
-
+*/
     private void UpdateLlmControlsEnabled()
     {
         var isLocalMode = false;
@@ -434,4 +434,82 @@ public partial class MainWindow
     }
 
     #endregion
+
+    private void SettingsSaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        // App-Einstellungen
+        _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
+            ? null
+            : DefaultVideoFolderTextBox.Text.Trim();
+
+        _settings.DefaultThumbnailFolder = string.IsNullOrWhiteSpace(DefaultThumbnailFolderTextBox.Text)
+            ? null
+            : DefaultThumbnailFolderTextBox.Text.Trim();
+
+        _settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTimeTextBox.Text)
+            ? null
+            : DefaultSchedulingTimeTextBox.Text.Trim();
+
+        if (DefaultVisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
+            visItem.Tag is VideoVisibility visibility)
+        {
+            _settings.DefaultVisibility = visibility;
+        }
+        else
+        {
+            _settings.DefaultVisibility = VideoVisibility.Unlisted;
+        }
+
+        _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
+        _settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
+        _settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
+        _settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
+
+        // LLM-Einstellungen
+        _settings.Llm ??= new LlmSettings();
+        var llm = _settings.Llm;
+
+        if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
+            modeItem.Tag is string modeTag)
+        {
+            llm.Mode = Enum.TryParse<LlmMode>(modeTag, ignoreCase: true, out var mode)
+                ? mode
+                : LlmMode.Off;
+        }
+        else
+        {
+            llm.Mode = LlmMode.Off;
+        }
+
+        llm.LocalModelPath = string.IsNullOrWhiteSpace(LlmModelPathTextBox.Text)
+            ? null
+            : LlmModelPathTextBox.Text.Trim();
+
+        llm.MaxTokens = int.TryParse(LlmMaxTokensTextBox.Text, out var maxTokens)
+            ? Math.Clamp(maxTokens, 64, 1024)
+            : 256;
+
+        llm.Temperature = (float)LlmTemperatureSlider.Value;
+
+        llm.TitleCustomPrompt = string.IsNullOrWhiteSpace(LlmTitleCustomPromptTextBox.Text)
+            ? null
+            : LlmTitleCustomPromptTextBox.Text.Trim();
+
+        llm.DescriptionCustomPrompt = string.IsNullOrWhiteSpace(LlmDescriptionCustomPromptTextBox.Text)
+            ? null
+            : LlmDescriptionCustomPromptTextBox.Text.Trim();
+
+        llm.TagsCustomPrompt = string.IsNullOrWhiteSpace(LlmTagsCustomPromptTextBox.Text)
+            ? null
+            : LlmTagsCustomPromptTextBox.Text.Trim();
+
+        // Transkriptions-Einstellungen
+        SaveTranscriptionSettings();
+
+        // Alles speichern
+        SaveSettings();
+        RecreateLlmClient();
+
+        StatusTextBlock.Text = "Einstellungen gespeichert.";
+    }
 }
