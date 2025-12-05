@@ -48,8 +48,8 @@
                                FontSize="{StaticResource FontSizeL}"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="v1.0"
-                               FontSize="{StaticResource FontSizeXS}"
+                    <TextBlock Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}"
+                               FontSize="{StaticResource FontSizeS}"
                                Foreground="{StaticResource TextMutedBrush}"
                                Margin="0,2,0,0"/>
                 </StackPanel>

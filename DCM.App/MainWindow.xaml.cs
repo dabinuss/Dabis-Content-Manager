@@ -22,6 +22,7 @@ namespace DCM.App;
 
 public partial class MainWindow : Window
 {
+    public string AppVersion => $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
     private readonly TemplateService _templateService;
     private readonly ITemplateRepository _templateRepository;
     private readonly ISettingsProvider _settingsProvider;
