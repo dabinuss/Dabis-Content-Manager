@@ -451,7 +451,7 @@
                                                      AcceptsReturn="True"
                                                      VerticalScrollBarVisibility="Auto"
                                                      TextWrapping="Wrap"
-                                                     Height="140"/>
+                                                     MinHeight="140"/>
 
                                             <!-- Template & Buttons -->
                                             <Grid Grid.Row="2">
@@ -547,7 +547,7 @@
                                                      AcceptsReturn="True"
                                                      VerticalScrollBarVisibility="Auto"
                                                      TextWrapping="Wrap"
-                                                     Height="80"/>
+                                                     MinHeight="140"/>
 
                                             <!-- Transkription Controls -->
                                             <Grid Grid.Row="4">
