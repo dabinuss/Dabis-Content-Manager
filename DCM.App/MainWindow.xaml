@@ -331,7 +331,7 @@
                                             Background="{StaticResource SurfaceLightBrush}"
                                             Margin="{StaticResource SpacingAllXL}">
                                         <TextBlock Text="🎬"
-                                                   FontSize="{StaticResource FontSize24}"
+                                                   FontSize="{StaticResource FontSizeXL}"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"/>
                                     </Border>
@@ -407,17 +407,32 @@
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
 
+                                            <TextBlock Grid.Row="0"
+                                                       Text="(erforderlich)"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+
                                             <TextBox x:Name="TitleTextBox"
+                                                     Grid.Row="2"
                                                      Grid.Column="0"
-                                                     Margin="{StaticResource SpacingHorizontalM}"
+                                                     Grid.ColumnSpan="2"
                                                      TextChanged="TitleTextBox_TextChanged"/>
                                             <Button x:Name="GenerateTitleButton"
-                                                    Grid.Column="1"
+                                                    Grid.Row="4"
+                                                    Grid.Column="0"
                                                     Style="{StaticResource AccentButton}"
                                                     Click="GenerateTitleButton_Click"
                                                     ToolTip="KI-Vorschlag generieren">
@@ -497,16 +512,25 @@
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
+
                                             <TextBox x:Name="TagsTextBox"
+                                                     Grid.Row="0"
                                                      Grid.Column="0"
-                                                     ToolTip="Tags, kommagetrennt (z. B. lets play, gaming, deutsch)"
-                                                     Margin="{StaticResource SpacingHorizontalM}"/>
+                                                     Grid.ColumnSpan="2"
+                                                     ToolTip="Tags, kommagetrennt (z. B. lets play, gaming, deutsch)"/>
                                             <Button x:Name="GenerateTagsButton"
-                                                    Grid.Column="1"
+                                                    Grid.Row="2"
+                                                    Grid.Column="0"
                                                     Style="{StaticResource AccentButton}"
                                                     Click="GenerateTagsButton_Click"
                                                     ToolTip="KI-Vorschlag generieren">
@@ -538,7 +562,7 @@
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Grid.Row="0"
-                                                       Text="Wird für bessere KI-Vorschläge verwendet"
+                                                       Text="Automatisch generiertes Transkript, benutzt für KI-Vorschläge."
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
 
@@ -671,60 +695,66 @@
                                             </Grid.RowDefinitions>
 
                                             <!-- Thumbnail Vorschau / Drop Zone -->
-                                            <Border x:Name="ThumbnailDropZone"
-                                                    Grid.Row="0"
-                                                    Style="{StaticResource ThumbnailDropZoneStyle}"
-                                                    DragOver="ThumbnailDrop_DragOver"
-                                                    DragLeave="ThumbnailDrop_DragLeave"
-                                                    Drop="ThumbnailDrop_Drop"
-                                                    MouseLeftButtonDown="ThumbnailDropZone_Click">
+                                            <Viewbox Stretch="Uniform"
+                                                     HorizontalAlignment="Left"
+                                                     StretchDirection="Both">
+                                                <Border x:Name="ThumbnailDropZone"
+                                                        Grid.Row="0"
+                                                        Width="320"
+                                                        Height="180"
+                                                        Style="{StaticResource ThumbnailDropZoneStyle}"
+                                                        DragOver="ThumbnailDrop_DragOver"
+                                                        DragLeave="ThumbnailDrop_DragLeave"
+                                                        Drop="ThumbnailDrop_Drop"
+                                                        MouseLeftButtonDown="ThumbnailDropZone_Click">
 
-                                                <Grid>
-                                                    <!-- Leerer Zustand -->
-                                                    <Grid x:Name="ThumbnailEmptyState"
-                                                          Visibility="Visible">
-                                                        <StackPanel HorizontalAlignment="Center"
-                                                                    VerticalAlignment="Center">
-                                                            <TextBlock Text="🖼️"
-                                                                       FontSize="{StaticResource FontSize24}"
-                                                                       HorizontalAlignment="Center"
-                                                                       Margin="0,0,0,6"/>
-                                                            <TextBlock Text="Thumbnail hierher ziehen"
-                                                                       FontSize="{StaticResource FontSizeM}"
-                                                                       Foreground="{StaticResource TextSecondaryBrush}"
-                                                                       HorizontalAlignment="Center"/>
-                                                            <TextBlock Text="oder klicken zum Auswählen"
-                                                                       FontSize="{StaticResource FontSizeS}"
-                                                                       Foreground="{StaticResource TextMutedBrush}"
-                                                                       HorizontalAlignment="Center"
-                                                                       Margin="0,2,0,0"/>
-                                                            <TextBlock Text="PNG, JPG, JPEG (16:9 empfohlen)"
-                                                                       FontSize="{StaticResource FontSizeXS}"
-                                                                       Foreground="{StaticResource TextMutedBrush}"
-                                                                       HorizontalAlignment="Center"
-                                                                       Margin="0,8,0,0"/>
-                                                        </StackPanel>
-                                                    </Grid>
-
-                                                    <!-- Vorschau Zustand -->
-                                                    <Grid x:Name="ThumbnailPreviewState"
-                                                          Visibility="Collapsed">
-                                                        <Image x:Name="ThumbnailPreviewImage"
-                                                               Stretch="Uniform"/>
-                                                        <Border x:Name="ThumbnailOverlay"
-                                                                Background="#80000000"
-                                                                Opacity="0">
+                                                    <Grid>
+                                                        <!-- Leerer Zustand -->
+                                                        <Grid x:Name="ThumbnailEmptyState"
+                                                              Visibility="Visible">
                                                             <StackPanel HorizontalAlignment="Center"
                                                                         VerticalAlignment="Center">
-                                                                <TextBlock Text="Klicken zum Ändern"
-                                                                           Foreground="White"
+                                                                <TextBlock Text="🖼️"
+                                                                           FontSize="{StaticResource FontSizeXL}"
+                                                                           HorizontalAlignment="Center"
+                                                                           Margin="0,0,0,6"/>
+                                                                <TextBlock Text="Thumbnail hierher ziehen"
                                                                            FontSize="{StaticResource FontSizeM}"
+                                                                           Foreground="{StaticResource TextSecondaryBrush}"
                                                                            HorizontalAlignment="Center"/>
+                                                                <TextBlock Text="oder klicken zum Auswählen"
+                                                                           FontSize="{StaticResource FontSizeS}"
+                                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                                           HorizontalAlignment="Center"
+                                                                           Margin="0,2,0,0"/>
+                                                                <TextBlock Text="PNG, JPG, JPEG (16:9 empfohlen)"
+                                                                           FontSize="{StaticResource FontSizeXS}"
+                                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                                           HorizontalAlignment="Center"
+                                                                           Margin="0,8,0,0"/>
                                                             </StackPanel>
-                                                        </Border>
+                                                        </Grid>
+
+                                                        <!-- Vorschau Zustand -->
+                                                        <Grid x:Name="ThumbnailPreviewState"
+                                                              Visibility="Collapsed">
+                                                            <Image x:Name="ThumbnailPreviewImage"
+                                                                   Stretch="Uniform"/>
+                                                            <Border x:Name="ThumbnailOverlay"
+                                                                    Background="#80000000"
+                                                                    Opacity="0">
+                                                                <StackPanel HorizontalAlignment="Center"
+                                                                            VerticalAlignment="Center">
+                                                                    <TextBlock Text="Klicken zum Ändern"
+                                                                               Foreground="White"
+                                                                               FontSize="{StaticResource FontSizeM}"
+                                                                               HorizontalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
                                                     </Grid>
-                                                </Grid>
-                                            </Border>
+                                                </Border>
+                                            </Viewbox>
 
                                             <!-- Thumbnail Aktionen -->
                                             <StackPanel Grid.Row="2"
@@ -1530,6 +1560,14 @@
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="{StaticResource SpacingM}"/>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingM}"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Grid.Row="0"
@@ -1569,7 +1607,45 @@
                                                     Style="{StaticResource SecondaryButton}"
                                                     Click="LlmModelPathBrowseButton_Click"/>
 
-                                            <StackPanel Grid.Row="8"
+                                            <TextBlock Grid.Row="8"
+                                                       Grid.Column="0"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="Modelltyp"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <ComboBox x:Name="LlmModelTypeComboBox"
+                                                      Grid.Row="10"
+                                                      Grid.Column="0"
+                                                      Grid.ColumnSpan="2"
+                                                      HorizontalAlignment="Left"
+                                                      MinWidth="180"
+                                                      ToolTip="Automatisch erkennt den Modelltyp anhand des Dateinamens">
+                                                <ComboBoxItem Content="Automatisch erkennen"
+                                                              Tag="Auto"
+                                                              IsSelected="True"/>
+                                                <ComboBoxItem Content="Phi-3"
+                                                              Tag="Phi3"/>
+                                                <ComboBoxItem Content="Mistral / Ministral"
+                                                              Tag="Mistral3"/>
+                                            </ComboBox>
+
+                                            <TextBlock Grid.Row="12"
+                                                       Grid.Column="0"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="System-Prompt"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                            <TextBox x:Name="LlmSystemPromptTextBox"
+                                                     Grid.Row="14"
+                                                     Grid.Column="0"
+                                                     Grid.ColumnSpan="2"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="Wrap"
+                                                     Height="80"
+                                                     VerticalScrollBarVisibility="Auto"
+                                                     ToolTip="Globaler System-Prompt, der dem Modell als Kontext übergeben wird"/>
+
+                                            <StackPanel Grid.Row="16"
                                                         Grid.Column="0"
                                                         Grid.ColumnSpan="2"
                                                         Orientation="Horizontal">

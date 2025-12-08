@@ -79,8 +79,10 @@ public partial class MainWindow
         var llm = _settings.Llm ?? new LlmSettings();
 
         SelectComboBoxItemByTag(LlmModeComboBox, llm.Mode.ToString());
+        SelectComboBoxItemByTag(LlmModelTypeComboBox, llm.ModelType.ToString());
 
         LlmModelPathTextBox.Text = llm.LocalModelPath ?? string.Empty;
+        LlmSystemPromptTextBox.Text = llm.SystemPrompt ?? string.Empty;
         LlmMaxTokensTextBox.Text = llm.MaxTokens.ToString();
         LlmTemperatureSlider.Value = llm.Temperature;
         LlmTemperatureValueText.Text = llm.Temperature.ToString("F1", CultureInfo.InvariantCulture);
@@ -183,40 +185,40 @@ public partial class MainWindow
             StatusTextBlock.Text = "Standard-Thumbnailordner aktualisiert.";
         }
     }
-/*
-    private void AppSettingsSaveButton_Click(object sender, RoutedEventArgs e)
-    {
-        _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
-            ? null
-            : DefaultVideoFolderTextBox.Text.Trim();
-
-        _settings.DefaultThumbnailFolder = string.IsNullOrWhiteSpace(DefaultThumbnailFolderTextBox.Text)
-            ? null
-            : DefaultThumbnailFolderTextBox.Text.Trim();
-
-        _settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTimeTextBox.Text)
-            ? null
-            : DefaultSchedulingTimeTextBox.Text.Trim();
-
-        if (DefaultVisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
-            visItem.Tag is VideoVisibility visibility)
+    /*
+        private void AppSettingsSaveButton_Click(object sender, RoutedEventArgs e)
         {
-            _settings.DefaultVisibility = visibility;
-        }
-        else
-        {
-            _settings.DefaultVisibility = VideoVisibility.Unlisted;
-        }
+            _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
+                ? null
+                : DefaultVideoFolderTextBox.Text.Trim();
 
-        _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
-        _settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
-        _settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
-        _settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
+            _settings.DefaultThumbnailFolder = string.IsNullOrWhiteSpace(DefaultThumbnailFolderTextBox.Text)
+                ? null
+                : DefaultThumbnailFolderTextBox.Text.Trim();
 
-        SaveSettings();
-        StatusTextBlock.Text = "App-Einstellungen gespeichert.";
-    }
-*/
+            _settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTimeTextBox.Text)
+                ? null
+                : DefaultSchedulingTimeTextBox.Text.Trim();
+
+            if (DefaultVisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
+                visItem.Tag is VideoVisibility visibility)
+            {
+                _settings.DefaultVisibility = visibility;
+            }
+            else
+            {
+                _settings.DefaultVisibility = VideoVisibility.Unlisted;
+            }
+
+            _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
+            _settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
+            _settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
+            _settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
+
+            SaveSettings();
+            StatusTextBlock.Text = "App-Einstellungen gespeichert.";
+        }
+    */
     #endregion
 
     #region Kanalprofil Events
@@ -297,62 +299,62 @@ public partial class MainWindow
             LlmModelPathTextBox.Text = dlg.FileName;
         }
     }
-/*
-    private void LlmSettingsSaveButton_Click(object sender, RoutedEventArgs e)
-    {
-        _settings.Llm ??= new LlmSettings();
-        var llm = _settings.Llm;
-
-        if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
-            modeItem.Tag is string modeTag)
+    /*
+        private void LlmSettingsSaveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (Enum.TryParse<LlmMode>(modeTag, ignoreCase: true, out var mode))
+            _settings.Llm ??= new LlmSettings();
+            var llm = _settings.Llm;
+
+            if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
+                modeItem.Tag is string modeTag)
             {
-                llm.Mode = mode;
+                if (Enum.TryParse<LlmMode>(modeTag, ignoreCase: true, out var mode))
+                {
+                    llm.Mode = mode;
+                }
+                else
+                {
+                    llm.Mode = LlmMode.Off;
+                }
             }
             else
             {
                 llm.Mode = LlmMode.Off;
             }
+
+            llm.LocalModelPath = string.IsNullOrWhiteSpace(LlmModelPathTextBox.Text)
+                ? null
+                : LlmModelPathTextBox.Text.Trim();
+
+            if (int.TryParse(LlmMaxTokensTextBox.Text, out var maxTokens))
+            {
+                llm.MaxTokens = Math.Clamp(maxTokens, 64, 1024);
+            }
+            else
+            {
+                llm.MaxTokens = 256;
+            }
+
+            llm.Temperature = (float)LlmTemperatureSlider.Value;
+
+            llm.TitleCustomPrompt = string.IsNullOrWhiteSpace(LlmTitleCustomPromptTextBox.Text)
+                ? null
+                : LlmTitleCustomPromptTextBox.Text.Trim();
+
+            llm.DescriptionCustomPrompt = string.IsNullOrWhiteSpace(LlmDescriptionCustomPromptTextBox.Text)
+                ? null
+                : LlmDescriptionCustomPromptTextBox.Text.Trim();
+
+            llm.TagsCustomPrompt = string.IsNullOrWhiteSpace(LlmTagsCustomPromptTextBox.Text)
+                ? null
+                : LlmTagsCustomPromptTextBox.Text.Trim();
+
+            SaveSettings();
+            RecreateLlmClient();
+
+            StatusTextBlock.Text = "LLM-Einstellungen gespeichert.";
         }
-        else
-        {
-            llm.Mode = LlmMode.Off;
-        }
-
-        llm.LocalModelPath = string.IsNullOrWhiteSpace(LlmModelPathTextBox.Text)
-            ? null
-            : LlmModelPathTextBox.Text.Trim();
-
-        if (int.TryParse(LlmMaxTokensTextBox.Text, out var maxTokens))
-        {
-            llm.MaxTokens = Math.Clamp(maxTokens, 64, 1024);
-        }
-        else
-        {
-            llm.MaxTokens = 256;
-        }
-
-        llm.Temperature = (float)LlmTemperatureSlider.Value;
-
-        llm.TitleCustomPrompt = string.IsNullOrWhiteSpace(LlmTitleCustomPromptTextBox.Text)
-            ? null
-            : LlmTitleCustomPromptTextBox.Text.Trim();
-
-        llm.DescriptionCustomPrompt = string.IsNullOrWhiteSpace(LlmDescriptionCustomPromptTextBox.Text)
-            ? null
-            : LlmDescriptionCustomPromptTextBox.Text.Trim();
-
-        llm.TagsCustomPrompt = string.IsNullOrWhiteSpace(LlmTagsCustomPromptTextBox.Text)
-            ? null
-            : LlmTagsCustomPromptTextBox.Text.Trim();
-
-        SaveSettings();
-        RecreateLlmClient();
-
-        StatusTextBlock.Text = "LLM-Einstellungen gespeichert.";
-    }
-*/
+    */
     private void UpdateLlmControlsEnabled()
     {
         var isLocalMode = false;
@@ -401,10 +403,12 @@ public partial class MainWindow
 
         if (_llmClient is LocalLlmClient localClient)
         {
+            var modelTypeInfo = llm.ModelType == LlmModelType.Auto ? "Auto" : llm.ModelType.ToString();
+
             if (!localClient.IsReady && string.IsNullOrEmpty(localClient.InitializationError))
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                LlmStatusTextBlock.Text = $"Konfiguriert: {fileName} (wird bei Nutzung geladen)";
+                LlmStatusTextBlock.Text = $"Konfiguriert: {fileName} ({modelTypeInfo})";
                 LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.DarkGreen;
                 return;
             }
@@ -412,7 +416,7 @@ public partial class MainWindow
             if (localClient.IsReady)
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                LlmStatusTextBlock.Text = $"Bereit: {fileName}";
+                LlmStatusTextBlock.Text = $"Bereit: {fileName} ({modelTypeInfo})";
                 LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
             }
             else if (!string.IsNullOrWhiteSpace(localClient.InitializationError))
@@ -481,9 +485,25 @@ public partial class MainWindow
             llm.Mode = LlmMode.Off;
         }
 
+        if (LlmModelTypeComboBox.SelectedItem is ComboBoxItem modelTypeItem &&
+            modelTypeItem.Tag is string modelTypeTag)
+        {
+            llm.ModelType = Enum.TryParse<LlmModelType>(modelTypeTag, ignoreCase: true, out var modelType)
+                ? modelType
+                : LlmModelType.Auto;
+        }
+        else
+        {
+            llm.ModelType = LlmModelType.Auto;
+        }
+
         llm.LocalModelPath = string.IsNullOrWhiteSpace(LlmModelPathTextBox.Text)
             ? null
             : LlmModelPathTextBox.Text.Trim();
+
+        llm.SystemPrompt = string.IsNullOrWhiteSpace(LlmSystemPromptTextBox.Text)
+            ? null
+            : LlmSystemPromptTextBox.Text.Trim();
 
         llm.MaxTokens = int.TryParse(LlmMaxTokensTextBox.Text, out var maxTokens)
             ? Math.Clamp(maxTokens, 64, 1024)

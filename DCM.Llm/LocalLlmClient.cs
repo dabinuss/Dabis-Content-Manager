@@ -13,6 +13,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     private readonly LlmSettings _settings;
     private readonly IAppLogger _logger;
     private readonly object _lock = new();
+    private readonly LlmModelType _detectedModelType;
 
     private LLamaWeights? _model;
     private ModelParams? _modelParams;
@@ -25,10 +26,56 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     private const long MinimumModelSizeBytes = 50 * 1024 * 1024;
     private static readonly byte[] GgufMagic = { 0x47, 0x47, 0x55, 0x46 };
 
+    #region Model Profiles
+
+    private static class ModelProfiles
+    {
+        public static class Phi3
+        {
+            public static List<string> AntiPrompts => new()
+            {
+                "<|end|>",
+                "<|user|>",
+                "<|endoftext|>",
+                "\n\n\n"
+            };
+
+            public static string FormatPrompt(string? systemPrompt, string userPrompt)
+            {
+                if (!string.IsNullOrWhiteSpace(systemPrompt))
+                {
+                    return $"<|system|>\n{systemPrompt}<|end|>\n<|user|>\n{userPrompt}<|end|>\n<|assistant|>\n";
+                }
+                return $"<|user|>\n{userPrompt}<|end|>\n<|assistant|>\n";
+            }
+        }
+
+        public static class Mistral3
+        {
+            public static List<string> AntiPrompts => new()
+            {
+                "</s>",
+                "[INST]"
+            };
+
+            public static string FormatPrompt(string? systemPrompt, string userPrompt)
+            {
+                if (!string.IsNullOrWhiteSpace(systemPrompt))
+                {
+                    return $"[SYSTEM_PROMPT]{systemPrompt}[/SYSTEM_PROMPT][INST] {userPrompt} [/INST]";
+                }
+                return $"[INST] {userPrompt} [/INST]";
+            }
+        }
+    }
+
+    #endregion
+
     public LocalLlmClient(LlmSettings settings, IAppLogger? logger = null)
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _logger = logger ?? AppLogger.Instance;
+        _detectedModelType = DetectModelType();
         ValidateModelPath();
     }
 
@@ -63,6 +110,64 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             }
         }
     }
+
+    #region Model Type Detection
+
+    private LlmModelType DetectModelType()
+    {
+        if (_settings.ModelType != LlmModelType.Auto)
+        {
+            _logger.Info($"Verwende konfiguriertes Modellprofil: {_settings.ModelType}", "LocalLlm");
+            return _settings.ModelType;
+        }
+
+        if (string.IsNullOrWhiteSpace(_settings.LocalModelPath))
+        {
+            _logger.Debug("Kein Modellpfad für Auto-Erkennung, verwende Phi3 als Standard", "LocalLlm");
+            return LlmModelType.Phi3;
+        }
+
+        var fileName = Path.GetFileName(_settings.LocalModelPath).ToLowerInvariant();
+
+        if (fileName.Contains("mistral") || fileName.Contains("ministral"))
+        {
+            _logger.Info($"Modelltyp automatisch erkannt: Mistral3 (Dateiname: {fileName})", "LocalLlm");
+            return LlmModelType.Mistral3;
+        }
+
+        if (fileName.Contains("phi"))
+        {
+            _logger.Info($"Modelltyp automatisch erkannt: Phi3 (Dateiname: {fileName})", "LocalLlm");
+            return LlmModelType.Phi3;
+        }
+
+        _logger.Warning($"Modelltyp konnte nicht erkannt werden (Dateiname: {fileName}), verwende Phi3 als Standard", "LocalLlm");
+        return LlmModelType.Phi3;
+    }
+
+    private List<string> GetAntiPrompts()
+    {
+        return _detectedModelType switch
+        {
+            LlmModelType.Mistral3 => ModelProfiles.Mistral3.AntiPrompts,
+            LlmModelType.Phi3 => ModelProfiles.Phi3.AntiPrompts,
+            _ => ModelProfiles.Phi3.AntiPrompts
+        };
+    }
+
+    private string FormatPrompt(string userPrompt)
+    {
+        var systemPrompt = _settings.SystemPrompt;
+
+        return _detectedModelType switch
+        {
+            LlmModelType.Mistral3 => ModelProfiles.Mistral3.FormatPrompt(systemPrompt, userPrompt),
+            LlmModelType.Phi3 => ModelProfiles.Phi3.FormatPrompt(systemPrompt, userPrompt),
+            _ => ModelProfiles.Phi3.FormatPrompt(systemPrompt, userPrompt)
+        };
+    }
+
+    #endregion
 
     private void ValidateModelPath()
     {
@@ -161,16 +266,18 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
         try
         {
-            _logger.Info($"Lade LLM-Modell: {_settings.LocalModelPath}", "LocalLlm");
+            _logger.Info($"Lade LLM-Modell: {_settings.LocalModelPath} (Typ: {_detectedModelType})", "LocalLlm");
+
+            var contextSize = _settings.ContextSize > 0 ? (uint)_settings.ContextSize : 4096u;
 
             _modelParams = new ModelParams(_settings.LocalModelPath!)
             {
-                ContextSize = 2048,
+                ContextSize = contextSize,
                 GpuLayerCount = 35,
                 Threads = Math.Max(1, Environment.ProcessorCount / 2)
             };
 
-            _logger.Debug("ModelParams erstellt, lade Weights...", "LocalLlm");
+            _logger.Debug($"ModelParams erstellt (ContextSize: {contextSize}), lade Weights...", "LocalLlm");
 
             _model = LLamaWeights.LoadFromFile(_modelParams);
 
@@ -178,7 +285,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
             _executor = new StatelessExecutor(_model, _modelParams);
 
-            _logger.Info("LLM-Modell erfolgreich geladen", "LocalLlm");
+            _logger.Info($"LLM-Modell erfolgreich geladen (Profil: {_detectedModelType})", "LocalLlm");
 
             _initialized = true;
             _initError = null;
@@ -256,6 +363,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
         StatelessExecutor executor;
         InferenceParams inferenceParams;
+        string formattedPrompt;
 
         lock (_lock)
         {
@@ -278,6 +386,9 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
             executor = _executor;
 
+            // Prompt formatieren mit Modellprofil
+            formattedPrompt = FormatPrompt(prompt);
+
             var samplingPipeline = new DefaultSamplingPipeline
             {
                 Temperature = _settings.Temperature > 0 ? _settings.Temperature : 0.7f
@@ -286,19 +397,19 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             inferenceParams = new InferenceParams
             {
                 MaxTokens = Math.Min(_settings.MaxTokens > 0 ? _settings.MaxTokens : 256, 512),
-                AntiPrompts = new List<string> { "<|end|>", "<|user|>", "<|endoftext|>", "\n\n\n" },
+                AntiPrompts = GetAntiPrompts(),
                 SamplingPipeline = samplingPipeline
             };
         }
 
         try
         {
-            _logger.Debug($"LLM-Inferenz gestartet, Prompt-Länge: {prompt.Length} Zeichen", "LocalLlm");
+            _logger.Debug($"LLM-Inferenz gestartet (Profil: {_detectedModelType}), Prompt-Länge: {formattedPrompt.Length} Zeichen", "LocalLlm");
 
             var result = new StringBuilder();
             var tokenCount = 0;
 
-            await foreach (var token in executor.InferAsync(prompt, inferenceParams, cancellationToken))
+            await foreach (var token in executor.InferAsync(formattedPrompt, inferenceParams, cancellationToken))
             {
                 lock (_lock)
                 {

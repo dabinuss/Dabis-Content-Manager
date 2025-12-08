@@ -422,12 +422,8 @@
                 Value="2"/>
         <Setter Property="CornerRadius"
                 Value="{StaticResource RadiusM}"/>
-        <Setter Property="Width"
-                Value="320"/>
-        <Setter Property="Height"
-                Value="180"/>
         <Setter Property="HorizontalAlignment"
-                Value="Left"/>
+                Value="Stretch"/>
         <Setter Property="Cursor"
                 Value="Hand"/>
         <Setter Property="AllowDrop"
@@ -723,23 +719,28 @@
                 Value="{StaticResource GroupBoxPadding}"/>
         <Setter Property="Margin"
                 Value="{StaticResource GroupBoxMargin}"/>
+
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GroupBox">
+
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
+
+                        <!-- Header -->
                         <TextBlock Text="{TemplateBinding Header}"
                                    FontFamily="{StaticResource PrimaryFontFamily}"
                                    FontSize="{StaticResource FontSizeS}"
                                    FontWeight="{StaticResource FontWeightSemiBold}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                   Margin="{StaticResource SpacingVerticalM}"
-                                   TextOptions.TextFormattingMode="Ideal"
-                                   TextOptions.TextRenderingMode="ClearType"/>
-                        <Border Grid.Row="1"
+                                   Margin="{StaticResource SpacingVerticalM}"/>
+
+                        <!-- Inhalt + Border -->
+                        <Border x:Name="PART_Border"
+                                Grid.Row="1"
                                 Background="{StaticResource SurfaceBrush}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -748,10 +749,35 @@
                             <ContentPresenter/>
                         </Border>
                     </Grid>
+
+                    <!-- TRIGGERS -->
+                    <ControlTemplate.Triggers>
+
+                        <!-- 1) HOVER -->
+                        <Trigger Property="IsMouseOver"
+                                Value="True">
+                            <Setter TargetName="PART_Border"
+                                    Property="BorderBrush"
+                                    Value="{StaticResource AccentRedBrush}"/>
+                        </Trigger>
+
+                        <!-- 2) FOCUS IM INHALT (TextBox, ComboBox, etc.) -->
+                        <Trigger Property="IsKeyboardFocusWithin"
+                                Value="True">
+                            <Setter TargetName="PART_Border"
+                                    Property="BorderBrush"
+                                    Value="{StaticResource AccentRedBrush}"/>
+                            <Setter TargetName="PART_Border"
+                                    Property="BorderThickness"
+                                    Value="1"/>
+                        </Trigger>
+
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- GLOBALE DEFAULT STYLES                                           -->
@@ -1379,7 +1405,7 @@
             </Setter.Value>
         </Setter>
     </Style>
-<!--
+    <!--
 
     <Setter Property="FontFamily"
             Value="{StaticResource PrimaryFontFamily}"/>

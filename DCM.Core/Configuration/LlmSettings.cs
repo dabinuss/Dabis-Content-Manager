@@ -18,6 +18,27 @@ public enum LlmMode
     // Zukünftig: Api
 }
 
+/// <summary>
+/// Definiert die unterstützten Modelltypen für automatische Prompt-Formatierung.
+/// </summary>
+public enum LlmModelType
+{
+    /// <summary>
+    /// Automatische Erkennung basierend auf dem Dateinamen.
+    /// </summary>
+    Auto,
+
+    /// <summary>
+    /// Microsoft Phi-3 Modelle.
+    /// </summary>
+    Phi3,
+
+    /// <summary>
+    /// Mistral / Ministral Modelle (v7 Tekken Template).
+    /// </summary>
+    Mistral3
+}
+
 public sealed class LlmSettings
 {
     /// <summary>
@@ -31,6 +52,16 @@ public sealed class LlmSettings
     public string? LocalModelPath { get; set; }
 
     /// <summary>
+    /// Modelltyp für Prompt-Formatierung. Auto erkennt anhand des Dateinamens.
+    /// </summary>
+    public LlmModelType ModelType { get; set; } = LlmModelType.Auto;
+
+    /// <summary>
+    /// System-Prompt, der dem Modell als Kontext übergeben wird.
+    /// </summary>
+    public string? SystemPrompt { get; set; }
+
+    /// <summary>
     /// Maximale Anzahl an Tokens für die Generierung.
     /// </summary>
     public int MaxTokens { get; set; } = 256;
@@ -39,6 +70,11 @@ public sealed class LlmSettings
     /// Temperatur für die Generierung (0.0 = deterministisch, 1.0 = kreativ).
     /// </summary>
     public float Temperature { get; set; } = 0.3f;
+
+    /// <summary>
+    /// Kontext-Größe in Tokens.
+    /// </summary>
+    public int ContextSize { get; set; } = 4096;
 
     /// <summary>
     /// Optionale Custom-Anweisung für Titel-Generierung.
