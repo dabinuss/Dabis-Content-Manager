@@ -396,23 +396,64 @@ public partial class MainWindow : Window
 
     private void SetVideoFile(string filePath)
     {
-        VideoPathTextBox.Text = filePath;
 
+        VideoPathTextBox.Text = filePath;
         var fileInfo = new System.IO.FileInfo(filePath);
-        VideoFileNameTextBlock.Text = fileInfo.Name;
-        VideoFileSizeTextBlock.Text = FormatFileSize(fileInfo.Length);
 
         VideoDropEmptyState.Visibility = Visibility.Collapsed;
         VideoDropSelectedState.Visibility = Visibility.Visible;
-
         UpdateUploadButtonState();
-        _logger.Info($"Video ausgewählt: {fileInfo.Name}", "Upload");
-
-        // Transkription-Button aktivieren
         UpdateTranscriptionButtonState();
 
+        _logger.Info($"Video ausgewählt: {fileInfo.Name}", "Upload");  // ✅ Ist da!
+
         // Auto-Transkription wenn aktiviert
-        _ = TryAutoTranscribeAsync(filePath);
+        _ = LoadVideoFileInfoAsync(filePath);
+    }
+
+    private async Task LoadVideoFileInfoAsync(string filePath)
+    {
+        try
+        {
+            // File-Info im Hintergrund laden (nicht UI-Thread blockieren)
+            var (fileName, fileSize) = await Task.Run(() =>
+            {
+                var fileInfo = new FileInfo(filePath);
+                return (fileInfo.Name, fileInfo.Length);
+            });
+
+            // UI-Updates zurück auf UI-Thread
+            if (!Dispatcher.CheckAccess())
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    VideoFileNameTextBlock.Text = fileName;
+                    VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
+                });
+            }
+            else
+            {
+                VideoFileNameTextBlock.Text = fileName;
+                VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
+            }
+
+            _logger.Info($"Video ausgewählt: {fileName}", "Upload");
+
+            // Auto-Transkription starten (falls aktiviert)
+            // Dies läuft jetzt komplett unabhängig und blockiert nicht
+            _ = TryAutoTranscribeAsync(filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Fehler beim Laden der Video-Informationen: {ex.Message}", "Upload", ex);
+
+            // Fallback: Zeige zumindest den Dateinamen
+            await Dispatcher.InvokeAsync(() =>
+            {
+                VideoFileNameTextBlock.Text = Path.GetFileName(filePath);
+                VideoFileSizeTextBlock.Text = "? MB";
+            });
+        }
     }
 
     private string FormatFileSize(long bytes)

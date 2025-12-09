@@ -378,6 +378,9 @@ public partial class MainWindow
 
     private async Task TryAutoTranscribeAsync(string videoFilePath)
     {
+        // Kleine Verzögerung um UI-Thread Zeit zu geben
+        await Task.Delay(100);
+
         if (_transcriptionService is null)
         {
             return;
@@ -391,6 +394,13 @@ public partial class MainWindow
         if (!_transcriptionService.IsReady)
         {
             _logger.Debug("Auto-Transkription übersprungen: Dependencies nicht bereit", "Transcription");
+            return;
+        }
+
+        // Prüfung muss auf UI-Thread sein
+        if (!Dispatcher.CheckAccess())
+        {
+            await Dispatcher.InvokeAsync(async () => await TryAutoTranscribeAsync(videoFilePath));
             return;
         }
 
