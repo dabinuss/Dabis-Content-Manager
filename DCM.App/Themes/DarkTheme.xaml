@@ -127,7 +127,7 @@
     <Color x:Key="SurfaceHoverColor">#1F1F1F</Color>
     <Color x:Key="SurfacePressedColor">#3B3B3B</Color>
     <Color x:Key="InputBackgroundColor">#282828</Color>
-    <Color x:Key="InputFocusColor">#191919</Color>
+    <Color x:Key="InputFocusColor">#282828</Color>
 
     <!-- Rahmen -->
     <Color x:Key="BorderColor">#3F3F3F</Color>
@@ -830,7 +830,7 @@
         <Setter Property="BorderThickness"
                 Value="0"/>
         <Setter Property="Padding"
-                Value="3,3,0,2"/>
+                Value="0"/>
         <Setter Property="CaretBrush"
                 Value="{StaticResource TextPrimaryBrush}"/>
         <Setter Property="SelectionBrush"
