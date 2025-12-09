@@ -142,21 +142,13 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
                 return TranscriptionResult.Failed("Audio-Extraktion fehlgeschlagen.", stopwatch.Elapsed);
             }
 
-            // Transkribieren - jetzt mit Segmenten
+            // Transkribieren - jetzt komplett im Hintergrund
             progress?.Report(TranscriptionProgress.Transcribing(0));
-            var segments = await TranscribeAudioToSegmentsAsync(
+            var text = await TranscribeAudioInBackgroundAsync(
                 audioFilePath,
                 language,
                 progress,
                 cancellationToken);
-
-            // Post-Processing
-            progress?.Report(new TranscriptionProgress(
-                TranscriptionPhase.Transcribing,
-                99,
-                "Formatiere Text..."));
-
-            var text = _postProcessor.Process(segments);
 
             stopwatch.Stop();
 
@@ -187,6 +179,95 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
             // Temporäre Audio-Datei aufräumen
             CleanupTempFile(audioFilePath);
         }
+    }
+
+    private async Task<string> TranscribeAudioInBackgroundAsync(
+        string audioFilePath,
+        string? language,
+        IProgress<TranscriptionProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        // Gesamte Transkription und Post-Processing im Hintergrund-Task
+        return await Task.Run(async () =>
+        {
+            var factory = GetOrCreateWhisperFactory();
+
+            if (factory is null)
+            {
+                throw new InvalidOperationException("Whisper-Factory konnte nicht erstellt werden.");
+            }
+
+            // whisper.cpp nutzt intern standardmäßig Beam Search mit beam_size=5
+            var builder = factory.CreateBuilder()
+                .WithThreads(Math.Max(2, Environment.ProcessorCount - 1));
+
+            if (!string.IsNullOrEmpty(language))
+            {
+                builder.WithLanguage(language);
+            }
+            else
+            {
+                builder.WithLanguageDetection();
+            }
+
+            using var processor = builder.Build();
+
+            var segments = new List<TranscriptionSegment>();
+            var audioDuration = await GetAudioDurationAsync(audioFilePath);
+            var totalSeconds = audioDuration?.TotalSeconds ?? 1;
+            var transcriptionStartTime = DateTime.UtcNow;
+            var lastProgressReport = DateTime.UtcNow;
+            var segmentsSinceLastReport = 0;
+
+            await using var fileStream = File.OpenRead(audioFilePath);
+
+            await foreach (var segment in processor.ProcessAsync(fileStream, cancellationToken))
+            {
+                segments.Add(new TranscriptionSegment
+                {
+                    Text = segment.Text,
+                    Start = segment.Start,
+                    End = segment.End
+                });
+
+                segmentsSinceLastReport++;
+
+                // Progress-Throttling: Nur alle 500ms ODER alle 10 Segmente reporten
+                var timeSinceLastReport = DateTime.UtcNow - lastProgressReport;
+                if (timeSinceLastReport.TotalMilliseconds >= 500 || segmentsSinceLastReport >= 10)
+                {
+                    var currentTime = segment.End.TotalSeconds;
+                    var percent = Math.Min(98, currentTime / totalSeconds * 100);
+
+                    TimeSpan? estimatedRemaining = null;
+                    if (percent > 5)
+                    {
+                        var elapsed = DateTime.UtcNow - transcriptionStartTime;
+                        var estimatedTotal = TimeSpan.FromSeconds(elapsed.TotalSeconds / (percent / 100));
+                        estimatedRemaining = estimatedTotal - elapsed;
+
+                        if (estimatedRemaining < TimeSpan.Zero)
+                        {
+                            estimatedRemaining = null;
+                        }
+                    }
+
+                    progress?.Report(TranscriptionProgress.Transcribing(percent, estimatedRemaining));
+                    lastProgressReport = DateTime.UtcNow;
+                    segmentsSinceLastReport = 0;
+                }
+            }
+
+            // Post-Processing ebenfalls im Hintergrund
+            progress?.Report(new TranscriptionProgress(
+                TranscriptionPhase.Transcribing,
+                99,
+                "Formatiere Text..."));
+
+            var text = _postProcessor.Process(segments);
+            return text;
+
+        }, cancellationToken);
     }
 
     private void ConfigureFFmpeg()

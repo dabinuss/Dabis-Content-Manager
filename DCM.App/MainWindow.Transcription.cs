@@ -281,6 +281,7 @@ public partial class MainWindow
             return;
         }
 
+        // Alle UI-Updates gebündelt
         TranscriptionProgressBar.IsIndeterminate = false;
         TranscriptionProgressBar.Value = progress.Percent;
 
@@ -294,18 +295,23 @@ public partial class MainWindow
             message = $"{typeText}: {downloadedMB:F1} / {totalMB:F1} MB";
         }
 
-        UpdateTranscriptionPhaseText(message);
+        TranscriptionPhaseTextBlock.Text = message;
+        TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         StatusTextBlock.Text = progress.Message ?? message;
     }
 
     private void ReportTranscriptionProgress(TranscriptionProgress progress)
     {
+        // Progress<T> wird bereits auf dem UI-Thread aufgerufen,
+        // daher ist CheckAccess normalerweise nicht nötig.
+        // Zur Sicherheit behalten wir es bei, optimieren aber die Logik.
         if (!Dispatcher.CheckAccess())
         {
             Dispatcher.BeginInvoke(() => ReportTranscriptionProgress(progress));
             return;
         }
 
+        // Alle UI-Updates hier sind jetzt sicher auf dem UI-Thread
         TranscriptionProgressBar.IsIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
         TranscriptionProgressBar.Value = progress.Percent;
 
@@ -319,7 +325,8 @@ public partial class MainWindow
             _ => progress.Message ?? progress.Phase.ToString()
         };
 
-        UpdateTranscriptionPhaseText(phaseText);
+        TranscriptionPhaseTextBlock.Text = phaseText;
+        TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         StatusTextBlock.Text = progress.Message ?? phaseText;
     }
 
@@ -548,12 +555,12 @@ public partial class MainWindow
             UpdateTranscriptionStatusDisplay();
         }
     }
-/*
-    private void TranscriptionSettingsSaveButton_Click(object sender, RoutedEventArgs e)
-    {
-        SaveTranscriptionSettings();
-        StatusTextBlock.Text = "Transkriptions-Einstellungen gespeichert.";
-    }
-*/
+    /*
+        private void TranscriptionSettingsSaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveTranscriptionSettings();
+            StatusTextBlock.Text = "Transkriptions-Einstellungen gespeichert.";
+        }
+    */
     #endregion
 }
