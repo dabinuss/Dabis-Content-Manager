@@ -486,14 +486,20 @@ public partial class MainWindow : Window
 
     private void FocusTargetOnContainerClick(object sender, MouseButtonEventArgs e)
     {
-        // Klicks auf Buttons ignorieren (damit Buttons normal funktionieren)
+        // Klicks auf Buttons oder Textboxen ignorieren (damit sie normal funktionieren)
         if (e.OriginalSource is DependencyObject d)
         {
             while (d != null)
             {
+                // Text-Eingaben: normal verhalten (Cursor setzen, markieren etc.)
+                if (d is TextBoxBase || d is PasswordBox)
+                {
+                    return;
+                }
+
+                // Buttons weiterhin komplett ignorieren
                 if (d is ButtonBase)
                 {
-                    // Button (oder Inhalt im Button) → nichts tun
                     return;
                 }
 
@@ -501,17 +507,18 @@ public partial class MainWindow : Window
             }
         }
 
+        // Nur wenn auf den Container selbst / "leeren" Bereich geklickt wird:
         if (sender is FrameworkElement fe && fe.Tag is Control target && target.Focusable)
         {
-            // Fokus setzen
             target.Focus();
 
-            // Bei TextBox Cursor ans Ende setzen (optional, aber nice)
+            // Bei TextBox Cursor ans Ende setzen (nice to have)
             if (target is TextBox tb)
             {
                 tb.CaretIndex = tb.Text?.Length ?? 0;
             }
 
+            // Event nicht weiterreichen (wir wollten ja nur Fokus setzen)
             e.Handled = true;
         }
     }
