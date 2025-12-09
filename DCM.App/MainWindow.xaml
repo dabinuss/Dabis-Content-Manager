@@ -41,10 +41,15 @@
                                FontSize="{StaticResource FontSizeL}"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}"
-                               FontSize="{StaticResource FontSizeS}"
+                    <TextBlock FontSize="{StaticResource FontSizeS}"
                                Foreground="{StaticResource TextMutedBrush}"
-                               Margin="0,2,0,0"/>
+                               Margin="0,2,0,0">
+                        <Run Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                        <Run Text=" · "/>
+                        <Hyperlink Click="CheckUpdatesHyperlink_Click">
+                            <Run Text="Updates prüfen"/>
+                        </Hyperlink>
+                    </TextBlock>
                 </StackPanel>
 
                 <!-- Trennlinie -->
@@ -582,7 +587,11 @@
                                                 </Grid.RowDefinitions>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
+                                                    <!-- Transkribieren -->
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <!-- Export -->
                                                     <ColumnDefinition Width="*"/>
+                                                    <!-- Progress -->
                                                 </Grid.ColumnDefinitions>
 
                                                 <Button x:Name="TranscribeButton"
@@ -594,9 +603,20 @@
                                                         IsEnabled="False"
                                                         ToolTip="Video automatisch transkribieren"/>
 
+                                                <Button x:Name="TranscriptionExportButton"
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        Style="{StaticResource SecondaryButton}"
+                                                        Click="TranscriptionExportButton_Click"
+                                                        ToolTip="Transkript als Textdatei exportieren"
+                                                        Margin="8,0,0,0">
+                                                    <TextBlock Text="📤"
+                                                               FontSize="{StaticResource FontSizeM}"/>
+                                                </Button>
+
                                                 <ProgressBar x:Name="TranscriptionProgressBar"
                                                              Grid.Row="0"
-                                                             Grid.Column="1"
+                                                             Grid.Column="2"
                                                              Height="20"
                                                              Margin="{StaticResource SpacingHorizontalM}"
                                                              Minimum="0"
@@ -607,7 +627,7 @@
                                                 <TextBlock x:Name="TranscriptionPhaseTextBlock"
                                                            Grid.Row="2"
                                                            Grid.Column="0"
-                                                           Grid.ColumnSpan="2"
+                                                           Grid.ColumnSpan="3"
                                                            FontSize="{StaticResource FontSizeS}"
                                                            Foreground="{StaticResource TextMutedBrush}"
                                                            Visibility="Collapsed"/>

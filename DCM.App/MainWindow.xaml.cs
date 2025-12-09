@@ -17,12 +17,14 @@ using DCM.Llm;
 using DCM.YouTube;
 using DCM.Transcription;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 
 namespace DCM.App;
 
 public partial class MainWindow : Window
 {
-    public string AppVersion => $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
+    public string AppVersion { get; set; }
     private readonly TemplateService _templateService;
     private readonly ITemplateRepository _templateRepository;
     private readonly ISettingsProvider _settingsProvider;
@@ -52,8 +54,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
+
         _logger = AppLogger.Instance;
         _logger.Info("Anwendung gestartet", "MainWindow");
+
+        // Fensterzustand wiederherstellen (smart, ohne das Fenster zu "verlieren")
+        WindowStateManager.Apply(this);
 
         _templateService = new TemplateService(_logger);
         _settingsProvider = new JsonSettingsProvider(_logger);
@@ -93,6 +100,9 @@ public partial class MainWindow : Window
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         _isClosing = true;
+
+        // Fensterzustand speichern
+        WindowStateManager.Save(this);
 
         // Event-Handler zuerst entfernen
         try
@@ -1169,6 +1179,170 @@ public partial class MainWindow : Window
         catch
         {
             // UI-Update-Fehler ignorieren
+        }
+    }
+
+    #endregion
+
+    #region Updates
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            StatusTextBlock.Text = "Prüfe auf Updates...";
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("DabisContentManager/1.0");
+
+            using var response = await httpClient.GetAsync("https://api.github.com/repos/dabinuss/Dabis-Content-Manager/releases/latest");
+            if (!response.IsSuccessStatusCode)
+            {
+                StatusTextBlock.Text = "Update-Prüfung nicht möglich.";
+                _logger.Warning($"Update-Prüfung fehlgeschlagen: HTTP {(int)response.StatusCode}", "Updates");
+                return;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            var tagName = root.TryGetProperty("tag_name", out var tagProp) ? tagProp.GetString() : null;
+            var htmlUrl = root.TryGetProperty("html_url", out var urlProp)
+                ? urlProp.GetString()
+                : "https://github.com/dabinuss/Dabis-Content-Manager/releases";
+
+            if (string.IsNullOrWhiteSpace(tagName))
+            {
+                StatusTextBlock.Text = "Update-Informationen konnten nicht gelesen werden.";
+                _logger.Warning("Update-Informationen ohne tag_name erhalten", "Updates");
+                return;
+            }
+
+            var latestVersionString = tagName.TrimStart('v', 'V');
+            if (!Version.TryParse(latestVersionString, out var latestVersion))
+            {
+                StatusTextBlock.Text = $"Versionsformat nicht erkannt: {tagName}";
+                _logger.Warning($"Konnte Versionsnummer aus Tag '{tagName}' nicht parsen.", "Updates");
+                return;
+            }
+
+            var currentVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version
+                                ?? new Version(0, 0);
+
+            if (latestVersion <= currentVersion)
+            {
+                StatusTextBlock.Text = $"Du verwendest die aktuelle Version ({AppVersion}).";
+                _logger.Info($"Keine neuere Version gefunden. Aktuell: {currentVersion}, Remote: {latestVersion}", "Updates");
+                return;
+            }
+
+            StatusTextBlock.Text = $"Neue Version verfügbar: v{latestVersion}";
+            _logger.Info($"Neue Version gefunden. Aktuell: {currentVersion}, Remote: {latestVersion}", "Updates");
+
+            var result = MessageBox.Show(
+                this,
+                $"Es ist eine neue Version verfügbar:\n\nAktuell: v{currentVersion}\nNeu: v{latestVersion}\n\nGitHub-Releases öffnen?",
+                "Update verfügbar",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Information);
+
+            if (result == MessageBoxResult.Yes && !string.IsNullOrWhiteSpace(htmlUrl))
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(htmlUrl)
+                    {
+                        UseShellExecute = true
+                    });
+                }
+                catch
+                {
+                    // Kein Drama
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Update-Prüfung fehlgeschlagen: {ex.Message}";
+            _logger.Error($"Update-Prüfung fehlgeschlagen: {ex.Message}", "Updates", ex);
+        }
+        finally
+        {
+            UpdateLogLinkIndicator();
+        }
+    }
+
+    private async void CheckUpdatesHyperlink_Click(object sender, RoutedEventArgs e)
+    {
+        await CheckForUpdatesAsync();
+    }
+
+    #endregion
+
+    #region Transkript-Export
+
+    private void TranscriptionExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var transcript = TranscriptTextBox.Text;
+        if (string.IsNullOrWhiteSpace(transcript))
+        {
+            MessageBox.Show(
+                this,
+                "Es ist kein Transkript vorhanden, das exportiert werden kann.",
+                "Kein Transkript",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            return;
+        }
+
+        string baseName;
+        if (!string.IsNullOrWhiteSpace(VideoPathTextBox.Text))
+        {
+            baseName = Path.GetFileNameWithoutExtension(VideoPathTextBox.Text);
+        }
+        else
+        {
+            baseName = "transcript";
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Transkript exportieren",
+            FileName = $"{baseName}_transcript.txt",
+            Filter = "Textdatei|*.txt|Alle Dateien|*.*"
+        };
+
+        if (!string.IsNullOrWhiteSpace(_settings?.DefaultVideoFolder) &&
+            Directory.Exists(_settings.DefaultVideoFolder))
+        {
+            dialog.InitialDirectory = _settings.DefaultVideoFolder;
+        }
+
+        var result = dialog.ShowDialog(this);
+        if (result != true)
+        {
+            return;
+        }
+
+        try
+        {
+            File.WriteAllText(dialog.FileName, transcript, System.Text.Encoding.UTF8);
+            StatusTextBlock.Text = $"Transkript exportiert: {dialog.FileName}";
+            _logger.Info($"Transkript exportiert: {dialog.FileName}", "Transcription");
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Transkript konnte nicht exportiert werden: {ex.Message}";
+            _logger.Error($"Transkript konnte nicht exportiert werden: {ex.Message}", "Transcription", ex);
+
+            MessageBox.Show(
+                this,
+                $"Transkript konnte nicht exportiert werden:\n{ex.Message}",
+                "Fehler",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 
