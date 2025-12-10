@@ -73,4 +73,9 @@ public sealed class AppSettings
     /// Einstellungen für die automatische Video-Transkription.
     /// </summary>
     public TranscriptionSettings Transcription { get; set; } = new();
+
+    /// <summary>
+    /// Die gespeicherte UI-Sprache (z.B. "de-DE" oder "en-US").
+    /// </summary>
+    public string? Language { get; set; }
 }

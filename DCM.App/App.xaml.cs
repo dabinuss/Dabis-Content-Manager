@@ -1,23 +1,47 @@
-﻿using System.Windows;
+﻿using System;
+using System.Threading.Tasks;
+using System.Windows;
+using DCM.Core.Configuration;
 using DCM.Core.Logging;
 
 namespace DCM.App;
 
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
 public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        // Globalen Exception-Handler registrieren
+        // Globale Exception-Handler registrieren
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
+        // Sprache initialisieren, bevor das MainWindow erstellt wird
+        InitializeLocalization();
+
+        // MainWindow manuell erzeugen
+        var mainWindow = new MainWindow();
+        MainWindow = mainWindow;
+        mainWindow.Show();
+
         AppLogger.Instance.Info("App.OnStartup abgeschlossen", "App");
+    }
+
+    private void InitializeLocalization()
+    {
+        try
+        {
+            var settingsProvider = new JsonSettingsProvider(AppLogger.Instance);
+            var settings = settingsProvider.Load();
+
+            LocalizationManager.Instance.Initialize(settings.Language);
+        }
+        catch
+        {
+            // Fallback auf Deutsch bei Fehler
+            LocalizationManager.Instance.Initialize("de-DE");
+        }
     }
 
     private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
@@ -56,4 +80,5 @@ public partial class App : Application
 
         e.SetObserved();
     }
+
 }

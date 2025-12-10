@@ -82,6 +82,7 @@ public partial class MainWindow : Window
 
         InitializePlatformComboBox();
         InitializeLanguageComboBox();
+        InitializeChannelLanguageComboBox();
         InitializeSchedulingDefaults();
         InitializeLlmSettingsTab();
         LoadTemplates();
@@ -224,6 +225,55 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Language Selection
+
+    private bool _isLanguageInitializing;
+
+    private void InitializeLanguageComboBox()
+    {
+        _isLanguageInitializing = true;
+
+        LanguageComboBox.ItemsSource = LocalizationManager.Instance.AvailableLanguages;
+
+        // Aktuelle Sprache auswählen
+        var currentLang = _settings.Language ?? LocalizationManager.Instance.CurrentLanguage;
+        foreach (LanguageInfo lang in LanguageComboBox.Items)
+        {
+            if (lang.Code == currentLang)
+            {
+                LanguageComboBox.SelectedItem = lang;
+                break;
+            }
+        }
+
+        _isLanguageInitializing = false;
+    }
+
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLanguageInitializing)
+        {
+            return;
+        }
+
+        if (LanguageComboBox.SelectedItem is not LanguageInfo selectedLang)
+        {
+            return;
+        }
+
+        // Sprache wechseln
+        LocalizationManager.Instance.SetLanguage(selectedLang.Code);
+
+        // In Settings speichern
+        _settings.Language = selectedLang.Code;
+        SaveSettings();
+
+        StatusTextBlock.Text = $"Sprache geändert: {selectedLang.DisplayName}";
+        _logger.Info($"Sprache geändert auf: {selectedLang.Code}", "Settings");
+    }
+
+    #endregion
+
     #region LLM Client Management
 
     private void CancelCurrentLlmOperation()
@@ -299,7 +349,7 @@ public partial class MainWindow : Window
         SelectComboBoxItemByTag(VisibilityComboBox, _settings.DefaultVisibility);
     }
 
-    private void InitializeLanguageComboBox()
+    private void InitializeChannelLanguageComboBox()
     {
         var cultures = CultureInfo
             .GetCultures(CultureTypes.NeutralCultures)

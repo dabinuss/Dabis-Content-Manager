@@ -185,40 +185,7 @@ public partial class MainWindow
             StatusTextBlock.Text = "Standard-Thumbnailordner aktualisiert.";
         }
     }
-    /*
-        private void AppSettingsSaveButton_Click(object sender, RoutedEventArgs e)
-        {
-            _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
-                ? null
-                : DefaultVideoFolderTextBox.Text.Trim();
 
-            _settings.DefaultThumbnailFolder = string.IsNullOrWhiteSpace(DefaultThumbnailFolderTextBox.Text)
-                ? null
-                : DefaultThumbnailFolderTextBox.Text.Trim();
-
-            _settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTimeTextBox.Text)
-                ? null
-                : DefaultSchedulingTimeTextBox.Text.Trim();
-
-            if (DefaultVisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
-                visItem.Tag is VideoVisibility visibility)
-            {
-                _settings.DefaultVisibility = visibility;
-            }
-            else
-            {
-                _settings.DefaultVisibility = VideoVisibility.Unlisted;
-            }
-
-            _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
-            _settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
-            _settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
-            _settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
-
-            SaveSettings();
-            StatusTextBlock.Text = "App-Einstellungen gespeichert.";
-        }
-    */
     #endregion
 
     #region Kanalprofil Events
@@ -299,62 +266,7 @@ public partial class MainWindow
             LlmModelPathTextBox.Text = dlg.FileName;
         }
     }
-    /*
-        private void LlmSettingsSaveButton_Click(object sender, RoutedEventArgs e)
-        {
-            _settings.Llm ??= new LlmSettings();
-            var llm = _settings.Llm;
 
-            if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
-                modeItem.Tag is string modeTag)
-            {
-                if (Enum.TryParse<LlmMode>(modeTag, ignoreCase: true, out var mode))
-                {
-                    llm.Mode = mode;
-                }
-                else
-                {
-                    llm.Mode = LlmMode.Off;
-                }
-            }
-            else
-            {
-                llm.Mode = LlmMode.Off;
-            }
-
-            llm.LocalModelPath = string.IsNullOrWhiteSpace(LlmModelPathTextBox.Text)
-                ? null
-                : LlmModelPathTextBox.Text.Trim();
-
-            if (int.TryParse(LlmMaxTokensTextBox.Text, out var maxTokens))
-            {
-                llm.MaxTokens = Math.Clamp(maxTokens, 64, 1024);
-            }
-            else
-            {
-                llm.MaxTokens = 256;
-            }
-
-            llm.Temperature = (float)LlmTemperatureSlider.Value;
-
-            llm.TitleCustomPrompt = string.IsNullOrWhiteSpace(LlmTitleCustomPromptTextBox.Text)
-                ? null
-                : LlmTitleCustomPromptTextBox.Text.Trim();
-
-            llm.DescriptionCustomPrompt = string.IsNullOrWhiteSpace(LlmDescriptionCustomPromptTextBox.Text)
-                ? null
-                : LlmDescriptionCustomPromptTextBox.Text.Trim();
-
-            llm.TagsCustomPrompt = string.IsNullOrWhiteSpace(LlmTagsCustomPromptTextBox.Text)
-                ? null
-                : LlmTagsCustomPromptTextBox.Text.Trim();
-
-            SaveSettings();
-            RecreateLlmClient();
-
-            StatusTextBlock.Text = "LLM-Einstellungen gespeichert.";
-        }
-    */
     private void UpdateLlmControlsEnabled()
     {
         var isLocalMode = false;
@@ -468,6 +380,11 @@ public partial class MainWindow
         _settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
         _settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
         _settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
+
+        if (LanguageComboBox.SelectedItem is LanguageInfo lang)
+        {
+            _settings.Language = lang.Code;
+        }
 
         // LLM-Einstellungen
         _settings.Llm ??= new LlmSettings();

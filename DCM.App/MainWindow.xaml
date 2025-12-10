@@ -676,9 +676,9 @@
                                                           Style="{StaticResource PlatformToggleButton}">
                                                 <StackPanel VerticalAlignment="Center"
                                                             HorizontalAlignment="Center">
-                                                        <TextBlock Style="{StaticResource IconXXL}"
-                                                                   Text="&#xe038;"
-                                                                   Margin="0,0,24,0"/>
+                                                    <TextBlock Style="{StaticResource IconXXL}"
+                                                               Text="&#xe038;"
+                                                               Margin="0,0,24,0"/>
                                                     <TextBlock Text="{DynamicResource Upload_Fields_Platform_YouTube}"
                                                                FontSize="{StaticResource FontSizeS}"
                                                                Foreground="{StaticResource TextSecondaryBrush}"
@@ -1335,6 +1335,42 @@
 
                             <!-- LINKE SPALTE -->
                             <StackPanel Grid.Column="0">
+
+                                <!-- Sprache -->
+                                <GroupBox>
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource Settings_Language}"
+                                                   Style="{StaticResource TextLabel}"
+                                                   Margin="0,-6,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="{StaticResource SpacingS}"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <ComboBox x:Name="LanguageComboBox"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Grid.ColumnSpan="3"
+                                                      HorizontalAlignment="Left"
+                                                      MinWidth="200"
+                                                      SelectionChanged="LanguageComboBox_SelectionChanged"/>
+
+                                            <TextBlock Grid.Row="2"
+                                                       Grid.Column="0"
+                                                       Grid.ColumnSpan="3"
+                                                       Text="{DynamicResource Settings_Language_Restart_Hint}"
+                                                       FontSize="{StaticResource FontSizeS}"
+                                                       Foreground="{StaticResource TextMutedBrush}"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </GroupBox>
 
                                 <!-- Ordner -->
                                 <GroupBox>

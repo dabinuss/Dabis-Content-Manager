@@ -121,6 +121,8 @@
     <!-- Settings -->
     <sys:String x:Key="Settings">Settings</sys:String>
     <sys:String x:Key="Settings_SaveAll">Save All Changes</sys:String>
+    <sys:String x:Key="Settings_Language">Language</sys:String>
+    <sys:String x:Key="Settings_Language_Restart_Hint">Some changes take effect immediately.</sys:String>
     <sys:String x:Key="Settings_StandardFolders">Default Folders</sys:String>
     <sys:String x:Key="Settings_VideoFolder">Video Folder</sys:String>
     <sys:String x:Key="Settings_ThumbnailFolder">Thumbnail Folder</sys:String>
