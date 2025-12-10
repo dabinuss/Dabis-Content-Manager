@@ -1,137 +1,138 @@
 # Dabis Content Manager
 
-> Desktop-Tool für Content Creator – Videos hochladen, planen und mit lokaler KI optimieren.
+> Desktop tool for content creators – upload, schedule and optimize videos with local AI.
 
 ![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)
 
 ---
 
-## 📋 Übersicht
+## 📋 Overview
 
-Der **Dabis Content Manager** ist eine Windows-Desktop-Anwendung, die den Upload-Workflow für YouTube-Videos vereinfacht. Statt im Browser zwischen Tabs zu wechseln, erledigst du alles in einer App – vom Auswählen der Videodatei bis zum geplanten Upload mit Thumbnail und Playlist-Zuweisung.
+**Dabis Content Manager** is a Windows desktop application that streamlines the upload workflow for YouTube videos. Instead of juggling multiple browser tabs, you handle everything in one app – from selecting the video file to scheduling the upload with thumbnail and playlist assignment.
 
-Optional unterstützt dich ein **lokales KI-Modell** beim Erstellen von Titeln, Beschreibungen und Tags. Die KI läuft komplett auf deinem Rechner, sodass keine Daten an externe Server gesendet werden.
+Optionally, a **local AI model** helps you create titles, descriptions and tags. The AI runs entirely on your machine, so no data is sent to external servers.
 
 ---
 
 ## ✨ Features
 
-| Feature | Beschreibung |
-|---------|--------------|
-| **YouTube-Upload** | Videos direkt aus der App hochladen, inkl. Thumbnail |
-| **Geplante Veröffentlichung** | Datum und Uhrzeit für den Release festlegen |
-| **Sichtbarkeit** | Öffentlich, nicht gelistet oder privat |
-| **Playlist-Zuweisung** | Video beim Upload einer Playlist hinzufügen |
-| **KI-Vorschläge** | Titel, Beschreibung und Tags generieren lassen (lokal, offline) |
-| **Templates** | Wiederverwendbare Beschreibungsvorlagen mit Platzhaltern |
-| **Kanalprofil** | Sprache, Tonfall und Zielgruppe für bessere KI-Vorschläge hinterlegen |
-| **Upload-Historie** | Übersicht aller Uploads mit Status und Direktlink |
+| Feature | Description |
+|--------|-------------|
+| **YouTube upload** | Upload videos directly from the app, including thumbnail |
+| **Scheduled publishing** | Set date and time for the release |
+| **Visibility** | Public, unlisted or private |
+| **Playlist assignment** | Add the video to a playlist during upload |
+| **AI suggestions** | Generate titles, descriptions and tags (local, offline) |
+| **Templates** | Reusable description templates with placeholders |
+| **Channel profile** | Store language, tone and target audience for better AI suggestions |
+| **Upload history** | Overview of all uploads with status and direct link |
 
 ---
 
 ## 🖼️ Screenshots
 
-*Kommt bald...*
+*Coming soon...*
 
 ---
 
 ## 🚀 Installation
 
-### Voraussetzungen
+### Requirements
 
-- Windows 10/11
-- .NET 9 Runtime (https://dotnet.microsoft.com/download/dotnet/9.0)
-- YouTube API Client-Secrets (siehe Einrichtung)
+- Windows 10/11  
+- .NET 9 Runtime (https://dotnet.microsoft.com/download/dotnet/9.0)  
+- YouTube API client secrets (see setup)
 
 ### Download
 
-1. Lade die neueste Version aus den Releases herunter
-2. Entpacke das Archiv in einen Ordner deiner Wahl
-3. Starte DCM.App.exe
+1. Download the latest version from the Releases page  
+2. Extract the archive to a folder of your choice  
+3. Start `DCM.App.exe`
 
-### Aus Quellcode bauen
+### Build from source
 
-git clone https://github.com/dabinuss/Dabis-Content-Manager.git
-cd Dabis-Content-Manager
-dotnet build -c Release
-
----
-
-## ⚙️ Einrichtung
-
-### 🔑 YouTube API einrichten
-
-1. Gehe zur Google Cloud Console (https://console.cloud.google.com/)
-2. Erstelle ein neues Projekt oder wähle ein bestehendes
-3. Aktiviere die YouTube Data API v3
-4. Erstelle OAuth 2.0 Anmeldedaten (Desktop-App)
-5. Lade die JSON-Datei herunter
-6. Benenne sie um in youtube_client_secrets.json
-7. Lege sie im App-Datenordner ab: %APPDATA%\DabisContentManager\youtube_client_secrets.json
-
-### 🤖 Lokale KI einrichten (optional)
-
-Die KI-Funktionen benötigen ein GGUF-Modell, das lokal auf deinem Rechner läuft.
-
-1. Lade ein kompatibles GGUF-Modell herunter (z.B. von Hugging Face)
-2. Öffne in der App Einstellungen → KI / LLM
-3. Wähle Modus: Lokal (GGUF)
-4. Setze den Pfad zur Modelldatei
-5. Speichere die Einstellungen
-
-Hinweis: Ohne Transkript im Upload-Formular werden regelbasierte Fallback-Vorschläge verwendet. Die KI generiert nur Inhalte, wenn ein Transkript vorhanden ist – so wird Halluzinieren verhindert.
+    git clone https://github.com/dabinuss/Dabis-Content-Manager.git
+    cd Dabis-Content-Manager
+    dotnet build -c Release
 
 ---
 
-## 📖 Nutzung
+## ⚙️ Setup
 
-### Erster Start
+### 🔑 Set up the YouTube API
 
-1. Konto verbinden: Tab Konten → Mit YouTube verbinden
-2. Video auswählen: Tab Neuer Upload → Videodatei wählen
-3. Metadaten eingeben: Titel, Beschreibung, Tags, Sichtbarkeit
-4. Optional: Thumbnail hinzufügen, Playlist wählen, Veröffentlichung planen
-5. Upload starten: Klick auf Upload starten
+1. Go to the Google Cloud Console (https://console.cloud.google.com/)  
+2. Create a new project or select an existing one  
+3. Enable **YouTube Data API v3**  
+4. Create **OAuth 2.0 credentials** (Desktop application)  
+5. Download the JSON file  
+6. Rename it to `youtube_client_secrets.json`  
+7. Place it in the app data folder:  
+   `%APPDATA%\DabisContentManager\youtube_client_secrets.json`
 
-### Templates nutzen
+### 🤖 Set up local AI (optional)
 
-1. Tab Templates → Neues Template erstellen
-2. Platzhalter verwenden:
-   - {{TITLE}} – Videotitel
-   - {{TAGS}} – Tags als kommaseparierte Liste
-   - {{HASHTAGS}} – Tags als Hashtags
-   - {{DATE}} – Geplantes Veröffentlichungsdatum
-   - {{PLAYLIST}} – Playlist-ID
-   - {{VISIBILITY}} – Sichtbarkeit
-   - {{YEAR}}, {{MONTH}}, {{DAY}} – Aktuelles Datum
-3. Template beim Upload anwenden
+The AI features require a GGUF model running locally on your machine.
 
-### KI-Vorschläge generieren
+1. Download a compatible GGUF model (e.g. from Hugging Face)  
+2. In the app, open **Settings → AI / LLM**  
+3. Select mode: **Local (GGUF)**  
+4. Set the path to the model file  
+5. Save the settings  
 
-1. Transkript ins entsprechende Feld einfügen
-2. Auf Vorschlagen klicken (bei Titel, Beschreibung oder Tags)
-3. Vorschlag übernehmen oder anpassen
+Note: If there is no transcript in the upload form, rule-based fallback suggestions are used. The AI only generates content when a transcript is available – this reduces hallucinations and keeps suggestions closer to the actual video content.
 
 ---
 
-## 🛠️ Technologien
+## 📖 Usage
 
-- Framework: .NET 9, WPF
-- YouTube API: Google.Apis.YouTube.v3
-- Lokale KI: LLamaSharp mit Vulkan-Backend
-- Persistenz: JSON-Dateien im AppData-Ordner
+### First start
+
+1. Connect your account: **Accounts** tab → *Connect to YouTube*  
+2. Select a video: **New Upload** tab → choose video file  
+3. Enter metadata: title, description, tags, visibility  
+4. Optional: add thumbnail, choose playlist, schedule publishing  
+5. Start upload: click **Start Upload**
+
+### Using templates
+
+1. Go to the **Templates** tab → create a new template  
+2. Use placeholders such as:
+   - `{{TITLE}}` – video title  
+   - `{{TAGS}}` – tags as comma-separated list  
+   - `{{HASHTAGS}}` – tags as hashtags  
+   - `{{DATE}}` – planned publication date  
+   - `{{PLAYLIST}}` – playlist ID  
+   - `{{VISIBILITY}}` – visibility  
+   - `{{YEAR}}`, `{{MONTH}}`, `{{DAY}}` – current date  
+3. Apply a template during upload to auto-fill the description
+
+### Generating AI suggestions
+
+1. Paste the transcript into the transcription field  
+2. Click **Suggest** for title, description or tags  
+3. Review, edit and/or accept the suggestion
 
 ---
 
-## 👤 Autor
+## 🛠️ Tech stack
+
+- Framework: .NET 9, WPF  
+- YouTube API: `Google.Apis.YouTube.v3`  
+- Local AI: LLamaSharp with Vulkan backend  
+- Persistence: JSON files in the AppData folder  
+
+---
+
+## 👤 Author
 
 **dabinuss**
 
-- GitHub: @dabinuss (https://github.com/dabinuss)
+- GitHub: [@dabinuss](https://github.com/dabinuss)
 
 ---
 
 ## ⭐ Support
 
-Wenn dir das Projekt gefällt, lass einen Stern da!
+If you like the project, consider leaving a star on GitHub!
