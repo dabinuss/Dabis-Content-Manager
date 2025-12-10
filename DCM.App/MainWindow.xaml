@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
         xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
-        Title="Dabis Content Manager · © dabinuss"
+        Title="{DynamicResource App_WindowTitle}"
         Height="900"
         Width="1366"
         MinHeight="600"
@@ -37,7 +37,7 @@
                            Height="59"
                            Stretch="Uniform"
                            Margin="{StaticResource SpacingVerticalM}"/>
-                    <TextBlock Text="Dabis Content Manager"
+                    <TextBlock Text="{DynamicResource App_Name}"
                                FontSize="{StaticResource FontSizeL}"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}"/>
@@ -47,7 +47,7 @@
                         <Run Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}"/>
                         <Run Text=" · "/>
                         <Hyperlink Click="CheckUpdatesHyperlink_Click">
-                            <Run Text="Updates prüfen"/>
+                            <Run Text="{DynamicResource App_CheckUpdates}"/>
                         </Hyperlink>
                     </TextBlock>
                 </StackPanel>
@@ -66,10 +66,10 @@
                                  Checked="NavButton_Checked"
                                  Tag="0">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconUpload}"
-                                  Style="{StaticResource NavIcon}"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                            <TextBlock Text="Neuer Upload"
+                            <TextBlock Style="{StaticResource IconXL}"
+                                       Text="&#xf09b;"
+                                       Margin="0,0,24,0"/>
+                            <TextBlock Text="{DynamicResource Nav_Uploads}"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
                                        VerticalAlignment="Center"/>
@@ -81,10 +81,10 @@
                                  Checked="NavButton_Checked"
                                  Tag="1">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconAccounts}"
-                                  Style="{StaticResource NavIcon}"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                            <TextBlock Text="Konten"
+                            <TextBlock Style="{StaticResource IconXL}"
+                                       Text="&#xe1a0;"
+                                       Margin="0,0,24,0"/>
+                            <TextBlock Text="{DynamicResource Nav_Accounts}"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
                                        VerticalAlignment="Center"/>
@@ -96,10 +96,10 @@
                                  Checked="NavButton_Checked"
                                  Tag="2">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconChannel}"
-                                  Style="{StaticResource NavIcon}"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                            <TextBlock Text="Kanalprofil"
+                            <TextBlock Style="{StaticResource IconXL}"
+                                       Text="&#xf8d1;"
+                                       Margin="0,0,24,0"/>
+                            <TextBlock Text="{DynamicResource Nav_Channels}"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
                                        VerticalAlignment="Center"/>
@@ -111,10 +111,10 @@
                                  Checked="NavButton_Checked"
                                  Tag="3">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconTemplates}"
-                                  Style="{StaticResource NavIcon}"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                            <TextBlock Text="Templates"
+                            <TextBlock Style="{StaticResource IconXL}"
+                                       Text="&#xe02f;"
+                                       Margin="0,0,24,0"/>
+                            <TextBlock Text="{DynamicResource Nav_Templates}"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
                                        VerticalAlignment="Center"/>
@@ -126,10 +126,10 @@
                                  Checked="NavButton_Checked"
                                  Tag="4">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconHistory}"
-                                  Style="{StaticResource NavIcon}"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                            <TextBlock Text="Historie"
+                            <TextBlock Style="{StaticResource IconXL}"
+                                       Text="&#xe889;"
+                                       Margin="0,0,24,0"/>
+                            <TextBlock Text="{DynamicResource Nav_History}"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
                                        VerticalAlignment="Center"/>
@@ -141,10 +141,10 @@
                                  Checked="NavButton_Checked"
                                  Tag="5">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource IconSettings}"
-                                  Style="{StaticResource NavIcon}"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
-                            <TextBlock Text="Einstellungen"
+                            <TextBlock Style="{StaticResource IconXL}"
+                                       Text="&#xe8b8;"
+                                       Margin="0,0,24,0"/>
+                            <TextBlock Text="{DynamicResource Nav_Settings}"
                                        FontWeight="SemiBold"
                                        FontSize="{StaticResource FontSizeM}"
                                        VerticalAlignment="Center"/>
@@ -186,11 +186,11 @@
                                Margin="{StaticResource SpacingVerticalM}">
                         <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
                                    RequestNavigate="OpenUrlInBrowser">
-                            <Run Text="GitHub Repository"/>
+                            <Run Text="{DynamicResource App_Github}"/>
                         </Hyperlink>
                     </TextBlock>
 
-                    <TextBlock Text="© dabinuss"
+                    <TextBlock Text="{DynamicResource App_Copyright}"
                                FontSize="{StaticResource FontSizeXS}"
                                Foreground="{StaticResource TextMutedBrush}"/>
                 </StackPanel>
@@ -218,12 +218,12 @@
                     <StackPanel Orientation="Horizontal"
                                 DockPanel.Dock="Left"
                                 VerticalAlignment="Center">
-                        <TextBlock Text="Status:"
+                        <TextBlock Text="{DynamicResource Status}"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    FontSize="{StaticResource FontSizeM}"
                                    Margin="0,0,6,0"/>
                         <TextBlock x:Name="StatusTextBlock"
-                                   Text="Bereit"
+                                   Text="{DynamicResource Status_Ready}"
                                    Foreground="{StaticResource TextPrimaryBrush}"
                                    FontSize="{StaticResource FontSizeM}"
                                    FontWeight="SemiBold"/>
@@ -300,17 +300,17 @@
                                                    FontSize="{StaticResource FontSizeXXL}"
                                                    HorizontalAlignment="Center"
                                                    Margin="{StaticResource SpacingVerticalM}"/>
-                                        <TextBlock Text="Video hierher ziehen"
+                                        <TextBlock Text="{DynamicResource Upload_DropVideo}"
                                                    FontSize="{StaticResource FontSizeXL}"
                                                    FontWeight="SemiBold"
                                                    Foreground="{StaticResource TextPrimaryBrush}"
                                                    HorizontalAlignment="Center"/>
-                                        <TextBlock Text="oder klicken zum Auswählen"
+                                        <TextBlock Text="{DynamicResource Upload_DropVideo_Descr}"
                                                    FontSize="{StaticResource FontSizeM}"
                                                    Foreground="{StaticResource TextMutedBrush}"
                                                    HorizontalAlignment="Center"
                                                    Margin="0,4,0,0"/>
-                                        <TextBlock Text="MP4, MKV, AVI, MOV, WMV, FLV, WEBM"
+                                        <TextBlock Text="{DynamicResource Upload_DropVideo_AllowedFiles}"
                                                    FontSize="{StaticResource FontSizeXS}"
                                                    Foreground="{StaticResource TextMutedBrush}"
                                                    HorizontalAlignment="Center"
@@ -361,7 +361,7 @@
                                     <!-- Ändern Button -->
                                     <Button x:Name="VideoChangeButton"
                                             Grid.Column="2"
-                                            Content="Ändern"
+                                            Content="{DynamicResource Common_Change}"
                                             Style="{StaticResource SecondaryButton}"
                                             Click="VideoChangeButton_Click"
                                             VerticalAlignment="Center"
@@ -379,7 +379,7 @@
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="🚀"
                                                        Margin="0,0,6,0"/>
-                                            <TextBlock Text="Upload starten"/>
+                                            <TextBlock Text="{DynamicResource Upload_StartUpload}"/>
                                         </StackPanel>
                                     </Button>
                                 </Grid>
@@ -408,7 +408,7 @@
                                 <GroupBox Tag="{Binding ElementName=TitleTextBox}"
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
-                                        <TextBlock Text="Titel"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Title}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
@@ -425,11 +425,6 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Grid.Row="0"
-                                                       Text="(erforderlich)"
-                                                       FontSize="{StaticResource FontSizeS}"
-                                                       Foreground="{StaticResource TextMutedBrush}"/>
-
                                             <TextBox x:Name="TitleTextBox"
                                                      Grid.Row="2"
                                                      Grid.Column="0"
@@ -442,10 +437,9 @@
                                                     Click="GenerateTitleButton_Click"
                                                     ToolTip="KI-Vorschlag generieren">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="✨"
-                                                               Foreground="{StaticResource AccentRedBrush}"
-                                                               Margin="0,0,4,0"/>
-                                                    <TextBlock Text="Vorschlagen"/>
+                                                    <TextBlock Style="{StaticResource IconL}"
+                                                               Text="&#xe663;"/>
+                                                    <TextBlock Text="{DynamicResource Upload_Fields_Suggest}"/>
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -456,7 +450,7 @@
                                 <GroupBox Tag="{Binding ElementName=DescriptionTextBox}"
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
-                                        <TextBlock Text="Beschreibung"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Description}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
@@ -488,7 +482,7 @@
                                                           Margin="0,0,6,0"/>
                                                 <Button x:Name="ApplyTemplateButton"
                                                         Grid.Column="1"
-                                                        Content="📄 Anwenden"
+                                                        Content="{DynamicResource Common_Apply}"
                                                         Style="{StaticResource SecondaryButton}"
                                                         Click="ApplyTemplateButton_Click"
                                                         Margin="0,0,6,0"/>
@@ -498,10 +492,9 @@
                                                         Click="GenerateDescriptionButton_Click"
                                                         ToolTip="KI-Vorschlag generieren">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="✨"
-                                                                   Foreground="{StaticResource AccentRedBrush}"
-                                                                   Margin="0,0,4,0"/>
-                                                        <TextBlock Text="Vorschlagen"/>
+                                                        <TextBlock Style="{StaticResource IconL}"
+                                                                   Text="&#xe663;"/>
+                                                        <TextBlock Text="{DynamicResource Upload_Fields_Suggest}"/>
                                                     </StackPanel>
                                                 </Button>
                                             </Grid>
@@ -513,7 +506,7 @@
                                 <GroupBox Tag="{Binding ElementName=TagsTextBox}"
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
-                                        <TextBlock Text="Tags"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Tags}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
@@ -540,10 +533,9 @@
                                                     Click="GenerateTagsButton_Click"
                                                     ToolTip="KI-Vorschlag generieren">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="✨"
-                                                               Foreground="{StaticResource AccentRedBrush}"
-                                                               Margin="0,0,4,0"/>
-                                                    <TextBlock Text="Vorschlagen"/>
+                                                    <TextBlock Style="{StaticResource IconL}"
+                                                               Text="&#xe663;"/>
+                                                    <TextBlock Text="{DynamicResource Upload_Fields_Suggest}"/>
                                                 </StackPanel>
                                             </Button>
                                         </Grid>
@@ -554,7 +546,7 @@
                                 <GroupBox Tag="{Binding ElementName=TranscriptTextBox}"
                                           PreviewMouseDown="FocusTargetOnContainerClick">
                                     <StackPanel>
-                                        <TextBlock Text="Transkript des Videos"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Transcription}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,4"/>
                                         <Grid>
@@ -567,7 +559,7 @@
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Grid.Row="0"
-                                                       Text="Automatisch generiertes Transkript, benutzt für KI-Vorschläge."
+                                                       Text="{DynamicResource Upload_Fields_Transcription_Descr}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
 
@@ -597,11 +589,41 @@
                                                 <Button x:Name="TranscribeButton"
                                                         Grid.Row="0"
                                                         Grid.Column="0"
-                                                        Content="🎤 Transkribieren"
-                                                        Style="{StaticResource AccentButton}"
                                                         Click="TranscribeButton_Click"
                                                         IsEnabled="False"
-                                                        ToolTip="Video automatisch transkribieren"/>
+                                                        Tag="default"
+                                                        ToolTip="Video automatisch transkribieren">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button"
+                                                               BasedOn="{StaticResource AccentButton}">
+                                                            <!-- Default State -->
+                                                            <Setter Property="Content">
+                                                                <Setter.Value>
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Style="{StaticResource IconL}"
+                                                                                   Text="&#xe048;"/>
+                                                                        <TextBlock Text="{DynamicResource Upload_Fields_Transcripe}"/>
+                                                                    </StackPanel>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <!-- Active State -->
+                                                            <Style.Triggers>
+                                                                <Trigger Property="Tag"
+                                                                         Value="active">
+                                                                    <Setter Property="Content">
+                                                                        <Setter.Value>
+                                                                            <StackPanel Orientation="Horizontal">
+                                                                                <TextBlock Style="{StaticResource IconL}"
+                                                                                           Text="&#xe5c9;"/>
+                                                                                <TextBlock Text="{DynamicResource Common_Cancel}"/>
+                                                                            </StackPanel>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Trigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
 
                                                 <Button x:Name="TranscriptionExportButton"
                                                         Grid.Row="0"
@@ -644,7 +666,7 @@
                                 <!-- Plattform -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Plattform"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Platform}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
                                         <WrapPanel>
@@ -654,20 +676,10 @@
                                                           Style="{StaticResource PlatformToggleButton}">
                                                 <StackPanel VerticalAlignment="Center"
                                                             HorizontalAlignment="Center">
-                                                    <Border Width="36"
-                                                            Height="26"
-                                                            CornerRadius="{StaticResource RadiusM}"
-                                                            Background="#FF0000"
-                                                            Margin="0,0,0,4">
-                                                        <Path Data="{StaticResource IconPlay}"
-                                                              Fill="White"
-                                                              Width="10"
-                                                              Height="10"
-                                                              Stretch="Uniform"
-                                                              HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <TextBlock Text="YouTube"
+                                                        <TextBlock Style="{StaticResource IconXXL}"
+                                                                   Text="&#xe038;"
+                                                                   Margin="0,0,24,0"/>
+                                                    <TextBlock Text="{DynamicResource Upload_Fields_Platform_YouTube}"
                                                                FontSize="{StaticResource FontSizeS}"
                                                                Foreground="{StaticResource TextSecondaryBrush}"
                                                                HorizontalAlignment="Center"/>
@@ -691,7 +703,7 @@
                                                                    HorizontalAlignment="Center"
                                                                    VerticalAlignment="Center"/>
                                                     </Border>
-                                                    <TextBlock Text="TikTok"
+                                                    <TextBlock Text="{DynamicResource Upload_Fields_Platform_TikTok}"
                                                                FontSize="{StaticResource FontSizeS}"
                                                                Foreground="{StaticResource TextMutedBrush}"
                                                                HorizontalAlignment="Center"/>
@@ -738,16 +750,16 @@
                                                                            FontSize="{StaticResource FontSizeXL}"
                                                                            HorizontalAlignment="Center"
                                                                            Margin="0,0,0,6"/>
-                                                                <TextBlock Text="Thumbnail hierher ziehen"
+                                                                <TextBlock Text="{DynamicResource Upload_Fields_Thumbnail_DropZone}"
                                                                            FontSize="{StaticResource FontSizeM}"
                                                                            Foreground="{StaticResource TextSecondaryBrush}"
                                                                            HorizontalAlignment="Center"/>
-                                                                <TextBlock Text="oder klicken zum Auswählen"
+                                                                <TextBlock Text="{DynamicResource Upload_Fields_Thumbnail_DropZone_Descr}"
                                                                            FontSize="{StaticResource FontSizeS}"
                                                                            Foreground="{StaticResource TextMutedBrush}"
                                                                            HorizontalAlignment="Center"
                                                                            Margin="0,2,0,0"/>
-                                                                <TextBlock Text="PNG, JPG, JPEG (16:9 empfohlen)"
+                                                                <TextBlock Text="{DynamicResource Upload_Fields_Thumbnail_DropZone_AllowedFiles}"
                                                                            FontSize="{StaticResource FontSizeXS}"
                                                                            Foreground="{StaticResource TextMutedBrush}"
                                                                            HorizontalAlignment="Center"
@@ -765,7 +777,7 @@
                                                                     Opacity="0">
                                                                 <StackPanel HorizontalAlignment="Center"
                                                                             VerticalAlignment="Center">
-                                                                    <TextBlock Text="Klicken zum Ändern"
+                                                                    <TextBlock Text="{DynamicResource Upload_Fields_Thumbnail_Change}"
                                                                                Foreground="White"
                                                                                FontSize="{StaticResource FontSizeM}"
                                                                                HorizontalAlignment="Center"/>
@@ -789,7 +801,7 @@
                                                            MaxWidth="200"
                                                            TextTrimming="CharacterEllipsis"/>
                                                 <Button x:Name="ThumbnailClearButton"
-                                                        Content="✕ Entfernen"
+                                                        Content="{DynamicResource Common_Remove}"
                                                         Style="{StaticResource SecondaryButton}"
                                                         Click="ThumbnailClearButton_Click"
                                                         Padding="8,4"
@@ -805,16 +817,16 @@
                                 <!-- Sichtbarkeit -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Sichtbarkeit"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Visibility}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
                                         <ComboBox x:Name="VisibilityComboBox">
-                                            <ComboBoxItem Content="🌐 Öffentlich"
+                                            <ComboBoxItem Content="{DynamicResource Upload_Fields_Visibility_Public}"
                                                           Tag="{x:Static core:VideoVisibility.Public}"/>
-                                            <ComboBoxItem Content="🔗 Nicht gelistet"
+                                            <ComboBoxItem Content="{DynamicResource Upload_Fields_Visibility_Unlisted}"
                                                           Tag="{x:Static core:VideoVisibility.Unlisted}"
                                                           IsSelected="True"/>
-                                            <ComboBoxItem Content="🔒 Privat"
+                                            <ComboBoxItem Content="{DynamicResource Upload_Fields_Visibility_Private}"
                                                           Tag="{x:Static core:VideoVisibility.Private}"/>
                                         </ComboBox>
                                     </StackPanel>
@@ -823,7 +835,7 @@
                                 <!-- Playlist -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Playlists"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Paylists}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
                                         <ComboBox x:Name="PlaylistComboBox"
@@ -835,12 +847,12 @@
                                 <!-- Veröffentlichung -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Veröffentlichungszeitpunkt"
+                                        <TextBlock Text="{DynamicResource Upload_Fields_Publication}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,0,0,4"/>
 
                                         <CheckBox x:Name="ScheduleCheckBox"
-                                                  Content="Geplante Veröffentlichung"
+                                                  Content="{DynamicResource Upload_Fields_Publication_Plan}"
                                                   Margin="0,0,0,10"
                                                   IsChecked="True"/>
                                         <Grid IsEnabled="{Binding IsChecked, ElementName=ScheduleCheckBox}">
@@ -854,7 +866,7 @@
                                                 <ColumnDefinition Width="80"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0"
-                                                       Text="Datum:"
+                                                       Text="{DynamicResource Upload_Fields_Publication_Date}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <DatePicker x:Name="ScheduleDatePicker"
@@ -862,7 +874,7 @@
                                                         SelectedDateFormat="Short"
                                                         FirstDayOfWeek="Monday"/>
                                             <TextBlock Grid.Column="4"
-                                                       Text="Zeit:"
+                                                       Text="{DynamicResource Upload_Fields_Publication_Time}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox x:Name="ScheduleTimeTextBox"
@@ -888,7 +900,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <GroupBox Header="YouTube-Konto"
+                        <GroupBox Header="{DynamicResource Accounts_YouTube}"
                                   Grid.Row="0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -903,7 +915,7 @@
                                         CornerRadius="{StaticResource RadiusCircle}"
                                         Background="#FF4444"
                                         Margin="0,0,10,0">
-                                    <TextBlock Text="YT"
+                                    <TextBlock Text="{DynamicResource Accounts_YouTube_Short}"
                                                Foreground="White"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
@@ -913,11 +925,11 @@
                                 <StackPanel Grid.Column="1"
                                             VerticalAlignment="Center">
                                     <TextBlock x:Name="YouTubeAccountStatusTextBlock"
-                                               Text="Nicht mit YouTube verbunden."
+                                               Text="{DynamicResource Accounts_YouTube_Msg_NotConnected}"
                                                Foreground="{StaticResource TextPrimaryBrush}"
                                                FontWeight="Medium"
                                                FontSize="{StaticResource FontSizeM}"/>
-                                    <TextBlock Text="Klicke auf Verbinden, um dich anzumelden"
+                                    <TextBlock Text="{DynamicResource Accounts_YouTube_Msg_ClickToConnect}"
                                                Foreground="{StaticResource TextMutedBrush}"
                                                FontSize="{StaticResource FontSizeS}"/>
                                 </StackPanel>
@@ -925,22 +937,22 @@
                                             Orientation="Horizontal"
                                             VerticalAlignment="Center">
                                     <Button x:Name="YouTubeConnectButton"
-                                            Content="Verbinden"
+                                            Content="{DynamicResource Accounts_YouTube_Connect}"
                                             Style="{StaticResource PrimaryButton}"
                                             Click="YouTubeConnectButton_Click"
                                             Margin="0,0,6,0"/>
                                     <Button x:Name="YouTubeDisconnectButton"
-                                            Content="Trennen"
+                                            Content="{DynamicResource Accounts_YouTube_Disconnect}"
                                             Style="{StaticResource SecondaryButton}"
                                             Click="YouTubeDisconnectButton_Click"/>
                                 </StackPanel>
                             </Grid>
                         </GroupBox>
 
-                        <GroupBox Header="YouTube-Playlists"
+                        <GroupBox Header="{DynamicResource Accounts_YouTube_Playlists}"
                                   Grid.Row="1">
                             <StackPanel>
-                                <TextBlock Text="Standard-Playlist für neue Uploads:"
+                                <TextBlock Text="{DynamicResource Accounts_YouTube_StandardPlaylist}"
                                            Foreground="{StaticResource TextMutedBrush}"
                                            FontSize="{StaticResource FontSizeM}"
                                            Margin="0,0,0,4"/>
@@ -959,7 +971,7 @@
                               Visibility="Collapsed">
                     <Grid MaxWidth="550"
                           HorizontalAlignment="Left">
-                        <GroupBox Header="Kanalprofil für KI-Vorschläge">
+                        <GroupBox Header="{DynamicResource Channel_Persona}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
@@ -985,21 +997,21 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <Label Content="Name:"
+                                <Label Content="{DynamicResource Channel_Fields_Name}"
                                        Grid.Row="0"
                                        Grid.Column="0"/>
                                 <TextBox x:Name="ChannelPersonaNameTextBox"
                                          Grid.Row="0"
                                          Grid.Column="1"/>
 
-                                <Label Content="Channel-Name:"
+                                <Label Content="{DynamicResource Channel_Fields_ChannelName}"
                                        Grid.Row="2"
                                        Grid.Column="0"/>
                                 <TextBox x:Name="ChannelPersonaChannelNameTextBox"
                                          Grid.Row="2"
                                          Grid.Column="1"/>
 
-                                <Label Content="Sprache:"
+                                <Label Content="{DynamicResource Channel_Fields_Language}"
                                        Grid.Row="4"
                                        Grid.Column="0"/>
                                 <ComboBox x:Name="ChannelPersonaLanguageTextBox"
@@ -1012,7 +1024,7 @@
                                           MinWidth="200"
                                           ToolTip="z. B. de-DE oder deutsch"/>
 
-                                <Label Content="Tonfall:"
+                                <Label Content="{DynamicResource Channel_Fields_ToneOfWords}"
                                        Grid.Row="6"
                                        Grid.Column="0"/>
                                 <TextBox x:Name="ChannelPersonaToneOfVoiceTextBox"
@@ -1020,7 +1032,7 @@
                                          Grid.Column="1"
                                          ToolTip="z. B. locker, sarkastisch, informativ"/>
 
-                                <Label Content="Content-Typ:"
+                                <Label Content="{DynamicResource Channel_Fields_ContentType}"
                                        Grid.Row="8"
                                        Grid.Column="0"/>
                                 <TextBox x:Name="ChannelPersonaContentTypeTextBox"
@@ -1028,7 +1040,7 @@
                                          Grid.Column="1"
                                          ToolTip="z. B. Gaming Highlights, IRL, Tutorials"/>
 
-                                <Label Content="Zielgruppe:"
+                                <Label Content="{DynamicResource Channel_Fields_TargetAudience}"
                                        Grid.Row="10"
                                        Grid.Column="0"/>
                                 <TextBox x:Name="ChannelPersonaTargetAudienceTextBox"
@@ -1039,7 +1051,7 @@
                                 <TextBlock Grid.Row="12"
                                            Grid.Column="0"
                                            Grid.ColumnSpan="2"
-                                           Text="Zusätzliche Anweisungen:"
+                                           Text="{DynamicResource Channel_Fields_AdditionalInstructions}"
                                            Foreground="{StaticResource TextMutedBrush}"
                                            FontSize="{StaticResource FontSizeM}"/>
                                 <TextBox x:Name="ChannelPersonaAdditionalInstructionsTextBox"
@@ -1052,7 +1064,7 @@
                                          Height="80"/>
 
                                 <Button x:Name="ChannelProfileSaveButton"
-                                        Content="💾 Speichern"
+                                        Content="{DynamicResource Common_Save}"
                                         Grid.Row="16"
                                         Grid.Column="1"
                                         Style="{StaticResource PrimaryButton}"
@@ -1073,24 +1085,24 @@
                                           MaxWidth="480"/>
                     </Grid.ColumnDefinitions>
 
-                    <GroupBox Header="Verfügbare Templates"
+                    <GroupBox Header="{DynamicResource Templates_Header}"
                               Grid.Column="0">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Bottom"
                                         Orientation="Horizontal"
                                         Margin="{StaticResource SpacingVerticalM}">
                                 <Button x:Name="TemplateNewButton"
-                                        Content="+ Neu"
+                                        Content="{DynamicResource Common_Add}"
                                         Style="{StaticResource SecondaryButton}"
                                         Click="TemplateNewButton_Click"
                                         Margin="0,0,4,0"/>
                                 <Button x:Name="TemplateEditButton"
-                                        Content="Bearbeiten"
+                                        Content="{DynamicResource Common_Edit}"
                                         Style="{StaticResource SecondaryButton}"
                                         Click="TemplateEditButton_Click"
                                         Margin="0,0,4,0"/>
                                 <Button x:Name="TemplateDeleteButton"
-                                        Content="Löschen"
+                                        Content="{DynamicResource Common_Delete}"
                                         Style="{StaticResource SecondaryButton}"
                                         Click="TemplateDeleteButton_Click"/>
                             </StackPanel>
@@ -1100,7 +1112,7 @@
                         </DockPanel>
                     </GroupBox>
 
-                    <GroupBox Header="Template bearbeiten"
+                    <GroupBox Header="{DynamicResource Templates_Edit}"
                               Grid.Column="2">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -1124,14 +1136,14 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Content="Name:"
+                            <Label Content="{DynamicResource Templates_Fields_Name}"
                                    Grid.Row="0"
                                    Grid.Column="0"/>
                             <TextBox x:Name="TemplateNameTextBox"
                                      Grid.Row="0"
                                      Grid.Column="1"/>
 
-                            <Label Content="Plattform:"
+                            <Label Content="{DynamicResource Templates_Fields_Platform}"
                                    Grid.Row="2"
                                    Grid.Column="0"/>
                             <ComboBox x:Name="TemplatePlatformComboBox"
@@ -1144,9 +1156,9 @@
                                       Grid.Row="4"
                                       Grid.Column="0"
                                       Grid.ColumnSpan="2"
-                                      Content="Als Standard-Template verwenden"/>
+                                      Content="{DynamicResource Templates_Fields_UseAsStandard}"/>
 
-                            <Label Content="Beschreibung:"
+                            <Label Content="{DynamicResource Templates_Fields_Notes}"
                                    Grid.Row="6"
                                    Grid.Column="0"/>
                             <TextBox x:Name="TemplateDescriptionTextBox"
@@ -1160,7 +1172,7 @@
                             <TextBlock Grid.Row="8"
                                        Grid.Column="0"
                                        Grid.ColumnSpan="2"
-                                       Text="Template-Text:"
+                                       Text="{DynamicResource Templates_Fields_TemplateBody}"
                                        Foreground="{StaticResource TextMutedBrush}"
                                        FontSize="{StaticResource FontSizeM}"/>
                             <TextBox x:Name="TemplateBodyEditorTextBox"
@@ -1172,7 +1184,7 @@
                                      VerticalScrollBarVisibility="Auto"/>
 
                             <Button x:Name="TemplateSaveButton"
-                                    Content="💾 Speichern"
+                                    Content="{DynamicResource Common_Save}"
                                     Grid.Row="12"
                                     Grid.Column="1"
                                     Style="{StaticResource PrimaryButton}"
@@ -1198,15 +1210,15 @@
                             CornerRadius="{StaticResource RadiusL}"
                             Padding="10,8">
                         <StackPanel Orientation="Horizontal">
-                            <Label Content="Plattform:"
+                            <Label Content="{DynamicResource Platform}"
                                    Margin="0,0,4,0"/>
                             <ComboBox x:Name="HistoryPlatformFilterComboBox"
                                       Width="120"
                                       Margin="{StaticResource SpacingHorizontalL}"
                                       SelectionChanged="HistoryFilter_Changed">
-                                <ComboBoxItem Content="Alle"
+                                <ComboBoxItem Content="{DynamicResource Common_All}"
                                               IsSelected="True"/>
-                                <ComboBoxItem Content="YouTube"
+                                <ComboBoxItem Content="{DynamicResource Platform_YouTube}"
                                               Tag="{x:Static core:PlatformType.YouTube}"/>
                             </ComboBox>
 
@@ -1218,14 +1230,14 @@
                                       SelectionChanged="HistoryFilter_Changed">
                                 <ComboBoxItem Content="Alle"
                                               IsSelected="True"/>
-                                <ComboBoxItem Content="✓ Erfolg"
+                                <ComboBoxItem Content="{DynamicResource History_Success}"
                                               Tag="Success"/>
-                                <ComboBoxItem Content="✗ Fehler"
+                                <ComboBoxItem Content="{DynamicResource History_Error}"
                                               Tag="Error"/>
                             </ComboBox>
 
                             <Button x:Name="HistoryClearButton"
-                                    Content="🗑 Leeren"
+                                    Content="{DynamicResource History_ClearList}"
                                     Style="{StaticResource SecondaryButton}"
                                     Click="HistoryClearButton_Click"/>
                         </StackPanel>
@@ -1245,19 +1257,19 @@
                                   SelectionMode="Single"
                                   MouseDoubleClick="HistoryDataGrid_MouseDoubleClick">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Datum/Uhrzeit"
+                                <DataGridTextColumn Header="{DynamicResource History_List_DateTime}"
                                                     Binding="{Binding DateTime, StringFormat=G}"
                                                     Width="140"/>
-                                <DataGridTextColumn Header="Plattform"
+                                <DataGridTextColumn Header="{DynamicResource Common_Platform}"
                                                     Binding="{Binding Platform}"
                                                     Width="80"/>
-                                <DataGridTextColumn Header="Titel"
+                                <DataGridTextColumn Header="{DynamicResource History_List_Title}"
                                                     Binding="{Binding VideoTitle}"
                                                     Width="*"/>
-                                <DataGridTextColumn Header="Status"
+                                <DataGridTextColumn Header="{DynamicResource Common_Status}"
                                                     Binding="{Binding Status}"
                                                     Width="70"/>
-                                <DataGridTemplateColumn Header="Link"
+                                <DataGridTemplateColumn Header="{DynamicResource History_List_Link}"
                                                         Width="180">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
@@ -1294,7 +1306,7 @@
                                 CornerRadius="{StaticResource RadiusL}"
                                 Padding="16,12">
                             <DockPanel>
-                                <TextBlock Text="Einstellungen"
+                                <TextBlock Text="{DynamicResource Settings}"
                                            FontSize="{StaticResource FontSizeL}"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource TextPrimaryBrush}"
@@ -1305,9 +1317,7 @@
                                         Click="SettingsSaveButton_Click"
                                         HorizontalAlignment="Right">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="💾"
-                                                   Margin="0,0,6,0"/>
-                                        <TextBlock Text="Alle Einstellungen speichern"/>
+                                        <TextBlock Text="{DynamicResource Settings_SaveAll}"/>
                                     </StackPanel>
                                 </Button>
                             </DockPanel>
@@ -1329,7 +1339,7 @@
                                 <!-- Ordner -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Ordner"
+                                        <TextBlock Text="{DynamicResource Settings_StandardFolders}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,8"/>
                                         <Grid>
@@ -1350,7 +1360,7 @@
                                             <TextBlock Grid.Row="0"
                                                        Grid.Column="0"
                                                        Grid.ColumnSpan="2"
-                                                       Text="Video-Ordner"
+                                                       Text="{DynamicResource Settings_VideoFolder}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <TextBox x:Name="DefaultVideoFolderTextBox"
@@ -1367,7 +1377,7 @@
                                             <TextBlock Grid.Row="4"
                                                        Grid.Column="0"
                                                        Grid.ColumnSpan="2"
-                                                       Text="Thumbnail-Ordner"
+                                                       Text="{DynamicResource Settings_ThumbnailFolder}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <TextBox x:Name="DefaultThumbnailFolderTextBox"
@@ -1377,7 +1387,7 @@
                                             <Button x:Name="DefaultThumbnailFolderBrowseButton"
                                                     Grid.Row="6"
                                                     Grid.Column="1"
-                                                    Content="Wählen..."
+                                                    Content="{DynamicResource Settings_ChoosePath}"
                                                     Style="{StaticResource SecondaryButton}"
                                                     Click="DefaultThumbnailFolderBrowseButton_Click"/>
                                         </Grid>
@@ -1387,7 +1397,7 @@
                                 <!-- Upload-Standardwerte -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Upload-Standardwerte"
+                                        <TextBlock Text="{DynamicResource Settings_UploadSettings}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,8"/>
                                         <Grid>
@@ -1406,7 +1416,7 @@
 
                                             <TextBlock Grid.Row="0"
                                                        Grid.Column="0"
-                                                       Text="Standard-Zeit:"
+                                                       Text="{DynamicResource Settings_StandardReleaseTime}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBox x:Name="DefaultSchedulingTimeTextBox"
@@ -1418,7 +1428,7 @@
 
                                             <TextBlock Grid.Row="2"
                                                        Grid.Column="0"
-                                                       Text="Sichtbarkeit:"
+                                                       Text="{DynamicResource Upload_Fields_Visibility}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <ComboBox x:Name="DefaultVisibilityComboBox"
@@ -1426,11 +1436,11 @@
                                                       Grid.Column="2"
                                                       HorizontalAlignment="Left"
                                                       MinWidth="160">
-                                                <ComboBoxItem Content="🌐 Öffentlich"
+                                                <ComboBoxItem Content="{DynamicResource Upload_Fields_Visibility_Public}"
                                                               Tag="{x:Static core:VideoVisibility.Public}"/>
-                                                <ComboBoxItem Content="🔗 Nicht gelistet"
+                                                <ComboBoxItem Content="{DynamicResource Upload_Fields_Visibility_Unlisted}"
                                                               Tag="{x:Static core:VideoVisibility.Unlisted}"/>
-                                                <ComboBoxItem Content="🔒 Privat"
+                                                <ComboBoxItem Content="{DynamicResource Upload_Fields_Visibility_Private}"
                                                               Tag="{x:Static core:VideoVisibility.Private}"/>
                                             </ComboBox>
 
@@ -1438,13 +1448,13 @@
                                                         Grid.Column="0"
                                                         Grid.ColumnSpan="3">
                                                 <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
-                                                          Content="Vor Upload um Bestätigung fragen"/>
+                                                          Content="{DynamicResource Settings_StandardReleaseTime}"/>
                                                 <CheckBox x:Name="AutoApplyDefaultTemplateCheckBox"
-                                                          Content="Template automatisch anwenden"/>
+                                                          Content="{DynamicResource Settings_ConfirmUpload}"/>
                                                 <CheckBox x:Name="OpenBrowserAfterUploadCheckBox"
-                                                          Content="Nach Upload Browser öffnen"/>
+                                                          Content="{DynamicResource Settings_OpenBrowserAfterUpload}"/>
                                                 <CheckBox x:Name="AutoConnectYouTubeCheckBox"
-                                                          Content="Beim Start mit YouTube verbinden"/>
+                                                          Content="{DynamicResource Settings_AutomaticConnect}"/>
                                             </StackPanel>
                                         </Grid>
                                     </StackPanel>
@@ -1453,7 +1463,7 @@
                                 <!-- Transkription -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Transkription"
+                                        <TextBlock Text="{DynamicResource Settings_Transcription}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,8"/>
                                         <Grid>
@@ -1478,11 +1488,11 @@
                                                       Grid.Row="0"
                                                       Grid.Column="0"
                                                       Grid.ColumnSpan="3"
-                                                      Content="Automatisch transkribieren bei Video-Auswahl"/>
+                                                      Content="{DynamicResource Settings_AutomaticTranscription}"/>
 
                                             <TextBlock Grid.Row="2"
                                                        Grid.Column="0"
-                                                       Text="Modellgröße:"
+                                                       Text="{DynamicResource Settings_WhisperModelSize}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <ComboBox x:Name="TranscriptionModelSizeComboBox"
@@ -1490,22 +1500,22 @@
                                                       Grid.Column="2"
                                                       HorizontalAlignment="Left"
                                                       MinWidth="200">
-                                                <ComboBoxItem Content="Tiny (~75 MB, schnell)"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperModelSize_Tiny}"
                                                               Tag="{x:Static config:WhisperModelSize.Tiny}"/>
-                                                <ComboBoxItem Content="Base (~142 MB)"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperModelSize_Base}"
                                                               Tag="{x:Static config:WhisperModelSize.Base}"/>
-                                                <ComboBoxItem Content="Small (~466 MB, empfohlen)"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperModelSize_Small}"
                                                               Tag="{x:Static config:WhisperModelSize.Small}"
                                                               IsSelected="True"/>
-                                                <ComboBoxItem Content="Medium (~1.5 GB)"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperModelSize_Medium}"
                                                               Tag="{x:Static config:WhisperModelSize.Medium}"/>
-                                                <ComboBoxItem Content="Large (~2.9 GB)"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperModelSize_Large}"
                                                               Tag="{x:Static config:WhisperModelSize.Large}"/>
                                             </ComboBox>
 
                                             <TextBlock Grid.Row="4"
                                                        Grid.Column="0"
-                                                       Text="Sprache:"
+                                                       Text="{DynamicResource Settings_WhisperLanguage}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <ComboBox x:Name="TranscriptionLanguageComboBox"
@@ -1513,25 +1523,25 @@
                                                       Grid.Column="2"
                                                       HorizontalAlignment="Left"
                                                       MinWidth="200">
-                                                <ComboBoxItem Content="Deutsch"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperLanguage_De}"
                                                               Tag="de"
                                                               IsSelected="True"/>
-                                                <ComboBoxItem Content="Englisch"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperLanguage_En}"
                                                               Tag="en"/>
-                                                <ComboBoxItem Content="Automatisch erkennen"
+                                                <ComboBoxItem Content="{DynamicResource Settings_WhisperLanguage_Detect}"
                                                               Tag="auto"/>
                                             </ComboBox>
 
                                             <TextBlock Grid.Row="6"
                                                        Grid.Column="0"
-                                                       Text="Status:"
+                                                       Text="{DynamicResource Common_Status}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <TextBlock x:Name="TranscriptionStatusTextBlock"
                                                        Grid.Row="6"
                                                        Grid.Column="2"
                                                        VerticalAlignment="Center"
-                                                       Text="Nicht geprüft"
+                                                       Text="{DynamicResource Settings_Msg_NotChecked}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
 
                                             <StackPanel Grid.Row="8"
@@ -1539,7 +1549,7 @@
                                                         Grid.ColumnSpan="3"
                                                         Orientation="Horizontal">
                                                 <Button x:Name="TranscriptionDownloadButton"
-                                                        Content="📥 Dependencies herunterladen"
+                                                        Content="{DynamicResource Settings_Whisper_Download}"
                                                         Style="{StaticResource SecondaryButton}"
                                                         Click="TranscriptionDownloadButton_Click"/>
                                                 <ProgressBar x:Name="TranscriptionDownloadProgressBar"
@@ -1562,7 +1572,7 @@
                                 <!-- KI / LLM -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="KI / LLM"
+                                        <TextBlock Text="{DynamicResource Settings_LLM}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,8"/>
                                         <Grid>
@@ -1593,7 +1603,7 @@
                                             <TextBlock Grid.Row="0"
                                                        Grid.Column="0"
                                                        Grid.ColumnSpan="2"
-                                                       Text="Modus"
+                                                       Text="{DynamicResource Settings_LLM_Mode}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <ComboBox x:Name="LlmModeComboBox"
@@ -1603,16 +1613,16 @@
                                                       HorizontalAlignment="Left"
                                                       MinWidth="180"
                                                       SelectionChanged="LlmModeComboBox_SelectionChanged">
-                                                <ComboBoxItem Content="Aus"
+                                                <ComboBoxItem Content="{DynamicResource Settings_LLM_Off}"
                                                               Tag="Off"/>
-                                                <ComboBoxItem Content="Lokal (GGUF)"
+                                                <ComboBoxItem Content="{DynamicResource Settings_LLM_Local}"
                                                               Tag="Local"/>
                                             </ComboBox>
 
                                             <TextBlock Grid.Row="4"
                                                        Grid.Column="0"
                                                        Grid.ColumnSpan="2"
-                                                       Text="Modellpfad"
+                                                       Text="{DynamicResource Settings_LLM_PathToModel}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <TextBox x:Name="LlmModelPathTextBox"
@@ -1623,14 +1633,14 @@
                                             <Button x:Name="LlmModelPathBrowseButton"
                                                     Grid.Row="6"
                                                     Grid.Column="1"
-                                                    Content="Wählen..."
+                                                    Content="{DynamicResource Settings_ChoosePath}"
                                                     Style="{StaticResource SecondaryButton}"
                                                     Click="LlmModelPathBrowseButton_Click"/>
 
                                             <TextBlock Grid.Row="8"
                                                        Grid.Column="0"
                                                        Grid.ColumnSpan="2"
-                                                       Text="Modelltyp"
+                                                       Text="{DynamicResource Settings_LLM_ModelType}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <ComboBox x:Name="LlmModelTypeComboBox"
@@ -1640,19 +1650,19 @@
                                                       HorizontalAlignment="Left"
                                                       MinWidth="180"
                                                       ToolTip="Automatisch erkennt den Modelltyp anhand des Dateinamens">
-                                                <ComboBoxItem Content="Automatisch erkennen"
+                                                <ComboBoxItem Content="{DynamicResource Settings_LLM_ModelType}"
                                                               Tag="Auto"
                                                               IsSelected="True"/>
-                                                <ComboBoxItem Content="Phi-3"
+                                                <ComboBoxItem Content="{DynamicResource Settings_LLM_ModelType_Phi3}"
                                                               Tag="Phi3"/>
-                                                <ComboBoxItem Content="Mistral / Ministral"
+                                                <ComboBoxItem Content="{DynamicResource Settings_LLM_ModelType_Mistral3}"
                                                               Tag="Mistral3"/>
                                             </ComboBox>
 
                                             <TextBlock Grid.Row="12"
                                                        Grid.Column="0"
                                                        Grid.ColumnSpan="2"
-                                                       Text="System-Prompt"
+                                                       Text="{DynamicResource Settings_LLM_ModelType_SystemPrompt}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <TextBox x:Name="LlmSystemPromptTextBox"
@@ -1669,11 +1679,11 @@
                                                         Grid.Column="0"
                                                         Grid.ColumnSpan="2"
                                                         Orientation="Horizontal">
-                                                <TextBlock Text="Status:"
+                                                <TextBlock Text="{DynamicResource Common_Status}"
                                                            Foreground="{StaticResource TextMutedBrush}"
                                                            Margin="0,0,8,0"/>
                                                 <TextBlock x:Name="LlmStatusTextBlock"
-                                                           Text="Nicht konfiguriert"
+                                                           Text="{DynamicResource Settings_LLM_Status}"
                                                            Foreground="{StaticResource TextMutedBrush}"/>
                                             </StackPanel>
                                         </Grid>
@@ -1683,7 +1693,7 @@
                                 <!-- Generierungs-Parameter -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="Generierungs-Parameter"
+                                        <TextBlock Text="{DynamicResource Settings_LLM_Parameters}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,8"/>
                                         <Grid>
@@ -1700,7 +1710,7 @@
 
                                             <TextBlock Grid.Row="0"
                                                        Grid.Column="0"
-                                                       Text="Max Tokens:"
+                                                       Text="{DynamicResource Settings_LLM_Parameters_MaxToken}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <StackPanel Grid.Row="0"
@@ -1718,7 +1728,7 @@
 
                                             <TextBlock Grid.Row="2"
                                                        Grid.Column="0"
-                                                       Text="Temperature:"
+                                                       Text="{DynamicResource Settings_LLM_Parameters_Temperature}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
                                             <StackPanel Grid.Row="2"
@@ -1744,7 +1754,7 @@
                                 <!-- Prompt-Anweisungen -->
                                 <GroupBox>
                                     <StackPanel>
-                                        <TextBlock Text="KI-Anweisungen"
+                                        <TextBlock Text="{DynamicResource Settings_LLM_Prompts}"
                                                    Style="{StaticResource TextLabel}"
                                                    Margin="0,-6,0,8"/>
                                         <Grid>
@@ -1763,7 +1773,7 @@
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Grid.Row="0"
-                                                       Text="Titel-Anweisung"
+                                                       Text="{DynamicResource Settings_LLM_Prompts_Title}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <TextBox x:Name="LlmTitleCustomPromptTextBox"
@@ -1774,7 +1784,7 @@
                                                      VerticalScrollBarVisibility="Auto"/>
 
                                             <TextBlock Grid.Row="4"
-                                                       Text="Beschreibungs-Anweisung"
+                                                       Text="{DynamicResource Settings_LLM_Prompts_Description}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <TextBox x:Name="LlmDescriptionCustomPromptTextBox"
@@ -1785,7 +1795,7 @@
                                                      VerticalScrollBarVisibility="Auto"/>
 
                                             <TextBlock Grid.Row="8"
-                                                       Text="Tags-Anweisung"
+                                                       Text="{DynamicResource Settings_LLM_Prompts_Tags}"
                                                        FontSize="{StaticResource FontSizeS}"
                                                        Foreground="{StaticResource TextMutedBrush}"/>
                                             <TextBox x:Name="LlmTagsCustomPromptTextBox"

@@ -3,6 +3,7 @@ using System.Windows;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Transcription;
+using System.Windows.Controls;
 
 namespace DCM.App;
 
@@ -350,26 +351,35 @@ public partial class MainWindow
         return text;
     }
 
-    private void UpdateTranscriptionButtonState()
+    // Allgemeine Funktion zum Umschalten von Button-States
+    private void SetButtonState(Button button, bool isActive)
     {
         if (!Dispatcher.CheckAccess())
         {
-            Dispatcher.BeginInvoke(UpdateTranscriptionButtonState);
+            Dispatcher.BeginInvoke(() => SetButtonState(button, isActive));
             return;
         }
 
-        var hasVideo = !string.IsNullOrWhiteSpace(VideoPathTextBox.Text);
+        button.Tag = isActive ? "active" : "default";
+    }
 
-        if (_isTranscribing)
+    // Optional: Mit Enable/Disable
+    private void SetButtonState(Button button, bool isActive, bool isEnabled)
+    {
+        if (!Dispatcher.CheckAccess())
         {
-            TranscribeButton.Content = "⏹ Abbrechen";
-            TranscribeButton.IsEnabled = true;
+            Dispatcher.BeginInvoke(() => SetButtonState(button, isActive, isEnabled));
+            return;
         }
-        else
-        {
-            TranscribeButton.Content = "🎤 Transkribieren";
-            TranscribeButton.IsEnabled = hasVideo;
-        }
+
+        button.Tag = isActive ? "active" : "default";
+        button.IsEnabled = isEnabled;
+    }
+
+    private void UpdateTranscriptionButtonState()
+    {
+        var hasVideo = !string.IsNullOrWhiteSpace(VideoPathTextBox.Text);
+        SetButtonState(TranscribeButton, _isTranscribing, _isTranscribing || hasVideo);
     }
 
     #endregion
