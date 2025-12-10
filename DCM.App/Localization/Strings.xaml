@@ -2,24 +2,6 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!--
-*** Scheme
-App_*
-Common_*
-Nav_*
-Upload_*
-Accounts_*
-Channel_*
-Templates_*
-History_*
-Settings_*
-Status_*
-Msg_*
-Tip_*
-
-{DynamicResource }
--->
-
     <!-- App -->
     <sys:String x:Key="App_Name">Dabis-Content-Manager</sys:String>
     <sys:String x:Key="App_Github">GitHub Repository</sys:String>

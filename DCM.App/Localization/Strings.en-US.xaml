@@ -4,4 +4,163 @@
 
     <sys:String x:Key="__LangDict">en-US</sys:String>
 
+    <!-- App -->
+    <sys:String x:Key="App_Name">Dabis-Content-Manager</sys:String>
+    <sys:String x:Key="App_Github">GitHub Repository</sys:String>
+    <sys:String x:Key="App_Copyright">© dabinuss</sys:String>
+    <sys:String x:Key="App_CheckUpdates">Check for Updates</sys:String>
+    <sys:String x:Key="App_WindowTitle">Dabis Content Manager · © dabinuss</sys:String>
+
+    <!-- Status -->
+    <sys:String x:Key="Status">Status:</sys:String>
+    <sys:String x:Key="Status_Ready">Status:</sys:String>
+
+    <!-- Platforms -->
+    <sys:String x:Key="Platform">Platform</sys:String>
+    <sys:String x:Key="Platform_YouTube">YouTube</sys:String>
+    <sys:String x:Key="Platform_TikTok">TikTok</sys:String>
+    <sys:String x:Key="Platform_Instagram">Instagram</sys:String>
+
+    <!-- Common -->
+    <sys:String x:Key="Common_Status">Status</sys:String>
+    <sys:String x:Key="Common_All">All</sys:String>
+    <sys:String x:Key="Common_OK">OK</sys:String>
+    <sys:String x:Key="Common_Cancel">Cancel</sys:String>
+    <sys:String x:Key="Common_Yes">Yes</sys:String>
+    <sys:String x:Key="Common_No">No</sys:String>
+    <sys:String x:Key="Common_Close">Close</sys:String>
+    <sys:String x:Key="Common_Browse">Browse...</sys:String>
+    <sys:String x:Key="Common_Add">Add</sys:String>
+    <sys:String x:Key="Common_Edit">Edit</sys:String>
+    <sys:String x:Key="Common_Change">Change</sys:String>
+    <sys:String x:Key="Common_Delete">Delete</sys:String>
+    <sys:String x:Key="Common_Remove">Remove</sys:String>
+    <sys:String x:Key="Common_Update">Update</sys:String>
+    <sys:String x:Key="Common_Apply">Apply</sys:String>
+    <sys:String x:Key="Common_Save">Save</sys:String>
+    <sys:String x:Key="Common_Upload">Upload</sys:String>
+    <sys:String x:Key="Common_Download">Download</sys:String>
+    <sys:String x:Key="Common_Open">Open</sys:String>
+    <sys:String x:Key="Common_YesToAll">Yes to All</sys:String>
+    <sys:String x:Key="Common_NoToAll">No to All</sys:String>
+
+    <!-- Navigation -->
+    <sys:String x:Key="Nav_Uploads">Uploads</sys:String>
+    <sys:String x:Key="Nav_Accounts">Accounts</sys:String>
+    <sys:String x:Key="Nav_Channels">Channels</sys:String>
+    <sys:String x:Key="Nav_Templates">Templates</sys:String>
+    <sys:String x:Key="Nav_History">History</sys:String>
+    <sys:String x:Key="Nav_Settings">Settings</sys:String>
+
+    <!-- Upload -->
+    <sys:String x:Key="Upload_DropVideo">Drag video here</sys:String>
+    <sys:String x:Key="Upload_DropVideo_Descr">or click to select</sys:String>
+    <sys:String x:Key="Upload_DropVideo_AllowedFiles">MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
+    <sys:String x:Key="Upload_StartUpload">Start Upload</sys:String>
+    <sys:String x:Key="Upload_Fields_Title">Title (required)</sys:String>
+    <sys:String x:Key="Upload_Fields_Suggest">Suggest</sys:String>
+    <sys:String x:Key="Upload_Fields_Description">Description</sys:String>
+    <sys:String x:Key="Upload_Fields_Transcription">Transcription</sys:String>
+    <sys:String x:Key="Upload_Fields_Transcription_Descr">Automatically generated transcript, used for AI suggestions.</sys:String>
+    <sys:String x:Key="Upload_Fields_Transcripe">Transcribe</sys:String>
+    <sys:String x:Key="Upload_Fields_Platform">Platform</sys:String>
+    <sys:String x:Key="Upload_Fields_Platform_YouTube">YouTube</sys:String>
+    <sys:String x:Key="Upload_Fields_Platform_TikTok">TikTok</sys:String>
+    <sys:String x:Key="Upload_Fields_Thumbnail">Thumbnail</sys:String>
+    <sys:String x:Key="Upload_Fields_Thumbnail_DropZone">Drag thumbnail here</sys:String>
+    <sys:String x:Key="Upload_Fields_Thumbnail_DropZone_Descr">or click to select</sys:String>
+    <sys:String x:Key="Upload_Fields_Thumbnail_DropZone_AllowedFiles">PNG, JPG, JPEG</sys:String>
+    <sys:String x:Key="Upload_Fields_Thumbnail_Change">Click to change</sys:String>
+    <sys:String x:Key="Upload_Fields_Visibility">Visibility</sys:String>
+    <sys:String x:Key="Upload_Fields_Visibility_Public">🌐 Public</sys:String>
+    <sys:String x:Key="Upload_Fields_Visibility_Unlisted">🔗 Unlisted</sys:String>
+    <sys:String x:Key="Upload_Fields_Visibility_Private">🔒 Private</sys:String>
+    <sys:String x:Key="Upload_Fields_Paylists">Playlists</sys:String>
+    <sys:String x:Key="Upload_Fields_Publication">Publication Time</sys:String>
+    <sys:String x:Key="Upload_Fields_Publication_Plan">Scheduled Publication</sys:String>
+    <sys:String x:Key="Upload_Fields_Publication_Date">Date:</sys:String>
+    <sys:String x:Key="Upload_Fields_Publication_Time">Time:</sys:String>
+
+    <!-- Accounts -->
+    <sys:String x:Key="Accounts_YouTube">YouTube Account</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Short">YT</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Connect">Connect</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Disconnect">Disconnect</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Playlists">YouTube Playlists</sys:String>
+    <sys:String x:Key="Accounts_YouTube_StandardPlaylist">Default Playlist for New Uploads</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Msg_NotConnected">Not connected to YouTube.</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Msg_ClickToConnect">Not connected to YouTube.</sys:String>
+
+    <!-- Channel -->
+    <sys:String x:Key="Channel_Persona">Channel Profile for AI Suggestions</sys:String>
+    <sys:String x:Key="Channel_Fields_Name">Name/Nickname</sys:String>
+    <sys:String x:Key="Channel_Fields_ChannelName">Channel Name</sys:String>
+    <sys:String x:Key="Channel_Fields_Language">Language</sys:String>
+    <sys:String x:Key="Channel_Fields_ToneOfWords">Tone</sys:String>
+    <sys:String x:Key="Channel_Fields_ContentType">Content Type</sys:String>
+    <sys:String x:Key="Channel_Fields_TargetAudience">Target Audience</sys:String>
+    <sys:String x:Key="Channel_Fields_AdditionalInstructions">Additional Instructions</sys:String>
+
+    <!-- Templates -->
+    <sys:String x:Key="Templates_Header">Available Templates</sys:String>
+    <sys:String x:Key="Templates_Edit">Edit Template</sys:String>
+    <sys:String x:Key="Templates_Fields_Name">Name</sys:String>
+    <sys:String x:Key="Templates_Fields_Platform">Platform</sys:String>
+    <sys:String x:Key="Templates_Fields_UseAsStandard">Use as Default Template</sys:String>
+    <sys:String x:Key="Templates_Fields_Notes">Template Notes</sys:String>
+    <sys:String x:Key="Templates_Fields_TemplateBody">Template Text</sys:String>
+
+    <!-- History -->
+    <sys:String x:Key="History_Success">Success</sys:String>
+    <sys:String x:Key="History_Error">Error</sys:String>
+    <sys:String x:Key="History_List_DateTime">Date/Time</sys:String>
+    <sys:String x:Key="History_List_Title">Title</sys:String>
+    <sys:String x:Key="History_List_Link">Link</sys:String>
+    <sys:String x:Key="History_ClearList">Clear List</sys:String>
+
+    <!-- Settings -->
+    <sys:String x:Key="Settings">Settings</sys:String>
+    <sys:String x:Key="Settings_SaveAll">Save All Changes</sys:String>
+    <sys:String x:Key="Settings_StandardFolders">Default Folders</sys:String>
+    <sys:String x:Key="Settings_VideoFolder">Video Folder</sys:String>
+    <sys:String x:Key="Settings_ThumbnailFolder">Thumbnail Folder</sys:String>
+    <sys:String x:Key="Settings_ChoosePath">Choose Path</sys:String>
+    <sys:String x:Key="Settings_UploadSettings">Default Upload Settings</sys:String>
+    <sys:String x:Key="Settings_StandardReleaseTime">Default Release Time</sys:String>
+    <sys:String x:Key="Settings_ConfirmUpload">Ask for Confirmation Before Upload</sys:String>
+    <sys:String x:Key="Settings_AutomaticTemplateApply">Apply Template Automatically</sys:String>
+    <sys:String x:Key="Settings_OpenBrowserAfterUpload">Open Browser After Upload</sys:String>
+    <sys:String x:Key="Settings_AutomaticConnect">Connect to YouTube on Startup</sys:String>
+    <sys:String x:Key="Settings_AutomaticTranscription">Transcribe Automatically on Video Selection</sys:String>
+    <sys:String x:Key="Settings_WhisperModelSize">Whisper Model Size</sys:String>
+    <sys:String x:Key="Settings_WhisperModelSize_Tiny">Tiny (~75 MB, fast)</sys:String>
+    <sys:String x:Key="Settings_WhisperModelSize_Base">Base (~142 MB)</sys:String>
+    <sys:String x:Key="Settings_WhisperModelSize_Small">Small (~466 MB, recommended)</sys:String>
+    <sys:String x:Key="Settings_WhisperModelSize_Medium">Medium (~1.5 GB)</sys:String>
+    <sys:String x:Key="Settings_WhisperModelSize_Large">Large (~2.9 GB)</sys:String>
+    <sys:String x:Key="Settings_WhisperLanguage">Language</sys:String>
+    <sys:String x:Key="Settings_WhisperLanguage_De">German</sys:String>
+    <sys:String x:Key="Settings_WhisperLanguage_En">English</sys:String>
+    <sys:String x:Key="Settings_WhisperLanguage_Detect">Detect Automatically</sys:String>
+    <sys:String x:Key="Settings_Msg_NotChecked">not checked</sys:String>
+    <sys:String x:Key="Settings_Whisper_Download">Install Whisper</sys:String>
+    <sys:String x:Key="Settings_LLM">AI Settings</sys:String>
+    <sys:String x:Key="Settings_LLM_Mode">Mode</sys:String>
+    <sys:String x:Key="Settings_LLM_Off">Off</sys:String>
+    <sys:String x:Key="Settings_LLM_Local">Local (.GGUF)</sys:String>
+    <sys:String x:Key="Settings_LLM_PathToModel">Path to Model</sys:String>
+    <sys:String x:Key="Settings_LLM_ModelType">Model Type</sys:String>
+    <sys:String x:Key="Settings_LLM_ModelType_Detect">Detect Automatically</sys:String>
+    <sys:String x:Key="Settings_LLM_ModelType_Phi3">Detect Automatically</sys:String>
+    <sys:String x:Key="Settings_LLM_ModelType_Mistral3">Detect Automatically</sys:String>
+    <sys:String x:Key="Settings_LLM_SystemPrompt">Model Type</sys:String>
+    <sys:String x:Key="Settings_LLM_Status">Not configured</sys:String>
+    <sys:String x:Key="Settings_LLM_Parameters">Generation Parameters</sys:String>
+    <sys:String x:Key="Settings_LLM_Parameters_MaxToken">Maximum Tokens</sys:String>
+    <sys:String x:Key="Settings_LLM_Parameters_Temperature">Temperature</sys:String>
+    <sys:String x:Key="Settings_LLM_Prompts">AI Instructions</sys:String>
+    <sys:String x:Key="Settings_LLM_Prompts_Title">Title Instructions</sys:String>
+    <sys:String x:Key="Settings_LLM_Prompts_Description">Description Instructions</sys:String>
+    <sys:String x:Key="Settings_LLM_Prompts_Tags">Tags Instructions</sys:String>
+
 </ResourceDictionary>
