@@ -18,7 +18,7 @@ public sealed class LocalizationManager : INotifyPropertyChanged
     private ResourceDictionary? _baseDictionary;
     private ResourceDictionary? _currentLanguageDictionary;
 
-    public string CurrentLanguage { get; private set; } = "de-DE";
+    public string CurrentLanguage { get; private set; } = "en-US";
 
     private LocalizationManager()
     {
@@ -107,7 +107,7 @@ public sealed class LocalizationManager : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(languageCode))
         {
-            return "de-DE";
+            return "en-US";
         }
 
         languageCode = languageCode.Trim();
