@@ -1044,6 +1044,71 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Accounts Service Tabs
+
+    private void AccountsServiceTab_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender == AccountsYouTubeTab)
+        {
+            SetAccountsServiceSelection(
+                youTubeSelected: true,
+                tikTokSelected: false,
+                instagramSelected: false);
+        }
+        else if (sender == AccountsTikTokTab)
+        {
+            SetAccountsServiceSelection(
+                youTubeSelected: false,
+                tikTokSelected: true,
+                instagramSelected: false);
+        }
+        else if (sender == AccountsInstagramTab)
+        {
+            SetAccountsServiceSelection(
+                youTubeSelected: false,
+                tikTokSelected: false,
+                instagramSelected: true);
+        }
+    }
+
+    private void SetAccountsServiceSelection(bool youTubeSelected, bool tikTokSelected, bool instagramSelected)
+    {
+        // Buttons synchron halten
+        if (AccountsYouTubeTab != null)
+        {
+            AccountsYouTubeTab.IsChecked = youTubeSelected;
+        }
+
+        if (AccountsTikTokTab != null)
+        {
+            AccountsTikTokTab.IsChecked = tikTokSelected;
+        }
+
+        if (AccountsInstagramTab != null)
+        {
+            AccountsInstagramTab.IsChecked = instagramSelected;
+        }
+
+        // Content umschalten
+        if (AccountsYouTubeContent != null)
+        {
+            AccountsYouTubeContent.Visibility = youTubeSelected ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        if (AccountsTikTokContent != null)
+        {
+            AccountsTikTokContent.Visibility = tikTokSelected ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        if (AccountsInstagramContent != null)
+        {
+            AccountsInstagramContent.Visibility = instagramSelected ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    #endregion
+
+
     #region History
 
     private void LoadUploadHistory()

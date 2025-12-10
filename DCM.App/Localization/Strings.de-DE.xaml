@@ -82,6 +82,38 @@
     <sys:String x:Key="Upload_Fields_Publication_Time">Zeit:</sys:String>
 
     <!-- Accounts -->
+    <sys:String x:Key="Accounts_Description">
+        Verwalte die Verbindung zu deinen Plattform-Konten und lege Standard-Einstellungen für Uploads pro Dienst fest.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Description">
+        Verbinde dein YouTube-Konto, um Videos direkt aus der App hochzuladen und eine Standard-Playlist für neue Uploads auszuwählen.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Playlists_Descr">
+        Die ausgewählte Playlist wird als Standard verwendet, wenn du im Upload-Tab keine andere Playlist auswählst.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_SecurityTitle">Speicherung und Sicherheit</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Security_Line1">
+        Die Zugangsdaten werden nur lokal auf diesem Rechner gespeichert und nicht an externe Server gesendet.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Security_Line2">
+        Du kannst die Verbindung jederzeit trennen; danach können keine Uploads mehr über dieses Konto gestartet werden.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Security_Line3">
+        Für jeden Upload musst du weiterhin explizit in der App auf „Upload starten“ klicken.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_UsageTitle">Wie dieses Konto verwendet wird</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Usage_Line1">
+        Uploads im Tab „Uploads“ verwenden dieses Konto für YouTube-Uploads.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Usage_Line2">
+        Standard-Einstellungen wie Playlist und Sichtbarkeit werden automatisch aus diesem Tab übernommen.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Usage_Line3">
+        Alle Einstellungen können pro Upload überschrieben werden, ohne die Konten-Konfiguration zu ändern.
+    </sys:String>
+    <sys:String x:Key="Accounts_ComingSoon">
+        Weitere Dienste wie TikTok und Instagram folgen in kommenden Versionen.
+    </sys:String>
     <sys:String x:Key="Accounts_YouTube">YouTube-Konto</sys:String>
     <sys:String x:Key="Accounts_YouTube_Short">YT</sys:String>
     <sys:String x:Key="Accounts_YouTube_Connect">Verbinden</sys:String>

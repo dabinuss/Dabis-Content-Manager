@@ -82,6 +82,38 @@
     <sys:String x:Key="Upload_Fields_Publication_Time">Time:</sys:String>
 
     <!-- Accounts -->
+    <sys:String x:Key="Accounts_Description">
+        Manage connections to your platform accounts and define default upload settings per service.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Description">
+        Connect your YouTube account to upload videos directly from the app and choose a default playlist for new uploads.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Playlists_Descr">
+        The selected playlist will be used as the default if you don’t choose another playlist on the upload tab.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_SecurityTitle">Storage und Security</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Security_Line1">
+        Your credentials are stored locally on this machine and are not sent to external servers.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Security_Line2">
+        You can disconnect at any time; after that, uploads via this account are no longer possible.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Security_Line3">
+        For every upload you still explicitly have to click “Start upload” inside the app.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_UsageTitle">How this account is used</sys:String>
+    <sys:String x:Key="Accounts_YouTube_Usage_Line1">
+        Uploads on the “Uploads” tab use this account for YouTube uploads.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Usage_Line2">
+        Default settings like playlist and visibility are taken from this tab automatically.
+    </sys:String>
+    <sys:String x:Key="Accounts_YouTube_Usage_Line3">
+        You can override all settings per upload without changing the account configuration.
+    </sys:String>
+    <sys:String x:Key="Accounts_ComingSoon">
+        Additional services like TikTok and Instagram will be available in future versions.
+    </sys:String>
     <sys:String x:Key="Accounts_YouTube">YouTube Account</sys:String>
     <sys:String x:Key="Accounts_YouTube_Short">YT</sys:String>
     <sys:String x:Key="Accounts_YouTube_Connect">Connect</sys:String>
