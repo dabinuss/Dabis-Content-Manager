@@ -92,6 +92,13 @@ public partial class MainWindow
         UploadView.VideoPathTextBox.Text = filePath;
         var fileInfo = new FileInfo(filePath);
 
+        var directory = fileInfo.DirectoryName;
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            _settings.LastVideoFolder = directory;
+            SaveSettings();
+        }
+
         UploadView.VideoDropEmptyState.Visibility = Visibility.Collapsed;
         UploadView.VideoDropSelectedState.Visibility = Visibility.Visible;
         UpdateUploadButtonState();

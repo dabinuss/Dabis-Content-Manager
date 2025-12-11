@@ -30,4 +30,14 @@ public sealed class Template
     /// Markiert ein Standardtemplate pro Plattform.
     /// </summary>
     public bool IsDefault { get; set; }
+
+    public override string ToString()
+    {
+        if (!string.IsNullOrWhiteSpace(Name))
+        {
+            return Name;
+        }
+
+        return base.ToString()!;
+    }
 }

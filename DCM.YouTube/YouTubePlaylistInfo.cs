@@ -13,4 +13,14 @@ public sealed class YouTubePlaylistInfo
     public string Id { get; }
 
     public string Title { get; }
+
+    public override string ToString()
+    {
+        if (!string.IsNullOrWhiteSpace(Title))
+        {
+            return Title;
+        }
+
+        return base.ToString()!;
+    }
 }

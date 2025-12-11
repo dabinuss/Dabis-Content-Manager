@@ -7,17 +7,29 @@ namespace DCM.Core.Configuration;
 public sealed class JsonTemplateRepository : ITemplateRepository
 {
     private readonly IAppLogger _logger;
+    private readonly string _templatesFilePath;
 
-    public JsonTemplateRepository(IAppLogger? logger = null)
+    public JsonTemplateRepository(IAppLogger? logger = null, string? customAppDataFolder = null)
     {
         _logger = logger ?? AppLogger.Instance;
+        var baseFolder = ResolveBaseFolder(customAppDataFolder);
+        _templatesFilePath = Path.Combine(baseFolder, Constants.TemplatesFileName);
     }
 
-    private static string GetFilePath() => Path.Combine(Constants.AppDataFolder, Constants.TemplatesFileName);
+    private static string ResolveBaseFolder(string? customAppDataFolder)
+    {
+        if (string.IsNullOrWhiteSpace(customAppDataFolder))
+        {
+            return Constants.AppDataFolder;
+        }
+
+        Directory.CreateDirectory(customAppDataFolder);
+        return customAppDataFolder;
+    }
 
     public IEnumerable<Template> Load()
     {
-        var path = GetFilePath();
+        var path = _templatesFilePath;
 
         if (!File.Exists(path))
         {
@@ -49,7 +61,7 @@ public sealed class JsonTemplateRepository : ITemplateRepository
 
     public void Save(IEnumerable<Template> templates)
     {
-        var path = GetFilePath();
+        var path = _templatesFilePath;
 
         try
         {

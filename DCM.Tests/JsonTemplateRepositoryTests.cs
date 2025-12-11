@@ -4,14 +4,40 @@ using Xunit;
 
 namespace DCM.Tests;
 
-public class JsonTemplateRepositoryTests
+public class JsonTemplateRepositoryTests : IDisposable
 {
+    private readonly string _testFolder;
+
+    public JsonTemplateRepositoryTests()
+    {
+        _testFolder = Path.Combine(Path.GetTempPath(), $"dcm_templates_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testFolder);
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (Directory.Exists(_testFolder))
+            {
+                Directory.Delete(_testFolder, true);
+            }
+        }
+        catch
+        {
+            // Ignorieren
+        }
+    }
+
+    private JsonTemplateRepository CreateRepository() =>
+        new JsonTemplateRepository(customAppDataFolder: _testFolder);
+
     #region Load Tests
 
     [Fact]
     public void Load_ReturnsNonEmptyList()
     {
-        var repository = new JsonTemplateRepository();
+        var repository = CreateRepository();
 
         var templates = repository.Load().ToList();
 
@@ -22,7 +48,7 @@ public class JsonTemplateRepositoryTests
     [Fact]
     public void Load_ContainsDefaultTemplate()
     {
-        var repository = new JsonTemplateRepository();
+        var repository = CreateRepository();
 
         var templates = repository.Load().ToList();
 

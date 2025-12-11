@@ -7,13 +7,11 @@ namespace DCM.Tests;
 public class JsonSettingsProviderTests : IDisposable
 {
     private readonly string _testFolder;
-    private readonly string _testFilePath;
 
     public JsonSettingsProviderTests()
     {
         _testFolder = Path.Combine(Path.GetTempPath(), $"dcm_settings_test_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_testFolder);
-        _testFilePath = Path.Combine(_testFolder, "settings.json");
     }
 
     public void Dispose()
@@ -35,7 +33,7 @@ public class JsonSettingsProviderTests : IDisposable
     {
         // Da JsonSettingsProvider den Standard-Pfad verwendet,
         // testen wir hier hauptsächlich das Verhalten mit der echten Implementierung
-        return new JsonSettingsProvider();
+        return new JsonSettingsProvider(customAppDataFolder: _testFolder);
     }
 
     #region Load Tests

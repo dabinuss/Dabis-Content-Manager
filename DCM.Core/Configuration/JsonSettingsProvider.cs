@@ -6,17 +6,29 @@ namespace DCM.Core.Configuration;
 public sealed class JsonSettingsProvider : ISettingsProvider
 {
     private readonly IAppLogger _logger;
+    private readonly string _settingsFilePath;
 
-    public JsonSettingsProvider(IAppLogger? logger = null)
+    public JsonSettingsProvider(IAppLogger? logger = null, string? customAppDataFolder = null)
     {
         _logger = logger ?? AppLogger.Instance;
+        var baseFolder = ResolveBaseFolder(customAppDataFolder);
+        _settingsFilePath = Path.Combine(baseFolder, Constants.SettingsFileName);
     }
 
-    private static string GetFilePath() => Path.Combine(Constants.AppDataFolder, Constants.SettingsFileName);
+    private static string ResolveBaseFolder(string? customAppDataFolder)
+    {
+        if (string.IsNullOrWhiteSpace(customAppDataFolder))
+        {
+            return Constants.AppDataFolder;
+        }
+
+        Directory.CreateDirectory(customAppDataFolder);
+        return customAppDataFolder;
+    }
 
     public AppSettings Load()
     {
-        var path = GetFilePath();
+        var path = _settingsFilePath;
 
         if (!File.Exists(path))
         {
@@ -45,7 +57,7 @@ public sealed class JsonSettingsProvider : ISettingsProvider
 
     public void Save(AppSettings settings)
     {
-        var path = GetFilePath();
+        var path = _settingsFilePath;
 
         try
         {

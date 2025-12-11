@@ -17,7 +17,6 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     private readonly IFallbackSuggestionService _fallbackSuggestionService;
     private readonly LlmSettings _settings;
     private readonly IAppLogger _logger;
-    private readonly Random _random = new();
     private readonly object _initLock = new();
 
     private const int MaxTranscriptCharsForDescription = 4000;
@@ -121,7 +120,12 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
     private string GetRandomVariation(string[] options)
     {
-        return options[_random.Next(options.Length)];
+        if (options.Length == 0)
+        {
+            throw new ArgumentException("Options must not be empty.", nameof(options));
+        }
+
+        return options[Random.Shared.Next(options.Length)];
     }
 
     private static string GetSessionId()
