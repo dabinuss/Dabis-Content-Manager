@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -9,6 +10,8 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
+using DCM.App.Events;
+using DCM.App.Infrastructure;
 using DCM.App.Views;
 using DCM.Core;
 using DCM.Core.Configuration;
@@ -53,6 +56,8 @@ public partial class MainWindow : Window
     private LogWindow? _logWindow;
     private bool _isClosing;
     private UploadView UploadView => UploadPageView ?? throw new InvalidOperationException("Upload view is not ready.");
+    private readonly UiEventAggregator _eventAggregator = UiEventAggregator.Instance;
+    private readonly List<IDisposable> _eventSubscriptions = new();
 
     public MainWindow()
     {
@@ -63,6 +68,7 @@ public partial class MainWindow : Window
         AttachTemplatesViewEvents();
         AttachHistoryViewEvents();
         AttachSettingsViewEvents();
+        RegisterEventSubscriptions();
 
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
 
@@ -177,10 +183,20 @@ public partial class MainWindow : Window
             return;
         }
 
-        HistoryPageView.HistoryFilterChanged += HistoryFilter_Changed;
-        HistoryPageView.HistoryClearButtonClicked += HistoryClearButton_Click;
-        HistoryPageView.HistoryDataGridMouseDoubleClick += HistoryDataGrid_MouseDoubleClick;
-        HistoryPageView.OpenUrlInBrowserRequested += OpenUrlInBrowser;
+        HistoryPageView.HistoryFilterChanged += (_, __) =>
+            _eventAggregator.Publish(new HistoryFilterChangedEvent());
+
+        HistoryPageView.HistoryClearButtonClicked += (_, __) =>
+            _eventAggregator.Publish(new HistoryClearRequestedEvent());
+
+        HistoryPageView.HistoryDataGridMouseDoubleClick += (_, __) =>
+            _eventAggregator.Publish(new HistoryEntryOpenRequestedEvent(HistoryPageView.SelectedEntry));
+
+        HistoryPageView.OpenUrlInBrowserRequested += (_, args) =>
+        {
+            _eventAggregator.Publish(new HistoryLinkOpenRequestedEvent(args.Uri));
+            args.Handled = true;
+        };
     }
 
     private void AttachSettingsViewEvents()
@@ -199,11 +215,30 @@ public partial class MainWindow : Window
         SettingsPageView.LlmModelPathBrowseButtonClicked += LlmModelPathBrowseButton_Click;
     }
 
+    private void RegisterEventSubscriptions()
+    {
+        _eventSubscriptions.Add(_eventAggregator.Subscribe<HistoryFilterChangedEvent>(_ => OnHistoryFilterChanged()));
+        _eventSubscriptions.Add(_eventAggregator.Subscribe<HistoryClearRequestedEvent>(_ => OnHistoryClearRequested()));
+        _eventSubscriptions.Add(_eventAggregator.Subscribe<HistoryEntryOpenRequestedEvent>(e => OnHistoryEntryOpenRequested(e.Entry)));
+        _eventSubscriptions.Add(_eventAggregator.Subscribe<HistoryLinkOpenRequestedEvent>(e => OnHistoryLinkOpenRequested(e.Uri)));
+    }
+
+    private void DisposeEventSubscriptions()
+    {
+        foreach (var subscription in _eventSubscriptions)
+        {
+            subscription.Dispose();
+        }
+
+        _eventSubscriptions.Clear();
+    }
+
     #region Lifecycle
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         _isClosing = true;
+        DisposeEventSubscriptions();
 
         // Fensterzustand speichern
         WindowStateManager.Save(this);
@@ -501,454 +536,9 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Video Drop Zone
-
-    private readonly string[] _allowedVideoExtensions = { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm" };
-
-    private void VideoDrop_DragOver(object sender, DragEventArgs e)
-    {
-        e.Effects = DragDropEffects.None;
-
-        if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        {
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (files?.Length == 1)
-            {
-                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
-                if (_allowedVideoExtensions.Contains(ext))
-                {
-                    e.Effects = DragDropEffects.Copy;
-                    UploadView.VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
-                }
-            }
-        }
-        e.Handled = true;
-    }
-
-    private void VideoDrop_DragLeave(object sender, DragEventArgs e)
-    {
-        UploadView.VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
-    }
-
-    private void VideoDrop_Drop(object sender, DragEventArgs e)
-    {
-        UploadView.VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
-
-        if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        {
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (files?.Length == 1)
-            {
-                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
-                if (_allowedVideoExtensions.Contains(ext))
-                {
-                    SetVideoFile(files[0]);
-                }
-            }
-        }
-    }
-
-    private void VideoDropZone_Click(object sender, MouseButtonEventArgs e)
-    {
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Filter = "Video-Dateien|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm|Alle Dateien|*.*",
-            Title = "Video auswählen"
-        };
-
-        if (!string.IsNullOrEmpty(_settings?.DefaultVideoFolder) &&
-            System.IO.Directory.Exists(_settings.DefaultVideoFolder))
-        {
-            dialog.InitialDirectory = _settings.DefaultVideoFolder;
-        }
-
-        if (dialog.ShowDialog() == true)
-        {
-            SetVideoFile(dialog.FileName);
-        }
-    }
-
-    private void SetVideoFile(string filePath)
-    {
-
-        UploadView.VideoPathTextBox.Text = filePath;
-        var fileInfo = new System.IO.FileInfo(filePath);
-
-        UploadView.VideoDropEmptyState.Visibility = Visibility.Collapsed;
-        UploadView.VideoDropSelectedState.Visibility = Visibility.Visible;
-        UpdateUploadButtonState();
-        UpdateTranscriptionButtonState();
-
-        _logger.Info($"Video ausgewählt: {fileInfo.Name}", "Upload");  // ✅ Ist da!
-
-        // Auto-Transkription wenn aktiviert
-        _ = LoadVideoFileInfoAsync(filePath);
-    }
-
-    private async Task LoadVideoFileInfoAsync(string filePath)
-    {
-        try
-        {
-            // File-Info im Hintergrund laden (nicht UI-Thread blockieren)
-            var (fileName, fileSize) = await Task.Run(() =>
-            {
-                var fileInfo = new FileInfo(filePath);
-                return (fileInfo.Name, fileInfo.Length);
-            });
-
-            // UI-Updates zurück auf UI-Thread
-            if (!Dispatcher.CheckAccess())
-            {
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    UploadView.VideoFileNameTextBlock.Text = fileName;
-                    UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
-                });
-            }
-            else
-            {
-                UploadView.VideoFileNameTextBlock.Text = fileName;
-                UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
-            }
-
-            _logger.Info($"Video ausgewählt: {fileName}", "Upload");
-
-            // Auto-Transkription starten (falls aktiviert)
-            // Dies läuft jetzt komplett unabhängig und blockiert nicht
-            _ = TryAutoTranscribeAsync(filePath);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"Fehler beim Laden der Video-Informationen: {ex.Message}", "Upload", ex);
-
-            // Fallback: Zeige zumindest den Dateinamen
-            await Dispatcher.InvokeAsync(() =>
-            {
-                UploadView.VideoFileNameTextBlock.Text = Path.GetFileName(filePath);
-                UploadView.VideoFileSizeTextBlock.Text = "? MB";
-            });
-        }
-    }
-
-    private string FormatFileSize(long bytes)
-    {
-        string[] sizes = { "B", "KB", "MB", "GB" };
-        int order = 0;
-        double size = bytes;
-        while (size >= 1024 && order < sizes.Length - 1)
-        {
-            order++;
-            size /= 1024;
-        }
-        return $"{size:0.##} {sizes[order]}";
-    }
-
-    private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        UpdateUploadButtonState();
-    }
-
-    private void FocusTargetOnContainerClick(object sender, MouseButtonEventArgs e)
-    {
-        // Klicks auf Buttons oder Textboxen ignorieren (damit sie normal funktionieren)
-        if (e.OriginalSource is DependencyObject d)
-        {
-            while (d != null)
-            {
-                // Text-Eingaben: normal verhalten (Cursor setzen, markieren etc.)
-                if (d is TextBoxBase || d is PasswordBox)
-                {
-                    return;
-                }
-
-                // Buttons weiterhin komplett ignorieren
-                if (d is ButtonBase)
-                {
-                    return;
-                }
-
-                d = VisualTreeHelper.GetParent(d);
-            }
-        }
-
-        // Nur wenn auf den Container selbst / "leeren" Bereich geklickt wird:
-        if (sender is FrameworkElement fe && fe.Tag is Control target && target.Focusable)
-        {
-            target.Focus();
-
-            // Bei TextBox Cursor ans Ende setzen (nice to have)
-            if (target is TextBox tb)
-            {
-                tb.CaretIndex = tb.Text?.Length ?? 0;
-            }
-
-            // Event nicht weiterreichen (wir wollten ja nur Fokus setzen)
-            e.Handled = true;
-        }
-    }
-
-
-    private void UpdateUploadButtonState()
-    {
-        bool hasVideo = !string.IsNullOrWhiteSpace(UploadView.VideoPathTextBox.Text);
-        bool hasTitle = !string.IsNullOrWhiteSpace(UploadView.TitleTextBox.Text);
-
-        UploadView.UploadButton.IsEnabled = hasVideo && hasTitle;
-    }
-
-    #endregion
-
-    #region Thumbnail Drop Zone
-
-    private readonly string[] _allowedImageExtensions = { ".png", ".jpg", ".jpeg" };
-
-    private void ThumbnailDrop_DragOver(object sender, DragEventArgs e)
-    {
-        e.Effects = DragDropEffects.None;
-
-        if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        {
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (files?.Length == 1)
-            {
-                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
-                if (_allowedImageExtensions.Contains(ext))
-                {
-                    e.Effects = DragDropEffects.Copy;
-                    UploadView.ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
-                }
-            }
-        }
-        e.Handled = true;
-    }
-
-    private void ThumbnailDrop_DragLeave(object sender, DragEventArgs e)
-    {
-        UploadView.ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
-    }
-
-    private void ThumbnailDrop_Drop(object sender, DragEventArgs e)
-    {
-        UploadView.ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
-
-        if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        {
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (files?.Length == 1)
-            {
-                var ext = System.IO.Path.GetExtension(files[0]).ToLowerInvariant();
-                if (_allowedImageExtensions.Contains(ext))
-                {
-                    SetThumbnailFile(files[0]);
-                }
-            }
-        }
-    }
-
-    private void ThumbnailDropZone_Click(object sender, MouseButtonEventArgs e)
-    {
-        var dialog = new Microsoft.Win32.OpenFileDialog
-        {
-            Filter = "Bilder|*.png;*.jpg;*.jpeg|Alle Dateien|*.*",
-            Title = "Thumbnail auswählen"
-        };
-
-        if (!string.IsNullOrEmpty(_settings?.DefaultThumbnailFolder) &&
-            System.IO.Directory.Exists(_settings.DefaultThumbnailFolder))
-        {
-            dialog.InitialDirectory = _settings.DefaultThumbnailFolder;
-        }
-
-        if (dialog.ShowDialog() == true)
-        {
-            SetThumbnailFile(dialog.FileName);
-        }
-    }
-
-    private void SetThumbnailFile(string filePath)
-    {
-        UploadView.ThumbnailPathTextBox.Text = filePath;
-
-        var fileInfo = new System.IO.FileInfo(filePath);
-        UploadView.ThumbnailFileNameTextBlock.Text = fileInfo.Name;
-
-        try
-        {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(filePath);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            UploadView.ThumbnailPreviewImage.Source = bitmap;
-
-            UploadView.ThumbnailEmptyState.Visibility = Visibility.Collapsed;
-            UploadView.ThumbnailPreviewState.Visibility = Visibility.Visible;
-
-            _logger.Info($"Thumbnail ausgewählt: {fileInfo.Name}", "Upload");
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"Fehler beim Laden des Thumbnails: {ex.Message}", "Upload", ex);
-        }
-    }
-
-    private void ThumbnailClearButton_Click(object sender, RoutedEventArgs e)
-    {
-        UploadView.ThumbnailPathTextBox.Text = string.Empty;
-        UploadView.ThumbnailPreviewImage.Source = null;
-
-        UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
-        UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
-    }
-
-    private void VideoChangeButton_Click(object sender, RoutedEventArgs e)
-    {
-        // Delegiere an die Auswahl-Logik
-        VideoDropZone_Click(sender, null!);
-    }
-
-    #endregion
-
-    #region Upload Events
-
-    private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e)
-    {
-        Template? tmpl = UploadView.TemplateComboBox.SelectedItem as Template;
-
-        if (tmpl is null && TemplatesPageView?.SelectedTemplate is Template tabTemplate)
-        {
-            tmpl = tabTemplate;
-        }
-
-        if (tmpl is null)
-        {
-            StatusTextBlock.Text = "Kein Template ausgewählt.";
-            return;
-        }
-
-        var project = BuildUploadProjectFromUi(includeScheduling: false);
-        var result = _templateService.ApplyTemplate(tmpl.Body, project);
-
-        UploadView.DescriptionTextBox.Text = result;
-        StatusTextBlock.Text = $"Template \"{tmpl.Name}\" angewendet.";
-
-        _logger.Info($"Template angewendet: {tmpl.Name}", "Template");
-    }
-
-    private async void UploadButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_settings.ConfirmBeforeUpload)
-        {
-            var confirmResult = MessageBox.Show(
-                this,
-                "Upload wirklich starten?",
-                "Bestätigung",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (confirmResult != MessageBoxResult.Yes)
-            {
-                StatusTextBlock.Text = "Upload abgebrochen.";
-                return;
-            }
-        }
-
-        var project = BuildUploadProjectFromUi(includeScheduling: true);
-
-        if (!string.IsNullOrWhiteSpace(project.ThumbnailPath) &&
-            !File.Exists(project.ThumbnailPath))
-        {
-            StatusTextBlock.Text = "Hinweis: Thumbnail-Datei wurde nicht gefunden. Upload wird ohne Thumbnail fortgesetzt.";
-            _logger.Warning($"Thumbnail nicht gefunden: {project.ThumbnailPath}", "Upload");
-            project.ThumbnailPath = string.Empty;
-        }
-        else if (!string.IsNullOrWhiteSpace(project.ThumbnailPath))
-        {
-            var fileInfo = new FileInfo(project.ThumbnailPath);
-            if (fileInfo.Length > Constants.MaxThumbnailSizeBytes)
-            {
-                StatusTextBlock.Text = "Thumbnail ist größer als 2 MB und wird nicht verwendet.";
-                _logger.Warning($"Thumbnail zu groß: {fileInfo.Length / 1024 / 1024:F2} MB", "Upload");
-                project.ThumbnailPath = string.Empty;
-            }
-        }
-
-        try
-        {
-            project.Validate();
-        }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = $"Fehlerhafte Eingaben: {ex.Message}";
-            _logger.Warning($"Validierungsfehler: {ex.Message}", "Upload");
-            return;
-        }
-
-        if (project.Platform == PlatformType.YouTube && !_youTubeClient.IsConnected)
-        {
-            StatusTextBlock.Text = "Bitte zuerst im Tab \"Konten\" mit YouTube verbinden.";
-            return;
-        }
-
-        _logger.Info($"Upload gestartet: {project.Title}", "Upload");
-        StatusTextBlock.Text = "Upload wird vorbereitet...";
-        ShowUploadProgress("Upload wird vorbereitet...");
-
-        var progressReporter = new Progress<UploadProgressInfo>(ReportUploadProgress);
-
-        try
-        {
-            Template? selectedTemplate = UploadView.TemplateComboBox.SelectedItem as Template;
-
-            var result = await _uploadService.UploadAsync(
-                project,
-                selectedTemplate,
-                progressReporter,
-                CancellationToken.None);
-
-            _uploadHistoryService.AddEntry(project, result);
-            await LoadUploadHistoryAsync();
-
-            if (result.Success)
-            {
-                StatusTextBlock.Text = $"Upload erfolgreich: {result.VideoUrl}";
-                _logger.Info($"Upload erfolgreich: {result.VideoUrl}", "Upload");
-
-                if (_settings.OpenBrowserAfterUpload && result.VideoUrl is not null)
-                {
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo(result.VideoUrl.ToString())
-                        {
-                            UseShellExecute = true
-                        });
-                    }
-                    catch
-                    {
-                        // Browser öffnen ist Komfort – Fehler nicht kritisch.
-                    }
-                }
-            }
-            else
-            {
-                StatusTextBlock.Text = $"Upload fehlgeschlagen: {result.ErrorMessage}";
-                _logger.Error($"Upload fehlgeschlagen: {result.ErrorMessage}", "Upload");
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = $"Unerwarteter Fehler beim Upload: {ex.Message}";
-            _logger.Error($"Unerwarteter Fehler beim Upload: {ex.Message}", "Upload", ex);
-        }
-        finally
-        {
-            HideUploadProgress();
-            UpdateLogLinkIndicator();
-        }
-    }
-
-    #endregion
-
+    
+    
+    
     #region Content Generation Events
 
     private async void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
@@ -1097,67 +687,7 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Upload Progress UI
-
-    private void ShowUploadProgress(string message)
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => ShowUploadProgress(message));
-            return;
-        }
-
-        UploadProgressBar.Visibility = Visibility.Visible;
-        UploadProgressLabel.Visibility = Visibility.Visible;
-
-        UploadProgressBar.IsIndeterminate = true;
-        UploadProgressBar.Value = 0;
-        UploadProgressLabel.Text = message;
-    }
-
-    private void ReportUploadProgress(UploadProgressInfo info)
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => ReportUploadProgress(info));
-            return;
-        }
-
-        UploadProgressBar.Visibility = Visibility.Visible;
-        UploadProgressLabel.Visibility = Visibility.Visible;
-
-        UploadProgressBar.IsIndeterminate = info.IsIndeterminate;
-
-        if (!info.IsIndeterminate)
-        {
-            var percent = double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100);
-            UploadProgressBar.Value = percent;
-        }
-
-        if (!string.IsNullOrWhiteSpace(info.Message))
-        {
-            UploadProgressLabel.Text = info.Message;
-            StatusTextBlock.Text = info.Message;
-        }
-    }
-
-    private void HideUploadProgress()
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(HideUploadProgress);
-            return;
-        }
-
-        UploadProgressBar.Visibility = Visibility.Collapsed;
-        UploadProgressLabel.Visibility = Visibility.Collapsed;
-        UploadProgressBar.IsIndeterminate = false;
-        UploadProgressBar.Value = 0;
-        UploadProgressLabel.Text = string.Empty;
-    }
-
-    #endregion
-
+    
     #region Accounts Service Tabs
 
     private void AccountsServiceTab_Checked(object sender, RoutedEventArgs e)
@@ -1177,127 +707,6 @@ public partial class MainWindow : Window
 
     #endregion
 
-
-    #region History
-
-    private async Task LoadUploadHistoryAsync()
-    {
-        try
-        {
-            var entries = await Task.Run(() => _uploadHistoryService
-                .GetAll()
-                .OrderByDescending(e => e.DateTime)
-                .ToList());
-
-            _allHistoryEntries = entries;
-            ApplyHistoryFilter();
-        }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = $"Upload-Historie konnte nicht geladen werden: {ex.Message}";
-            _logger.Error($"Upload-Historie konnte nicht geladen werden: {ex.Message}", "History", ex);
-        }
-    }
-
-    private void ApplyHistoryFilter()
-    {
-        if (HistoryPageView is null)
-        {
-            return;
-        }
-
-        IEnumerable<UploadHistoryEntry> filtered = _allHistoryEntries;
-
-        var platformFilter = HistoryPageView.GetSelectedPlatformFilter();
-        if (platformFilter is PlatformType platform)
-        {
-            filtered = filtered.Where(e => e.Platform == platform);
-        }
-
-        var statusTag = HistoryPageView.GetSelectedStatusFilter();
-        if (statusTag == "Success")
-        {
-            filtered = filtered.Where(e => e.Success);
-        }
-        else if (statusTag == "Error")
-        {
-            filtered = filtered.Where(e => !e.Success);
-        }
-
-        HistoryPageView.SetHistoryItems(filtered.ToList());
-    }
-
-    private void HistoryFilter_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        ApplyHistoryFilter();
-    }
-
-    private void HistoryClearButton_Click(object sender, RoutedEventArgs e)
-    {
-        var confirm = MessageBox.Show(
-            this,
-            "Die komplette Upload-Historie wirklich löschen?",
-            "Bestätigung",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-
-        if (confirm != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        try
-        {
-            _uploadHistoryService.Clear();
-            _allHistoryEntries.Clear();
-            HistoryPageView?.SetHistoryItems(Array.Empty<UploadHistoryEntry>());
-            StatusTextBlock.Text = "Upload-Historie gelöscht.";
-            _logger.Info("Upload-Historie gelöscht", "History");
-        }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = $"Historie konnte nicht gelöscht werden: {ex.Message}";
-            _logger.Error($"Historie konnte nicht gelöscht werden: {ex.Message}", "History", ex);
-        }
-    }
-
-    private void HistoryDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-    {
-        if (HistoryPageView?.SelectedEntry is UploadHistoryEntry entry &&
-            entry.VideoUrl is not null)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo(entry.VideoUrl.ToString())
-                {
-                    UseShellExecute = true
-                });
-            }
-            catch
-            {
-                // Fehler ignorieren
-            }
-        }
-    }
-
-    private void OpenUrlInBrowser(object sender, RequestNavigateEventArgs e)
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo(e.Uri.ToString())
-            {
-                UseShellExecute = true
-            });
-        }
-        catch
-        {
-            // Fehler ignorieren
-        }
-
-        e.Handled = true;
-    }
-
-    #endregion
 
     #region Log Window
 
@@ -1537,84 +946,7 @@ public partial class MainWindow : Window
 
     #endregion
 
-    #region Helpers
-
-    private UploadProject BuildUploadProjectFromUi(bool includeScheduling)
-    {
-        // Platform aus Checkboxen ermitteln
-        var platform = PlatformType.YouTube; // Standard
-        if (UploadView.PlatformYouTubeToggle.IsChecked == true)
-        {
-            platform = PlatformType.YouTube;
-        }
-        // Später können hier weitere Plattformen hinzugefügt werden
-
-        var visibility = _settings.DefaultVisibility;
-        if (UploadView.VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)
-        {
-            visibility = visEnum;
-        }
-
-        string? playlistId = null;
-        if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
-        {
-            playlistId = plItem.Id;
-        }
-        else
-        {
-            playlistId = _settings.DefaultPlaylistId;
-        }
-
-        DateTimeOffset? scheduledTime = null;
-        if (includeScheduling && UploadView.ScheduleCheckBox.IsChecked == true)
-        {
-            if (UploadView.ScheduleDatePicker.SelectedDate is DateTime date)
-            {
-                var timeText = UploadView.ScheduleTimeTextBox.Text;
-                TimeSpan timeOfDay;
-
-                if (!string.IsNullOrWhiteSpace(timeText) &&
-                    TimeSpan.TryParse(timeText, CultureInfo.CurrentCulture, out timeOfDay))
-                {
-                    // ok
-                }
-                else
-                {
-                    timeOfDay = TimeSpan.Parse(Constants.DefaultSchedulingTime);
-                }
-
-                var localDateTime = date.Date + timeOfDay;
-                scheduledTime = new DateTimeOffset(localDateTime, DateTimeOffset.Now.Offset);
-            }
-        }
-
-        var project = new UploadProject
-        {
-            VideoFilePath = UploadView.VideoPathTextBox.Text ?? string.Empty,
-            Title = UploadView.TitleTextBox.Text ?? string.Empty,
-            Description = UploadView.DescriptionTextBox.Text ?? string.Empty,
-            Platform = platform,
-            Visibility = visibility,
-            PlaylistId = playlistId,
-            ScheduledTime = scheduledTime,
-            ThumbnailPath = UploadView.ThumbnailPathTextBox.Text,
-            TranscriptText = UploadView.TranscriptTextBox.Text
-        };
-
-        project.SetTagsFromCsv(UploadView.TagsTextBox.Text ?? string.Empty);
-
-        return project;
-    }
-
-    private void UpdateScheduleControlsEnabled()
-    {
-        var enabled = UploadView.ScheduleCheckBox.IsChecked == true;
-        UploadView.ScheduleDatePicker.IsEnabled = enabled;
-        UploadView.ScheduleTimeTextBox.IsEnabled = enabled;
-    }
-
-    #endregion
-
+    
     #region Sidebar Navigation
 
     private void NavButton_Checked(object sender, RoutedEventArgs e)
@@ -1671,6 +1003,23 @@ public partial class MainWindow : Window
         // Navigiere zum Konten-Tab
         NavAccounts.IsChecked = true;
         ShowPage(1);
+    }
+
+    private void OpenUrlInBrowser(object sender, RequestNavigateEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.ToString())
+            {
+                UseShellExecute = true
+            });
+        }
+        catch
+        {
+            // Fehler ignorieren
+        }
+
+        e.Handled = true;
     }
 
     #endregion
