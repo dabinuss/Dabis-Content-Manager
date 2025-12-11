@@ -176,12 +176,12 @@
   <SolidColorBrush x:Key="MagicAIBrush"
                    Color="{StaticResource MagicAIColor}"/>
   <LinearGradientBrush x:Key="MagicAIGradientBrush"
-      StartPoint="0,0"
-      EndPoint="1,1">
+                       StartPoint="0,0"
+                       EndPoint="1,1">
     <GradientStop Color="#FF00D4FF"
-        Offset="0.0"/>
+                  Offset="0.0"/>
     <GradientStop Color="#FF9C27B0"
-        Offset="0.7"/>
+                  Offset="0.7"/>
   </LinearGradientBrush>
 
   <SolidColorBrush x:Key="TextPrimaryBrush"
@@ -316,6 +316,16 @@
             Value="0,0,8,0"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextSecondaryBrush}"/>
+    <Setter Property="Effect">
+      <Setter.Value>
+        <DropShadowEffect
+          Color="#66070707"
+          ShadowDepth="1"
+          BlurRadius="1.4"
+          Opacity="1"
+          RenderingBias="Quality"/>
+      </Setter.Value>
+    </Setter>
   </Style>
 
   <Style x:Key="IconS"
