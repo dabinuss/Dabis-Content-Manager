@@ -306,10 +306,10 @@
                   <StackPanel HorizontalAlignment="Center"
                               VerticalAlignment="Center"
                               Margin="20">
-                    <TextBlock Text="📁"
-                               FontSize="{StaticResource FontSizeXXL}"
+                    <TextBlock Style="{StaticResource Icon64}"
+                               Text="&#xe070;"
                                HorizontalAlignment="Center"
-                               Margin="{StaticResource SpacingVerticalM}"/>
+                               Margin="{StaticResource SpacingVerticalS}"/>
                     <TextBlock Text="{DynamicResource Upload_DropVideo}"
                                FontSize="{StaticResource FontSizeXL}"
                                FontWeight="SemiBold"
@@ -345,10 +345,11 @@
                           CornerRadius="{StaticResource RadiusM}"
                           Background="{StaticResource SurfaceLightBrush}"
                           Margin="{StaticResource SpacingAllXL}">
-                    <TextBlock Text="🎬"
-                               FontSize="{StaticResource FontSizeXL}"
+                    <TextBlock Style="{StaticResource IconXXL}"
+                               Text="&#xe53f;"
                                HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
+                               VerticalAlignment="Center"
+                               Margin="0"/>
                   </Border>
 
                   <!-- Video Info -->
@@ -387,8 +388,8 @@
                           Margin="4,12,16,12"
                           Padding="16,10">
                     <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="🚀"
-                                 Margin="0,0,6,0"/>
+                      <TextBlock Style="{StaticResource IconXL}"
+                                 Text="&#xeb9b;"/>
                       <TextBlock Text="{DynamicResource Upload_StartUpload}"/>
                     </StackPanel>
                   </Button>
@@ -648,8 +649,9 @@
                                 Click="TranscriptionExportButton_Click"
                                 ToolTip="Transkript als Textdatei exportieren"
                                 Margin="8,0,0,0">
-                          <TextBlock Text="📤"
-                                     FontSize="{StaticResource FontSizeM}"/>
+                          <TextBlock Style="{StaticResource IconXL}"
+                                     Text="&#xe168;"
+                                     Margin="0"/>
                         </Button>
 
                         <ProgressBar x:Name="TranscriptionProgressBar"
@@ -762,8 +764,8 @@
                                   Visibility="Visible">
                               <StackPanel HorizontalAlignment="Center"
                                           VerticalAlignment="Center">
-                                <TextBlock Text="🖼️"
-                                           FontSize="{StaticResource FontSizeXL}"
+                                <TextBlock Style="{StaticResource IconXXL}"
+                                           Text="&#xe40b;"
                                            HorizontalAlignment="Center"
                                            Margin="0,0,0,6"/>
                                 <TextBlock Text="{DynamicResource Upload_Fields_Thumbnail_DropZone}"

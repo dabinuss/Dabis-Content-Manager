@@ -358,6 +358,12 @@
     <Setter Property="FontSize"
             Value="32"/>
   </Style>
+  <Style x:Key="Icon64"
+         TargetType="TextBlock"
+         BasedOn="{StaticResource Icon}">
+    <Setter Property="FontSize"
+            Value="64"/>
+  </Style>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- SIDEBAR NAVIGATION BUTTON                                        -->
