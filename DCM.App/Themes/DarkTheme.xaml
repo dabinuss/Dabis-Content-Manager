@@ -1210,20 +1210,46 @@
             <Grid x:Name="PART_Root">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="32"/>
               </Grid.ColumnDefinitions>
               <DatePickerTextBox x:Name="PART_TextBox"
                                  Grid.Column="0"
                                  Focusable="{TemplateBinding Focusable}"
                                  VerticalAlignment="Center"/>
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xebcc;"
-                         Margin="0,0,24,0"/>
+              <ToggleButton x:Name="PART_Button"
+                            Grid.Column="1"
+                            Focusable="False"
+                            Background="Transparent"
+                            BorderBrush="{x:Null}"
+                            BorderThickness="0"
+                            Padding="0"
+                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                <TextBlock Style="{StaticResource IconXL}"
+                           Text="&#xebcc;"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+              </ToggleButton>
               <Popup x:Name="PART_Popup"
-                     AllowsTransparency="True"
+                     PlacementTarget="{Binding ElementName=PART_Button}"
                      Placement="Bottom"
-                     PlacementTarget="{Binding ElementName=PART_TextBox}"
-                     StaysOpen="False"/>
+                     StaysOpen="False"
+                     AllowsTransparency="True"
+                     IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}">
+                <Border Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource RadiusS}">
+                  <Calendar x:Name="PART_Calendar"
+                            Style="{TemplateBinding CalendarStyle}"
+                            BorderThickness="0"
+                            IsTodayHighlighted="{TemplateBinding IsTodayHighlighted}"
+                            DisplayDateStart="{TemplateBinding DisplayDateStart}"
+                            DisplayDateEnd="{TemplateBinding DisplayDateEnd}"
+                            FirstDayOfWeek="{TemplateBinding FirstDayOfWeek}"
+                            DisplayDate="{Binding DisplayDate, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                            SelectedDate="{Binding SelectedDate, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
+                </Border>
+              </Popup>
             </Grid>
           </Border>
           <ControlTemplate.Triggers>
