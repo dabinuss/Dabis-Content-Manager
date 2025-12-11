@@ -124,7 +124,7 @@
                       <Button x:Name="DefaultVideoFolderBrowseButton"
                               Grid.Row="2"
                               Grid.Column="1"
-                              Content="WÃƒÂ¤hlen..."
+                              Content="{DynamicResource Settings.ChoosePath}"
                               Style="{StaticResource SecondaryButton}"
                               Click="DefaultVideoFolderBrowseButton_Click"/>
 
