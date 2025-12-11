@@ -4,6 +4,7 @@ using System.Windows;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Transcription;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 
 namespace DCM.App;
@@ -16,11 +17,12 @@ public partial class MainWindow
 
     #region Transcription Initialization
 
-    private void InitializeTranscriptionService()
+    private async Task InitializeTranscriptionServiceAsync()
     {
         try
         {
-            _transcriptionService = new TranscriptionService();
+            var service = await Task.Run(() => new TranscriptionService());
+            _transcriptionService = service;
             _logger.Debug("TranscriptionService initialisiert", "Transcription");
             UpdateTranscriptionButtonState();
             UpdateTranscriptionStatusDisplay();

@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using DCM.Core.Models;
 
@@ -7,12 +9,14 @@ public partial class MainWindow
 {
     #region Templates
 
-    private void LoadTemplates()
+    private async Task LoadTemplatesAsync()
     {
         try
         {
+            var templates = await Task.Run(() => _templateRepository.Load().ToList());
+
             _loadedTemplates.Clear();
-            _loadedTemplates.AddRange(_templateRepository.Load());
+            _loadedTemplates.AddRange(templates);
 
             var defaultTemplate = _loadedTemplates.FirstOrDefault(t => t.IsDefault && t.Platform == PlatformType.YouTube)
                                   ?? _loadedTemplates.FirstOrDefault(t => t.Platform == PlatformType.YouTube);

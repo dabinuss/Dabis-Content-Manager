@@ -21,6 +21,7 @@ using DCM.Transcription;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace DCM.App;
 
@@ -94,10 +95,7 @@ public partial class MainWindow : Window
         InitializeChannelLanguageComboBox();
         InitializeSchedulingDefaults();
         InitializeLlmSettingsTab();
-        LoadTemplates();
-        InitializeTranscriptionService();
         UpdateYouTubeStatusText();
-        LoadUploadHistory();
 
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
@@ -273,6 +271,8 @@ public partial class MainWindow : Window
         // Event-Handler für Log-Updates registrieren (nach UI-Initialisierung)
         _logger.EntryAdded += OnLogEntryAdded;
 
+        await InitializeHeavyUiAsync();
+
         if (_settings.AutoConnectYouTube)
         {
             await TryAutoConnectYouTubeAsync();
@@ -280,6 +280,22 @@ public partial class MainWindow : Window
 
         UpdateLlmStatusText();
         UpdateLogLinkIndicator();
+    }
+
+    private async Task InitializeHeavyUiAsync()
+    {
+        try
+        {
+            await Task.WhenAll(
+                LoadTemplatesAsync(),
+                InitializeTranscriptionServiceAsync(),
+                LoadUploadHistoryAsync());
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Initialisierung fehlgeschlagen: {ex.Message}", "MainWindow", ex);
+            StatusTextBlock.Text = $"Initialisierung fehlgeschlagen: {ex.Message}";
+        }
     }
 
     private void OnLogEntryAdded(LogEntry entry)
@@ -891,7 +907,7 @@ public partial class MainWindow : Window
                 CancellationToken.None);
 
             _uploadHistoryService.AddEntry(project, result);
-            LoadUploadHistory();
+            await LoadUploadHistoryAsync();
 
             if (result.Success)
             {
@@ -1164,15 +1180,16 @@ public partial class MainWindow : Window
 
     #region History
 
-    private void LoadUploadHistory()
+    private async Task LoadUploadHistoryAsync()
     {
         try
         {
-            _allHistoryEntries = _uploadHistoryService
+            var entries = await Task.Run(() => _uploadHistoryService
                 .GetAll()
                 .OrderByDescending(e => e.DateTime)
-                .ToList();
+                .ToList());
 
+            _allHistoryEntries = entries;
             ApplyHistoryFilter();
         }
         catch (Exception ex)
