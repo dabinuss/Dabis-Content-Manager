@@ -9,24 +9,24 @@ public partial class MainWindow
 
     private async void YouTubeConnectButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        StatusTextBlock.Text = "Verbinde mit YouTube...";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connecting");
 
         try
         {
             await _youTubeClient.ConnectAsync(System.Threading.CancellationToken.None);
             UpdateYouTubeStatusText();
             await RefreshYouTubePlaylistsAsync();
-            StatusTextBlock.Text = "Mit YouTube verbunden.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connected");
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = $"YouTube-Verbindung fehlgeschlagen: {ex.Message}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.ConnectFailed", ex.Message);
         }
     }
 
     private async void YouTubeDisconnectButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        StatusTextBlock.Text = "YouTube-Verbindung wird getrennt...";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnecting");
 
         try
         {
@@ -35,11 +35,11 @@ public partial class MainWindow
             _youTubePlaylists.Clear();
             AccountsPageView?.ClearYouTubePlaylists();
             UploadView.PlaylistComboBox.ItemsSource = null;
-            StatusTextBlock.Text = "YouTube-Verbindung getrennt.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnected");
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = $"Trennen fehlgeschlagen: {ex.Message}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.DisconnectFailed", ex.Message);
         }
     }
 
@@ -50,7 +50,7 @@ public partial class MainWindow
         {
             _settings.DefaultPlaylistId = playlist.Id;
             SaveSettings();
-            StatusTextBlock.Text = $"Standard-Playlist gesetzt: {playlist.Title}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.DefaultPlaylistSet", playlist.Title);
 
             if (UploadView.PlaylistComboBox.ItemsSource is not null)
             {
@@ -68,13 +68,13 @@ public partial class MainWindow
         if (_youTubeClient.IsConnected)
         {
             var status = string.IsNullOrWhiteSpace(_youTubeClient.ChannelTitle)
-                ? "Mit YouTube verbunden."
-                : $"Verbunden als: {_youTubeClient.ChannelTitle}";
+                ? LocalizationHelper.Get("Status.YouTube.Connected")
+                : LocalizationHelper.Format("Status.YouTube.ConnectedAs", _youTubeClient.ChannelTitle);
             AccountsPageView?.SetYouTubeAccountStatus(status);
         }
         else
         {
-            AccountsPageView?.SetYouTubeAccountStatus("Nicht mit YouTube verbunden.");
+            AccountsPageView?.SetYouTubeAccountStatus(LocalizationHelper.Get("Accounts.YouTube.Msg.NotConnected"));
         }
     }
 
@@ -109,7 +109,7 @@ public partial class MainWindow
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = $"Fehler beim Laden der Playlists: {ex.Message}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.LoadPlaylistsFailed", ex.Message);
         }
     }
 
@@ -125,7 +125,7 @@ public partial class MainWindow
 
             UpdateYouTubeStatusText();
             await RefreshYouTubePlaylistsAsync();
-            StatusTextBlock.Text = "YouTube-Verbindung wiederhergestellt.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Restored");
         }
         catch
         {

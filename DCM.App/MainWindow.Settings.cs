@@ -21,7 +21,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             _settings = new AppSettings();
-            StatusTextBlock.Text = $"Einstellungen konnten nicht geladen werden: {ex.Message}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Settings.LoadFailed", ex.Message);
         }
 
         _settings.Persona ??= new ChannelPersona();
@@ -81,7 +81,7 @@ public partial class MainWindow
 
         var dialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = "Standard-Videoordner auswählen",
+            Title = LocalizationHelper.Get("Dialog.VideoFolder.Title"),
             InitialDirectory = initialPath
         };
 
@@ -90,7 +90,7 @@ public partial class MainWindow
             SettingsPageView!.DefaultVideoFolder = dialog.FolderName;
             _settings.DefaultVideoFolder = dialog.FolderName;
             SaveSettings();
-            StatusTextBlock.Text = "Standard-Videoordner aktualisiert.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.VideoFolderUpdated");
         }
     }
 
@@ -115,7 +115,7 @@ public partial class MainWindow
 
         var dialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = "Standard-Thumbnailordner auswählen",
+            Title = LocalizationHelper.Get("Dialog.ThumbnailFolder.Title"),
             InitialDirectory = initialPath
         };
 
@@ -124,7 +124,7 @@ public partial class MainWindow
             SettingsPageView!.DefaultThumbnailFolder = dialog.FolderName;
             _settings.DefaultThumbnailFolder = dialog.FolderName;
             SaveSettings();
-            StatusTextBlock.Text = "Standard-Thumbnailordner aktualisiert.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.ThumbnailFolderUpdated");
         }
     }
 
@@ -140,7 +140,7 @@ public partial class MainWindow
         ChannelPageView?.UpdatePersona(persona);
 
         SaveSettings();
-        StatusTextBlock.Text = "Kanalprofil gespeichert.";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.ChannelProfileSaved");
     }
 
     #endregion
@@ -156,8 +156,8 @@ public partial class MainWindow
     {
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "GGUF-Modelldatei auswählen",
-            Filter = "GGUF-Modelle|*.gguf|Alle Dateien|*.*"
+            Title = LocalizationHelper.Get("Dialog.LLMModel.Title"),
+            Filter = LocalizationHelper.Get("Dialog.LLMModel.Filter")
         };
 
         if (!string.IsNullOrWhiteSpace(_settings.Llm?.LocalModelPath))
@@ -187,58 +187,67 @@ public partial class MainWindow
 
         if (llm.IsOff)
         {
-            SettingsPageView?.SetLlmStatus("Deaktiviert", System.Windows.Media.Brushes.Gray);
+            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Deactivated"), System.Windows.Media.Brushes.Gray);
             return;
         }
 
         if (!llm.IsLocalMode)
         {
-            SettingsPageView?.SetLlmStatus("Unbekannter Modus", System.Windows.Media.Brushes.Orange);
+            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.UnknownMode"), System.Windows.Media.Brushes.Orange);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(llm.LocalModelPath))
         {
-            SettingsPageView?.SetLlmStatus("Kein Modellpfad konfiguriert", System.Windows.Media.Brushes.Orange);
+            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.NoPath"), System.Windows.Media.Brushes.Orange);
             return;
         }
 
         if (!File.Exists(llm.LocalModelPath))
         {
-            SettingsPageView?.SetLlmStatus("Modelldatei nicht gefunden", System.Windows.Media.Brushes.Red);
+            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.FileMissing"), System.Windows.Media.Brushes.Red);
             return;
         }
 
         if (_llmClient is LocalLlmClient localClient)
         {
-            var modelTypeInfo = llm.ModelType == LlmModelType.Auto ? "Auto" : llm.ModelType.ToString();
+            var modelTypeInfo = GetLocalizedModelTypeName(llm.ModelType);
 
             if (!localClient.IsReady && string.IsNullOrEmpty(localClient.InitializationError))
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                SettingsPageView?.SetLlmStatus($"Konfiguriert: {fileName} ({modelTypeInfo})", System.Windows.Media.Brushes.DarkGreen);
+                SettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Configured", fileName, modelTypeInfo), System.Windows.Media.Brushes.DarkGreen);
                 return;
             }
 
             if (localClient.IsReady)
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                SettingsPageView?.SetLlmStatus($"Bereit: {fileName} ({modelTypeInfo})", System.Windows.Media.Brushes.Green);
+                SettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Ready", fileName, modelTypeInfo), System.Windows.Media.Brushes.Green);
             }
             else if (!string.IsNullOrWhiteSpace(localClient.InitializationError))
             {
-                SettingsPageView?.SetLlmStatus($"Fehler: {localClient.InitializationError}", System.Windows.Media.Brushes.Red);
+                SettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Error", localClient.InitializationError), System.Windows.Media.Brushes.Red);
             }
             else
             {
-                SettingsPageView?.SetLlmStatus("Status unbekannt", System.Windows.Media.Brushes.Orange);
+                SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Unknown"), System.Windows.Media.Brushes.Orange);
             }
         }
         else
         {
-            SettingsPageView?.SetLlmStatus("Client nicht konfiguriert", System.Windows.Media.Brushes.Gray);
+            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.ClientMissing"), System.Windows.Media.Brushes.Gray);
         }
     }
+
+    private static string GetLocalizedModelTypeName(LlmModelType modelType) =>
+        modelType switch
+        {
+            LlmModelType.Auto => LocalizationHelper.Get("Settings.LLM.ModelType.Detect"),
+            LlmModelType.Phi3 => LocalizationHelper.Get("Settings.LLM.ModelType.Phi3"),
+            LlmModelType.Mistral3 => LocalizationHelper.Get("Settings.LLM.ModelType.Mistral3"),
+            _ => modelType.ToString()
+        };
 
     #endregion
 
@@ -264,6 +273,6 @@ public partial class MainWindow
         SaveSettings();
         RecreateLlmClient();
 
-        StatusTextBlock.Text = "Einstellungen gespeichert.";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.Saved");
     }
 }

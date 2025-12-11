@@ -32,7 +32,7 @@ public partial class MainWindow
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = $"Templates konnten nicht geladen werden: {ex.Message}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Templates.LoadFailed", ex.Message);
         }
     }
 
@@ -68,14 +68,14 @@ public partial class MainWindow
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
         UploadView.DescriptionTextBox.Text = result;
-        StatusTextBlock.Text = $"Template \"{tmpl.Name}\" automatisch angewendet.";
+        StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.AutoApplied", tmpl.Name);
     }
 
     private void TemplateNewButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
         var tmpl = new Template
         {
-            Name = "Neues Template",
+            Name = LocalizationHelper.Get("Templates.DefaultName"),
             Platform = PlatformType.YouTube,
             IsDefault = !_loadedTemplates.Any(t => t.Platform == PlatformType.YouTube && t.IsDefault),
             Body = string.Empty
@@ -87,7 +87,7 @@ public partial class MainWindow
         TemplatesPageView?.SelectTemplate(tmpl);
         LoadTemplateIntoEditor(tmpl);
 
-        StatusTextBlock.Text = "Neues Template erstellt. Bitte bearbeiten und speichern.";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.Created");
     }
 
     private void TemplateEditButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -95,11 +95,11 @@ public partial class MainWindow
         if (TemplatesPageView?.SelectedTemplate is Template tmpl)
         {
             LoadTemplateIntoEditor(tmpl);
-            StatusTextBlock.Text = $"Template \"{tmpl.Name}\" wird bearbeitet.";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.Editing", tmpl.Name);
         }
         else
         {
-            StatusTextBlock.Text = "Kein Template zum Bearbeiten ausgewählt.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.EditNone");
         }
     }
 
@@ -107,7 +107,7 @@ public partial class MainWindow
     {
         if (TemplatesPageView?.SelectedTemplate is not Template tmpl)
         {
-            StatusTextBlock.Text = "Kein Template zum Löschen ausgewählt.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.DeleteNone");
             return;
         }
 
@@ -121,7 +121,7 @@ public partial class MainWindow
 
             SaveTemplatesToRepository();
             RefreshTemplateBindings();
-            StatusTextBlock.Text = $"Template \"{tmpl.Name}\" gelöscht.";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.Deleted", tmpl.Name);
         }
     }
 
@@ -131,21 +131,21 @@ public partial class MainWindow
         {
             if (_currentEditingTemplate is null)
             {
-                StatusTextBlock.Text = "Kein Template im Editor zum Speichern.";
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.NoneToSave");
                 return;
             }
 
             var editorState = TemplatesPageView?.TryGetEditorState();
             if (editorState is null)
             {
-                StatusTextBlock.Text = "Template-Editor ist noch nicht vollständig initialisiert.";
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.EditorNotReady");
                 return;
             }
 
             var name = editorState.Name;
             if (string.IsNullOrWhiteSpace(name))
             {
-                StatusTextBlock.Text = "Templatename darf nicht leer sein.";
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.NameRequired");
                 return;
             }
 
@@ -163,7 +163,7 @@ public partial class MainWindow
             if (duplicate is not null)
             {
                 StatusTextBlock.Text =
-                    $"Hinweis: Es existiert bereits ein Template mit diesem Namen für Plattform {platform}.";
+                    LocalizationHelper.Format("Status.Template.Duplicate", platform);
             }
 
             _currentEditingTemplate.Name = name;
@@ -191,11 +191,11 @@ public partial class MainWindow
                 UploadView.TemplateComboBox.SelectedItem = _currentEditingTemplate;
             }
 
-            StatusTextBlock.Text = $"Template \"{_currentEditingTemplate.Name}\" gespeichert.";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.Saved", _currentEditingTemplate.Name);
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = $"Fehler beim Speichern des Templates: {ex.Message}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.SaveFailed", ex.Message);
         }
     }
 
@@ -213,7 +213,7 @@ public partial class MainWindow
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = $"Templates konnten nicht gespeichert werden: {ex.Message}";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Templates.SaveFailed", ex.Message);
         }
     }
 

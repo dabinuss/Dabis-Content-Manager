@@ -14,6 +14,132 @@
   <!-- Status -->
   <sys:String x:Key="Status">Status:</sys:String>
   <sys:String x:Key="Status.Ready">Status:</sys:String>
+  <sys:String x:Key="Status.Main.InitializationFailed">Initialization failed: {0}</sys:String>
+  <sys:String x:Key="Status.Main.LanguageChanged">Language changed: {0}</sys:String>
+  <sys:String x:Key="Status.LLM.GenerateTitles">Generating title suggestions...</sys:String>
+  <sys:String x:Key="Status.LLM.NoTitles">No title suggestions received.</sys:String>
+  <sys:String x:Key="Status.LLM.TitleInserted">Title suggestion inserted. ({0} suggestions)</sys:String>
+  <sys:String x:Key="Status.LLM.TitleCanceled">Title generation canceled.</sys:String>
+  <sys:String x:Key="Status.LLM.TitleError">Title generation failed: {0}</sys:String>
+  <sys:String x:Key="Status.LLM.GenerateDescription">Generating description suggestion...</sys:String>
+  <sys:String x:Key="Status.LLM.DescriptionInserted">Description suggestion inserted.</sys:String>
+  <sys:String x:Key="Status.LLM.NoDescriptions">No description suggestions available.</sys:String>
+  <sys:String x:Key="Status.LLM.DescriptionCanceled">Description generation canceled.</sys:String>
+  <sys:String x:Key="Status.LLM.DescriptionError">Description generation failed: {0}</sys:String>
+  <sys:String x:Key="Status.LLM.GenerateTags">Generating tag suggestions...</sys:String>
+  <sys:String x:Key="Status.LLM.TagsInserted">Tag suggestions inserted. ({0} tags)</sys:String>
+  <sys:String x:Key="Status.LLM.NoTags">No tag suggestions available.</sys:String>
+  <sys:String x:Key="Status.LLM.TagsCanceled">Tag generation canceled.</sys:String>
+  <sys:String x:Key="Status.LLM.TagsError">Tag generation failed: {0}</sys:String>
+  <sys:String x:Key="Status.Update.Checking">Checking for updates...</sys:String>
+  <sys:String x:Key="Status.Update.NotPossible">Unable to check for updates.</sys:String>
+  <sys:String x:Key="Status.Update.InfoMissing">Could not read update information.</sys:String>
+  <sys:String x:Key="Status.Update.VersionFormat">Version format not recognized: {0}</sys:String>
+  <sys:String x:Key="Status.Update.LatestVersion">You are using the latest version ({0}).</sys:String>
+  <sys:String x:Key="Status.Update.NewVersion">New version available: v{0}</sys:String>
+  <sys:String x:Key="Status.Update.Failed">Update check failed: {0}</sys:String>
+  <sys:String x:Key="Status.Transcription.ExportSuccess">Transcript exported: {0}</sys:String>
+  <sys:String x:Key="Status.Transcription.ExportFailed">Transcript could not be exported: {0}</sys:String>
+  <sys:String x:Key="Status.Transcription.SelectVideo">Please select a video first.</sys:String>
+  <sys:String x:Key="Status.Transcription.ServiceUnavailable">Transcription service not available.</sys:String>
+  <sys:String x:Key="Status.Transcription.LoadDependencies">Loading transcription dependencies...</sys:String>
+  <sys:String x:Key="Status.Transcription.DependenciesFailed">Transcription dependencies could not be loaded.</sys:String>
+  <sys:String x:Key="Status.Transcription.Canceled">Transcription canceled.</sys:String>
+  <sys:String x:Key="Status.Transcription.Error">Transcription failed: {0}</sys:String>
+  <sys:String x:Key="Status.Transcription.Completed">Transcription completed ({0:F1}s).</sys:String>
+  <sys:String x:Key="Status.Transcription.ResultFailed">Transcription failed: {0}</sys:String>
+  <sys:String x:Key="Status.Transcription.ModelAlreadyInstalled">Whisper model {0} is already installed.</sys:String>
+  <sys:String x:Key="Status.Transcription.DownloadSuccess">Transcription dependencies loaded successfully.</sys:String>
+  <sys:String x:Key="Status.Transcription.DownloadFailed">Download failed.</sys:String>
+  <sys:String x:Key="Status.Transcription.DownloadError">Download error: {0}</sys:String>
+  <sys:String x:Key="Status.Transcription.SettingsSaved">Transcription settings saved.</sys:String>
+  <sys:String x:Key="Transcription.Phase.LoadingDependencies">Loading dependencies...</sys:String>
+  <sys:String x:Key="Transcription.Phase.Canceled">Canceled</sys:String>
+  <sys:String x:Key="Transcription.Phase.Error">Error: {0}</sys:String>
+  <sys:String x:Key="Transcription.Phase.Initializing">Initializing...</sys:String>
+  <sys:String x:Key="Transcription.Phase.Canceling">Canceling...</sys:String>
+  <sys:String x:Key="Transcription.Phase.CompletedIn">Completed in {0:F1}s</sys:String>
+  <sys:String x:Key="Transcription.Phase.ExtractingAudio">Extracting audio... {0:F0}%</sys:String>
+  <sys:String x:Key="Transcription.Phase.Completed">Completed</sys:String>
+  <sys:String x:Key="Transcription.Phase.Failed">Failed</sys:String>
+  <sys:String x:Key="Transcription.Progress.Transcribing">Transcribing... {0:F0}%</sys:String>
+  <sys:String x:Key="Transcription.Progress.TimeMinutes"> (~{0:F0} min remaining)</sys:String>
+  <sys:String x:Key="Transcription.Progress.TimeSeconds"> (~{0:F0}s remaining)</sys:String>
+  <sys:String x:Key="Transcription.Dependency.Type.FFmpeg">FFmpeg</sys:String>
+  <sys:String x:Key="Transcription.Dependency.Type.Whisper">Whisper model</sys:String>
+  <sys:String x:Key="Transcription.Dependency.Progress.Percent">{0}: {1:F0}%</sys:String>
+  <sys:String x:Key="Transcription.Dependency.Progress.Bytes">{0}: {1:F1} / {2:F1} MB</sys:String>
+  <sys:String x:Key="Transcription.Status.ServiceUnavailable">Service unavailable</sys:String>
+  <sys:String x:Key="Transcription.Status.Ready">✓ Ready (Model: {0})</sys:String>
+  <sys:String x:Key="Transcription.Status.Missing">✗ Missing: {0}</sys:String>
+  <sys:String x:Key="Log.Transcription.ServiceInitialized">Transcription service initialized</sys:String>
+  <sys:String x:Key="Log.Transcription.ServiceInitFailed">Transcription service could not be initialized: {0}</sys:String>
+  <sys:String x:Key="Log.Transcription.Started">Transcription started: {0}</sys:String>
+  <sys:String x:Key="Log.Transcription.DependenciesMissing">Transcription dependencies not available</sys:String>
+  <sys:String x:Key="Log.Transcription.Canceled">Transcription canceled</sys:String>
+  <sys:String x:Key="Log.Transcription.Canceling">Canceling transcription...</sys:String>
+  <sys:String x:Key="Log.Transcription.Success">Transcription successful: {0} characters in {1:F1}s</sys:String>
+  <sys:String x:Key="Log.Transcription.Failed">Transcription failed: {0}</sys:String>
+  <sys:String x:Key="Log.Transcription.AutoSkip">Auto transcription skipped: dependencies not ready</sys:String>
+  <sys:String x:Key="Log.Transcription.AutoStarted">Auto transcription started</sys:String>
+  <sys:String x:Key="Log.Transcription.DependenciesLoaded">Transcription dependencies loaded</sys:String>
+  <sys:String x:Key="Log.Transcription.DownloadFailed">Transcription download failed</sys:String>
+  <sys:String x:Key="Log.Transcription.DownloadError">Transcription download error: {0}</sys:String>
+  <sys:String x:Key="Log.Transcription.ExportSuccess">Transcript exported: {0}</sys:String>
+  <sys:String x:Key="Log.Transcription.ExportFailed">Transcript could not be exported: {0}</sys:String>
+  <sys:String x:Key="Log.App.StartupCompleted">App startup completed</sys:String>
+  <sys:String x:Key="Log.App.UnhandledUiException">Unhandled UI exception: {0}</sys:String>
+  <sys:String x:Key="Log.App.FatalException">Fatal exception: {0}</sys:String>
+  <sys:String x:Key="Log.App.UnobservedTaskException">Unobserved task exception: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.VideoSelected">Video selected: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.VideoInfoError">Failed to load video information: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.ThumbnailSelected">Thumbnail selected: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.ThumbnailLoadError">Failed to load thumbnail: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.ThumbnailMissing">Thumbnail not found: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.ThumbnailTooLarge">Thumbnail too large: {0:F2} MB</sys:String>
+  <sys:String x:Key="Log.Upload.ValidationFailed">Validation failed: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.Started">Upload started: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.Success">Upload successful: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.Failed">Upload failed: {0}</sys:String>
+  <sys:String x:Key="Log.Upload.UnexpectedError">Unexpected upload error: {0}</sys:String>
+  <sys:String x:Key="Log.Template.Applied">Template applied: {0}</sys:String>
+  <sys:String x:Key="Log.MainWindow.Started">Application started</sys:String>
+  <sys:String x:Key="Log.MainWindow.Closing">Application shutting down</sys:String>
+  <sys:String x:Key="Log.MainWindow.InitializationFailed">Initialization failed: {0}</sys:String>
+  <sys:String x:Key="Log.MainWindow.LogWindowOpenFailed">Log window could not be opened: {0}</sys:String>
+  <sys:String x:Key="Log.Settings.LanguageChanged">Language changed to: {0}</sys:String>
+  <sys:String x:Key="Log.LLM.TitleGeneration.Started">Title generation started</sys:String>
+  <sys:String x:Key="Log.LLM.TitleGeneration.NoSuggestions">No title suggestions received</sys:String>
+  <sys:String x:Key="Log.LLM.TitleGeneration.Success">Title suggestion generated: {0}</sys:String>
+  <sys:String x:Key="Log.LLM.TitleGeneration.Canceled">Title generation canceled</sys:String>
+  <sys:String x:Key="Log.LLM.TitleGeneration.Error">Title generation failed: {0}</sys:String>
+  <sys:String x:Key="Log.LLM.DescriptionGeneration.Started">Description generation started</sys:String>
+  <sys:String x:Key="Log.LLM.DescriptionGeneration.Success">Description suggestion generated</sys:String>
+  <sys:String x:Key="Log.LLM.DescriptionGeneration.NoSuggestions">No description suggestions available</sys:String>
+  <sys:String x:Key="Log.LLM.DescriptionGeneration.Canceled">Description generation canceled</sys:String>
+  <sys:String x:Key="Log.LLM.DescriptionGeneration.Error">Description generation failed: {0}</sys:String>
+  <sys:String x:Key="Log.LLM.TagGeneration.Started">Tag generation started</sys:String>
+  <sys:String x:Key="Log.LLM.TagGeneration.Success">Tag suggestions generated: {0} tags</sys:String>
+  <sys:String x:Key="Log.LLM.TagGeneration.NoSuggestions">No tag suggestions available</sys:String>
+  <sys:String x:Key="Log.LLM.TagGeneration.Canceled">Tag generation canceled</sys:String>
+  <sys:String x:Key="Log.LLM.TagGeneration.Error">Tag generation failed: {0}</sys:String>
+  <sys:String x:Key="Log.Updates.HttpFailure">Update check failed: HTTP {0}</sys:String>
+  <sys:String x:Key="Log.Updates.NoTag">Update data did not contain tag_name</sys:String>
+  <sys:String x:Key="Log.Updates.VersionParseFailed">Could not parse version from tag '{0}'.</sys:String>
+  <sys:String x:Key="Log.Updates.NoNewVersion">No newer version found. Current: {0}, Remote: {1}</sys:String>
+  <sys:String x:Key="Log.Updates.NewVersionFound">New version available. Current: {0}, Remote: {1}</sys:String>
+  <sys:String x:Key="Log.Updates.CheckFailed">Update check failed: {0}</sys:String>
+  <sys:String x:Key="Log.History.LoadFailed">Upload history could not be loaded: {0}</sys:String>
+  <sys:String x:Key="Log.History.ClearSuccess">Upload history cleared</sys:String>
+  <sys:String x:Key="Log.History.ClearFailed">History could not be cleared: {0}</sys:String>
+  <sys:String x:Key="Llm.TitlePlaceholder.NoSuggestions">[No suggestions]</sys:String>
+  <sys:String x:Key="Transcription.Export.DefaultFileName">transcript</sys:String>
+  <sys:String x:Key="Language.Name.de">German</sys:String>
+  <sys:String x:Key="Language.Name.en">English</sys:String>
+  <sys:String x:Key="Log.Link.Default">📋 Log</sys:String>
+  <sys:String x:Key="Log.Link.WithErrors">📋 Log ({0} ⚠)</sys:String>
+  <sys:String x:Key="Dialog.LogWindow.OpenFailed.Title">Error</sys:String>
+  <sys:String x:Key="Dialog.LogWindow.OpenFailed.Text">Log window could not be opened:\n{0}</sys:String>
 
   <!-- Platforms -->
   <sys:String x:Key="Platform">Platform</sys:String>
@@ -43,6 +169,7 @@
   <sys:String x:Key="Common.Open">Open</sys:String>
   <sys:String x:Key="Common.YesToAll">Yes to All</sys:String>
   <sys:String x:Key="Common.NoToAll">No to All</sys:String>
+  <sys:String x:Key="Common.Unknown">Unknown</sys:String>
 
   <!-- Navigation -->
   <sys:String x:Key="Nav.Uploads">Uploads</sys:String>
@@ -82,6 +209,34 @@
   <sys:String x:Key="Upload.Fields.Publication.Plan">Scheduled Publication</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Date">Date:</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Time">Time:</sys:String>
+  <sys:String x:Key="Dialog.Video.Open.Title">Select video</sys:String>
+  <sys:String x:Key="Dialog.Video.Open.Filter">Video Files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm|All Files|*.*</sys:String>
+  <sys:String x:Key="Dialog.Thumbnail.Open.Title">Select thumbnail</sys:String>
+  <sys:String x:Key="Dialog.Thumbnail.Open.Filter">Images|*.png;*.jpg;*.jpeg|All Files|*.*</sys:String>
+  <sys:String x:Key="Status.Template.NoneSelected">No template selected.</sys:String>
+  <sys:String x:Key="Status.Template.Applied">Template "{0}" applied.</sys:String>
+  <sys:String x:Key="Dialog.Upload.Confirm.Title">Confirmation</sys:String>
+  <sys:String x:Key="Dialog.Upload.Confirm.Text">Start upload now?</sys:String>
+  <sys:String x:Key="Status.Upload.Canceled">Upload canceled.</sys:String>
+  <sys:String x:Key="Status.Upload.ThumbnailNotFound">Note: Thumbnail file not found. Upload will continue without it.</sys:String>
+  <sys:String x:Key="Status.Upload.ThumbnailTooLarge">Thumbnail is larger than 2 MB and will not be used.</sys:String>
+  <sys:String x:Key="Status.Upload.ValidationFailed">Invalid input: {0}</sys:String>
+  <sys:String x:Key="Status.Upload.ConnectYouTube">Please connect to YouTube in the "Accounts" tab first.</sys:String>
+  <sys:String x:Key="Status.Upload.Preparing">Preparing upload...</sys:String>
+  <sys:String x:Key="Status.Upload.Success">Upload successful: {0}</sys:String>
+  <sys:String x:Key="Status.Upload.Failed">Upload failed: {0}</sys:String>
+  <sys:String x:Key="Status.Upload.UnexpectedError">Unexpected upload error: {0}</sys:String>
+  <sys:String x:Key="Upload.VideoFileSize.Unknown">? MB</sys:String>
+  <sys:String x:Key="Status.YouTube.Connecting">Connecting to YouTube...</sys:String>
+  <sys:String x:Key="Status.YouTube.Connected">Connected to YouTube.</sys:String>
+  <sys:String x:Key="Status.YouTube.ConnectedAs">Connected as: {0}</sys:String>
+  <sys:String x:Key="Status.YouTube.ConnectFailed">YouTube connection failed: {0}</sys:String>
+  <sys:String x:Key="Status.YouTube.Disconnecting">Disconnecting from YouTube...</sys:String>
+  <sys:String x:Key="Status.YouTube.Disconnected">YouTube connection disconnected.</sys:String>
+  <sys:String x:Key="Status.YouTube.DisconnectFailed">Disconnect failed: {0}</sys:String>
+  <sys:String x:Key="Status.YouTube.DefaultPlaylistSet">Default playlist set: {0}</sys:String>
+  <sys:String x:Key="Status.YouTube.LoadPlaylistsFailed">Failed to load playlists: {0}</sys:String>
+  <sys:String x:Key="Status.YouTube.Restored">YouTube connection restored.</sys:String>
 
   <!-- Accounts -->
   <sys:String x:Key="Accounts">Accounts</sys:String>
@@ -146,6 +301,21 @@
   <sys:String x:Key="Templates.Fields.UseAsStandard">Use as Default Template</sys:String>
   <sys:String x:Key="Templates.Fields.Notes">Template Notes</sys:String>
   <sys:String x:Key="Templates.Fields.TemplateBody">Template Text</sys:String>
+  <sys:String x:Key="Templates.DefaultName">New Template</sys:String>
+  <sys:String x:Key="Status.Templates.LoadFailed">Templates could not be loaded: {0}</sys:String>
+  <sys:String x:Key="Status.Templates.SaveFailed">Templates could not be saved: {0}</sys:String>
+  <sys:String x:Key="Status.Template.AutoApplied">Template "{0}" applied automatically.</sys:String>
+  <sys:String x:Key="Status.Template.Created">New template created. Please edit and save.</sys:String>
+  <sys:String x:Key="Status.Template.Editing">Editing template "{0}".</sys:String>
+  <sys:String x:Key="Status.Template.EditNone">No template selected for editing.</sys:String>
+  <sys:String x:Key="Status.Template.DeleteNone">No template selected for deletion.</sys:String>
+  <sys:String x:Key="Status.Template.Deleted">Template "{0}" deleted.</sys:String>
+  <sys:String x:Key="Status.Template.NoneToSave">No template in the editor to save.</sys:String>
+  <sys:String x:Key="Status.Template.EditorNotReady">Template editor is not fully initialized.</sys:String>
+  <sys:String x:Key="Status.Template.NameRequired">Template name must not be empty.</sys:String>
+  <sys:String x:Key="Status.Template.Duplicate">Note: A template with this name already exists for platform {0}.</sys:String>
+  <sys:String x:Key="Status.Template.Saved">Template "{0}" saved.</sys:String>
+  <sys:String x:Key="Status.Template.SaveFailed">Failed to save template: {0}</sys:String>
 
   <!-- History -->
   <sys:String x:Key="History">History</sys:String>
@@ -155,6 +325,11 @@
   <sys:String x:Key="History.List.Title">Title</sys:String>
   <sys:String x:Key="History.List.Link">Link</sys:String>
   <sys:String x:Key="History.ClearList">Clear List</sys:String>
+  <sys:String x:Key="Dialog.History.ClearConfirm.Title">Confirmation</sys:String>
+  <sys:String x:Key="Dialog.History.ClearConfirm.Text">Do you really want to delete the entire upload history?</sys:String>
+  <sys:String x:Key="Status.History.LoadFailed">Upload history could not be loaded: {0}</sys:String>
+  <sys:String x:Key="Status.History.Cleared">Upload history cleared.</sys:String>
+  <sys:String x:Key="Status.History.ClearFailed">History could not be cleared: {0}</sys:String>
 
   <!-- Settings -->
   <sys:String x:Key="Settings">Settings</sys:String>
@@ -165,6 +340,8 @@
   <sys:String x:Key="Settings.VideoFolder">Video Folder</sys:String>
   <sys:String x:Key="Settings.ThumbnailFolder">Thumbnail Folder</sys:String>
   <sys:String x:Key="Settings.ChoosePath">Choose Path</sys:String>
+  <sys:String x:Key="Dialog.VideoFolder.Title">Select default video folder</sys:String>
+  <sys:String x:Key="Dialog.ThumbnailFolder.Title">Select default thumbnail folder</sys:String>
   <sys:String x:Key="Settings.UploadSettings">Default Upload Settings</sys:String>
   <sys:String x:Key="Settings.StandardReleaseTime">Default Release Time</sys:String>
   <sys:String x:Key="Settings.ConfirmUpload">Ask for Confirmation Before Upload</sys:String>
@@ -191,10 +368,27 @@
   <sys:String x:Key="Settings.LLM.PathToModel">Path to Model</sys:String>
   <sys:String x:Key="Settings.LLM.ModelType">Model Type</sys:String>
   <sys:String x:Key="Settings.LLM.ModelType.Detect">Detect Automatically</sys:String>
-  <sys:String x:Key="Settings.LLM.ModelType.Phi3">Detect Automatically</sys:String>
-  <sys:String x:Key="Settings.LLM.ModelType.Mistral3">Detect Automatically</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelType.Phi3">Microsoft Phi-3 / Phi-3.5</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelType.Mistral3">Mistral / Ministral (Tekken v7)</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelType.Tooltip">Detects the model type automatically based on the file name.</sys:String>
   <sys:String x:Key="Settings.LLM.SystemPrompt">Model Type</sys:String>
   <sys:String x:Key="Settings.LLM.Status">Not configured</sys:String>
+  <sys:String x:Key="Dialog.LLMModel.Title">Select GGUF model file</sys:String>
+  <sys:String x:Key="Dialog.LLMModel.Filter">GGUF Models|*.gguf|All Files|*.*</sys:String>
+  <sys:String x:Key="Status.Settings.LoadFailed">Settings could not be loaded: {0}</sys:String>
+  <sys:String x:Key="Status.Settings.VideoFolderUpdated">Default video folder updated.</sys:String>
+  <sys:String x:Key="Status.Settings.ThumbnailFolderUpdated">Default thumbnail folder updated.</sys:String>
+  <sys:String x:Key="Status.Settings.ChannelProfileSaved">Channel profile saved.</sys:String>
+  <sys:String x:Key="Status.Settings.Saved">Settings saved.</sys:String>
+  <sys:String x:Key="Status.LLM.Deactivated">Deactivated</sys:String>
+  <sys:String x:Key="Status.LLM.UnknownMode">Unknown mode</sys:String>
+  <sys:String x:Key="Status.LLM.NoPath">No model path configured</sys:String>
+  <sys:String x:Key="Status.LLM.FileMissing">Model file not found</sys:String>
+  <sys:String x:Key="Status.LLM.Configured">Configured: {0} ({1})</sys:String>
+  <sys:String x:Key="Status.LLM.Ready">Ready: {0} ({1})</sys:String>
+  <sys:String x:Key="Status.LLM.Error">Error: {0}</sys:String>
+  <sys:String x:Key="Status.LLM.Unknown">Status unknown</sys:String>
+  <sys:String x:Key="Status.LLM.ClientMissing">Client not configured</sys:String>
   <sys:String x:Key="Settings.LLM.Parameters">Generation Parameters</sys:String>
   <sys:String x:Key="Settings.LLM.Parameters.MaxToken">Maximum Tokens</sys:String>
   <sys:String x:Key="Settings.LLM.Parameters.Temperature">Temperature</sys:String>
@@ -203,4 +397,35 @@
   <sys:String x:Key="Settings.LLM.Prompts.Description">Description Instructions</sys:String>
   <sys:String x:Key="Settings.LLM.Prompts.Tags">Tags Instructions</sys:String>
 
+  <sys:String x:Key="Dialog.Update.Available.Title">Update available</sys:String>
+  <sys:String x:Key="Dialog.Update.Available.Text">A new version is available:
+
+Current: v{0}
+New: v{1}
+
+Open GitHub releases?</sys:String>
+  <sys:String x:Key="Dialog.Transcript.None.Title">No Transcript</sys:String>
+  <sys:String x:Key="Dialog.Transcript.None.Text">There is no transcript that can be exported.</sys:String>
+  <sys:String x:Key="Dialog.Transcript.Export.Title">Export transcript</sys:String>
+  <sys:String x:Key="Dialog.Transcript.Export.Filter">Text file|*.txt|All files|*.*</sys:String>
+  <sys:String x:Key="Dialog.Transcript.Export.Error.Title">Error</sys:String>
+  <sys:String x:Key="Dialog.Transcript.Export.Error.Text">Transcript could not be exported:
+{0}</sys:String>
+  <sys:String x:Key="Dialog.Error.Unhandled.Title">Error</sys:String>
+  <sys:String x:Key="Dialog.Error.Unhandled.Text">An unexpected error has occurred:
+
+{0}
+
+See log for details.</sys:String>
+  <sys:String x:Key="Log.EntryCount.WithErrors">{0} entries ({1} errors)</sys:String>
+  <sys:String x:Key="Log.EntryCount.WithoutErrors">{0} entries</sys:String>
+  <sys:String x:Key="Dialog.Log.Clear.Title">Confirmation</sys:String>
+  <sys:String x:Key="Dialog.Log.Clear.Text">Clear log?</sys:String>
+  <sys:String x:Key="Dialog.Log.OpenFile.Title">Error</sys:String>
+  <sys:String x:Key="Dialog.Log.OpenFile.Text">Log file could not be opened:
+{0}
+
+Error: {1}</sys:String>
+  <sys:String x:Key="Dialog.Log.NotExists.Title">Information</sys:String>
+  <sys:String x:Key="Dialog.Log.NotExists.Text">Log file does not exist yet.</sys:String>
 </ResourceDictionary>

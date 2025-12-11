@@ -8,6 +8,8 @@ namespace DCM.App;
 
 public partial class App : Application
 {
+    private const string AppLogSource = "App";
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -25,7 +27,7 @@ public partial class App : Application
         MainWindow = mainWindow;
         mainWindow.Show();
 
-        AppLogger.Instance.Info("App.OnStartup abgeschlossen", "App");
+        AppLogger.Instance.Info(LocalizationHelper.Get("Log.App.StartupCompleted"), AppLogSource);
     }
 
     private void InitializeLocalization()
@@ -47,15 +49,15 @@ public partial class App : Application
     private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
         AppLogger.Instance.Error(
-            $"Unbehandelte UI-Exception: {e.Exception.Message}",
-            "App",
+            LocalizationHelper.Format("Log.App.UnhandledUiException", e.Exception.Message),
+            AppLogSource,
             e.Exception);
 
         e.Handled = true;
 
         MessageBox.Show(
-            $"Ein unerwarteter Fehler ist aufgetreten:\n\n{e.Exception.Message}\n\nDetails im Log.",
-            "Fehler",
+            LocalizationHelper.Format("Dialog.Error.Unhandled.Text", e.Exception.Message),
+            LocalizationHelper.Get("Dialog.Error.Unhandled.Title"),
             MessageBoxButton.OK,
             MessageBoxImage.Error);
     }
@@ -65,8 +67,8 @@ public partial class App : Application
         if (e.ExceptionObject is Exception ex)
         {
             AppLogger.Instance.Error(
-                $"Fatale Exception: {ex.Message}",
-                "App",
+                LocalizationHelper.Format("Log.App.FatalException", ex.Message),
+                AppLogSource,
                 ex);
         }
     }
@@ -74,8 +76,8 @@ public partial class App : Application
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         AppLogger.Instance.Error(
-            $"Unbeobachtete Task-Exception: {e.Exception.Message}",
-            "App",
+            LocalizationHelper.Format("Log.App.UnobservedTaskException", e.Exception.Message),
+            AppLogSource,
             e.Exception);
 
         e.SetObserved();

@@ -25,8 +25,8 @@ public sealed class LocalizationManager : INotifyPropertyChanged
         AvailableLanguages = new ReadOnlyObservableCollection<LanguageInfo>(_languages);
 
         // Hier trägst du die Sprachen ein, die du unterstützt
-        _languages.Add(new LanguageInfo("de-DE", "Deutsch"));
-        _languages.Add(new LanguageInfo("en-US", "English"));
+        _languages.Add(new LanguageInfo("de-DE", "Language.Name.de"));
+        _languages.Add(new LanguageInfo("en-US", "Language.Name.en"));
     }
 
     public void Initialize(string? languageFromSettings)
@@ -86,6 +86,7 @@ public sealed class LocalizationManager : INotifyPropertyChanged
         CurrentLanguage = languageCode;
 
         OnPropertyChanged(nameof(CurrentLanguage));
+        RefreshLanguageDisplayNames();
     }
 
     private void EnsureBaseDictionaryLoaded()
@@ -131,18 +132,32 @@ public sealed class LocalizationManager : INotifyPropertyChanged
 
     private void OnPropertyChanged(string propertyName) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private void RefreshLanguageDisplayNames()
+    {
+        foreach (var language in _languages)
+        {
+            language.RefreshDisplayName();
+        }
+    }
 }
 
-public sealed class LanguageInfo
+public sealed class LanguageInfo : INotifyPropertyChanged
 {
     public string Code { get; }
-    public string DisplayName { get; }
+    public string ResourceKey { get; }
+    public string DisplayName => LocalizationHelper.Get(ResourceKey);
 
-    public LanguageInfo(string code, string displayName)
+    public LanguageInfo(string code, string resourceKey)
     {
         Code = code;
-        DisplayName = displayName;
+        ResourceKey = resourceKey;
     }
 
     public override string ToString() => DisplayName;
+
+    internal void RefreshDisplayName() =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

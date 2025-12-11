@@ -171,8 +171,8 @@ public partial class LogWindow : Window
             var totalShown = _filteredEntries.Count;
 
             EntryCountText.Text = errorCount > 0
-                ? $"{totalShown} Eintraege ({errorCount} Fehler)"
-                : $"{totalShown} Eintraege";
+                ? LocalizationHelper.Format("Log.EntryCount.WithErrors", totalShown, errorCount)
+                : LocalizationHelper.Format("Log.EntryCount.WithoutErrors", totalShown);
         }
         catch
         {
@@ -193,8 +193,8 @@ public partial class LogWindow : Window
     {
         var result = MessageBox.Show(
             this,
-            "Log wirklich leeren?",
-            "Bestaetigung",
+            LocalizationHelper.Get("Dialog.Log.Clear.Text"),
+            LocalizationHelper.Get("Dialog.Log.Clear.Title"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
 
@@ -223,8 +223,8 @@ public partial class LogWindow : Window
             {
                 MessageBox.Show(
                     this,
-                    $"Log-Datei konnte nicht geoeffnet werden:\n{logPath}\n\nFehler: {ex.Message}",
-                    "Fehler",
+                    LocalizationHelper.Format("Dialog.Log.OpenFile.Text", logPath, ex.Message),
+                    LocalizationHelper.Get("Dialog.Log.OpenFile.Title"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }
@@ -233,8 +233,8 @@ public partial class LogWindow : Window
         {
             MessageBox.Show(
                 this,
-                "Log-Datei existiert noch nicht.",
-                "Information",
+                LocalizationHelper.Get("Dialog.Log.NotExists.Text"),
+                LocalizationHelper.Get("Dialog.Log.NotExists.Title"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }

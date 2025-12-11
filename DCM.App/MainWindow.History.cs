@@ -28,8 +28,11 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Upload-Historie konnte nicht geladen werden: {ex.Message}";
-            _logger.Error($"Upload-Historie konnte nicht geladen werden: {ex.Message}", "History", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.History.LoadFailed", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.History.LoadFailed", ex.Message),
+                HistoryLogSource,
+                ex);
         }
     }
 
@@ -70,8 +73,8 @@ public partial class MainWindow
     {
         var confirm = MessageBox.Show(
             this,
-            "Die komplette Upload-Historie wirklich löschen?",
-            "Bestätigung",
+            LocalizationHelper.Get("Dialog.History.ClearConfirm.Text"),
+            LocalizationHelper.Get("Dialog.History.ClearConfirm.Title"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
@@ -85,13 +88,16 @@ public partial class MainWindow
             _uploadHistoryService.Clear();
             _allHistoryEntries.Clear();
             HistoryPageView?.SetHistoryItems(Array.Empty<UploadHistoryEntry>());
-            StatusTextBlock.Text = "Upload-Historie gelöscht.";
-            _logger.Info("Upload-Historie gelöscht", "History");
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.History.Cleared");
+            _logger.Info(LocalizationHelper.Get("Log.History.ClearSuccess"), HistoryLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Historie konnte nicht gelöscht werden: {ex.Message}";
-            _logger.Error($"Historie konnte nicht gelöscht werden: {ex.Message}", "History", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.History.ClearFailed", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.History.ClearFailed", ex.Message),
+                HistoryLogSource,
+                ex);
         }
     }
 

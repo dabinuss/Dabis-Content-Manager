@@ -404,8 +404,8 @@
                                 Grid.ColumnSpan="2"
                                 HorizontalAlignment="Left"
                                 MinWidth="180"
-                                ToolTip="Automatisch erkennt den Modelltyp anhand des Dateinamens">
-                        <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType}"
+                                ToolTip="{DynamicResource Settings.LLM.ModelType.Tooltip}">
+                        <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Detect}"
                                       Tag="Auto"
                                       IsSelected="True"/>
                         <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Phi3}"

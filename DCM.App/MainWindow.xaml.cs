@@ -38,6 +38,11 @@ public partial class MainWindow : Window
     private readonly UploadHistoryService _uploadHistoryService;
     private readonly SimpleFallbackSuggestionService _fallbackSuggestionService;
     private readonly IAppLogger _logger;
+    private const string MainWindowLogSource = "MainWindow";
+    private const string SettingsLogSource = "Settings";
+    private const string LlmLogSource = "LLM";
+    private const string UpdatesLogSource = "Updates";
+    private const string HistoryLogSource = "History";
 
     private ILlmClient _llmClient;
     private IContentSuggestionService _contentSuggestionService;
@@ -73,7 +78,7 @@ public partial class MainWindow : Window
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
 
         _logger = AppLogger.Instance;
-        _logger.Info("Anwendung gestartet", "MainWindow");
+        _logger.Info(LocalizationHelper.Get("Log.MainWindow.Started"), MainWindowLogSource);
 
         // Fensterzustand wiederherstellen (smart, ohne das Fenster zu "verlieren")
         WindowStateManager.Apply(this);
@@ -254,7 +259,7 @@ public partial class MainWindow : Window
             // Ignorieren
         }
 
-        _logger.Info("Anwendung wird beendet", "MainWindow");
+        _logger.Info(LocalizationHelper.Get("Log.MainWindow.Closing"), MainWindowLogSource);
 
         // LogWindow schließen falls offen
         CloseLogWindowSafely();
@@ -329,8 +334,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            _logger.Error($"Initialisierung fehlgeschlagen: {ex.Message}", "MainWindow", ex);
-            StatusTextBlock.Text = $"Initialisierung fehlgeschlagen: {ex.Message}";
+            _logger.Error(LocalizationHelper.Format("Log.MainWindow.InitializationFailed", ex.Message), MainWindowLogSource, ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.InitializationFailed", ex.Message);
         }
     }
 
@@ -417,8 +422,8 @@ public partial class MainWindow : Window
         _settings.Language = selectedLang.Code;
         SaveSettings();
 
-        StatusTextBlock.Text = $"Sprache geändert: {selectedLang.DisplayName}";
-        _logger.Info($"Sprache geändert auf: {selectedLang.Code}", "Settings");
+        StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.LanguageChanged", selectedLang.DisplayName);
+        _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
     }
 
     #endregion
@@ -547,12 +552,12 @@ public partial class MainWindow : Window
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
 
-        StatusTextBlock.Text = "Generiere Titelvorschläge...";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateTitles");
         UploadView.GenerateTitleButton.IsEnabled = false;
 
         var cancellationToken = GetNewLlmCancellationToken();
 
-        _logger.Debug("Titelgenerierung gestartet", "LLM");
+        _logger.Debug(LocalizationHelper.Get("Log.LLM.TitleGeneration.Started"), LlmLogSource);
 
         try
         {
@@ -563,25 +568,30 @@ public partial class MainWindow : Window
 
             if (titles is null || titles.Count == 0)
             {
-                UploadView.TitleTextBox.Text = "[Keine Vorschläge]";
-                StatusTextBlock.Text = "Keine Titelvorschläge erhalten.";
-                _logger.Warning("Keine Titelvorschläge erhalten", "LLM");
+                UploadView.TitleTextBox.Text = LocalizationHelper.Get("Llm.TitlePlaceholder.NoSuggestions");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoTitles");
+                _logger.Warning(LocalizationHelper.Get("Log.LLM.TitleGeneration.NoSuggestions"), LlmLogSource);
                 return;
             }
 
             UploadView.TitleTextBox.Text = titles[0];
-            StatusTextBlock.Text = $"Titelvorschlag eingefügt. ({titles.Count} Vorschläge)";
-            _logger.Info($"Titelvorschlag generiert: {titles[0]}", "LLM");
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", titles.Count);
+            _logger.Info(
+                LocalizationHelper.Format("Log.LLM.TitleGeneration.Success", titles[0]),
+                LlmLogSource);
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = "Titelgenerierung abgebrochen.";
-            _logger.Debug("Titelgenerierung abgebrochen", "LLM");
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.TitleCanceled");
+            _logger.Debug(LocalizationHelper.Get("Log.LLM.TitleGeneration.Canceled"), LlmLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Fehler bei Titelgenerierung: {ex.Message}";
-            _logger.Error($"Fehler bei Titelgenerierung: {ex.Message}", "LLM", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleError", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.LLM.TitleGeneration.Error", ex.Message),
+                LlmLogSource,
+                ex);
         }
         finally
         {
@@ -595,12 +605,12 @@ public partial class MainWindow : Window
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
 
-        StatusTextBlock.Text = "Generiere Beschreibungsvorschlag...";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateDescription");
         UploadView.GenerateDescriptionButton.IsEnabled = false;
 
         var cancellationToken = GetNewLlmCancellationToken();
 
-        _logger.Debug("Beschreibungsgenerierung gestartet", "LLM");
+        _logger.Debug(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Started"), LlmLogSource);
 
         try
         {
@@ -612,24 +622,27 @@ public partial class MainWindow : Window
             if (!string.IsNullOrWhiteSpace(description))
             {
                 UploadView.DescriptionTextBox.Text = description;
-                StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
-                _logger.Info("Beschreibungsvorschlag generiert", "LLM");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionInserted");
+                _logger.Info(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Success"), LlmLogSource);
             }
             else
             {
-                StatusTextBlock.Text = "Keine Beschreibungsvorschläge verfügbar.";
-                _logger.Warning("Keine Beschreibungsvorschläge verfügbar", "LLM");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoDescriptions");
+                _logger.Warning(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.NoSuggestions"), LlmLogSource);
             }
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = "Beschreibungsgenerierung abgebrochen.";
-            _logger.Debug("Beschreibungsgenerierung abgebrochen", "LLM");
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionCanceled");
+            _logger.Debug(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Canceled"), LlmLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Fehler bei Beschreibungsgenerierung: {ex.Message}";
-            _logger.Error($"Fehler bei Beschreibungsgenerierung: {ex.Message}", "LLM", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.DescriptionError", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.LLM.DescriptionGeneration.Error", ex.Message),
+                LlmLogSource,
+                ex);
         }
         finally
         {
@@ -643,12 +656,12 @@ public partial class MainWindow : Window
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
 
-        StatusTextBlock.Text = "Generiere Tag-Vorschläge...";
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateTags");
         UploadView.GenerateTagsButton.IsEnabled = false;
 
         var cancellationToken = GetNewLlmCancellationToken();
 
-        _logger.Debug("Tag-Generierung gestartet", "LLM");
+        _logger.Debug(LocalizationHelper.Get("Log.LLM.TagGeneration.Started"), LlmLogSource);
 
         try
         {
@@ -660,24 +673,29 @@ public partial class MainWindow : Window
             if (tags is not null && tags.Count > 0)
             {
                 UploadView.TagsTextBox.Text = string.Join(", ", tags);
-                StatusTextBlock.Text = $"Tag-Vorschläge eingefügt. ({tags.Count} Tags)";
-                _logger.Info($"Tag-Vorschläge generiert: {tags.Count} Tags", "LLM");
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsInserted", tags.Count);
+                _logger.Info(
+                    LocalizationHelper.Format("Log.LLM.TagGeneration.Success", tags.Count),
+                    LlmLogSource);
             }
             else
             {
-                StatusTextBlock.Text = "Keine Tag-Vorschläge verfügbar.";
-                _logger.Warning("Keine Tag-Vorschläge verfügbar", "LLM");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoTags");
+                _logger.Warning(LocalizationHelper.Get("Log.LLM.TagGeneration.NoSuggestions"), LlmLogSource);
             }
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = "Tag-Generierung abgebrochen.";
-            _logger.Debug("Tag-Generierung abgebrochen", "LLM");
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.TagsCanceled");
+            _logger.Debug(LocalizationHelper.Get("Log.LLM.TagGeneration.Canceled"), LlmLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Fehler bei Tag-Generierung: {ex.Message}";
-            _logger.Error($"Fehler bei Tag-Generierung: {ex.Message}", "LLM", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsError", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.LLM.TagGeneration.Error", ex.Message),
+                LlmLogSource,
+                ex);
         }
         finally
         {
@@ -734,11 +752,11 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            _logger.Error($"LogWindow konnte nicht geöffnet werden: {ex.Message}", "MainWindow", ex);
+            _logger.Error(LocalizationHelper.Format("Log.MainWindow.LogWindowOpenFailed", ex.Message), MainWindowLogSource, ex);
             MessageBox.Show(
                 this,
-                $"Log-Fenster konnte nicht geöffnet werden:\n{ex.Message}",
-                "Fehler",
+                LocalizationHelper.Format("Dialog.LogWindow.OpenFailed.Text", ex.Message),
+                LocalizationHelper.Get("Dialog.LogWindow.OpenFailed.Title"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -765,13 +783,13 @@ public partial class MainWindow : Window
         {
             if (_logger.HasErrors)
             {
-                LogLinkTextBlock.Text = $"📋 Log ({_logger.ErrorCount} ⚠)";
+                LogLinkTextBlock.Text = LocalizationHelper.Format("Log.Link.WithErrors", _logger.ErrorCount);
                 LogLinkTextBlock.Foreground = new System.Windows.Media.SolidColorBrush(
                     System.Windows.Media.Color.FromRgb(0xFF, 0x4E, 0x45));
             }
             else
             {
-                LogLinkTextBlock.Text = "📋 Log";
+                LogLinkTextBlock.Text = LocalizationHelper.Get("Log.Link.Default");
                 LogLinkTextBlock.ClearValue(ForegroundProperty);
             }
         }
@@ -789,7 +807,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            StatusTextBlock.Text = "Prüfe auf Updates...";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.Checking");
 
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("DabisContentManager/1.0");
@@ -797,8 +815,10 @@ public partial class MainWindow : Window
             using var response = await httpClient.GetAsync("https://api.github.com/repos/dabinuss/Dabis-Content-Manager/releases/latest");
             if (!response.IsSuccessStatusCode)
             {
-                StatusTextBlock.Text = "Update-Prüfung nicht möglich.";
-                _logger.Warning($"Update-Prüfung fehlgeschlagen: HTTP {(int)response.StatusCode}", "Updates");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.NotPossible");
+                _logger.Warning(
+                    LocalizationHelper.Format("Log.Updates.HttpFailure", (int)response.StatusCode),
+                    UpdatesLogSource);
                 return;
             }
 
@@ -813,16 +833,18 @@ public partial class MainWindow : Window
 
             if (string.IsNullOrWhiteSpace(tagName))
             {
-                StatusTextBlock.Text = "Update-Informationen konnten nicht gelesen werden.";
-                _logger.Warning("Update-Informationen ohne tag_name erhalten", "Updates");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.InfoMissing");
+                _logger.Warning(LocalizationHelper.Get("Log.Updates.NoTag"), UpdatesLogSource);
                 return;
             }
 
             var latestVersionString = tagName.TrimStart('v', 'V');
             if (!Version.TryParse(latestVersionString, out var latestVersion))
             {
-                StatusTextBlock.Text = $"Versionsformat nicht erkannt: {tagName}";
-                _logger.Warning($"Konnte Versionsnummer aus Tag '{tagName}' nicht parsen.", "Updates");
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.VersionFormat", tagName);
+                _logger.Warning(
+                    LocalizationHelper.Format("Log.Updates.VersionParseFailed", tagName),
+                    UpdatesLogSource);
                 return;
             }
 
@@ -831,18 +853,22 @@ public partial class MainWindow : Window
 
             if (latestVersion <= currentVersion)
             {
-                StatusTextBlock.Text = $"Du verwendest die aktuelle Version ({AppVersion}).";
-                _logger.Info($"Keine neuere Version gefunden. Aktuell: {currentVersion}, Remote: {latestVersion}", "Updates");
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.LatestVersion", AppVersion);
+                _logger.Info(
+                    LocalizationHelper.Format("Log.Updates.NoNewVersion", currentVersion, latestVersion),
+                    UpdatesLogSource);
                 return;
             }
 
-            StatusTextBlock.Text = $"Neue Version verfügbar: v{latestVersion}";
-            _logger.Info($"Neue Version gefunden. Aktuell: {currentVersion}, Remote: {latestVersion}", "Updates");
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.NewVersion", latestVersion);
+            _logger.Info(
+                LocalizationHelper.Format("Log.Updates.NewVersionFound", currentVersion, latestVersion),
+                UpdatesLogSource);
 
             var result = MessageBox.Show(
                 this,
-                $"Es ist eine neue Version verfügbar:\n\nAktuell: v{currentVersion}\nNeu: v{latestVersion}\n\nGitHub-Releases öffnen?",
-                "Update verfügbar",
+                LocalizationHelper.Format("Dialog.Update.Available.Text", currentVersion, latestVersion),
+                LocalizationHelper.Get("Dialog.Update.Available.Title"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Information);
 
@@ -863,8 +889,11 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Update-Prüfung fehlgeschlagen: {ex.Message}";
-            _logger.Error($"Update-Prüfung fehlgeschlagen: {ex.Message}", "Updates", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.Failed", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.Updates.CheckFailed", ex.Message),
+                UpdatesLogSource,
+                ex);
         }
         finally
         {
@@ -888,8 +917,8 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(
                 this,
-                "Es ist kein Transkript vorhanden, das exportiert werden kann.",
-                "Kein Transkript",
+                LocalizationHelper.Get("Dialog.Transcript.None.Text"),
+                LocalizationHelper.Get("Dialog.Transcript.None.Title"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
 
@@ -903,14 +932,14 @@ public partial class MainWindow : Window
         }
         else
         {
-            baseName = "transcript";
+            baseName = LocalizationHelper.Get("Transcription.Export.DefaultFileName");
         }
 
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
-            Title = "Transkript exportieren",
+            Title = LocalizationHelper.Get("Dialog.Transcript.Export.Title"),
             FileName = $"{baseName}_transcript.txt",
-            Filter = "Textdatei|*.txt|Alle Dateien|*.*"
+            Filter = LocalizationHelper.Get("Dialog.Transcript.Export.Filter")
         };
 
         if (!string.IsNullOrWhiteSpace(_settings?.DefaultVideoFolder) &&
@@ -928,18 +957,21 @@ public partial class MainWindow : Window
         try
         {
             File.WriteAllText(dialog.FileName, transcript, System.Text.Encoding.UTF8);
-            StatusTextBlock.Text = $"Transkript exportiert: {dialog.FileName}";
-            _logger.Info($"Transkript exportiert: {dialog.FileName}", "Transcription");
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportSuccess", dialog.FileName);
+            _logger.Info(LocalizationHelper.Format("Log.Transcription.ExportSuccess", dialog.FileName), TranscriptionLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Transkript konnte nicht exportiert werden: {ex.Message}";
-            _logger.Error($"Transkript konnte nicht exportiert werden: {ex.Message}", "Transcription", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportFailed", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.Transcription.ExportFailed", ex.Message),
+                TranscriptionLogSource,
+                ex);
 
             MessageBox.Show(
                 this,
-                $"Transkript konnte nicht exportiert werden:\n{ex.Message}",
-                "Fehler",
+                LocalizationHelper.Format("Dialog.Transcript.Export.Error.Text", ex.Message),
+                LocalizationHelper.Get("Dialog.Transcript.Export.Error.Title"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

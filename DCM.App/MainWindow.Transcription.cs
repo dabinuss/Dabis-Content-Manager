@@ -11,6 +11,7 @@ namespace DCM.App;
 
 public partial class MainWindow
 {
+    private const string TranscriptionLogSource = "Transcription";
     private ITranscriptionService? _transcriptionService;
     private CancellationTokenSource? _transcriptionCts;
     private bool _isTranscribing;
@@ -23,13 +24,13 @@ public partial class MainWindow
         {
             var service = await Task.Run(() => new TranscriptionService());
             _transcriptionService = service;
-            _logger.Debug("TranscriptionService initialisiert", "Transcription");
+            _logger.Debug(LocalizationHelper.Get("Log.Transcription.ServiceInitialized"), TranscriptionLogSource);
             UpdateTranscriptionButtonState();
             UpdateTranscriptionStatusDisplay();
         }
         catch (Exception ex)
         {
-            _logger.Error($"TranscriptionService konnte nicht initialisiert werden: {ex.Message}", "Transcription", ex);
+            _logger.Error(LocalizationHelper.Format("Log.Transcription.ServiceInitFailed", ex.Message), TranscriptionLogSource, ex);
             _transcriptionService = null;
             UpdateTranscriptionStatusDisplay();
         }
@@ -100,7 +101,7 @@ public partial class MainWindow
 
         if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
         {
-            StatusTextBlock.Text = "Bitte zuerst ein Video auswählen.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
             return;
         }
 
@@ -111,7 +112,7 @@ public partial class MainWindow
     {
         if (_transcriptionService is null)
         {
-            StatusTextBlock.Text = "Transkriptions-Service nicht verfügbar.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.ServiceUnavailable");
             return;
         }
 
@@ -122,7 +123,9 @@ public partial class MainWindow
         UpdateTranscriptionButtonState();
         ShowTranscriptionProgress();
 
-        _logger.Info($"Transkription gestartet: {Path.GetFileName(videoFilePath)}", "Transcription");
+        _logger.Info(
+            LocalizationHelper.Format("Log.Transcription.Started", Path.GetFileName(videoFilePath)),
+            TranscriptionLogSource);
 
         try
         {
@@ -131,8 +134,8 @@ public partial class MainWindow
 
             if (!_transcriptionService.IsReady)
             {
-                UpdateTranscriptionPhaseText("Lade Abhängigkeiten...");
-                StatusTextBlock.Text = "Lade Transkriptions-Abhängigkeiten...";
+                UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.LoadingDependencies"));
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.LoadDependencies");
 
                 var dependencyProgress = new Progress<DependencyDownloadProgress>(ReportDependencyProgress);
                 var dependenciesReady = await _transcriptionService.EnsureDependenciesAsync(
@@ -142,8 +145,8 @@ public partial class MainWindow
 
                 if (!dependenciesReady)
                 {
-                    StatusTextBlock.Text = "Transkriptions-Abhängigkeiten konnten nicht geladen werden.";
-                    _logger.Warning("Transkriptions-Abhängigkeiten nicht verfügbar", "Transcription");
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DependenciesFailed");
+                    _logger.Warning(LocalizationHelper.Get("Log.Transcription.DependenciesMissing"), TranscriptionLogSource);
                     return;
                 }
             }
@@ -163,15 +166,15 @@ public partial class MainWindow
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = "Transkription abgebrochen.";
-            UpdateTranscriptionPhaseText("Abgebrochen");
-            _logger.Debug("Transkription abgebrochen", "Transcription");
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.Canceled");
+            UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceled"));
+            _logger.Debug(LocalizationHelper.Get("Log.Transcription.Canceled"), TranscriptionLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Transkription fehlgeschlagen: {ex.Message}";
-            UpdateTranscriptionPhaseText($"Fehler: {ex.Message}");
-            _logger.Error($"Transkription fehlgeschlagen: {ex.Message}", "Transcription", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.Error", ex.Message);
+            UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.Error", ex.Message));
+            _logger.Error(LocalizationHelper.Format("Log.Transcription.Failed", ex.Message), TranscriptionLogSource, ex);
         }
         finally
         {
@@ -195,8 +198,8 @@ public partial class MainWindow
         try
         {
             _transcriptionCts.Cancel();
-            UpdateTranscriptionPhaseText("Wird abgebrochen...");
-            _logger.Debug("Transkription wird abgebrochen...", "Transcription");
+            UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceling"));
+            _logger.Debug(LocalizationHelper.Get("Log.Transcription.Canceling"), TranscriptionLogSource);
         }
         catch
         {
@@ -209,15 +212,24 @@ public partial class MainWindow
         if (result.Success && !string.IsNullOrWhiteSpace(result.Text))
         {
             UploadView.TranscriptTextBox.Text = result.Text;
-            StatusTextBlock.Text = $"Transkription abgeschlossen ({result.Duration.TotalSeconds:F1}s).";
-            UpdateTranscriptionPhaseText($"Abgeschlossen in {result.Duration.TotalSeconds:F1}s");
-            _logger.Info($"Transkription erfolgreich: {result.Text.Length} Zeichen in {result.Duration.TotalSeconds:F1}s", "Transcription");
+            StatusTextBlock.Text = LocalizationHelper.Format(
+                "Status.Transcription.Completed",
+                result.Duration.TotalSeconds);
+            UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.CompletedIn", result.Duration.TotalSeconds));
+            _logger.Info(
+                LocalizationHelper.Format("Log.Transcription.Success", result.Text.Length, result.Duration.TotalSeconds),
+                TranscriptionLogSource);
         }
         else
         {
-            StatusTextBlock.Text = $"Transkription fehlgeschlagen: {result.ErrorMessage}";
-            UpdateTranscriptionPhaseText(result.ErrorMessage ?? "Fehlgeschlagen");
-            _logger.Warning($"Transkription fehlgeschlagen: {result.ErrorMessage}", "Transcription");
+            var errorText = result.ErrorMessage ?? string.Empty;
+            StatusTextBlock.Text = LocalizationHelper.Format(
+                "Status.Transcription.ResultFailed",
+                errorText);
+            UpdateTranscriptionPhaseText(result.ErrorMessage ?? LocalizationHelper.Get("Transcription.Phase.Failed"));
+            _logger.Warning(
+                LocalizationHelper.Format("Log.Transcription.Failed", result.ErrorMessage ?? string.Empty),
+                TranscriptionLogSource);
         }
     }
 
@@ -237,7 +249,7 @@ public partial class MainWindow
         UploadView.TranscriptionProgressBar.IsIndeterminate = true;
         UploadView.TranscriptionProgressBar.Value = 0;
         UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
-        UpdateTranscriptionPhaseText("Initialisiere...");
+        UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Initializing"));
     }
 
     private void HideTranscriptionProgress()
@@ -289,14 +301,16 @@ public partial class MainWindow
         UploadView.TranscriptionProgressBar.IsIndeterminate = false;
         UploadView.TranscriptionProgressBar.Value = progress.Percent;
 
-        var typeText = progress.Type == DependencyType.FFmpeg ? "FFmpeg" : "Whisper-Modell";
-        var message = $"{typeText}: {progress.Percent:F0}%";
+        var typeText = progress.Type == DependencyType.FFmpeg
+            ? LocalizationHelper.Get("Transcription.Dependency.Type.FFmpeg")
+            : LocalizationHelper.Get("Transcription.Dependency.Type.Whisper");
+        var message = LocalizationHelper.Format("Transcription.Dependency.Progress.Percent", typeText, progress.Percent);
 
         if (progress.TotalBytes > 0 && progress.BytesDownloaded > 0)
         {
             var downloadedMB = progress.BytesDownloaded / (1024.0 * 1024.0);
             var totalMB = progress.TotalBytes / (1024.0 * 1024.0);
-            message = $"{typeText}: {downloadedMB:F1} / {totalMB:F1} MB";
+            message = LocalizationHelper.Format("Transcription.Dependency.Progress.Bytes", typeText, downloadedMB, totalMB);
         }
 
         UploadView.TranscriptionPhaseTextBlock.Text = message;
@@ -321,11 +335,11 @@ public partial class MainWindow
 
         var phaseText = progress.Phase switch
         {
-            TranscriptionPhase.Initializing => "Initialisiere...",
-            TranscriptionPhase.ExtractingAudio => $"Audio extrahieren... {progress.Percent:F0}%",
+            TranscriptionPhase.Initializing => LocalizationHelper.Get("Transcription.Phase.Initializing"),
+            TranscriptionPhase.ExtractingAudio => LocalizationHelper.Format("Transcription.Phase.ExtractingAudio", progress.Percent),
             TranscriptionPhase.Transcribing => FormatTranscribingProgress(progress),
-            TranscriptionPhase.Completed => "Abgeschlossen",
-            TranscriptionPhase.Failed => progress.Message ?? "Fehlgeschlagen",
+            TranscriptionPhase.Completed => LocalizationHelper.Get("Transcription.Phase.Completed"),
+            TranscriptionPhase.Failed => progress.Message ?? LocalizationHelper.Get("Transcription.Phase.Failed"),
             _ => progress.Message ?? progress.Phase.ToString()
         };
 
@@ -336,18 +350,18 @@ public partial class MainWindow
 
     private static string FormatTranscribingProgress(TranscriptionProgress progress)
     {
-        var text = $"Transkribiere... {progress.Percent:F0}%";
+        var text = LocalizationHelper.Format("Transcription.Progress.Transcribing", progress.Percent);
 
         if (progress.EstimatedTimeRemaining.HasValue && progress.EstimatedTimeRemaining.Value.TotalSeconds > 0)
         {
             var remaining = progress.EstimatedTimeRemaining.Value;
             if (remaining.TotalMinutes >= 1)
             {
-                text += $" (~{remaining.TotalMinutes:F0} Min. verbleibend)";
+                text += LocalizationHelper.Format("Transcription.Progress.TimeMinutes", remaining.TotalMinutes);
             }
             else
             {
-                text += $" (~{remaining.TotalSeconds:F0}s verbleibend)";
+                text += LocalizationHelper.Format("Transcription.Progress.TimeSeconds", remaining.TotalSeconds);
             }
         }
 
@@ -406,7 +420,7 @@ public partial class MainWindow
 
         if (!_transcriptionService.IsReady)
         {
-            _logger.Debug("Auto-Transkription übersprungen: Dependencies nicht bereit", "Transcription");
+            _logger.Debug(LocalizationHelper.Get("Log.Transcription.AutoSkip"), TranscriptionLogSource);
             return;
         }
 
@@ -423,7 +437,7 @@ public partial class MainWindow
             return;
         }
 
-        _logger.Debug("Auto-Transkription gestartet", "Transcription");
+        _logger.Debug(LocalizationHelper.Get("Log.Transcription.AutoStarted"), TranscriptionLogSource);
         await StartTranscriptionAsync(videoFilePath);
     }
 
@@ -442,7 +456,7 @@ public partial class MainWindow
     {
         if (_transcriptionService is null)
         {
-            SettingsPageView?.SetTranscriptionStatus("Service nicht verfügbar", System.Windows.Media.Brushes.Red);
+            SettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Get("Transcription.Status.ServiceUnavailable"), System.Windows.Media.Brushes.Red);
             SettingsPageView?.SetTranscriptionDownloadAvailability(false);
             return;
         }
@@ -451,16 +465,16 @@ public partial class MainWindow
 
         if (status.AllAvailable)
         {
-            var modelName = status.InstalledModelSize?.ToString() ?? "Unbekannt";
-            SettingsPageView?.SetTranscriptionStatus($"✓ Bereit (Modell: {modelName})", System.Windows.Media.Brushes.Green);
+            var modelName = status.InstalledModelSize?.ToString() ?? LocalizationHelper.Get("Common.Unknown");
+            SettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Format("Transcription.Status.Ready", modelName), System.Windows.Media.Brushes.Green);
         }
         else
         {
             var missing = new List<string>();
-            if (!status.FFmpegAvailable) missing.Add("FFmpeg");
-            if (!status.WhisperModelAvailable) missing.Add("Whisper-Modell");
+            if (!status.FFmpegAvailable) missing.Add(LocalizationHelper.Get("Transcription.Dependency.Type.FFmpeg"));
+            if (!status.WhisperModelAvailable) missing.Add(LocalizationHelper.Get("Transcription.Dependency.Type.Whisper"));
 
-            SettingsPageView?.SetTranscriptionStatus($"✗ Fehlt: {string.Join(", ", missing)}", System.Windows.Media.Brushes.Orange);
+            SettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Format("Transcription.Status.Missing", string.Join(", ", missing)), System.Windows.Media.Brushes.Orange);
         }
 
         UpdateTranscriptionDownloadAvailability(status);
@@ -502,7 +516,7 @@ public partial class MainWindow
     {
         if (_transcriptionService is null)
         {
-            StatusTextBlock.Text = "Transkriptions-Service nicht verfügbar.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.ServiceUnavailable");
             return;
         }
 
@@ -517,7 +531,7 @@ public partial class MainWindow
 
         if (!ffmpegMissing && selectedModelAlreadyInstalled)
         {
-            StatusTextBlock.Text = $"Whisper-Modell {modelSize} ist bereits installiert.";
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ModelAlreadyInstalled", modelSize);
             UpdateTranscriptionDownloadAvailability(status);
             return;
         }
@@ -532,12 +546,15 @@ public partial class MainWindow
                 {
                     SettingsPageView?.UpdateTranscriptionDownloadProgress(p.Percent);
 
-                    var message = p.Message ?? $"Download: {p.Percent:F0}%";
+                    var defaultType = p.Type == DependencyType.FFmpeg
+                        ? LocalizationHelper.Get("Transcription.Dependency.Type.FFmpeg")
+                        : LocalizationHelper.Get("Transcription.Dependency.Type.Whisper");
+                    var message = p.Message ?? LocalizationHelper.Format("Transcription.Dependency.Progress.Percent", defaultType, p.Percent);
                     if (p.TotalBytes > 0 && p.BytesDownloaded > 0)
                     {
                         var downloadedMB = p.BytesDownloaded / (1024.0 * 1024.0);
                         var totalMB = p.TotalBytes / (1024.0 * 1024.0);
-                        message = $"{(p.Type == DependencyType.FFmpeg ? "FFmpeg" : "Whisper-Modell")}: {downloadedMB:F1} / {totalMB:F1} MB";
+                        message = LocalizationHelper.Format("Transcription.Dependency.Progress.Bytes", defaultType, downloadedMB, totalMB);
                     }
 
                     StatusTextBlock.Text = message;
@@ -558,19 +575,19 @@ public partial class MainWindow
                     _transcriptionService.RemoveOtherModels(modelSize);
                 }
 
-                StatusTextBlock.Text = "Transkriptions-Abhängigkeiten erfolgreich geladen.";
-                _logger.Info("Transkriptions-Abhängigkeiten geladen", "Transcription");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DownloadSuccess");
+                _logger.Info(LocalizationHelper.Get("Log.Transcription.DependenciesLoaded"), TranscriptionLogSource);
             }
             else
             {
-                StatusTextBlock.Text = "Download fehlgeschlagen.";
-                _logger.Warning("Transkriptions-Download fehlgeschlagen", "Transcription");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DownloadFailed");
+                _logger.Warning(LocalizationHelper.Get("Log.Transcription.DownloadFailed"), TranscriptionLogSource);
             }
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Download-Fehler: {ex.Message}";
-            _logger.Error($"Transkriptions-Download-Fehler: {ex.Message}", "Transcription", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.DownloadError", ex.Message);
+            _logger.Error(LocalizationHelper.Format("Log.Transcription.DownloadError", ex.Message), TranscriptionLogSource, ex);
         }
         finally
         {
@@ -582,7 +599,7 @@ public partial class MainWindow
         private void TranscriptionSettingsSaveButton_Click(object sender, RoutedEventArgs e)
         {
             SaveTranscriptionSettings();
-            StatusTextBlock.Text = "Transkriptions-Einstellungen gespeichert.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SettingsSaved");
         }
     */
     #endregion

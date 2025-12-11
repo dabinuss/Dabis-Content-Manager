@@ -20,6 +20,9 @@ namespace DCM.App;
 
 public partial class MainWindow
 {
+    private const string UploadLogSource = "Upload";
+    private const string TemplateLogSource = "Template";
+
     #region Video Drop Zone
 
     private readonly string[] _allowedVideoExtensions = { ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm" };
@@ -71,8 +74,8 @@ public partial class MainWindow
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Video-Dateien|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm|Alle Dateien|*.*",
-            Title = "Video auswählen"
+            Filter = LocalizationHelper.Get("Dialog.Video.Open.Filter"),
+            Title = LocalizationHelper.Get("Dialog.Video.Open.Title")
         };
 
         if (!string.IsNullOrEmpty(_settings?.DefaultVideoFolder) &&
@@ -104,7 +107,9 @@ public partial class MainWindow
         UpdateUploadButtonState();
         UpdateTranscriptionButtonState();
 
-        _logger.Info($"Video ausgewählt: {fileInfo.Name}", "Upload");
+        _logger.Info(
+            LocalizationHelper.Format("Log.Upload.VideoSelected", fileInfo.Name),
+            UploadLogSource);
 
         _ = LoadVideoFileInfoAsync(filePath);
     }
@@ -133,18 +138,23 @@ public partial class MainWindow
                 UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
             }
 
-            _logger.Info($"Video ausgewählt: {fileName}", "Upload");
+            _logger.Info(
+                LocalizationHelper.Format("Log.Upload.VideoSelected", fileName),
+                UploadLogSource);
 
             _ = TryAutoTranscribeAsync(filePath);
         }
         catch (Exception ex)
         {
-            _logger.Error($"Fehler beim Laden der Video-Informationen: {ex.Message}", "Upload", ex);
+            _logger.Error(
+                LocalizationHelper.Format("Log.Upload.VideoInfoError", ex.Message),
+                UploadLogSource,
+                ex);
 
             await Dispatcher.InvokeAsync(() =>
             {
                 UploadView.VideoFileNameTextBlock.Text = Path.GetFileName(filePath);
-                UploadView.VideoFileSizeTextBlock.Text = "? MB";
+                UploadView.VideoFileSizeTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
             });
         }
     }
@@ -261,8 +271,8 @@ public partial class MainWindow
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Bilder|*.png;*.jpg;*.jpeg|Alle Dateien|*.*",
-            Title = "Thumbnail auswählen"
+            Filter = LocalizationHelper.Get("Dialog.Thumbnail.Open.Filter"),
+            Title = LocalizationHelper.Get("Dialog.Thumbnail.Open.Title")
         };
 
         if (!string.IsNullOrEmpty(_settings?.DefaultThumbnailFolder) &&
@@ -296,11 +306,16 @@ public partial class MainWindow
             UploadView.ThumbnailEmptyState.Visibility = Visibility.Collapsed;
             UploadView.ThumbnailPreviewState.Visibility = Visibility.Visible;
 
-            _logger.Info($"Thumbnail ausgewählt: {fileInfo.Name}", "Upload");
+            _logger.Info(
+                LocalizationHelper.Format("Log.Upload.ThumbnailSelected", fileInfo.Name),
+                UploadLogSource);
         }
         catch (Exception ex)
         {
-            _logger.Error($"Fehler beim Laden des Thumbnails: {ex.Message}", "Upload", ex);
+            _logger.Error(
+                LocalizationHelper.Format("Log.Upload.ThumbnailLoadError", ex.Message),
+                UploadLogSource,
+                ex);
         }
     }
 
@@ -333,7 +348,7 @@ public partial class MainWindow
 
         if (tmpl is null)
         {
-            StatusTextBlock.Text = "Kein Template ausgewählt.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.NoneSelected");
             return;
         }
 
@@ -341,9 +356,11 @@ public partial class MainWindow
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
 
         UploadView.DescriptionTextBox.Text = result;
-        StatusTextBlock.Text = $"Template \"{tmpl.Name}\" angewendet.";
+        StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.Applied", tmpl.Name);
 
-        _logger.Info($"Template angewendet: {tmpl.Name}", "Template");
+        _logger.Info(
+            LocalizationHelper.Format("Log.Template.Applied", tmpl.Name),
+            TemplateLogSource);
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
@@ -352,14 +369,14 @@ public partial class MainWindow
         {
             var confirmResult = MessageBox.Show(
                 this,
-                "Upload wirklich starten?",
-                "Bestätigung",
+                LocalizationHelper.Get("Dialog.Upload.Confirm.Text"),
+                LocalizationHelper.Get("Dialog.Upload.Confirm.Title"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
             if (confirmResult != MessageBoxResult.Yes)
             {
-                StatusTextBlock.Text = "Upload abgebrochen.";
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.Canceled");
                 return;
             }
         }
@@ -369,8 +386,10 @@ public partial class MainWindow
         if (!string.IsNullOrWhiteSpace(project.ThumbnailPath) &&
             !File.Exists(project.ThumbnailPath))
         {
-            StatusTextBlock.Text = "Hinweis: Thumbnail-Datei wurde nicht gefunden. Upload wird ohne Thumbnail fortgesetzt.";
-            _logger.Warning($"Thumbnail nicht gefunden: {project.ThumbnailPath}", "Upload");
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ThumbnailNotFound");
+            _logger.Warning(
+                LocalizationHelper.Format("Log.Upload.ThumbnailMissing", project.ThumbnailPath ?? string.Empty),
+                UploadLogSource);
             project.ThumbnailPath = string.Empty;
         }
         else if (!string.IsNullOrWhiteSpace(project.ThumbnailPath))
@@ -378,8 +397,11 @@ public partial class MainWindow
             var fileInfo = new FileInfo(project.ThumbnailPath);
             if (fileInfo.Length > Constants.MaxThumbnailSizeBytes)
             {
-                StatusTextBlock.Text = "Thumbnail ist größer als 2 MB und wird nicht verwendet.";
-                _logger.Warning($"Thumbnail zu groß: {fileInfo.Length / 1024 / 1024:F2} MB", "Upload");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ThumbnailTooLarge");
+                var thumbnailSizeMb = fileInfo.Length / (1024.0 * 1024.0);
+                _logger.Warning(
+                    LocalizationHelper.Format("Log.Upload.ThumbnailTooLarge", thumbnailSizeMb),
+                    UploadLogSource);
                 project.ThumbnailPath = string.Empty;
             }
         }
@@ -390,20 +412,25 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Fehlerhafte Eingaben: {ex.Message}";
-            _logger.Warning($"Validierungsfehler: {ex.Message}", "Upload");
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Upload.ValidationFailed", ex.Message);
+            _logger.Warning(
+                LocalizationHelper.Format("Log.Upload.ValidationFailed", ex.Message),
+                UploadLogSource);
             return;
         }
 
         if (project.Platform == PlatformType.YouTube && !_youTubeClient.IsConnected)
         {
-            StatusTextBlock.Text = "Bitte zuerst im Tab \"Konten\" mit YouTube verbinden.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ConnectYouTube");
             return;
         }
 
-        _logger.Info($"Upload gestartet: {project.Title}", "Upload");
-        StatusTextBlock.Text = "Upload wird vorbereitet...";
-        ShowUploadProgress("Upload wird vorbereitet...");
+        _logger.Info(
+            LocalizationHelper.Format("Log.Upload.Started", project.Title),
+            UploadLogSource);
+        var preparingText = LocalizationHelper.Get("Status.Upload.Preparing");
+        StatusTextBlock.Text = preparingText;
+        ShowUploadProgress(preparingText);
 
         var progressReporter = new Progress<UploadProgressInfo>(ReportUploadProgress);
 
@@ -422,8 +449,11 @@ public partial class MainWindow
 
             if (result.Success)
             {
-                StatusTextBlock.Text = $"Upload erfolgreich: {result.VideoUrl}";
-                _logger.Info($"Upload erfolgreich: {result.VideoUrl}", "Upload");
+                var videoUrlText = result.VideoUrl?.ToString() ?? string.Empty;
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Upload.Success", videoUrlText);
+                _logger.Info(
+                    LocalizationHelper.Format("Log.Upload.Success", videoUrlText),
+                    UploadLogSource);
 
                 if (_settings.OpenBrowserAfterUpload && result.VideoUrl is not null)
                 {
@@ -442,14 +472,20 @@ public partial class MainWindow
             }
             else
             {
-                StatusTextBlock.Text = $"Upload fehlgeschlagen: {result.ErrorMessage}";
-                _logger.Error($"Upload fehlgeschlagen: {result.ErrorMessage}", "Upload");
+                var errorText = result.ErrorMessage ?? string.Empty;
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Upload.Failed", errorText);
+                _logger.Error(
+                    LocalizationHelper.Format("Log.Upload.Failed", errorText),
+                    UploadLogSource);
             }
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Unerwarteter Fehler beim Upload: {ex.Message}";
-            _logger.Error($"Unerwarteter Fehler beim Upload: {ex.Message}", "Upload", ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Upload.UnexpectedError", ex.Message);
+            _logger.Error(
+                LocalizationHelper.Format("Log.Upload.UnexpectedError", ex.Message),
+                UploadLogSource,
+                ex);
         }
         finally
         {
