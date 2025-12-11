@@ -2,205 +2,205 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-  <sys:String x:Key="__LangDict">de-DE</sys:String>
+  <sys:String x:Key="..LangDict">de-DE</sys:String>
 
   <!-- App -->
-  <sys:String x:Key="App_Name">Dabis-Content-Manager</sys:String>
-  <sys:String x:Key="App_Github">GitHub Repository</sys:String>
-  <sys:String x:Key="App_Copyright">© dabinuss</sys:String>
-  <sys:String x:Key="App_CheckUpdates">Updates prüfen</sys:String>
-  <sys:String x:Key="App_WindowTitle">Dabis Content Manager · © dabinuss</sys:String>
+  <sys:String x:Key="App.Name">Dabis-Content-Manager</sys:String>
+  <sys:String x:Key="App.Github">GitHub Repository</sys:String>
+  <sys:String x:Key="App.Copyright">© dabinuss</sys:String>
+  <sys:String x:Key="App.CheckUpdates">Updates prüfen</sys:String>
+  <sys:String x:Key="App.WindowTitle">Dabis Content Manager · © dabinuss</sys:String>
 
   <!-- Status -->
   <sys:String x:Key="Status">Status:</sys:String>
-  <sys:String x:Key="Status_Ready">Status:</sys:String>
+  <sys:String x:Key="Status.Ready">Status:</sys:String>
 
   <!-- Platforms -->
   <sys:String x:Key="Platform">Plattform</sys:String>
-  <sys:String x:Key="Platform_YouTube">YouTube</sys:String>
-  <sys:String x:Key="Platform_TikTok">TikTok</sys:String>
-  <sys:String x:Key="Platform_Instagram">Instagram</sys:String>
+  <sys:String x:Key="Platform.YouTube">YouTube</sys:String>
+  <sys:String x:Key="Platform.TikTok">TikTok</sys:String>
+  <sys:String x:Key="Platform.Instagram">Instagram</sys:String>
 
   <!-- Common -->
-  <sys:String x:Key="Common_Status">Status</sys:String>
-  <sys:String x:Key="Common_All">Alle</sys:String>
-  <sys:String x:Key="Common_OK">OK</sys:String>
-  <sys:String x:Key="Common_Cancel">Abbrechen</sys:String>
-  <sys:String x:Key="Common_Yes">Ja</sys:String>
-  <sys:String x:Key="Common_No">Nein</sys:String>
-  <sys:String x:Key="Common_Close">Schließen</sys:String>
-  <sys:String x:Key="Common_Browse">Durchsuchen...</sys:String>
-  <sys:String x:Key="Common_Add">Hinzufügen</sys:String>
-  <sys:String x:Key="Common_Edit">Bearbeiten</sys:String>
-  <sys:String x:Key="Common_Change">Ändern</sys:String>
-  <sys:String x:Key="Common_Delete">Löschen</sys:String>
-  <sys:String x:Key="Common_Remove">Entfernen</sys:String>
-  <sys:String x:Key="Common_Update">Aktualisieren</sys:String>
-  <sys:String x:Key="Common_Apply">Anwenden</sys:String>
-  <sys:String x:Key="Common_Save">Speichern</sys:String>
-  <sys:String x:Key="Common_Upload">Hochladen</sys:String>
-  <sys:String x:Key="Common_Download">Herunterladen</sys:String>
-  <sys:String x:Key="Common_Open">Öffnen</sys:String>
-  <sys:String x:Key="Common_YesToAll">Ja, für alle</sys:String>
-  <sys:String x:Key="Common_NoToAll">Nein, für alle</sys:String>
+  <sys:String x:Key="Common.Status">Status</sys:String>
+  <sys:String x:Key="Common.All">Alle</sys:String>
+  <sys:String x:Key="Common.OK">OK</sys:String>
+  <sys:String x:Key="Common.Cancel">Abbrechen</sys:String>
+  <sys:String x:Key="Common.Yes">Ja</sys:String>
+  <sys:String x:Key="Common.No">Nein</sys:String>
+  <sys:String x:Key="Common.Close">Schließen</sys:String>
+  <sys:String x:Key="Common.Browse">Durchsuchen...</sys:String>
+  <sys:String x:Key="Common.Add">Hinzufügen</sys:String>
+  <sys:String x:Key="Common.Edit">Bearbeiten</sys:String>
+  <sys:String x:Key="Common.Change">Ändern</sys:String>
+  <sys:String x:Key="Common.Delete">Löschen</sys:String>
+  <sys:String x:Key="Common.Remove">Entfernen</sys:String>
+  <sys:String x:Key="Common.Update">Aktualisieren</sys:String>
+  <sys:String x:Key="Common.Apply">Anwenden</sys:String>
+  <sys:String x:Key="Common.Save">Speichern</sys:String>
+  <sys:String x:Key="Common.Upload">Hochladen</sys:String>
+  <sys:String x:Key="Common.Download">Herunterladen</sys:String>
+  <sys:String x:Key="Common.Open">Öffnen</sys:String>
+  <sys:String x:Key="Common.YesToAll">Ja, für alle</sys:String>
+  <sys:String x:Key="Common.NoToAll">Nein, für alle</sys:String>
 
   <!-- Navigation -->
-  <sys:String x:Key="Nav_Uploads">Uploads</sys:String>
-  <sys:String x:Key="Nav_Accounts">Konten</sys:String>
-  <sys:String x:Key="Nav_Channels">Kanäle</sys:String>
-  <sys:String x:Key="Nav_Templates">Vorlagen</sys:String>
-  <sys:String x:Key="Nav_History">Verlauf</sys:String>
-  <sys:String x:Key="Nav_Settings">Einstellungen</sys:String>
+  <sys:String x:Key="Nav.Uploads">Uploads</sys:String>
+  <sys:String x:Key="Nav.Accounts">Konten</sys:String>
+  <sys:String x:Key="Nav.Channels">Kanäle</sys:String>
+  <sys:String x:Key="Nav.Templates">Vorlagen</sys:String>
+  <sys:String x:Key="Nav.History">Verlauf</sys:String>
+  <sys:String x:Key="Nav.Settings">Einstellungen</sys:String>
 
   <!-- Upload -->
   <sys:String x:Key="Upload">Neuer Upload</sys:String>
-  <sys:String x:Key="Upload_DropVideo">Video hierher ziehen</sys:String>
-  <sys:String x:Key="Upload_DropVideo_Descr">oder klicken zum Auswählen</sys:String>
-  <sys:String x:Key="Upload_DropVideo_AllowedFiles">MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
-  <sys:String x:Key="Upload_StartUpload">Upload starten</sys:String>
-  <sys:String x:Key="Upload_Fields_Title">Titel (erforderlich)</sys:String>
-  <sys:String x:Key="Upload_Fields_Suggest">Vorschlagen</sys:String>
-  <sys:String x:Key="Upload_Fields_Description">Beschreibung</sys:String>
-  <sys:String x:Key="Upload_Fields_Tags">Tags</sys:String>
-  <sys:String x:Key="Upload_Fields_Transcription">Transkription</sys:String>
-  <sys:String x:Key="Upload_Fields_Transcription_Descr">Automatisch generiertes Transkript, benutzt für KI-Vorschläge.</sys:String>
-  <sys:String x:Key="Upload_Fields_Transcripe">Transkribieren</sys:String>
-  <sys:String x:Key="Upload_Fields_Platform">Platform</sys:String>
-  <sys:String x:Key="Upload_Fields_Platform_YouTube">Youtube</sys:String>
-  <sys:String x:Key="Upload_Fields_Platform_TikTok">TikTok</sys:String>
-  <sys:String x:Key="Upload_Fields_Thumbnail">Thumbnail</sys:String>
-  <sys:String x:Key="Upload_Fields_Thumbnail_DropZone">Thumbnail hierher ziehen</sys:String>
-  <sys:String x:Key="Upload_Fields_Thumbnail_DropZone_Descr">oder klicken zum Auswählen</sys:String>
-  <sys:String x:Key="Upload_Fields_Thumbnail_DropZone_AllowedFiles">PNG, JPG, JPEG</sys:String>
-  <sys:String x:Key="Upload_Fields_Thumbnail_Change">Klicken zum Ändern</sys:String>
-  <sys:String x:Key="Upload_Fields_Visibility">Sichtbarkeit</sys:String>
-  <sys:String x:Key="Upload_Fields_Visibility_Public">🌐 Öffentlich</sys:String>
-  <sys:String x:Key="Upload_Fields_Visibility_Unlisted">🔗 Nicht gelistet</sys:String>
-  <sys:String x:Key="Upload_Fields_Visibility_Private">🔒 Privat</sys:String>
-  <sys:String x:Key="Upload_Fields_Paylists">Playlists</sys:String>
-  <sys:String x:Key="Upload_Fields_Publication">Veröffentlichungszeitpunkt</sys:String>
-  <sys:String x:Key="Upload_Fields_Publication_Plan">Geplante Veröffentlichung</sys:String>
-  <sys:String x:Key="Upload_Fields_Publication_Date">Datum:</sys:String>
-  <sys:String x:Key="Upload_Fields_Publication_Time">Zeit:</sys:String>
+  <sys:String x:Key="Upload.DropVideo">Video hierher ziehen</sys:String>
+  <sys:String x:Key="Upload.DropVideo.Descr">oder klicken zum Auswählen</sys:String>
+  <sys:String x:Key="Upload.DropVideo.AllowedFiles">MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
+  <sys:String x:Key="Upload.StartUpload">Upload starten</sys:String>
+  <sys:String x:Key="Upload.Fields.Title">Titel (erforderlich)</sys:String>
+  <sys:String x:Key="Upload.Fields.Suggest">Vorschlagen</sys:String>
+  <sys:String x:Key="Upload.Fields.Description">Beschreibung</sys:String>
+  <sys:String x:Key="Upload.Fields.Tags">Tags</sys:String>
+  <sys:String x:Key="Upload.Fields.Transcription">Transkription</sys:String>
+  <sys:String x:Key="Upload.Fields.Transcription.Descr">Automatisch generiertes Transkript, benutzt für KI-Vorschläge.</sys:String>
+  <sys:String x:Key="Upload.Fields.Transcripe">Transkribieren</sys:String>
+  <sys:String x:Key="Upload.Fields.Platform">Platform</sys:String>
+  <sys:String x:Key="Upload.Fields.Platform.YouTube">Youtube</sys:String>
+  <sys:String x:Key="Upload.Fields.Platform.TikTok">TikTok</sys:String>
+  <sys:String x:Key="Upload.Fields.Thumbnail">Thumbnail</sys:String>
+  <sys:String x:Key="Upload.Fields.Thumbnail.DropZone">Thumbnail hierher ziehen</sys:String>
+  <sys:String x:Key="Upload.Fields.Thumbnail.DropZone.Descr">oder klicken zum Auswählen</sys:String>
+  <sys:String x:Key="Upload.Fields.Thumbnail.DropZone.AllowedFiles">PNG, JPG, JPEG</sys:String>
+  <sys:String x:Key="Upload.Fields.Thumbnail.Change">Klicken zum Ändern</sys:String>
+  <sys:String x:Key="Upload.Fields.Visibility">Sichtbarkeit</sys:String>
+  <sys:String x:Key="Upload.Fields.Visibility.Public">🌐 Öffentlich</sys:String>
+  <sys:String x:Key="Upload.Fields.Visibility.Unlisted">🔗 Nicht gelistet</sys:String>
+  <sys:String x:Key="Upload.Fields.Visibility.Private">🔒 Privat</sys:String>
+  <sys:String x:Key="Upload.Fields.Paylists">Playlists</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication">Veröffentlichungszeitpunkt</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.Plan">Geplante Veröffentlichung</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.Date">Datum:</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.Time">Zeit:</sys:String>
 
   <!-- Accounts -->
   <sys:String x:Key="Accounts">Accounts</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Description">
+  <sys:String x:Key="Accounts.YouTube.Description">
     Verbinde dein YouTube-Konto, um Videos direkt aus der App hochzuladen und eine Standard-Playlist für neue Uploads auszuwählen.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube_Playlists_Descr">
+  <sys:String x:Key="Accounts.YouTube.Playlists.Descr">
     Die ausgewählte Playlist wird als Standard verwendet, wenn du im Upload-Tab keine andere Playlist auswählst.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube_SecurityTitle">Speicherung und Sicherheit</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Security_Line1">
+  <sys:String x:Key="Accounts.YouTube.SecurityTitle">Speicherung und Sicherheit</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Security.Line1">
     Die Zugangsdaten werden nur lokal auf diesem Rechner gespeichert und nicht an externe Server gesendet.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube_Security_Line2">
+  <sys:String x:Key="Accounts.YouTube.Security.Line2">
     Du kannst die Verbindung jederzeit trennen; danach können keine Uploads mehr über dieses Konto gestartet werden.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube_Security_Line3">
+  <sys:String x:Key="Accounts.YouTube.Security.Line3">
     Für jeden Upload musst du weiterhin explizit in der App auf „Upload starten“ klicken.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube_UsageTitle">Wie dieses Konto verwendet wird</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Usage_Line1">
+  <sys:String x:Key="Accounts.YouTube.UsageTitle">Wie dieses Konto verwendet wird</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Usage.Line1">
     Uploads im Tab „Uploads“ verwenden dieses Konto für YouTube-Uploads.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube_Usage_Line2">
+  <sys:String x:Key="Accounts.YouTube.Usage.Line2">
     Standard-Einstellungen wie Playlist und Sichtbarkeit werden automatisch aus diesem Tab übernommen.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube_Usage_Line3">
+  <sys:String x:Key="Accounts.YouTube.Usage.Line3">
     Alle Einstellungen können pro Upload überschrieben werden, ohne die Konten-Konfiguration zu ändern.
   </sys:String>
-  <sys:String x:Key="Accounts_ComingSoon">
+  <sys:String x:Key="Accounts.ComingSoon">
     Weitere Dienste wie TikTok und Instagram folgen in kommenden Versionen.
   </sys:String>
-  <sys:String x:Key="Accounts_YouTube">YouTube-Konto</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Short">YT</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Connect">Verbinden</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Disconnect">Trennen</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Playlists">Youtube-Playlists</sys:String>
-  <sys:String x:Key="Accounts_YouTube_StandardPlaylist">Standard-Playlist für neue Uploads</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Msg_NotConnected">Nicht mit YouTube verbunden.</sys:String>
-  <sys:String x:Key="Accounts_YouTube_Msg_ClickToConnect">Nicht mit YouTube verbunden.</sys:String>
+  <sys:String x:Key="Accounts.YouTube">YouTube-Konto</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Short">YT</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Connect">Verbinden</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Disconnect">Trennen</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Playlists">Youtube-Playlists</sys:String>
+  <sys:String x:Key="Accounts.YouTube.StandardPlaylist">Standard-Playlist für neue Uploads</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Msg.NotConnected">Nicht mit YouTube verbunden.</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Msg.ClickToConnect">Nicht mit YouTube verbunden.</sys:String>
 
   <!-- Channel -->
   <sys:String x:Key="Channel">Kanalprofil</sys:String>
-  <sys:String x:Key="Channel_Persona">Kanalprofil für KI-Vorschläge</sys:String>
-  <sys:String x:Key="Channel_Persona_Profile">Kanalprofil</sys:String>
-  <sys:String x:Key="Channel_Persona_Style">Sprache &amp; Stil</sys:String>
-  <sys:String x:Key="Channel_Persona_Additional">Zusätzliche Hinweise</sys:String>
-  <sys:String x:Key="Channel_Fields_Name">Name/Nick</sys:String>
-  <sys:String x:Key="Channel_Fields_ChannelName">Kanalname</sys:String>
-  <sys:String x:Key="Channel_Fields_Language">Sprache</sys:String>
-  <sys:String x:Key="Channel_Fields_ToneOfWords">Tonfall</sys:String>
-  <sys:String x:Key="Channel_Fields_ContentType">Content-Typ</sys:String>
-  <sys:String x:Key="Channel_Fields_TargetAudience">Zielgruppe</sys:String>
-  <sys:String x:Key="Channel_Fields_AdditionalInstructions">Zusätzliche Anweisungen</sys:String>
+  <sys:String x:Key="Channel.Persona">Kanalprofil für KI-Vorschläge</sys:String>
+  <sys:String x:Key="Channel.Persona.Profile">Kanalprofil</sys:String>
+  <sys:String x:Key="Channel.Persona.Style">Sprache &amp; Stil</sys:String>
+  <sys:String x:Key="Channel.Persona.Additional">Zusätzliche Hinweise</sys:String>
+  <sys:String x:Key="Channel.Fields.Name">Name/Nick</sys:String>
+  <sys:String x:Key="Channel.Fields.ChannelName">Kanalname</sys:String>
+  <sys:String x:Key="Channel.Fields.Language">Sprache</sys:String>
+  <sys:String x:Key="Channel.Fields.ToneOfWords">Tonfall</sys:String>
+  <sys:String x:Key="Channel.Fields.ContentType">Content-Typ</sys:String>
+  <sys:String x:Key="Channel.Fields.TargetAudience">Zielgruppe</sys:String>
+  <sys:String x:Key="Channel.Fields.AdditionalInstructions">Zusätzliche Anweisungen</sys:String>
 
   <!-- Templates -->
   <sys:String x:Key="Templates">Vorlagen</sys:String>
-  <sys:String x:Key="Templates_Header">Verfügbare Vorlagen</sys:String>
-  <sys:String x:Key="Templates_Edit">Vorlage bearbeiten</sys:String>
-  <sys:String x:Key="Templates_Fields_Name">Name</sys:String>
-  <sys:String x:Key="Templates_Fields_Platform">Platform</sys:String>
-  <sys:String x:Key="Templates_Fields_UseAsStandard">Als Standard-Vorlage verwenden</sys:String>
-  <sys:String x:Key="Templates_Fields_Notes">Notiz zur Vorlage</sys:String>
-  <sys:String x:Key="Templates_Fields_TemplateBody">Vorlagen Text</sys:String>
+  <sys:String x:Key="Templates.Header">Verfügbare Vorlagen</sys:String>
+  <sys:String x:Key="Templates.Edit">Vorlage bearbeiten</sys:String>
+  <sys:String x:Key="Templates.Fields.Name">Name</sys:String>
+  <sys:String x:Key="Templates.Fields.Platform">Platform</sys:String>
+  <sys:String x:Key="Templates.Fields.UseAsStandard">Als Standard-Vorlage verwenden</sys:String>
+  <sys:String x:Key="Templates.Fields.Notes">Notiz zur Vorlage</sys:String>
+  <sys:String x:Key="Templates.Fields.TemplateBody">Vorlagen Text</sys:String>
 
   <!-- History -->
   <sys:String x:Key="History">Verlauf</sys:String>
-  <sys:String x:Key="History_Success">Erfolg</sys:String>
-  <sys:String x:Key="History_Error">Fehler</sys:String>
-  <sys:String x:Key="History_List_DateTime">Datum/Uhrzeit</sys:String>
-  <sys:String x:Key="History_List_Title">Titel</sys:String>
-  <sys:String x:Key="History_List_Link">Link</sys:String>
-  <sys:String x:Key="History_ClearList">Liste leeren</sys:String>
+  <sys:String x:Key="History.Success">Erfolg</sys:String>
+  <sys:String x:Key="History.Error">Fehler</sys:String>
+  <sys:String x:Key="History.List.DateTime">Datum/Uhrzeit</sys:String>
+  <sys:String x:Key="History.List.Title">Titel</sys:String>
+  <sys:String x:Key="History.List.Link">Link</sys:String>
+  <sys:String x:Key="History.ClearList">Liste leeren</sys:String>
 
   <!-- Settings -->
   <sys:String x:Key="Settings">Einstellungen</sys:String>
-  <sys:String x:Key="Settings_SaveAll">Alle Änderungen Speichern</sys:String>
-  <sys:String x:Key="Settings_Language">Sprache</sys:String>
-  <sys:String x:Key="Settings_Language_Restart_Hint">Einige Änderungen werden sofort wirksam.</sys:String>
-  <sys:String x:Key="Settings_StandardFolders">Standard-Ordner</sys:String>
-  <sys:String x:Key="Settings_VideoFolder">Video-Ordner</sys:String>
-  <sys:String x:Key="Settings_ThumbnailFolder">Thumbnail-Ordner</sys:String>
-  <sys:String x:Key="Settings_ChoosePath">Pfad wählen</sys:String>
-  <sys:String x:Key="Settings_UploadSettings">Standard Upload Einstellungen</sys:String>
-  <sys:String x:Key="Settings_StandardReleaseTime">Standard Release Zeit</sys:String>
-  <sys:String x:Key="Settings_ConfirmUpload">Vor Upload um Bestätigung fragen</sys:String>
-  <sys:String x:Key="Settings_AutomaticTemplateApply">Vorlage automatisch anwenden</sys:String>
-  <sys:String x:Key="Settings_OpenBrowserAfterUpload">Nach Upload Browser öffnen</sys:String>
-  <sys:String x:Key="Settings_AutomaticConnect">Beim Start mit YouTube verbinden</sys:String>
-  <sys:String x:Key="Settings_AutomaticTranscription">Automatisch transkribieren bei Video-Auswahl</sys:String>
-  <sys:String x:Key="Settings_WhisperModelSize">Modellgröße für Whisper</sys:String>
-  <sys:String x:Key="Settings_WhisperModelSize_Tiny">Tiny (~75 MB, schnell)</sys:String>
-  <sys:String x:Key="Settings_WhisperModelSize_Base">Base (~142 MB)</sys:String>
-  <sys:String x:Key="Settings_WhisperModelSize_Small">Small (~466 MB, empfohlen)</sys:String>
-  <sys:String x:Key="Settings_WhisperModelSize_Medium">Medium (~1.5 GB)</sys:String>
-  <sys:String x:Key="Settings_WhisperModelSize_Large">Large (~2.9 GB)</sys:String>
-  <sys:String x:Key="Settings_WhisperLanguage">Sprache</sys:String>
-  <sys:String x:Key="Settings_WhisperLanguage_De">Deutsch</sys:String>
-  <sys:String x:Key="Settings_WhisperLanguage_En">Englisch</sys:String>
-  <sys:String x:Key="Settings_WhisperLanguage_Detect">Automatisch erkennen</sys:String>
-  <sys:String x:Key="Settings_Msg_NotChecked">nicht geprüft</sys:String>
-  <sys:String x:Key="Settings_Whisper_Download">Whisper installieren</sys:String>
-  <sys:String x:Key="Settings_LLM">KI Einstellungen</sys:String>
-  <sys:String x:Key="Settings_LLM_Mode">Modus</sys:String>
-  <sys:String x:Key="Settings_LLM_Off">Aus</sys:String>
-  <sys:String x:Key="Settings_LLM_Local">Lokal (.GGUF)</sys:String>
-  <sys:String x:Key="Settings_LLM_PathToModel">Pfad zum Model</sys:String>
-  <sys:String x:Key="Settings_LLM_ModelType">Modeltyp</sys:String>
-  <sys:String x:Key="Settings_LLM_ModelType_Detect">Automatisch erkennen</sys:String>
-  <sys:String x:Key="Settings_LLM_ModelType_Phi3">Automatisch erkennen</sys:String>
-  <sys:String x:Key="Settings_LLM_ModelType_Mistral3">Automatisch erkennen</sys:String>
-  <sys:String x:Key="Settings_LLM_SystemPrompt">Modeltyp</sys:String>
-  <sys:String x:Key="Settings_LLM_Status">Nicht konfiguriert</sys:String>
-  <sys:String x:Key="Settings_LLM_Parameters">Generierungs-Parameter</sys:String>
-  <sys:String x:Key="Settings_LLM_Parameters_MaxToken">Maximale Tokens</sys:String>
-  <sys:String x:Key="Settings_LLM_Parameters_Temperature">Temperatur</sys:String>
-  <sys:String x:Key="Settings_LLM_Prompts">KI-Anweisungen</sys:String>
-  <sys:String x:Key="Settings_LLM_Prompts_Title">Titel Anweisungen</sys:String>
-  <sys:String x:Key="Settings_LLM_Prompts_Description">Beschreibungs Anweisungen</sys:String>
-  <sys:String x:Key="Settings_LLM_Prompts_Tags">Tags Anweisungen</sys:String>
+  <sys:String x:Key="Settings.SaveAll">Alle Änderungen Speichern</sys:String>
+  <sys:String x:Key="Settings.Language">Sprache</sys:String>
+  <sys:String x:Key="Settings.Language.Restart.Hint">Einige Änderungen werden sofort wirksam.</sys:String>
+  <sys:String x:Key="Settings.StandardFolders">Standard-Ordner</sys:String>
+  <sys:String x:Key="Settings.VideoFolder">Video-Ordner</sys:String>
+  <sys:String x:Key="Settings.ThumbnailFolder">Thumbnail-Ordner</sys:String>
+  <sys:String x:Key="Settings.ChoosePath">Pfad wählen</sys:String>
+  <sys:String x:Key="Settings.UploadSettings">Standard Upload Einstellungen</sys:String>
+  <sys:String x:Key="Settings.StandardReleaseTime">Standard Release Zeit</sys:String>
+  <sys:String x:Key="Settings.ConfirmUpload">Vor Upload um Bestätigung fragen</sys:String>
+  <sys:String x:Key="Settings.AutomaticTemplateApply">Vorlage automatisch anwenden</sys:String>
+  <sys:String x:Key="Settings.OpenBrowserAfterUpload">Nach Upload Browser öffnen</sys:String>
+  <sys:String x:Key="Settings.AutomaticConnect">Beim Start mit YouTube verbinden</sys:String>
+  <sys:String x:Key="Settings.AutomaticTranscription">Automatisch transkribieren bei Video-Auswahl</sys:String>
+  <sys:String x:Key="Settings.WhisperModelSize">Modellgröße für Whisper</sys:String>
+  <sys:String x:Key="Settings.WhisperModelSize.Tiny">Tiny (~75 MB, schnell)</sys:String>
+  <sys:String x:Key="Settings.WhisperModelSize.Base">Base (~142 MB)</sys:String>
+  <sys:String x:Key="Settings.WhisperModelSize.Small">Small (~466 MB, empfohlen)</sys:String>
+  <sys:String x:Key="Settings.WhisperModelSize.Medium">Medium (~1.5 GB)</sys:String>
+  <sys:String x:Key="Settings.WhisperModelSize.Large">Large (~2.9 GB)</sys:String>
+  <sys:String x:Key="Settings.WhisperLanguage">Sprache</sys:String>
+  <sys:String x:Key="Settings.WhisperLanguage.De">Deutsch</sys:String>
+  <sys:String x:Key="Settings.WhisperLanguage.En">Englisch</sys:String>
+  <sys:String x:Key="Settings.WhisperLanguage.Detect">Automatisch erkennen</sys:String>
+  <sys:String x:Key="Settings.Msg.NotChecked">nicht geprüft</sys:String>
+  <sys:String x:Key="Settings.Whisper.Download">Whisper installieren</sys:String>
+  <sys:String x:Key="Settings.LLM">KI Einstellungen</sys:String>
+  <sys:String x:Key="Settings.LLM.Mode">Modus</sys:String>
+  <sys:String x:Key="Settings.LLM.Off">Aus</sys:String>
+  <sys:String x:Key="Settings.LLM.Local">Lokal (.GGUF)</sys:String>
+  <sys:String x:Key="Settings.LLM.PathToModel">Pfad zum Model</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelType">Modeltyp</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelType.Detect">Automatisch erkennen</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelType.Phi3">Automatisch erkennen</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelType.Mistral3">Automatisch erkennen</sys:String>
+  <sys:String x:Key="Settings.LLM.SystemPrompt">Modeltyp</sys:String>
+  <sys:String x:Key="Settings.LLM.Status">Nicht konfiguriert</sys:String>
+  <sys:String x:Key="Settings.LLM.Parameters">Generierungs-Parameter</sys:String>
+  <sys:String x:Key="Settings.LLM.Parameters.MaxToken">Maximale Tokens</sys:String>
+  <sys:String x:Key="Settings.LLM.Parameters.Temperature">Temperatur</sys:String>
+  <sys:String x:Key="Settings.LLM.Prompts">KI-Anweisungen</sys:String>
+  <sys:String x:Key="Settings.LLM.Prompts.Title">Titel Anweisungen</sys:String>
+  <sys:String x:Key="Settings.LLM.Prompts.Description">Beschreibungs Anweisungen</sys:String>
+  <sys:String x:Key="Settings.LLM.Prompts.Tags">Tags Anweisungen</sys:String>
 
 </ResourceDictionary>
