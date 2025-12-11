@@ -81,4 +81,9 @@ public partial class App : Application
         e.SetObserved();
     }
 
+    protected override void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
+        AppLogger.Instance.Dispose();
+    }
 }

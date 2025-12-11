@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DCM.Core.Logging;
 
@@ -7,7 +8,7 @@ namespace DCM.Core.Logging;
 /// Zentraler Logger mit In-Memory-Buffer und optionalem File-Logging.
 /// Thread-safe Singleton-Implementierung.
 /// </summary>
-public sealed class AppLogger : IAppLogger
+public sealed class AppLogger : IAppLogger, IDisposable
 {
     private static readonly Lazy<AppLogger> _instance = new(() => new AppLogger());
     public static AppLogger Instance => _instance.Value;
@@ -15,6 +16,10 @@ public sealed class AppLogger : IAppLogger
     private readonly ConcurrentQueue<LogEntry> _entries = new();
     private readonly object _fileLock = new();
     private readonly string _logFilePath;
+    private readonly BlockingCollection<string> _fileQueue = new(new ConcurrentQueue<string>());
+    private readonly CancellationTokenSource _writerCts = new();
+    private readonly Task _writerTask;
+    private bool _disposed;
 
     private const int MaxEntriesInMemory = 1000;
 
@@ -26,7 +31,8 @@ public sealed class AppLogger : IAppLogger
     private AppLogger()
     {
         _logFilePath = Path.Combine(Constants.AppDataFolder, Constants.LogFileName);
-        WriteToFile($"=== Log gestartet: {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss} ===");
+        _writerTask = Task.Run(ProcessQueue);
+        QueueWrite($"=== Log gestartet: {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss} ===");
     }
 
     public void Debug(string message, string? source = null)
@@ -69,8 +75,8 @@ public sealed class AppLogger : IAppLogger
             // Alte Einträge entfernen
         }
 
-        // In Datei schreiben
-        WriteToFile(entry.FormattedMessage);
+        // In Datei schreiben (über Hintergrund-Writer)
+        QueueWrite(entry.FormattedMessage);
 
         // Debug-Ausgabe
         System.Diagnostics.Debug.WriteLine(entry.FormattedMessage);
@@ -97,6 +103,37 @@ public sealed class AppLogger : IAppLogger
         ErrorCount = 0;
     }
 
+    private void QueueWrite(string line)
+    {
+        try
+        {
+            _fileQueue.Add(line, _writerCts.Token);
+        }
+        catch
+        {
+            // Logger wird vermutlich beendet
+        }
+    }
+
+    private void ProcessQueue()
+    {
+        try
+        {
+            foreach (var line in _fileQueue.GetConsumingEnumerable(_writerCts.Token))
+            {
+                WriteToFile(line);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Beendet
+        }
+        catch
+        {
+            // Fehler beim Schreiben ignorieren
+        }
+    }
+
     private void WriteToFile(string line)
     {
         try
@@ -109,6 +146,31 @@ public sealed class AppLogger : IAppLogger
         catch
         {
             // File-Logging-Fehler ignorieren
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        try
+        {
+            _fileQueue.CompleteAdding();
+            _writerTask.Wait(TimeSpan.FromSeconds(2));
+        }
+        catch
+        {
+            // Ignorieren
+        }
+        finally
+        {
+            _writerCts.Cancel();
+            _writerCts.Dispose();
+            _fileQueue.Dispose();
         }
     }
 }

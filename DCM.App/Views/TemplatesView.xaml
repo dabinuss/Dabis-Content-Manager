@@ -49,6 +49,9 @@
               </StackPanel>
               <ListBox x:Name="TemplateListBox"
                        DisplayMemberPath="Name"
+                       ScrollViewer.CanContentScroll="True"
+                       VirtualizingStackPanel.IsVirtualizing="True"
+                       VirtualizingStackPanel.VirtualizationMode="Recycling"
                        SelectionChanged="TemplateListBox_SelectionChanged"/>
             </DockPanel>
           </GroupBox>

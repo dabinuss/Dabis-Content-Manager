@@ -72,6 +72,11 @@
                       CanUserAddRows="False"
                       HeadersVisibility="Column"
                       SelectionMode="Single"
+                      EnableRowVirtualization="True"
+                      EnableColumnVirtualization="True"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.VirtualizationMode="Recycling"
+                      ScrollViewer.CanContentScroll="True"
                       MouseDoubleClick="HistoryDataGrid_MouseDoubleClick">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="{DynamicResource History.List.DateTime}"
