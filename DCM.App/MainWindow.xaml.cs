@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -8,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
+using DCM.App.Views;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Logging;
@@ -49,10 +51,17 @@ public partial class MainWindow : Window
 
     private LogWindow? _logWindow;
     private bool _isClosing;
+    private UploadView UploadView => UploadPageView ?? throw new InvalidOperationException("Upload view is not ready.");
 
     public MainWindow()
     {
         InitializeComponent();
+        AttachUploadViewEvents();
+        AttachAccountsViewEvents();
+        AttachChannelViewEvents();
+        AttachTemplatesViewEvents();
+        AttachHistoryViewEvents();
+        AttachSettingsViewEvents();
 
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
 
@@ -90,10 +99,106 @@ public partial class MainWindow : Window
         UpdateYouTubeStatusText();
         LoadUploadHistory();
 
-        LlmTemperatureSlider.ValueChanged += LlmTemperatureSlider_ValueChanged;
-
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
+    }
+
+    private void AttachUploadViewEvents()
+    {
+        if (UploadPageView is null)
+        {
+            return;
+        }
+
+        UploadPageView.VideoDropDragOver += VideoDrop_DragOver;
+        UploadPageView.VideoDropDragLeave += VideoDrop_DragLeave;
+        UploadPageView.VideoDropDrop += VideoDrop_Drop;
+        UploadPageView.VideoDropZoneClicked += VideoDropZone_Click;
+
+        UploadPageView.VideoChangeButtonClicked += VideoChangeButton_Click;
+        UploadPageView.UploadButtonClicked += UploadButton_Click;
+        UploadPageView.TitleTextBoxTextChanged += TitleTextBox_TextChanged;
+        UploadPageView.GenerateTitleButtonClicked += GenerateTitleButton_Click;
+        UploadPageView.GenerateDescriptionButtonClicked += GenerateDescriptionButton_Click;
+        UploadPageView.TemplateComboBoxSelectionChanged += TemplateComboBox_SelectionChanged;
+        UploadPageView.ApplyTemplateButtonClicked += ApplyTemplateButton_Click;
+        UploadPageView.GenerateTagsButtonClicked += GenerateTagsButton_Click;
+        UploadPageView.TranscribeButtonClicked += TranscribeButton_Click;
+        UploadPageView.TranscriptionExportButtonClicked += TranscriptionExportButton_Click;
+
+        UploadPageView.ThumbnailDropDragOver += ThumbnailDrop_DragOver;
+        UploadPageView.ThumbnailDropDragLeave += ThumbnailDrop_DragLeave;
+        UploadPageView.ThumbnailDropDrop += ThumbnailDrop_Drop;
+        UploadPageView.ThumbnailDropZoneClicked += ThumbnailDropZone_Click;
+        UploadPageView.ThumbnailClearButtonClicked += ThumbnailClearButton_Click;
+
+        UploadPageView.FocusTargetOnContainerClicked += FocusTargetOnContainerClick;
+    }
+
+    private void AttachAccountsViewEvents()
+    {
+        if (AccountsPageView is null)
+        {
+            return;
+        }
+
+        AccountsPageView.AccountsServiceTabChecked += AccountsServiceTab_Checked;
+        AccountsPageView.YouTubeConnectButtonClicked += YouTubeConnectButton_Click;
+        AccountsPageView.YouTubeDisconnectButtonClicked += YouTubeDisconnectButton_Click;
+        AccountsPageView.YouTubePlaylistsSelectionChanged += YouTubePlaylistsListBox_SelectionChanged;
+    }
+
+    private void AttachChannelViewEvents()
+    {
+        if (ChannelPageView is null)
+        {
+            return;
+        }
+
+        ChannelPageView.ChannelProfileSaveButtonClicked += ChannelProfileSaveButton_Click;
+    }
+
+    private void AttachTemplatesViewEvents()
+    {
+        if (TemplatesPageView is null)
+        {
+            return;
+        }
+
+        TemplatesPageView.TemplateNewButtonClicked += TemplateNewButton_Click;
+        TemplatesPageView.TemplateEditButtonClicked += TemplateEditButton_Click;
+        TemplatesPageView.TemplateDeleteButtonClicked += TemplateDeleteButton_Click;
+        TemplatesPageView.TemplateSaveButtonClicked += TemplateSaveButton_Click;
+        TemplatesPageView.TemplateListBoxSelectionChanged += TemplateListBox_SelectionChanged;
+    }
+
+    private void AttachHistoryViewEvents()
+    {
+        if (HistoryPageView is null)
+        {
+            return;
+        }
+
+        HistoryPageView.HistoryFilterChanged += HistoryFilter_Changed;
+        HistoryPageView.HistoryClearButtonClicked += HistoryClearButton_Click;
+        HistoryPageView.HistoryDataGridMouseDoubleClick += HistoryDataGrid_MouseDoubleClick;
+        HistoryPageView.OpenUrlInBrowserRequested += OpenUrlInBrowser;
+    }
+
+    private void AttachSettingsViewEvents()
+    {
+        if (SettingsPageView is null)
+        {
+            return;
+        }
+
+        SettingsPageView.SettingsSaveButtonClicked += SettingsSaveButton_Click;
+        SettingsPageView.DefaultVideoFolderBrowseButtonClicked += DefaultVideoFolderBrowseButton_Click;
+        SettingsPageView.DefaultThumbnailFolderBrowseButtonClicked += DefaultThumbnailFolderBrowseButton_Click;
+        SettingsPageView.LanguageComboBoxSelectionChanged += LanguageComboBox_SelectionChanged;
+        SettingsPageView.TranscriptionDownloadButtonClicked += TranscriptionDownloadButton_Click;
+        SettingsPageView.LlmModeComboBoxSelectionChanged += LlmModeComboBox_SelectionChanged;
+        SettingsPageView.LlmModelPathBrowseButtonClicked += LlmModelPathBrowseButton_Click;
     }
 
     #region Lifecycle
@@ -233,18 +338,9 @@ public partial class MainWindow : Window
     {
         _isLanguageInitializing = true;
 
-        LanguageComboBox.ItemsSource = LocalizationManager.Instance.AvailableLanguages;
-
-        // Aktuelle Sprache auswählen
+        var languages = LocalizationManager.Instance.AvailableLanguages;
         var currentLang = _settings.Language ?? LocalizationManager.Instance.CurrentLanguage;
-        foreach (LanguageInfo lang in LanguageComboBox.Items)
-        {
-            if (lang.Code == currentLang)
-            {
-                LanguageComboBox.SelectedItem = lang;
-                break;
-            }
-        }
+        SettingsPageView?.SetLanguageOptions(languages, currentLang);
 
         _isLanguageInitializing = false;
     }
@@ -256,7 +352,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (LanguageComboBox.SelectedItem is not LanguageInfo selectedLang)
+        var selectedLang = SettingsPageView?.GetSelectedLanguage();
+        if (selectedLang is null)
         {
             return;
         }
@@ -344,9 +441,9 @@ public partial class MainWindow : Window
     {
         // PlatformComboBox wurde durch Checkboxen ersetzt
         // Nur noch TemplatePlatformComboBox initialisieren
-        TemplatePlatformComboBox.ItemsSource = Enum.GetValues(typeof(PlatformType));
+        TemplatesPageView?.SetPlatformOptions(Enum.GetValues(typeof(PlatformType)));
 
-        SelectComboBoxItemByTag(VisibilityComboBox, _settings.DefaultVisibility);
+        UploadPageView?.SetDefaultVisibility(_settings.DefaultVisibility);
     }
 
     private void InitializeChannelLanguageComboBox()
@@ -358,7 +455,7 @@ public partial class MainWindow : Window
             .Select(c => $"{c.DisplayName} ({c.Name})")
             .ToList();
 
-        ChannelPersonaLanguageTextBox.ItemsSource = cultures;
+        ChannelPageView?.SetLanguageOptions(cultures);
     }
 
     private void InitializeSchedulingDefaults()
@@ -375,14 +472,15 @@ public partial class MainWindow : Window
             defaultTime = TimeSpan.Parse(Constants.DefaultSchedulingTime);
         }
 
-        ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
-        ScheduleTimeTextBox.Text = defaultTime.ToString(@"hh\:mm");
+        UploadView.ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+        UploadView.ScheduleTimeTextBox.Text = defaultTime.ToString(@"hh\:mm");
         UpdateScheduleControlsEnabled();
     }
 
     private void InitializeLlmSettingsTab()
     {
-        ApplyLlmSettingsToUi();
+        SettingsPageView?.ApplyLlmSettings(_settings.Llm ?? new LlmSettings());
+        UpdateLlmControlsEnabled();
     }
 
     #endregion
@@ -404,7 +502,7 @@ public partial class MainWindow : Window
                 if (_allowedVideoExtensions.Contains(ext))
                 {
                     e.Effects = DragDropEffects.Copy;
-                    VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
+                    UploadView.VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
                 }
             }
         }
@@ -413,12 +511,12 @@ public partial class MainWindow : Window
 
     private void VideoDrop_DragLeave(object sender, DragEventArgs e)
     {
-        VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
+        UploadView.VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
     }
 
     private void VideoDrop_Drop(object sender, DragEventArgs e)
     {
-        VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
+        UploadView.VideoDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
 
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
         {
@@ -457,11 +555,11 @@ public partial class MainWindow : Window
     private void SetVideoFile(string filePath)
     {
 
-        VideoPathTextBox.Text = filePath;
+        UploadView.VideoPathTextBox.Text = filePath;
         var fileInfo = new System.IO.FileInfo(filePath);
 
-        VideoDropEmptyState.Visibility = Visibility.Collapsed;
-        VideoDropSelectedState.Visibility = Visibility.Visible;
+        UploadView.VideoDropEmptyState.Visibility = Visibility.Collapsed;
+        UploadView.VideoDropSelectedState.Visibility = Visibility.Visible;
         UpdateUploadButtonState();
         UpdateTranscriptionButtonState();
 
@@ -487,14 +585,14 @@ public partial class MainWindow : Window
             {
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    VideoFileNameTextBlock.Text = fileName;
-                    VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
+                    UploadView.VideoFileNameTextBlock.Text = fileName;
+                    UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
                 });
             }
             else
             {
-                VideoFileNameTextBlock.Text = fileName;
-                VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
+                UploadView.VideoFileNameTextBlock.Text = fileName;
+                UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
             }
 
             _logger.Info($"Video ausgewählt: {fileName}", "Upload");
@@ -510,8 +608,8 @@ public partial class MainWindow : Window
             // Fallback: Zeige zumindest den Dateinamen
             await Dispatcher.InvokeAsync(() =>
             {
-                VideoFileNameTextBlock.Text = Path.GetFileName(filePath);
-                VideoFileSizeTextBlock.Text = "? MB";
+                UploadView.VideoFileNameTextBlock.Text = Path.GetFileName(filePath);
+                UploadView.VideoFileSizeTextBlock.Text = "? MB";
             });
         }
     }
@@ -576,10 +674,10 @@ public partial class MainWindow : Window
 
     private void UpdateUploadButtonState()
     {
-        bool hasVideo = !string.IsNullOrWhiteSpace(VideoPathTextBox.Text);
-        bool hasTitle = !string.IsNullOrWhiteSpace(TitleTextBox.Text);
+        bool hasVideo = !string.IsNullOrWhiteSpace(UploadView.VideoPathTextBox.Text);
+        bool hasTitle = !string.IsNullOrWhiteSpace(UploadView.TitleTextBox.Text);
 
-        UploadButton.IsEnabled = hasVideo && hasTitle;
+        UploadView.UploadButton.IsEnabled = hasVideo && hasTitle;
     }
 
     #endregion
@@ -601,7 +699,7 @@ public partial class MainWindow : Window
                 if (_allowedImageExtensions.Contains(ext))
                 {
                     e.Effects = DragDropEffects.Copy;
-                    ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
+                    UploadView.ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("PrimaryBrush");
                 }
             }
         }
@@ -610,12 +708,12 @@ public partial class MainWindow : Window
 
     private void ThumbnailDrop_DragLeave(object sender, DragEventArgs e)
     {
-        ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
+        UploadView.ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
     }
 
     private void ThumbnailDrop_Drop(object sender, DragEventArgs e)
     {
-        ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
+        UploadView.ThumbnailDropZone.BorderBrush = (SolidColorBrush)FindResource("BorderBrush");
 
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
         {
@@ -653,10 +751,10 @@ public partial class MainWindow : Window
 
     private void SetThumbnailFile(string filePath)
     {
-        ThumbnailPathTextBox.Text = filePath;
+        UploadView.ThumbnailPathTextBox.Text = filePath;
 
         var fileInfo = new System.IO.FileInfo(filePath);
-        ThumbnailFileNameTextBlock.Text = fileInfo.Name;
+        UploadView.ThumbnailFileNameTextBlock.Text = fileInfo.Name;
 
         try
         {
@@ -665,10 +763,10 @@ public partial class MainWindow : Window
             bitmap.UriSource = new Uri(filePath);
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
             bitmap.EndInit();
-            ThumbnailPreviewImage.Source = bitmap;
+            UploadView.ThumbnailPreviewImage.Source = bitmap;
 
-            ThumbnailEmptyState.Visibility = Visibility.Collapsed;
-            ThumbnailPreviewState.Visibility = Visibility.Visible;
+            UploadView.ThumbnailEmptyState.Visibility = Visibility.Collapsed;
+            UploadView.ThumbnailPreviewState.Visibility = Visibility.Visible;
 
             _logger.Info($"Thumbnail ausgewählt: {fileInfo.Name}", "Upload");
         }
@@ -680,11 +778,11 @@ public partial class MainWindow : Window
 
     private void ThumbnailClearButton_Click(object sender, RoutedEventArgs e)
     {
-        ThumbnailPathTextBox.Text = string.Empty;
-        ThumbnailPreviewImage.Source = null;
+        UploadView.ThumbnailPathTextBox.Text = string.Empty;
+        UploadView.ThumbnailPreviewImage.Source = null;
 
-        ThumbnailEmptyState.Visibility = Visibility.Visible;
-        ThumbnailPreviewState.Visibility = Visibility.Collapsed;
+        UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
+        UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
     }
 
     private void VideoChangeButton_Click(object sender, RoutedEventArgs e)
@@ -699,9 +797,9 @@ public partial class MainWindow : Window
 
     private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        Template? tmpl = TemplateComboBox.SelectedItem as Template;
+        Template? tmpl = UploadView.TemplateComboBox.SelectedItem as Template;
 
-        if (tmpl is null && TemplateListBox.SelectedItem is Template tabTemplate)
+        if (tmpl is null && TemplatesPageView?.SelectedTemplate is Template tabTemplate)
         {
             tmpl = tabTemplate;
         }
@@ -715,7 +813,7 @@ public partial class MainWindow : Window
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
 
-        DescriptionTextBox.Text = result;
+        UploadView.DescriptionTextBox.Text = result;
         StatusTextBlock.Text = $"Template \"{tmpl.Name}\" angewendet.";
 
         _logger.Info($"Template angewendet: {tmpl.Name}", "Template");
@@ -784,7 +882,7 @@ public partial class MainWindow : Window
 
         try
         {
-            Template? selectedTemplate = TemplateComboBox.SelectedItem as Template;
+            Template? selectedTemplate = UploadView.TemplateComboBox.SelectedItem as Template;
 
             var result = await _uploadService.UploadAsync(
                 project,
@@ -843,7 +941,7 @@ public partial class MainWindow : Window
         _settings.Persona ??= new ChannelPersona();
 
         StatusTextBlock.Text = "Generiere Titelvorschläge...";
-        GenerateTitleButton.IsEnabled = false;
+        UploadView.GenerateTitleButton.IsEnabled = false;
 
         var cancellationToken = GetNewLlmCancellationToken();
 
@@ -858,13 +956,13 @@ public partial class MainWindow : Window
 
             if (titles is null || titles.Count == 0)
             {
-                TitleTextBox.Text = "[Keine Vorschläge]";
+                UploadView.TitleTextBox.Text = "[Keine Vorschläge]";
                 StatusTextBlock.Text = "Keine Titelvorschläge erhalten.";
                 _logger.Warning("Keine Titelvorschläge erhalten", "LLM");
                 return;
             }
 
-            TitleTextBox.Text = titles[0];
+            UploadView.TitleTextBox.Text = titles[0];
             StatusTextBlock.Text = $"Titelvorschlag eingefügt. ({titles.Count} Vorschläge)";
             _logger.Info($"Titelvorschlag generiert: {titles[0]}", "LLM");
         }
@@ -880,7 +978,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            GenerateTitleButton.IsEnabled = true;
+            UploadView.GenerateTitleButton.IsEnabled = true;
             UpdateLogLinkIndicator();
         }
     }
@@ -891,7 +989,7 @@ public partial class MainWindow : Window
         _settings.Persona ??= new ChannelPersona();
 
         StatusTextBlock.Text = "Generiere Beschreibungsvorschlag...";
-        GenerateDescriptionButton.IsEnabled = false;
+        UploadView.GenerateDescriptionButton.IsEnabled = false;
 
         var cancellationToken = GetNewLlmCancellationToken();
 
@@ -906,7 +1004,7 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(description))
             {
-                DescriptionTextBox.Text = description;
+                UploadView.DescriptionTextBox.Text = description;
                 StatusTextBlock.Text = "Beschreibungsvorschlag eingefügt.";
                 _logger.Info("Beschreibungsvorschlag generiert", "LLM");
             }
@@ -928,7 +1026,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            GenerateDescriptionButton.IsEnabled = true;
+            UploadView.GenerateDescriptionButton.IsEnabled = true;
             UpdateLogLinkIndicator();
         }
     }
@@ -939,7 +1037,7 @@ public partial class MainWindow : Window
         _settings.Persona ??= new ChannelPersona();
 
         StatusTextBlock.Text = "Generiere Tag-Vorschläge...";
-        GenerateTagsButton.IsEnabled = false;
+        UploadView.GenerateTagsButton.IsEnabled = false;
 
         var cancellationToken = GetNewLlmCancellationToken();
 
@@ -954,7 +1052,7 @@ public partial class MainWindow : Window
 
             if (tags is not null && tags.Count > 0)
             {
-                TagsTextBox.Text = string.Join(", ", tags);
+                UploadView.TagsTextBox.Text = string.Join(", ", tags);
                 StatusTextBlock.Text = $"Tag-Vorschläge eingefügt. ({tags.Count} Tags)";
                 _logger.Info($"Tag-Vorschläge generiert: {tags.Count} Tags", "LLM");
             }
@@ -976,7 +1074,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            GenerateTagsButton.IsEnabled = true;
+            UploadView.GenerateTagsButton.IsEnabled = true;
             UpdateLogLinkIndicator();
         }
     }
@@ -1048,62 +1146,17 @@ public partial class MainWindow : Window
 
     private void AccountsServiceTab_Checked(object sender, RoutedEventArgs e)
     {
-        if (sender == AccountsYouTubeTab)
-        {
-            SetAccountsServiceSelection(
-                youTubeSelected: true,
-                tikTokSelected: false,
-                instagramSelected: false);
-        }
-        else if (sender == AccountsTikTokTab)
-        {
-            SetAccountsServiceSelection(
-                youTubeSelected: false,
-                tikTokSelected: true,
-                instagramSelected: false);
-        }
-        else if (sender == AccountsInstagramTab)
-        {
-            SetAccountsServiceSelection(
-                youTubeSelected: false,
-                tikTokSelected: false,
-                instagramSelected: true);
-        }
+        var tag = (sender as FrameworkElement)?.Tag as string;
+        var youTubeSelected = string.Equals(tag, "YouTube", StringComparison.OrdinalIgnoreCase);
+        var tikTokSelected = string.Equals(tag, "TikTok", StringComparison.OrdinalIgnoreCase);
+        var instagramSelected = string.Equals(tag, "Instagram", StringComparison.OrdinalIgnoreCase);
+
+        SetAccountsServiceSelection(youTubeSelected, tikTokSelected, instagramSelected);
     }
 
     private void SetAccountsServiceSelection(bool youTubeSelected, bool tikTokSelected, bool instagramSelected)
     {
-        // Buttons synchron halten
-        if (AccountsYouTubeTab != null)
-        {
-            AccountsYouTubeTab.IsChecked = youTubeSelected;
-        }
-
-        if (AccountsTikTokTab != null)
-        {
-            AccountsTikTokTab.IsChecked = tikTokSelected;
-        }
-
-        if (AccountsInstagramTab != null)
-        {
-            AccountsInstagramTab.IsChecked = instagramSelected;
-        }
-
-        // Content umschalten
-        if (AccountsYouTubeContent != null)
-        {
-            AccountsYouTubeContent.Visibility = youTubeSelected ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        if (AccountsTikTokContent != null)
-        {
-            AccountsTikTokContent.Visibility = tikTokSelected ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        if (AccountsInstagramContent != null)
-        {
-            AccountsInstagramContent.Visibility = instagramSelected ? Visibility.Visible : Visibility.Collapsed;
-        }
+        AccountsPageView?.SetServiceSelection(youTubeSelected, tikTokSelected, instagramSelected);
     }
 
     #endregion
@@ -1131,33 +1184,30 @@ public partial class MainWindow : Window
 
     private void ApplyHistoryFilter()
     {
-        if (HistoryDataGrid is null)
+        if (HistoryPageView is null)
         {
             return;
         }
 
         IEnumerable<UploadHistoryEntry> filtered = _allHistoryEntries;
 
-        if (HistoryPlatformFilterComboBox?.SelectedItem is ComboBoxItem pItem &&
-            pItem.Tag is PlatformType platformFilter)
+        var platformFilter = HistoryPageView.GetSelectedPlatformFilter();
+        if (platformFilter is PlatformType platform)
         {
-            filtered = filtered.Where(e => e.Platform == platformFilter);
+            filtered = filtered.Where(e => e.Platform == platform);
         }
 
-        if (HistoryStatusFilterComboBox?.SelectedItem is ComboBoxItem sItem &&
-            sItem.Tag is string statusTag)
+        var statusTag = HistoryPageView.GetSelectedStatusFilter();
+        if (statusTag == "Success")
         {
-            if (statusTag == "Success")
-            {
-                filtered = filtered.Where(e => e.Success);
-            }
-            else if (statusTag == "Error")
-            {
-                filtered = filtered.Where(e => !e.Success);
-            }
+            filtered = filtered.Where(e => e.Success);
+        }
+        else if (statusTag == "Error")
+        {
+            filtered = filtered.Where(e => !e.Success);
         }
 
-        HistoryDataGrid.ItemsSource = filtered.ToList();
+        HistoryPageView.SetHistoryItems(filtered.ToList());
     }
 
     private void HistoryFilter_Changed(object sender, SelectionChangedEventArgs e)
@@ -1183,7 +1233,7 @@ public partial class MainWindow : Window
         {
             _uploadHistoryService.Clear();
             _allHistoryEntries.Clear();
-            ApplyHistoryFilter();
+            HistoryPageView?.SetHistoryItems(Array.Empty<UploadHistoryEntry>());
             StatusTextBlock.Text = "Upload-Historie gelöscht.";
             _logger.Info("Upload-Historie gelöscht", "History");
         }
@@ -1196,7 +1246,7 @@ public partial class MainWindow : Window
 
     private void HistoryDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (HistoryDataGrid.SelectedItem is UploadHistoryEntry entry &&
+        if (HistoryPageView?.SelectedEntry is UploadHistoryEntry entry &&
             entry.VideoUrl is not null)
         {
             try
@@ -1406,7 +1456,7 @@ public partial class MainWindow : Window
 
     private void TranscriptionExportButton_Click(object sender, RoutedEventArgs e)
     {
-        var transcript = TranscriptTextBox.Text;
+        var transcript = UploadView.TranscriptTextBox.Text;
         if (string.IsNullOrWhiteSpace(transcript))
         {
             MessageBox.Show(
@@ -1420,9 +1470,9 @@ public partial class MainWindow : Window
         }
 
         string baseName;
-        if (!string.IsNullOrWhiteSpace(VideoPathTextBox.Text))
+        if (!string.IsNullOrWhiteSpace(UploadView.VideoPathTextBox.Text))
         {
-            baseName = Path.GetFileNameWithoutExtension(VideoPathTextBox.Text);
+            baseName = Path.GetFileNameWithoutExtension(UploadView.VideoPathTextBox.Text);
         }
         else
         {
@@ -1476,20 +1526,20 @@ public partial class MainWindow : Window
     {
         // Platform aus Checkboxen ermitteln
         var platform = PlatformType.YouTube; // Standard
-        if (PlatformYouTubeToggle.IsChecked == true)
+        if (UploadView.PlatformYouTubeToggle.IsChecked == true)
         {
             platform = PlatformType.YouTube;
         }
         // Später können hier weitere Plattformen hinzugefügt werden
 
         var visibility = _settings.DefaultVisibility;
-        if (VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)
+        if (UploadView.VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)
         {
             visibility = visEnum;
         }
 
         string? playlistId = null;
-        if (PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
+        if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
         {
             playlistId = plItem.Id;
         }
@@ -1499,11 +1549,11 @@ public partial class MainWindow : Window
         }
 
         DateTimeOffset? scheduledTime = null;
-        if (includeScheduling && ScheduleCheckBox.IsChecked == true)
+        if (includeScheduling && UploadView.ScheduleCheckBox.IsChecked == true)
         {
-            if (ScheduleDatePicker.SelectedDate is DateTime date)
+            if (UploadView.ScheduleDatePicker.SelectedDate is DateTime date)
             {
-                var timeText = ScheduleTimeTextBox.Text;
+                var timeText = UploadView.ScheduleTimeTextBox.Text;
                 TimeSpan timeOfDay;
 
                 if (!string.IsNullOrWhiteSpace(timeText) &&
@@ -1523,27 +1573,27 @@ public partial class MainWindow : Window
 
         var project = new UploadProject
         {
-            VideoFilePath = VideoPathTextBox.Text ?? string.Empty,
-            Title = TitleTextBox.Text ?? string.Empty,
-            Description = DescriptionTextBox.Text ?? string.Empty,
+            VideoFilePath = UploadView.VideoPathTextBox.Text ?? string.Empty,
+            Title = UploadView.TitleTextBox.Text ?? string.Empty,
+            Description = UploadView.DescriptionTextBox.Text ?? string.Empty,
             Platform = platform,
             Visibility = visibility,
             PlaylistId = playlistId,
             ScheduledTime = scheduledTime,
-            ThumbnailPath = ThumbnailPathTextBox.Text,
-            TranscriptText = TranscriptTextBox.Text
+            ThumbnailPath = UploadView.ThumbnailPathTextBox.Text,
+            TranscriptText = UploadView.TranscriptTextBox.Text
         };
 
-        project.SetTagsFromCsv(TagsTextBox.Text ?? string.Empty);
+        project.SetTagsFromCsv(UploadView.TagsTextBox.Text ?? string.Empty);
 
         return project;
     }
 
     private void UpdateScheduleControlsEnabled()
     {
-        var enabled = ScheduleCheckBox.IsChecked == true;
-        ScheduleDatePicker.IsEnabled = enabled;
-        ScheduleTimeTextBox.IsEnabled = enabled;
+        var enabled = UploadView.ScheduleCheckBox.IsChecked == true;
+        UploadView.ScheduleDatePicker.IsEnabled = enabled;
+        UploadView.ScheduleTimeTextBox.IsEnabled = enabled;
     }
 
     #endregion

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -45,73 +44,16 @@ public partial class MainWindow
 
     private void ApplySettingsToUi()
     {
-        DefaultVideoFolderTextBox.Text = _settings.DefaultVideoFolder ?? string.Empty;
-        DefaultThumbnailFolderTextBox.Text = _settings.DefaultThumbnailFolder ?? string.Empty;
-
-        DefaultSchedulingTimeTextBox.Text = string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime)
-            ? Constants.DefaultSchedulingTime
-            : _settings.DefaultSchedulingTime;
-
-        SelectComboBoxItemByTag(DefaultVisibilityComboBox, _settings.DefaultVisibility);
-
-        ConfirmBeforeUploadCheckBox.IsChecked = _settings.ConfirmBeforeUpload;
-        AutoApplyDefaultTemplateCheckBox.IsChecked = _settings.AutoApplyDefaultTemplate;
-        OpenBrowserAfterUploadCheckBox.IsChecked = _settings.OpenBrowserAfterUpload;
-        AutoConnectYouTubeCheckBox.IsChecked = _settings.AutoConnectYouTube;
+        SettingsPageView?.ApplyAppSettings(_settings);
 
         var persona = _settings.Persona ?? new ChannelPersona();
         _settings.Persona = persona;
+        ChannelPageView?.LoadPersona(persona);
 
-        ChannelPersonaNameTextBox.Text = persona.Name ?? string.Empty;
-        ChannelPersonaChannelNameTextBox.Text = persona.ChannelName ?? string.Empty;
-        ChannelPersonaLanguageTextBox.Text = persona.Language ?? string.Empty;
-        ChannelPersonaToneOfVoiceTextBox.Text = persona.ToneOfVoice ?? string.Empty;
-        ChannelPersonaContentTypeTextBox.Text = persona.ContentType ?? string.Empty;
-        ChannelPersonaTargetAudienceTextBox.Text = persona.TargetAudience ?? string.Empty;
-        ChannelPersonaAdditionalInstructionsTextBox.Text = persona.AdditionalInstructions ?? string.Empty;
-
-        ApplyLlmSettingsToUi();
-        ApplyTranscriptionSettingsToUi();
-    }
-
-    private void ApplyLlmSettingsToUi()
-    {
         var llm = _settings.Llm ?? new LlmSettings();
-
-        SelectComboBoxItemByTag(LlmModeComboBox, llm.Mode.ToString());
-        SelectComboBoxItemByTag(LlmModelTypeComboBox, llm.ModelType.ToString());
-
-        LlmModelPathTextBox.Text = llm.LocalModelPath ?? string.Empty;
-        LlmSystemPromptTextBox.Text = llm.SystemPrompt ?? string.Empty;
-        LlmMaxTokensTextBox.Text = llm.MaxTokens.ToString();
-        LlmTemperatureSlider.Value = llm.Temperature;
-        LlmTemperatureValueText.Text = llm.Temperature.ToString("F1", CultureInfo.InvariantCulture);
-
-        LlmTitleCustomPromptTextBox.Text = llm.TitleCustomPrompt ?? string.Empty;
-        LlmDescriptionCustomPromptTextBox.Text = llm.DescriptionCustomPrompt ?? string.Empty;
-        LlmTagsCustomPromptTextBox.Text = llm.TagsCustomPrompt ?? string.Empty;
-
+        SettingsPageView?.ApplyLlmSettings(llm);
         UpdateLlmControlsEnabled();
-    }
-
-    private static void SelectComboBoxItemByTag<T>(ComboBox comboBox, T value)
-    {
-        var items = comboBox.Items.OfType<ComboBoxItem>().ToList();
-
-        foreach (var item in items)
-        {
-            if (item.Tag is T tag && EqualityComparer<T>.Default.Equals(tag, value))
-            {
-                comboBox.SelectedItem = item;
-                return;
-            }
-
-            if (item.Tag is string tagString && value?.ToString() == tagString)
-            {
-                comboBox.SelectedItem = item;
-                return;
-            }
-        }
+        SettingsPageView?.ApplyTranscriptionSettings(_settings.Transcription ?? new TranscriptionSettings());
     }
 
     #endregion
@@ -145,7 +87,7 @@ public partial class MainWindow
 
         if (dialog.ShowDialog(this) == true)
         {
-            DefaultVideoFolderTextBox.Text = dialog.FolderName;
+            SettingsPageView!.DefaultVideoFolder = dialog.FolderName;
             _settings.DefaultVideoFolder = dialog.FolderName;
             SaveSettings();
             StatusTextBlock.Text = "Standard-Videoordner aktualisiert.";
@@ -179,7 +121,7 @@ public partial class MainWindow
 
         if (dialog.ShowDialog(this) == true)
         {
-            DefaultThumbnailFolderTextBox.Text = dialog.FolderName;
+            SettingsPageView!.DefaultThumbnailFolder = dialog.FolderName;
             _settings.DefaultThumbnailFolder = dialog.FolderName;
             SaveSettings();
             StatusTextBlock.Text = "Standard-Thumbnailordner aktualisiert.";
@@ -195,33 +137,7 @@ public partial class MainWindow
         _settings.Persona ??= new ChannelPersona();
         var persona = _settings.Persona;
 
-        persona.Name = string.IsNullOrWhiteSpace(ChannelPersonaNameTextBox.Text)
-            ? null
-            : ChannelPersonaNameTextBox.Text.Trim();
-
-        persona.ChannelName = string.IsNullOrWhiteSpace(ChannelPersonaChannelNameTextBox.Text)
-            ? null
-            : ChannelPersonaChannelNameTextBox.Text.Trim();
-
-        persona.Language = string.IsNullOrWhiteSpace(ChannelPersonaLanguageTextBox.Text)
-            ? null
-            : ChannelPersonaLanguageTextBox.Text.Trim();
-
-        persona.ToneOfVoice = string.IsNullOrWhiteSpace(ChannelPersonaToneOfVoiceTextBox.Text)
-            ? null
-            : ChannelPersonaToneOfVoiceTextBox.Text.Trim();
-
-        persona.ContentType = string.IsNullOrWhiteSpace(ChannelPersonaContentTypeTextBox.Text)
-            ? null
-            : ChannelPersonaContentTypeTextBox.Text.Trim();
-
-        persona.TargetAudience = string.IsNullOrWhiteSpace(ChannelPersonaTargetAudienceTextBox.Text)
-            ? null
-            : ChannelPersonaTargetAudienceTextBox.Text.Trim();
-
-        persona.AdditionalInstructions = string.IsNullOrWhiteSpace(ChannelPersonaAdditionalInstructionsTextBox.Text)
-            ? null
-            : ChannelPersonaAdditionalInstructionsTextBox.Text.Trim();
+        ChannelPageView?.UpdatePersona(persona);
 
         SaveSettings();
         StatusTextBlock.Text = "Kanalprofil gespeichert.";
@@ -234,14 +150,6 @@ public partial class MainWindow
     private void LlmModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateLlmControlsEnabled();
-    }
-
-    private void LlmTemperatureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-        if (LlmTemperatureValueText is not null)
-        {
-            LlmTemperatureValueText.Text = e.NewValue.ToString("F1", CultureInfo.InvariantCulture);
-        }
     }
 
     private void LlmModelPathBrowseButton_Click(object sender, RoutedEventArgs e)
@@ -263,22 +171,14 @@ public partial class MainWindow
 
         if (dlg.ShowDialog(this) == true)
         {
-            LlmModelPathTextBox.Text = dlg.FileName;
+            SettingsPageView!.LlmModelPath = dlg.FileName;
         }
     }
 
     private void UpdateLlmControlsEnabled()
     {
-        var isLocalMode = false;
-
-        if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
-            modeItem.Tag is string modeTag)
-        {
-            isLocalMode = string.Equals(modeTag, "Local", StringComparison.OrdinalIgnoreCase);
-        }
-
-        LlmModelPathTextBox.IsEnabled = isLocalMode;
-        LlmModelPathBrowseButton.IsEnabled = isLocalMode;
+        var isLocalMode = SettingsPageView?.IsLocalLlmModeSelected() ?? false;
+        SettingsPageView?.SetLlmLocalModeControlsEnabled(isLocalMode);
     }
 
     private void UpdateLlmStatusText()
@@ -287,29 +187,25 @@ public partial class MainWindow
 
         if (llm.IsOff)
         {
-            LlmStatusTextBlock.Text = "Deaktiviert";
-            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Gray;
+            SettingsPageView?.SetLlmStatus("Deaktiviert", System.Windows.Media.Brushes.Gray);
             return;
         }
 
         if (!llm.IsLocalMode)
         {
-            LlmStatusTextBlock.Text = "Unbekannter Modus";
-            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+            SettingsPageView?.SetLlmStatus("Unbekannter Modus", System.Windows.Media.Brushes.Orange);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(llm.LocalModelPath))
         {
-            LlmStatusTextBlock.Text = "Kein Modellpfad konfiguriert";
-            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+            SettingsPageView?.SetLlmStatus("Kein Modellpfad konfiguriert", System.Windows.Media.Brushes.Orange);
             return;
         }
 
         if (!File.Exists(llm.LocalModelPath))
         {
-            LlmStatusTextBlock.Text = "Modelldatei nicht gefunden";
-            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+            SettingsPageView?.SetLlmStatus("Modelldatei nicht gefunden", System.Windows.Media.Brushes.Red);
             return;
         }
 
@@ -320,32 +216,27 @@ public partial class MainWindow
             if (!localClient.IsReady && string.IsNullOrEmpty(localClient.InitializationError))
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                LlmStatusTextBlock.Text = $"Konfiguriert: {fileName} ({modelTypeInfo})";
-                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.DarkGreen;
+                SettingsPageView?.SetLlmStatus($"Konfiguriert: {fileName} ({modelTypeInfo})", System.Windows.Media.Brushes.DarkGreen);
                 return;
             }
 
             if (localClient.IsReady)
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                LlmStatusTextBlock.Text = $"Bereit: {fileName} ({modelTypeInfo})";
-                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
+                SettingsPageView?.SetLlmStatus($"Bereit: {fileName} ({modelTypeInfo})", System.Windows.Media.Brushes.Green);
             }
             else if (!string.IsNullOrWhiteSpace(localClient.InitializationError))
             {
-                LlmStatusTextBlock.Text = $"Fehler: {localClient.InitializationError}";
-                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+                SettingsPageView?.SetLlmStatus($"Fehler: {localClient.InitializationError}", System.Windows.Media.Brushes.Red);
             }
             else
             {
-                LlmStatusTextBlock.Text = "Status unbekannt";
-                LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+                SettingsPageView?.SetLlmStatus("Status unbekannt", System.Windows.Media.Brushes.Orange);
             }
         }
         else
         {
-            LlmStatusTextBlock.Text = "Client nicht konfiguriert";
-            LlmStatusTextBlock.Foreground = System.Windows.Media.Brushes.Gray;
+            SettingsPageView?.SetLlmStatus("Client nicht konfiguriert", System.Windows.Media.Brushes.Gray);
         }
     }
 
@@ -354,91 +245,17 @@ public partial class MainWindow
     private void SettingsSaveButton_Click(object sender, RoutedEventArgs e)
     {
         // App-Einstellungen
-        _settings.DefaultVideoFolder = string.IsNullOrWhiteSpace(DefaultVideoFolderTextBox.Text)
-            ? null
-            : DefaultVideoFolderTextBox.Text.Trim();
+        SettingsPageView?.UpdateAppSettings(_settings);
 
-        _settings.DefaultThumbnailFolder = string.IsNullOrWhiteSpace(DefaultThumbnailFolderTextBox.Text)
-            ? null
-            : DefaultThumbnailFolderTextBox.Text.Trim();
-
-        _settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTimeTextBox.Text)
-            ? null
-            : DefaultSchedulingTimeTextBox.Text.Trim();
-
-        if (DefaultVisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
-            visItem.Tag is VideoVisibility visibility)
+        var selectedLang = SettingsPageView?.GetSelectedLanguage();
+        if (selectedLang is not null)
         {
-            _settings.DefaultVisibility = visibility;
-        }
-        else
-        {
-            _settings.DefaultVisibility = VideoVisibility.Unlisted;
-        }
-
-        _settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
-        _settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
-        _settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
-        _settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
-
-        if (LanguageComboBox.SelectedItem is LanguageInfo lang)
-        {
-            _settings.Language = lang.Code;
+            _settings.Language = selectedLang.Code;
         }
 
         // LLM-Einstellungen
         _settings.Llm ??= new LlmSettings();
-        var llm = _settings.Llm;
-
-        if (LlmModeComboBox.SelectedItem is ComboBoxItem modeItem &&
-            modeItem.Tag is string modeTag)
-        {
-            llm.Mode = Enum.TryParse<LlmMode>(modeTag, ignoreCase: true, out var mode)
-                ? mode
-                : LlmMode.Off;
-        }
-        else
-        {
-            llm.Mode = LlmMode.Off;
-        }
-
-        if (LlmModelTypeComboBox.SelectedItem is ComboBoxItem modelTypeItem &&
-            modelTypeItem.Tag is string modelTypeTag)
-        {
-            llm.ModelType = Enum.TryParse<LlmModelType>(modelTypeTag, ignoreCase: true, out var modelType)
-                ? modelType
-                : LlmModelType.Auto;
-        }
-        else
-        {
-            llm.ModelType = LlmModelType.Auto;
-        }
-
-        llm.LocalModelPath = string.IsNullOrWhiteSpace(LlmModelPathTextBox.Text)
-            ? null
-            : LlmModelPathTextBox.Text.Trim();
-
-        llm.SystemPrompt = string.IsNullOrWhiteSpace(LlmSystemPromptTextBox.Text)
-            ? null
-            : LlmSystemPromptTextBox.Text.Trim();
-
-        llm.MaxTokens = int.TryParse(LlmMaxTokensTextBox.Text, out var maxTokens)
-            ? Math.Clamp(maxTokens, 64, 1024)
-            : 256;
-
-        llm.Temperature = (float)LlmTemperatureSlider.Value;
-
-        llm.TitleCustomPrompt = string.IsNullOrWhiteSpace(LlmTitleCustomPromptTextBox.Text)
-            ? null
-            : LlmTitleCustomPromptTextBox.Text.Trim();
-
-        llm.DescriptionCustomPrompt = string.IsNullOrWhiteSpace(LlmDescriptionCustomPromptTextBox.Text)
-            ? null
-            : LlmDescriptionCustomPromptTextBox.Text.Trim();
-
-        llm.TagsCustomPrompt = string.IsNullOrWhiteSpace(LlmTagsCustomPromptTextBox.Text)
-            ? null
-            : LlmTagsCustomPromptTextBox.Text.Trim();
+        SettingsPageView?.UpdateLlmSettings(_settings.Llm);
 
         // Transkriptions-Einstellungen
         SaveTranscriptionSettings();

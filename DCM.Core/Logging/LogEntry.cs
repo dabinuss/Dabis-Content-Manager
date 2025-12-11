@@ -25,7 +25,9 @@ public sealed class LogEntry
             };
 
             var source = string.IsNullOrWhiteSpace(Source) ? "" : $"[{Source}] ";
-            var exceptionPart = Exception is not null ? $" | {Exception.GetType().Name}: {Exception.Message}" : "";
+            var exceptionPart = Exception is not null
+                ? $"{Environment.NewLine}{Exception}"
+                : "";
 
             return $"{Timestamp:HH:mm:ss.fff} [{levelStr}] {source}{Message}{exceptionPart}";
         }

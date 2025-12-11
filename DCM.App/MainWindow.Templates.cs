@@ -14,25 +14,16 @@ public partial class MainWindow
             _loadedTemplates.Clear();
             _loadedTemplates.AddRange(_templateRepository.Load());
 
-            TemplateListBox.ItemsSource = _loadedTemplates;
-
             var defaultTemplate = _loadedTemplates.FirstOrDefault(t => t.IsDefault && t.Platform == PlatformType.YouTube)
                                   ?? _loadedTemplates.FirstOrDefault(t => t.Platform == PlatformType.YouTube);
 
-            if (defaultTemplate is not null)
-            {
-                TemplateListBox.SelectedItem = defaultTemplate;
-                LoadTemplateIntoEditor(defaultTemplate);
-            }
-            else
-            {
-                LoadTemplateIntoEditor(null);
-            }
+            TemplatesPageView?.BindTemplates(_loadedTemplates, defaultTemplate);
+            LoadTemplateIntoEditor(defaultTemplate);
 
-            TemplateComboBox.ItemsSource = _loadedTemplates;
+            UploadView.TemplateComboBox.ItemsSource = _loadedTemplates;
             if (defaultTemplate is not null)
             {
-                TemplateComboBox.SelectedItem = defaultTemplate;
+                UploadView.TemplateComboBox.SelectedItem = defaultTemplate;
             }
         }
         catch (System.Exception ex)
@@ -43,7 +34,7 @@ public partial class MainWindow
 
     private void TemplateListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (TemplateListBox.SelectedItem is Template tmpl)
+        if (TemplatesPageView?.SelectedTemplate is Template tmpl)
         {
             LoadTemplateIntoEditor(tmpl);
         }
@@ -60,19 +51,19 @@ public partial class MainWindow
             return;
         }
 
-        if (TemplateComboBox.SelectedItem is not Template tmpl)
+        if (UploadView.TemplateComboBox.SelectedItem is not Template tmpl)
         {
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
+        if (!string.IsNullOrWhiteSpace(UploadView.DescriptionTextBox.Text))
         {
             return;
         }
 
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
-        DescriptionTextBox.Text = result;
+        UploadView.DescriptionTextBox.Text = result;
         StatusTextBlock.Text = $"Template \"{tmpl.Name}\" automatisch angewendet.";
     }
 
@@ -89,7 +80,7 @@ public partial class MainWindow
         _loadedTemplates.Add(tmpl);
         RefreshTemplateBindings();
 
-        TemplateListBox.SelectedItem = tmpl;
+        TemplatesPageView?.SelectTemplate(tmpl);
         LoadTemplateIntoEditor(tmpl);
 
         StatusTextBlock.Text = "Neues Template erstellt. Bitte bearbeiten und speichern.";
@@ -97,7 +88,7 @@ public partial class MainWindow
 
     private void TemplateEditButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        if (TemplateListBox.SelectedItem is Template tmpl)
+        if (TemplatesPageView?.SelectedTemplate is Template tmpl)
         {
             LoadTemplateIntoEditor(tmpl);
             StatusTextBlock.Text = $"Template \"{tmpl.Name}\" wird bearbeitet.";
@@ -110,7 +101,7 @@ public partial class MainWindow
 
     private void TemplateDeleteButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        if (TemplateListBox.SelectedItem is not Template tmpl)
+        if (TemplatesPageView?.SelectedTemplate is not Template tmpl)
         {
             StatusTextBlock.Text = "Kein Template zum Löschen ausgewählt.";
             return;
@@ -140,22 +131,24 @@ public partial class MainWindow
                 return;
             }
 
-            var name = (TemplateNameTextBox.Text ?? string.Empty).Trim();
+            var editorState = TemplatesPageView?.TryGetEditorState();
+            if (editorState is null)
+            {
+                StatusTextBlock.Text = "Template-Editor ist noch nicht vollständig initialisiert.";
+                return;
+            }
+
+            var name = editorState.Name;
             if (string.IsNullOrWhiteSpace(name))
             {
                 StatusTextBlock.Text = "Templatename darf nicht leer sein.";
                 return;
             }
 
-            var platform = PlatformType.YouTube;
-            if (TemplatePlatformComboBox.SelectedItem is PlatformType selectedPlatform)
-            {
-                platform = selectedPlatform;
-            }
-
-            var isDefault = TemplateIsDefaultCheckBox.IsChecked == true;
-            var description = TemplateDescriptionTextBox.Text;
-            var body = TemplateBodyEditorTextBox.Text ?? string.Empty;
+            var platform = editorState.Platform;
+            var isDefault = editorState.IsDefault;
+            var description = editorState.Description;
+            var body = editorState.Body;
 
             var duplicate = _loadedTemplates
                 .FirstOrDefault(t =>
@@ -187,8 +180,12 @@ public partial class MainWindow
             SaveTemplatesToRepository();
             RefreshTemplateBindings();
 
-            TemplateListBox.SelectedItem = _currentEditingTemplate;
-            TemplateComboBox.SelectedItem = _currentEditingTemplate;
+            TemplatesPageView?.BindTemplates(_loadedTemplates, _currentEditingTemplate);
+
+            if (UploadView.TemplateComboBox is not null)
+            {
+                UploadView.TemplateComboBox.SelectedItem = _currentEditingTemplate;
+            }
 
             StatusTextBlock.Text = $"Template \"{_currentEditingTemplate.Name}\" gespeichert.";
         }
@@ -201,22 +198,7 @@ public partial class MainWindow
     private void LoadTemplateIntoEditor(Template? tmpl)
     {
         _currentEditingTemplate = tmpl;
-
-        if (tmpl is null)
-        {
-            TemplateNameTextBox.Text = string.Empty;
-            TemplatePlatformComboBox.SelectedItem = null;
-            TemplateIsDefaultCheckBox.IsChecked = false;
-            TemplateDescriptionTextBox.Text = string.Empty;
-            TemplateBodyEditorTextBox.Text = string.Empty;
-            return;
-        }
-
-        TemplateNameTextBox.Text = tmpl.Name;
-        TemplatePlatformComboBox.SelectedItem = tmpl.Platform;
-        TemplateIsDefaultCheckBox.IsChecked = tmpl.IsDefault;
-        TemplateDescriptionTextBox.Text = tmpl.Description ?? string.Empty;
-        TemplateBodyEditorTextBox.Text = tmpl.Body;
+        TemplatesPageView?.PopulateEditor(tmpl);
     }
 
     private void SaveTemplatesToRepository()
@@ -233,11 +215,10 @@ public partial class MainWindow
 
     private void RefreshTemplateBindings()
     {
-        TemplateListBox.ItemsSource = null;
-        TemplateListBox.ItemsSource = _loadedTemplates;
+        TemplatesPageView?.BindTemplates(_loadedTemplates, _currentEditingTemplate);
 
-        TemplateComboBox.ItemsSource = null;
-        TemplateComboBox.ItemsSource = _loadedTemplates;
+        UploadView.TemplateComboBox.ItemsSource = null;
+        UploadView.TemplateComboBox.ItemsSource = _loadedTemplates;
     }
 
     #endregion

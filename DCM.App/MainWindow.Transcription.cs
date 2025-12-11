@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using DCM.Core;
@@ -93,7 +94,7 @@ public partial class MainWindow
             return;
         }
 
-        var videoPath = VideoPathTextBox.Text;
+        var videoPath = UploadView.VideoPathTextBox.Text;
 
         if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
         {
@@ -205,7 +206,7 @@ public partial class MainWindow
     {
         if (result.Success && !string.IsNullOrWhiteSpace(result.Text))
         {
-            TranscriptTextBox.Text = result.Text;
+            UploadView.TranscriptTextBox.Text = result.Text;
             StatusTextBlock.Text = $"Transkription abgeschlossen ({result.Duration.TotalSeconds:F1}s).";
             UpdateTranscriptionPhaseText($"Abgeschlossen in {result.Duration.TotalSeconds:F1}s");
             _logger.Info($"Transkription erfolgreich: {result.Text.Length} Zeichen in {result.Duration.TotalSeconds:F1}s", "Transcription");
@@ -230,10 +231,10 @@ public partial class MainWindow
             return;
         }
 
-        TranscriptionProgressBar.Visibility = Visibility.Visible;
-        TranscriptionProgressBar.IsIndeterminate = true;
-        TranscriptionProgressBar.Value = 0;
-        TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+        UploadView.TranscriptionProgressBar.Visibility = Visibility.Visible;
+        UploadView.TranscriptionProgressBar.IsIndeterminate = true;
+        UploadView.TranscriptionProgressBar.Value = 0;
+        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         UpdateTranscriptionPhaseText("Initialisiere...");
     }
 
@@ -245,9 +246,9 @@ public partial class MainWindow
             return;
         }
 
-        TranscriptionProgressBar.Visibility = Visibility.Collapsed;
-        TranscriptionProgressBar.IsIndeterminate = false;
-        TranscriptionProgressBar.Value = 0;
+        UploadView.TranscriptionProgressBar.Visibility = Visibility.Collapsed;
+        UploadView.TranscriptionProgressBar.IsIndeterminate = false;
+        UploadView.TranscriptionProgressBar.Value = 0;
 
         // Phase-Text nach kurzer Zeit ausblenden
         Task.Delay(3000).ContinueWith(_ =>
@@ -256,7 +257,7 @@ public partial class MainWindow
             {
                 if (!_isTranscribing)
                 {
-                    TranscriptionPhaseTextBlock.Visibility = Visibility.Collapsed;
+                    UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Collapsed;
                 }
             });
         });
@@ -270,8 +271,8 @@ public partial class MainWindow
             return;
         }
 
-        TranscriptionPhaseTextBlock.Text = text;
-        TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+        UploadView.TranscriptionPhaseTextBlock.Text = text;
+        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
     }
 
     private void ReportDependencyProgress(DependencyDownloadProgress progress)
@@ -283,8 +284,8 @@ public partial class MainWindow
         }
 
         // Alle UI-Updates gebündelt
-        TranscriptionProgressBar.IsIndeterminate = false;
-        TranscriptionProgressBar.Value = progress.Percent;
+        UploadView.TranscriptionProgressBar.IsIndeterminate = false;
+        UploadView.TranscriptionProgressBar.Value = progress.Percent;
 
         var typeText = progress.Type == DependencyType.FFmpeg ? "FFmpeg" : "Whisper-Modell";
         var message = $"{typeText}: {progress.Percent:F0}%";
@@ -296,8 +297,8 @@ public partial class MainWindow
             message = $"{typeText}: {downloadedMB:F1} / {totalMB:F1} MB";
         }
 
-        TranscriptionPhaseTextBlock.Text = message;
-        TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+        UploadView.TranscriptionPhaseTextBlock.Text = message;
+        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         StatusTextBlock.Text = progress.Message ?? message;
     }
 
@@ -313,8 +314,8 @@ public partial class MainWindow
         }
 
         // Alle UI-Updates hier sind jetzt sicher auf dem UI-Thread
-        TranscriptionProgressBar.IsIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
-        TranscriptionProgressBar.Value = progress.Percent;
+        UploadView.TranscriptionProgressBar.IsIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
+        UploadView.TranscriptionProgressBar.Value = progress.Percent;
 
         var phaseText = progress.Phase switch
         {
@@ -326,8 +327,8 @@ public partial class MainWindow
             _ => progress.Message ?? progress.Phase.ToString()
         };
 
-        TranscriptionPhaseTextBlock.Text = phaseText;
-        TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+        UploadView.TranscriptionPhaseTextBlock.Text = phaseText;
+        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         StatusTextBlock.Text = progress.Message ?? phaseText;
     }
 
@@ -378,8 +379,8 @@ public partial class MainWindow
 
     private void UpdateTranscriptionButtonState()
     {
-        var hasVideo = !string.IsNullOrWhiteSpace(VideoPathTextBox.Text);
-        SetButtonState(TranscribeButton, _isTranscribing, _isTranscribing || hasVideo);
+        var hasVideo = !string.IsNullOrWhiteSpace(UploadView.VideoPathTextBox.Text);
+        SetButtonState(UploadView.TranscribeButton, _isTranscribing, _isTranscribing || hasVideo);
     }
 
     #endregion
@@ -415,7 +416,7 @@ public partial class MainWindow
         }
 
         // Nur wenn das Transkript-Feld leer ist
-        if (!string.IsNullOrWhiteSpace(TranscriptTextBox.Text))
+        if (!string.IsNullOrWhiteSpace(UploadView.TranscriptTextBox.Text))
         {
             return;
         }
@@ -428,59 +429,10 @@ public partial class MainWindow
 
     #region Transcription Settings UI
 
-    private void ApplyTranscriptionSettingsToUi()
-    {
-        var settings = _settings.Transcription ?? new TranscriptionSettings();
-
-        TranscriptionAutoCheckBox.IsChecked = settings.AutoTranscribeOnVideoSelect;
-
-        // Modellgröße
-        foreach (var item in TranscriptionModelSizeComboBox.Items)
-        {
-            if (item is System.Windows.Controls.ComboBoxItem comboItem &&
-                comboItem.Tag is WhisperModelSize size &&
-                size == settings.ModelSize)
-            {
-                TranscriptionModelSizeComboBox.SelectedItem = comboItem;
-                break;
-            }
-        }
-
-        // Sprache
-        var languageTag = settings.Language ?? "auto";
-        foreach (var item in TranscriptionLanguageComboBox.Items)
-        {
-            if (item is System.Windows.Controls.ComboBoxItem comboItem &&
-                comboItem.Tag is string lang &&
-                lang == languageTag)
-            {
-                TranscriptionLanguageComboBox.SelectedItem = comboItem;
-                break;
-            }
-        }
-
-        UpdateTranscriptionStatusDisplay();
-    }
-
     private void SaveTranscriptionSettings()
     {
         _settings.Transcription ??= new TranscriptionSettings();
-        var settings = _settings.Transcription;
-
-        settings.AutoTranscribeOnVideoSelect = TranscriptionAutoCheckBox.IsChecked == true;
-
-        if (TranscriptionModelSizeComboBox.SelectedItem is System.Windows.Controls.ComboBoxItem modelItem &&
-            modelItem.Tag is WhisperModelSize modelSize)
-        {
-            settings.ModelSize = modelSize;
-        }
-
-        if (TranscriptionLanguageComboBox.SelectedItem is System.Windows.Controls.ComboBoxItem langItem &&
-            langItem.Tag is string lang)
-        {
-            settings.Language = lang == "auto" ? null : lang;
-        }
-
+        SettingsPageView?.UpdateTranscriptionSettings(_settings.Transcription);
         SaveSettings();
     }
 
@@ -488,8 +440,7 @@ public partial class MainWindow
     {
         if (_transcriptionService is null)
         {
-            TranscriptionStatusTextBlock.Text = "Service nicht verfügbar";
-            TranscriptionStatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+            SettingsPageView?.SetTranscriptionStatus("Service nicht verfügbar", System.Windows.Media.Brushes.Red);
             return;
         }
 
@@ -498,8 +449,7 @@ public partial class MainWindow
         if (status.AllAvailable)
         {
             var modelName = status.InstalledModelSize?.ToString() ?? "Unbekannt";
-            TranscriptionStatusTextBlock.Text = $"✓ Bereit (Modell: {modelName})";
-            TranscriptionStatusTextBlock.Foreground = System.Windows.Media.Brushes.Green;
+            SettingsPageView?.SetTranscriptionStatus($"✓ Bereit (Modell: {modelName})", System.Windows.Media.Brushes.Green);
         }
         else
         {
@@ -507,8 +457,7 @@ public partial class MainWindow
             if (!status.FFmpegAvailable) missing.Add("FFmpeg");
             if (!status.WhisperModelAvailable) missing.Add("Whisper-Modell");
 
-            TranscriptionStatusTextBlock.Text = $"✗ Fehlt: {string.Join(", ", missing)}";
-            TranscriptionStatusTextBlock.Foreground = System.Windows.Media.Brushes.Orange;
+            SettingsPageView?.SetTranscriptionStatus($"✗ Fehlt: {string.Join(", ", missing)}", System.Windows.Media.Brushes.Orange);
         }
     }
 
@@ -522,9 +471,7 @@ public partial class MainWindow
 
         var modelSize = _settings.Transcription?.ModelSize ?? WhisperModelSize.Small;
 
-        TranscriptionDownloadButton.IsEnabled = false;
-        TranscriptionDownloadProgressBar.Visibility = Visibility.Visible;
-        TranscriptionDownloadProgressBar.IsIndeterminate = true;
+        SettingsPageView?.SetTranscriptionDownloadState(true);
 
         try
         {
@@ -532,8 +479,7 @@ public partial class MainWindow
             {
                 Dispatcher.BeginInvoke(() =>
                 {
-                    TranscriptionDownloadProgressBar.IsIndeterminate = false;
-                    TranscriptionDownloadProgressBar.Value = p.Percent;
+                    SettingsPageView?.UpdateTranscriptionDownloadProgress(p.Percent);
 
                     var message = p.Message ?? $"Download: {p.Percent:F0}%";
                     if (p.TotalBytes > 0 && p.BytesDownloaded > 0)
@@ -570,8 +516,7 @@ public partial class MainWindow
         }
         finally
         {
-            TranscriptionDownloadButton.IsEnabled = true;
-            TranscriptionDownloadProgressBar.Visibility = Visibility.Collapsed;
+            SettingsPageView?.SetTranscriptionDownloadState(false);
             UpdateTranscriptionStatusDisplay();
         }
     }

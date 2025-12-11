@@ -33,8 +33,8 @@ public partial class MainWindow
             await _youTubeClient.DisconnectAsync();
             UpdateYouTubeStatusText();
             _youTubePlaylists.Clear();
-            YouTubePlaylistsListBox.ItemsSource = null;
-            PlaylistComboBox.ItemsSource = null;
+            AccountsPageView?.ClearYouTubePlaylists();
+            UploadView.PlaylistComboBox.ItemsSource = null;
             StatusTextBlock.Text = "YouTube-Verbindung getrennt.";
         }
         catch (System.Exception ex)
@@ -45,18 +45,19 @@ public partial class MainWindow
 
     private void YouTubePlaylistsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (YouTubePlaylistsListBox.SelectedItem is YouTubePlaylistInfo item)
+        var item = AccountsPageView?.SelectedYouTubePlaylist;
+        if (item is YouTubePlaylistInfo playlist)
         {
-            _settings.DefaultPlaylistId = item.Id;
+            _settings.DefaultPlaylistId = playlist.Id;
             SaveSettings();
-            StatusTextBlock.Text = $"Standard-Playlist gesetzt: {item.Title}";
+            StatusTextBlock.Text = $"Standard-Playlist gesetzt: {playlist.Title}";
 
-            if (PlaylistComboBox.ItemsSource is not null)
+            if (UploadView.PlaylistComboBox.ItemsSource is not null)
             {
-                var selected = _youTubePlaylists.FirstOrDefault(p => p.Id == item.Id);
+                var selected = _youTubePlaylists.FirstOrDefault(p => p.Id == playlist.Id);
                 if (selected is not null)
                 {
-                    PlaylistComboBox.SelectedItem = selected;
+                    UploadView.PlaylistComboBox.SelectedItem = selected;
                 }
             }
         }
@@ -66,13 +67,14 @@ public partial class MainWindow
     {
         if (_youTubeClient.IsConnected)
         {
-            YouTubeAccountStatusTextBlock.Text = string.IsNullOrWhiteSpace(_youTubeClient.ChannelTitle)
+            var status = string.IsNullOrWhiteSpace(_youTubeClient.ChannelTitle)
                 ? "Mit YouTube verbunden."
                 : $"Verbunden als: {_youTubeClient.ChannelTitle}";
+            AccountsPageView?.SetYouTubeAccountStatus(status);
         }
         else
         {
-            YouTubeAccountStatusTextBlock.Text = "Nicht mit YouTube verbunden.";
+            AccountsPageView?.SetYouTubeAccountStatus("Nicht mit YouTube verbunden.");
         }
     }
 
@@ -81,8 +83,8 @@ public partial class MainWindow
         if (!_youTubeClient.IsConnected)
         {
             _youTubePlaylists.Clear();
-            YouTubePlaylistsListBox.ItemsSource = null;
-            PlaylistComboBox.ItemsSource = null;
+            AccountsPageView?.ClearYouTubePlaylists();
+            UploadView.PlaylistComboBox.ItemsSource = null;
             return;
         }
 
@@ -93,16 +95,15 @@ public partial class MainWindow
             _youTubePlaylists.Clear();
             _youTubePlaylists.AddRange(playlists);
 
-            YouTubePlaylistsListBox.ItemsSource = _youTubePlaylists;
-            PlaylistComboBox.ItemsSource = _youTubePlaylists;
+            AccountsPageView?.SetYouTubePlaylists(_youTubePlaylists, _settings.DefaultPlaylistId);
+            UploadView.PlaylistComboBox.ItemsSource = _youTubePlaylists;
 
             if (!string.IsNullOrWhiteSpace(_settings.DefaultPlaylistId))
             {
                 var selected = _youTubePlaylists.FirstOrDefault(i => i.Id == _settings.DefaultPlaylistId);
                 if (selected is not null)
                 {
-                    YouTubePlaylistsListBox.SelectedItem = selected;
-                    PlaylistComboBox.SelectedItem = selected;
+                    UploadView.PlaylistComboBox.SelectedItem = selected;
                 }
             }
         }

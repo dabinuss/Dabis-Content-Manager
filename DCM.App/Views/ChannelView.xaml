@@ -1,0 +1,135 @@
+<UserControl x:Class="DCM.App.Views.ChannelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
+             xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
+<!-- wie PageUpload: Grid füllt die Breite, nur ein rechter Margin -->
+<Grid Margin="0,0,16,0">
+
+  <Grid.RowDefinitions>
+    <RowDefinition Height="Auto"/>
+    <!-- Header -->
+    <RowDefinition Height="Auto"/>
+    <!-- Inhalt -->
+  </Grid.RowDefinitions>
+
+  <!-- HEADER -->
+  <StackPanel Grid.Row="0">
+    <TextBlock Text="{DynamicResource Channel}"
+               FontSize="{StaticResource FontSizeXL}"
+               FontWeight="SemiBold"
+               Foreground="{StaticResource TextPrimaryBrush}"
+               Margin="0,0,0,16"/>
+  </StackPanel>
+
+  <!-- ZWEI-SPALTEN-LAYOUT wie bei Upload -->
+  <Grid Grid.Row="1"
+        VerticalAlignment="Top">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"
+                        MinWidth="350"/>
+      <ColumnDefinition Width="{StaticResource SpacingXL}"/>
+      <ColumnDefinition Width="*"
+                        MinWidth="300"
+                        MaxWidth="400"/>
+    </Grid.ColumnDefinitions>
+
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <!-- obere Boxen -->
+      <RowDefinition Height="{StaticResource SpacingM}"/>
+      <!-- Abstand -->
+      <RowDefinition Height="Auto"/>
+      <!-- untere Box -->
+    </Grid.RowDefinitions>
+
+    <!-- BOX 1: Kanalprofil (links) -->
+    <GroupBox Grid.Row="0"
+              Grid.Column="0"
+              Header="{DynamicResource Channel.Persona.Profile}">
+      <StackPanel Margin="12">
+        <!-- Name -->
+        <TextBlock Text="{DynamicResource Channel.Fields.Name}"
+                   Style="{StaticResource TextLabel}"
+                   Margin="0,-6,0,4"/>
+        <TextBox x:Name="ChannelPersonaNameTextBox"
+                 Margin="0,0,0,8"/>
+
+        <!-- Kanalname -->
+        <TextBlock Text="{DynamicResource Channel.Fields.ChannelName}"
+                   Style="{StaticResource TextLabel}"
+                   Margin="0,4,0,4"/>
+        <TextBox x:Name="ChannelPersonaChannelNameTextBox"/>
+      </StackPanel>
+    </GroupBox>
+
+    <!-- BOX 2: Sprache & Stil (rechts) -->
+    <GroupBox Grid.Row="0"
+              Grid.Column="2"
+              Header="{DynamicResource Channel.Persona.Style}">
+      <StackPanel Margin="12">
+        <!-- Sprache -->
+        <TextBlock Text="{DynamicResource Channel.Fields.Language}"
+                   Style="{StaticResource TextLabel}"
+                   Margin="0,-6,0,4"/>
+        <ComboBox x:Name="ChannelPersonaLanguageTextBox"
+                  IsEditable="True"
+                  IsTextSearchEnabled="True"
+                  StaysOpenOnEdit="True"
+                  MinWidth="200"
+                  ToolTip="z. B. de-DE oder deutsch"
+                  Margin="0,0,0,8"/>
+
+        <!-- Tonfall -->
+        <TextBlock Text="{DynamicResource Channel.Fields.ToneOfWords}"
+                   Style="{StaticResource TextLabel}"
+                   Margin="0,4,0,4"/>
+        <TextBox x:Name="ChannelPersonaToneOfVoiceTextBox"
+                 ToolTip="z. B. locker, sarkastisch, informativ"
+                 Margin="0,0,0,8"/>
+
+        <!-- Content-Typ -->
+        <TextBlock Text="{DynamicResource Channel.Fields.ContentType}"
+                   Style="{StaticResource TextLabel}"
+                   Margin="0,4,0,4"/>
+        <TextBox x:Name="ChannelPersonaContentTypeTextBox"
+                 ToolTip="z. B. Gaming Highlights, IRL, Tutorials"
+                 Margin="0,0,0,8"/>
+
+        <!-- Zielgruppe -->
+        <TextBlock Text="{DynamicResource Channel.Fields.TargetAudience}"
+                   Style="{StaticResource TextLabel}"
+                   Margin="0,4,0,4"/>
+        <TextBox x:Name="ChannelPersonaTargetAudienceTextBox"
+                 ToolTip="z. B. Casual Gamer 18-34"/>
+      </StackPanel>
+    </GroupBox>
+
+    <!-- BOX 3: Zusätzliche Hinweise (unten, volle Breite) -->
+    <GroupBox Grid.Row="2"
+              Grid.Column="0"
+              Grid.ColumnSpan="3"
+              Header="{DynamicResource Channel.Persona.Additional}">
+      <StackPanel Margin="12">
+        <TextBlock Text="{DynamicResource Channel.Fields.AdditionalInstructions}"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   FontSize="{StaticResource FontSizeM}"/>
+        <TextBox x:Name="ChannelPersonaAdditionalInstructionsTextBox"
+                 Margin="0,4,0,0"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto"
+                 Height="80"/>
+
+        <Button x:Name="ChannelProfileSaveButton"
+                Content="{DynamicResource Common.Save}"
+                Style="{StaticResource PrimaryButton}"
+                HorizontalAlignment="Right"
+                Margin="0,12,0,0"
+                Click="ChannelProfileSaveButton_Click"/>
+      </StackPanel>
+    </GroupBox>
+
+  </Grid>
+</Grid>
+</UserControl>
