@@ -445,9 +445,11 @@
                               Grid.Column="0"
                               Style="{StaticResource AccentButton}"
                               Click="GenerateTitleButton_Click"
-                              ToolTip="KI-Vorschlag generieren">
+                              ToolTip="KI-Vorschlag generieren"
+                              BorderBrush="{StaticResource MagicAIGradientBrush}">
                         <StackPanel Orientation="Horizontal">
                           <TextBlock Style="{StaticResource IconL}"
+                                     Foreground="{StaticResource MagicAIGradientBrush}"
                                      Text="&#xe663;"/>
                           <TextBlock Text="{DynamicResource Upload_Fields_Suggest}"/>
                         </StackPanel>
@@ -500,9 +502,11 @@
                                 Grid.Column="2"
                                 Style="{StaticResource AccentButton}"
                                 Click="GenerateDescriptionButton_Click"
-                                ToolTip="KI-Vorschlag generieren">
+                                ToolTip="KI-Vorschlag generieren"
+                                BorderBrush="{StaticResource MagicAIGradientBrush}">
                           <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource IconL}"
+                                       Foreground="{StaticResource MagicAIGradientBrush}"
                                        Text="&#xe663;"/>
                             <TextBlock Text="{DynamicResource Upload_Fields_Suggest}"/>
                           </StackPanel>
@@ -541,9 +545,11 @@
                               Grid.Column="0"
                               Style="{StaticResource AccentButton}"
                               Click="GenerateTagsButton_Click"
-                              ToolTip="KI-Vorschlag generieren">
+                              ToolTip="KI-Vorschlag generieren"
+                              BorderBrush="{StaticResource MagicAIGradientBrush}">
                         <StackPanel Orientation="Horizontal">
                           <TextBlock Style="{StaticResource IconL}"
+                                     Foreground="{StaticResource MagicAIGradientBrush}"
                                      Text="&#xe663;"/>
                           <TextBlock Text="{DynamicResource Upload_Fields_Suggest}"/>
                         </StackPanel>

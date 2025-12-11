@@ -114,6 +114,7 @@
   <Color x:Key="WarningColor">#FFA500</Color>
   <Color x:Key="AccentRedColor">#FF4E45</Color>
   <Color x:Key="AccentRedHoverColor">#FF6B64</Color>
+  <Color x:Key="MagicAIColor">#FFF18730</Color>
 
   <!-- Text -->
   <Color x:Key="TextPrimaryColor">#F1F1F1</Color>
@@ -172,6 +173,16 @@
                    Color="{StaticResource AccentRedColor}"/>
   <SolidColorBrush x:Key="AccentRedHoverBrush"
                    Color="{StaticResource AccentRedHoverColor}"/>
+  <SolidColorBrush x:Key="MagicAIBrush"
+                   Color="{StaticResource MagicAIColor}"/>
+  <LinearGradientBrush x:Key="MagicAIGradientBrush"
+      StartPoint="0,0"
+      EndPoint="1,1">
+    <GradientStop Color="#FF00D4FF"
+        Offset="0.0"/>
+    <GradientStop Color="#FF9C27B0"
+        Offset="0.7"/>
+  </LinearGradientBrush>
 
   <SolidColorBrush x:Key="TextPrimaryBrush"
                    Color="{StaticResource TextPrimaryColor}"/>
