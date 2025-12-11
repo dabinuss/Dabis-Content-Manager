@@ -53,6 +53,7 @@
   <sys:String x:Key="Nav_Settings">Einstellungen</sys:String>
 
   <!-- Upload -->
+  <sys:String x:Key="Upload">Neuer Upload</sys:String>
   <sys:String x:Key="Upload_DropVideo">Video hierher ziehen</sys:String>
   <sys:String x:Key="Upload_DropVideo_Descr">oder klicken zum Auswählen</sys:String>
   <sys:String x:Key="Upload_DropVideo_AllowedFiles">MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
@@ -82,9 +83,7 @@
   <sys:String x:Key="Upload_Fields_Publication_Time">Zeit:</sys:String>
 
   <!-- Accounts -->
-  <sys:String x:Key="Accounts_Description">
-    Verwalte die Verbindung zu deinen Plattform-Konten und lege Standard-Einstellungen für Uploads pro Dienst fest.
-  </sys:String>
+  <sys:String x:Key="Accounts">Accounts</sys:String>
   <sys:String x:Key="Accounts_YouTube_Description">
     Verbinde dein YouTube-Konto, um Videos direkt aus der App hochzuladen und eine Standard-Playlist für neue Uploads auszuwählen.
   </sys:String>
@@ -124,7 +123,11 @@
   <sys:String x:Key="Accounts_YouTube_Msg_ClickToConnect">Nicht mit YouTube verbunden.</sys:String>
 
   <!-- Channel -->
+  <sys:String x:Key="Channel">Kanalprofil</sys:String>
   <sys:String x:Key="Channel_Persona">Kanalprofil für KI-Vorschläge</sys:String>
+  <sys:String x:Key="Channel_Persona_Profile">Kanalprofil</sys:String>
+  <sys:String x:Key="Channel_Persona_Style">Sprache &amp; Stil</sys:String>
+  <sys:String x:Key="Channel_Persona_Additional">Zusätzliche Hinweise</sys:String>
   <sys:String x:Key="Channel_Fields_Name">Name/Nick</sys:String>
   <sys:String x:Key="Channel_Fields_ChannelName">Kanalname</sys:String>
   <sys:String x:Key="Channel_Fields_Language">Sprache</sys:String>
@@ -134,6 +137,7 @@
   <sys:String x:Key="Channel_Fields_AdditionalInstructions">Zusätzliche Anweisungen</sys:String>
 
   <!-- Templates -->
+  <sys:String x:Key="Templates">Vorlagen</sys:String>
   <sys:String x:Key="Templates_Header">Verfügbare Vorlagen</sys:String>
   <sys:String x:Key="Templates_Edit">Vorlage bearbeiten</sys:String>
   <sys:String x:Key="Templates_Fields_Name">Name</sys:String>
@@ -143,6 +147,7 @@
   <sys:String x:Key="Templates_Fields_TemplateBody">Vorlagen Text</sys:String>
 
   <!-- History -->
+  <sys:String x:Key="History">Verlauf</sys:String>
   <sys:String x:Key="History_Success">Erfolg</sys:String>
   <sys:String x:Key="History_Error">Fehler</sys:String>
   <sys:String x:Key="History_List_DateTime">Datum/Uhrzeit</sys:String>

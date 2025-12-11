@@ -53,6 +53,7 @@
   <sys:String x:Key="Nav_Settings">Settings</sys:String>
 
   <!-- Upload -->
+  <sys:String x:Key="Upload">New Upload</sys:String>
   <sys:String x:Key="Upload_DropVideo">Drag video here</sys:String>
   <sys:String x:Key="Upload_DropVideo_Descr">or click to select</sys:String>
   <sys:String x:Key="Upload_DropVideo_AllowedFiles">MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
@@ -82,9 +83,7 @@
   <sys:String x:Key="Upload_Fields_Publication_Time">Time:</sys:String>
 
   <!-- Accounts -->
-  <sys:String x:Key="Accounts_Description">
-    Manage connections to your platform accounts and define default upload settings per service.
-  </sys:String>
+  <sys:String x:Key="Accounts">Accounts</sys:String>
   <sys:String x:Key="Accounts_YouTube_Description">
     Connect your YouTube account to upload videos directly from the app and choose a default playlist for new uploads.
   </sys:String>
@@ -124,7 +123,11 @@
   <sys:String x:Key="Accounts_YouTube_Msg_ClickToConnect">Not connected to YouTube.</sys:String>
 
   <!-- Channel -->
+  <sys:String x:Key="Channel">Channel Profile</sys:String>
   <sys:String x:Key="Channel_Persona">Channel Profile for AI Suggestions</sys:String>
+  <sys:String x:Key="Channel_Persona_Profile">Channel Profile</sys:String>
+  <sys:String x:Key="Channel_Persona_Style">Language and Tone</sys:String>
+  <sys:String x:Key="Channel_Persona_Additional">Additional Notes</sys:String>
   <sys:String x:Key="Channel_Fields_Name">Name/Nickname</sys:String>
   <sys:String x:Key="Channel_Fields_ChannelName">Channel Name</sys:String>
   <sys:String x:Key="Channel_Fields_Language">Language</sys:String>
@@ -134,6 +137,7 @@
   <sys:String x:Key="Channel_Fields_AdditionalInstructions">Additional Instructions</sys:String>
 
   <!-- Templates -->
+  <sys:String x:Key="Templates">Templates</sys:String>
   <sys:String x:Key="Templates_Header">Available Templates</sys:String>
   <sys:String x:Key="Templates_Edit">Edit Template</sys:String>
   <sys:String x:Key="Templates_Fields_Name">Name</sys:String>
@@ -143,6 +147,7 @@
   <sys:String x:Key="Templates_Fields_TemplateBody">Template Text</sys:String>
 
   <!-- History -->
+  <sys:String x:Key="History">History</sys:String>
   <sys:String x:Key="History_Success">Success</sys:String>
   <sys:String x:Key="History_Error">Error</sys:String>
   <sys:String x:Key="History_List_DateTime">Date/Time</sys:String>
