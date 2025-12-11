@@ -14,6 +14,9 @@ namespace DCM.App.Views;
 
 public partial class SettingsView : UserControl
 {
+    private bool _transcriptionDownloadButtonAvailable = true;
+    private bool _isTranscriptionDownloadBusy;
+
     public SettingsView()
     {
         InitializeComponent();
@@ -24,6 +27,7 @@ public partial class SettingsView : UserControl
     public event RoutedEventHandler? DefaultThumbnailFolderBrowseButtonClicked;
     public event SelectionChangedEventHandler? LanguageComboBoxSelectionChanged;
     public event RoutedEventHandler? TranscriptionDownloadButtonClicked;
+    public event SelectionChangedEventHandler? TranscriptionModelSizeSelectionChanged;
     public event SelectionChangedEventHandler? LlmModeComboBoxSelectionChanged;
     public event RoutedEventHandler? LlmModelPathBrowseButtonClicked;
     public event RoutedPropertyChangedEventHandler<double>? LlmTemperatureSliderValueChanged;
@@ -42,6 +46,9 @@ public partial class SettingsView : UserControl
 
     private void TranscriptionDownloadButton_Click(object sender, RoutedEventArgs e) =>
         TranscriptionDownloadButtonClicked?.Invoke(sender, e);
+
+    private void TranscriptionModelSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        TranscriptionModelSizeSelectionChanged?.Invoke(sender, e);
 
     private void LlmModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         LlmModeComboBoxSelectionChanged?.Invoke(sender, e);
@@ -251,19 +258,47 @@ public partial class SettingsView : UserControl
 
     public void SetTranscriptionDownloadState(bool isBusy)
     {
-        TranscriptionDownloadButton.IsEnabled = !isBusy;
+        _isTranscriptionDownloadBusy = isBusy;
         TranscriptionDownloadProgressBar.Visibility = isBusy ? Visibility.Visible : Visibility.Collapsed;
         TranscriptionDownloadProgressBar.IsIndeterminate = isBusy;
         if (!isBusy)
         {
             TranscriptionDownloadProgressBar.Value = 0;
         }
+
+        ApplyTranscriptionDownloadButtonState();
     }
 
     public void UpdateTranscriptionDownloadProgress(double percent)
     {
         TranscriptionDownloadProgressBar.IsIndeterminate = false;
         TranscriptionDownloadProgressBar.Value = percent;
+    }
+
+    public void SetTranscriptionDownloadAvailability(bool isEnabled)
+    {
+        _transcriptionDownloadButtonAvailable = isEnabled;
+        ApplyTranscriptionDownloadButtonState();
+    }
+
+    public WhisperModelSize GetSelectedTranscriptionModelSize()
+    {
+        if (TranscriptionModelSizeComboBox.SelectedItem is ComboBoxItem sizeItem &&
+            sizeItem.Tag is WhisperModelSize modelSize)
+        {
+            return modelSize;
+        }
+
+        return WhisperModelSize.Small;
+    }
+
+    private void ApplyTranscriptionDownloadButtonState()
+    {
+        var canEnable = _transcriptionDownloadButtonAvailable && !_isTranscriptionDownloadBusy;
+        if (TranscriptionDownloadButton.IsEnabled != canEnable)
+        {
+            TranscriptionDownloadButton.IsEnabled = canEnable;
+        }
     }
 
     private VideoVisibility GetDefaultVisibility()

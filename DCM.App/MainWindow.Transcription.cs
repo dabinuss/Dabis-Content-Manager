@@ -443,6 +443,7 @@ public partial class MainWindow
         if (_transcriptionService is null)
         {
             SettingsPageView?.SetTranscriptionStatus("Service nicht verfügbar", System.Windows.Media.Brushes.Red);
+            SettingsPageView?.SetTranscriptionDownloadAvailability(false);
             return;
         }
 
@@ -461,6 +462,40 @@ public partial class MainWindow
 
             SettingsPageView?.SetTranscriptionStatus($"✗ Fehlt: {string.Join(", ", missing)}", System.Windows.Media.Brushes.Orange);
         }
+
+        UpdateTranscriptionDownloadAvailability(status);
+    }
+
+    private void UpdateTranscriptionDownloadAvailability()
+    {
+        if (SettingsPageView is null)
+        {
+            return;
+        }
+
+        var status = _transcriptionService?.GetDependencyStatus() ?? DependencyStatus.None;
+        UpdateTranscriptionDownloadAvailability(status);
+    }
+
+    private void UpdateTranscriptionDownloadAvailability(DependencyStatus status)
+    {
+        if (SettingsPageView is null)
+        {
+            return;
+        }
+
+        var selectedSize = SettingsPageView.GetSelectedTranscriptionModelSize();
+        var ffmpegMissing = !status.FFmpegAvailable;
+        var selectedModelInstalled = status.WhisperModelAvailable &&
+                                     status.InstalledModelSize == selectedSize;
+        var canDownload = ffmpegMissing || !selectedModelInstalled;
+
+        SettingsPageView.SetTranscriptionDownloadAvailability(canDownload);
+    }
+
+    private void TranscriptionModelSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateTranscriptionDownloadAvailability();
     }
 
     private async void TranscriptionDownloadButton_Click(object sender, RoutedEventArgs e)
@@ -471,7 +506,21 @@ public partial class MainWindow
             return;
         }
 
-        var modelSize = _settings.Transcription?.ModelSize ?? WhisperModelSize.Small;
+        var modelSize = SettingsPageView?.GetSelectedTranscriptionModelSize()
+                        ?? _settings.Transcription?.ModelSize
+                        ?? WhisperModelSize.Small;
+        var status = _transcriptionService.GetDependencyStatus();
+
+        var ffmpegMissing = !status.FFmpegAvailable;
+        var selectedModelAlreadyInstalled = status.WhisperModelAvailable
+            && status.InstalledModelSize == modelSize;
+
+        if (!ffmpegMissing && selectedModelAlreadyInstalled)
+        {
+            StatusTextBlock.Text = $"Whisper-Modell {modelSize} ist bereits installiert.";
+            UpdateTranscriptionDownloadAvailability(status);
+            return;
+        }
 
         SettingsPageView?.SetTranscriptionDownloadState(true);
 
@@ -495,6 +544,8 @@ public partial class MainWindow
                 });
             });
 
+            var requiresModelDownload = !selectedModelAlreadyInstalled;
+
             var success = await _transcriptionService.EnsureDependenciesAsync(
                 modelSize,
                 progress,
@@ -502,6 +553,11 @@ public partial class MainWindow
 
             if (success)
             {
+                if (requiresModelDownload)
+                {
+                    _transcriptionService.RemoveOtherModels(modelSize);
+                }
+
                 StatusTextBlock.Text = "Transkriptions-Abhängigkeiten erfolgreich geladen.";
                 _logger.Info("Transkriptions-Abhängigkeiten geladen", "Transcription");
             }

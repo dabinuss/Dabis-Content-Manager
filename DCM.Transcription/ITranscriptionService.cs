@@ -31,6 +31,11 @@ public interface ITranscriptionService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Entfernt alle Whisper-Modelle außer dem angegebenen.
+    /// </summary>
+    void RemoveOtherModels(WhisperModelSize keepSize);
+
+    /// <summary>
     /// Transkribiert eine Videodatei.
     /// </summary>
     /// <param name="videoFilePath">Pfad zur Videodatei.</param>

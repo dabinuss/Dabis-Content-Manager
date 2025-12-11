@@ -1,3 +1,4 @@
+using System;
 using DCM.Core;
 using DCM.Core.Configuration;
 
@@ -185,6 +186,31 @@ internal sealed class WhisperModelManager
                 $"Download fehlgeschlagen: {ex.Message}"));
 
             return false;
+        }
+    }
+
+    public void RemoveOtherModels(WhisperModelSize keepSize)
+    {
+        var sizes = Enum.GetValues<WhisperModelSize>();
+        foreach (var size in sizes)
+        {
+            if (size == keepSize)
+            {
+                continue;
+            }
+
+            var path = GetModelPath(size);
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch
+            {
+                // Ignorieren
+            }
         }
     }
 

@@ -100,6 +100,11 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         return true;
     }
 
+    public void RemoveOtherModels(WhisperModelSize keepSize)
+    {
+        _whisperModelManager.RemoveOtherModels(keepSize);
+    }
+
     /// <inheritdoc />
     public async Task<TranscriptionResult> TranscribeAsync(
         string videoFilePath,

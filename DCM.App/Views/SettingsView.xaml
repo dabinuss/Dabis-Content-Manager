@@ -253,7 +253,8 @@
                                 Grid.Row="2"
                                 Grid.Column="2"
                                 HorizontalAlignment="Left"
-                                MinWidth="200">
+                                MinWidth="200"
+                                SelectionChanged="TranscriptionModelSizeComboBox_SelectionChanged">
                         <ComboBoxItem Content="{DynamicResource Settings.WhisperModelSize.Tiny}"
                                       Tag="{x:Static config:WhisperModelSize.Tiny}"/>
                         <ComboBoxItem Content="{DynamicResource Settings.WhisperModelSize.Base}"

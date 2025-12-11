@@ -211,6 +211,7 @@ public partial class MainWindow : Window
         SettingsPageView.DefaultThumbnailFolderBrowseButtonClicked += DefaultThumbnailFolderBrowseButton_Click;
         SettingsPageView.LanguageComboBoxSelectionChanged += LanguageComboBox_SelectionChanged;
         SettingsPageView.TranscriptionDownloadButtonClicked += TranscriptionDownloadButton_Click;
+        SettingsPageView.TranscriptionModelSizeSelectionChanged += TranscriptionModelSizeComboBox_SelectionChanged;
         SettingsPageView.LlmModeComboBoxSelectionChanged += LlmModeComboBox_SelectionChanged;
         SettingsPageView.LlmModelPathBrowseButtonClicked += LlmModelPathBrowseButton_Click;
     }
