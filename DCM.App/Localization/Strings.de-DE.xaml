@@ -61,6 +61,7 @@
   <sys:String x:Key="Upload_Fields_Title">Titel (erforderlich)</sys:String>
   <sys:String x:Key="Upload_Fields_Suggest">Vorschlagen</sys:String>
   <sys:String x:Key="Upload_Fields_Description">Beschreibung</sys:String>
+  <sys:String x:Key="Upload_Fields_Tags">Tags</sys:String>
   <sys:String x:Key="Upload_Fields_Transcription">Transkription</sys:String>
   <sys:String x:Key="Upload_Fields_Transcription_Descr">Automatisch generiertes Transkript, benutzt für KI-Vorschläge.</sys:String>
   <sys:String x:Key="Upload_Fields_Transcripe">Transkribieren</sys:String>
