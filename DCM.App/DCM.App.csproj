@@ -18,4 +18,19 @@
     <Version>0.15.1</Version>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Bevorzugte CPU-Variante der LLamaSharp-Natives, damit Publish keine Mehrfach-Kopien erzeugt -->
+    <PreferredLlamaCpuVariant>avx2</PreferredLlamaCpuVariant>
+  </PropertyGroup>
+
+  <Target Name="FilterLlamaCpuNativeAssets" AfterTargets="ResolvePackageAssets">
+    <!-- Nur eine Variante der LLamaSharp CPU-Natives kopieren, sonst kollidieren die Pfade beim Publish -->
+    <ItemGroup>
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
+                            Condition="$([System.String]::Copy('%(Identity)').Contains('llamasharp.backend.cpu')) and ! $([System.String]::Copy('%(Identity)').Contains('\\$(PreferredLlamaCpuVariant)\\'))" />
+      <NativePublishItems Remove="@(NativePublishItems)"
+                           Condition="$([System.String]::Copy('%(Identity)').Contains('llamasharp.backend.cpu')) and ! $([System.String]::Copy('%(Identity)').Contains('\\$(PreferredLlamaCpuVariant)\\'))" />
+    </ItemGroup>
+  </Target>
+
 </Project>
