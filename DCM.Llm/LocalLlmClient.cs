@@ -4,6 +4,7 @@ using DCM.Core.Logging;
 using DCM.Core.Services;
 using LLama;
 using LLama.Common;
+using LLama.Native;
 using LLama.Sampling;
 
 namespace DCM.Llm;
@@ -25,6 +26,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
     private const long MinimumModelSizeBytes = 50 * 1024 * 1024;
     private static readonly byte[] GgufMagic = { 0x47, 0x47, 0x55, 0x46 };
+    private static bool _nativeBackendConfigured;
 
     #region Model Profiles
 
@@ -75,6 +77,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     {
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _logger = logger ?? AppLogger.Instance;
+        ConfigureNativeBackend();
         _detectedModelType = DetectModelType();
         ValidateModelPath();
     }
@@ -168,6 +171,32 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     }
 
     #endregion
+
+    private void ConfigureNativeBackend()
+    {
+        if (_nativeBackendConfigured)
+        {
+            return;
+        }
+
+        _nativeBackendConfigured = true;
+
+        try
+        {
+            var baseDir = AppContext.BaseDirectory;
+            var runtimeDir = Path.Combine(baseDir, "runtimes");
+
+            NativeLibraryConfig.All.WithSearchDirectory(baseDir);
+            NativeLibraryConfig.All.WithSearchDirectory(runtimeDir);
+            NativeLibraryConfig.All.WithAutoFallback(true);
+
+            _logger.Debug($"Native Backend-Suche konfiguriert (Base: {baseDir}, Runtimes: {runtimeDir})", "LocalLlm");
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning($"Native Backend-Konfiguration fehlgeschlagen, verwende Standard: {ex.Message}", "LocalLlm");
+        }
+    }
 
     private void ValidateModelPath()
     {
@@ -269,15 +298,16 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             _logger.Info($"Lade LLM-Modell: {_settings.LocalModelPath} (Typ: {_detectedModelType})", "LocalLlm");
 
             var contextSize = _settings.ContextSize > 0 ? (uint)_settings.ContextSize : 4096u;
+            const int gpuLayerCount = 35;
 
             _modelParams = new ModelParams(_settings.LocalModelPath!)
             {
                 ContextSize = contextSize,
-                GpuLayerCount = 35,
+                GpuLayerCount = gpuLayerCount,
                 Threads = Math.Max(1, Environment.ProcessorCount / 2)
             };
 
-            _logger.Debug($"ModelParams erstellt (ContextSize: {contextSize}), lade Weights...", "LocalLlm");
+            _logger.Debug($"ModelParams erstellt (ContextSize: {contextSize}, GpuLayerCount: {gpuLayerCount}), lade Weights...", "LocalLlm");
 
             _model = LLamaWeights.LoadFromFile(_modelParams);
 
