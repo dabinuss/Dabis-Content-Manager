@@ -4,13 +4,101 @@
         xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
         xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
         xmlns:views="clr-namespace:DCM.App.Views"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="{DynamicResource App.WindowTitle}"
         Height="900"
         Width="1366"
         MinHeight="600"
         MinWidth="900"
         WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
         Background="{StaticResource BackgroundBrush}">
+
+  <WindowChrome.WindowChrome>
+    <shell:WindowChrome CaptionHeight="0"
+                        CornerRadius="0"
+                        GlassFrameThickness="0"
+                        ResizeBorderThickness="6"
+                        UseAeroCaptionButtons="False"/>
+  </WindowChrome.WindowChrome>
+
+  <Window.Resources>
+    <ControlTemplate x:Key="TitleBarButtonTemplate"
+                     TargetType="Button">
+      <Border Background="{TemplateBinding Background}"
+              CornerRadius="{StaticResource RadiusS}">
+        <ContentPresenter HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+      </Border>
+    </ControlTemplate>
+
+    <Style x:Key="TitleBarButtonBaseStyle"
+           TargetType="Button">
+      <Setter Property="Width"
+              Value="38"/>
+      <Setter Property="Height"
+              Value="28"/>
+      <Setter Property="Margin"
+              Value="0,0,4,0"/>
+      <Setter Property="Padding"
+              Value="0"/>
+      <Setter Property="FontFamily"
+              Value="Segoe MDL2 Assets"/>
+      <Setter Property="FontSize"
+              Value="12"/>
+      <Setter Property="Foreground"
+              Value="{StaticResource TextPrimaryBrush}"/>
+      <Setter Property="Background"
+              Value="Transparent"/>
+      <Setter Property="BorderThickness"
+              Value="0"/>
+      <Setter Property="Cursor"
+              Value="Hand"/>
+      <Setter Property="Template"
+              Value="{StaticResource TitleBarButtonTemplate}"/>
+    </Style>
+
+    <Style x:Key="TitleBarButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource TitleBarButtonBaseStyle}">
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="{StaticResource SurfaceHoverBrush}"/>
+        </Trigger>
+        <Trigger Property="IsPressed"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="{StaticResource SurfacePressedBrush}"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="TitleBarCloseButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource TitleBarButtonBaseStyle}">
+      <Setter Property="Foreground"
+              Value="{StaticResource DangerBrush}"/>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="{StaticResource DangerBrush}"/>
+          <Setter Property="Foreground"
+                  Value="{StaticResource PrimaryTextBrush}"/>
+        </Trigger>
+        <Trigger Property="IsPressed"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="{StaticResource AccentRedHoverBrush}"/>
+          <Setter Property="Foreground"
+                  Value="{StaticResource PrimaryTextBrush}"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
 
   <Grid>
     <Grid.ColumnDefinitions>
@@ -18,6 +106,15 @@
       <ColumnDefinition Width="1"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
+
+    <Border Grid.Column="0"
+            Grid.ColumnSpan="3"
+            Height="2"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Top"
+            Background="{StaticResource MagicAIGradientBrush}"
+            Panel.ZIndex="5"
+            IsHitTestVisible="False"/>
 
     <!-- Linke Sidebar -->
     <Border Grid.Column="0"
@@ -37,7 +134,8 @@
                  Width="180"
                  Height="59"
                  Stretch="Uniform"
-                 Margin="{StaticResource SpacingVerticalM}"/>
+                 Margin="{StaticResource SpacingVerticalM}"
+                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
           <TextBlock Text="{DynamicResource App.Name}"
                      FontSize="{StaticResource FontSizeL}"
                      FontWeight="SemiBold"
@@ -214,10 +312,17 @@
               Background="{StaticResource SurfaceBrush}"
               BorderBrush="{StaticResource BorderBrush}"
               BorderThickness="0,0,0,1"
-              Padding="{StaticResource HeaderPadding}">
-        <DockPanel>
-          <StackPanel Orientation="Horizontal"
-                      DockPanel.Dock="Left"
+              Padding="{StaticResource HeaderPadding}"
+              MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0"
+                      Orientation="Horizontal"
                       VerticalAlignment="Center">
             <TextBlock Text="{DynamicResource Status}"
                        Foreground="{StaticResource TextMutedBrush}"
@@ -230,26 +335,63 @@
                        FontWeight="SemiBold"/>
           </StackPanel>
 
-          <StackPanel Orientation="Horizontal"
-                      DockPanel.Dock="Right"
-                      HorizontalAlignment="Right"
+          <StackPanel Grid.Column="2"
+                      Orientation="Horizontal"
                       VerticalAlignment="Center">
-            <ProgressBar x:Name="UploadProgressBar"
-                         Width="160"
-                         Height="14"
-                         Minimum="0"
-                         Maximum="100"
-                         Value="0"
-                         Visibility="Collapsed"
-                         Margin="{StaticResource SpacingHorizontalM}"/>
-            <TextBlock x:Name="UploadProgressLabel"
-                       VerticalAlignment="Center"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Text=""
-                       Visibility="Collapsed"/>
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center">
+              <ProgressBar x:Name="UploadProgressBar"
+                           Width="160"
+                           Height="14"
+                           Minimum="0"
+                           Maximum="100"
+                           Value="0"
+                           Visibility="Collapsed"
+                           Margin="{StaticResource SpacingHorizontalM}"/>
+              <TextBlock x:Name="UploadProgressLabel"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Text=""
+                         Visibility="Collapsed"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="12,0,0,0">
+              <Button x:Name="MinimizeButton"
+                      Style="{StaticResource TitleBarButtonStyle}"
+                      Margin="0"
+                      Padding="0"
+                      Click="MinimizeButton_Click">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe931;"
+                           Margin="0"
+                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+              </Button>
+              <Button x:Name="MaximizeButton"
+                      Style="{StaticResource TitleBarButtonStyle}"
+                      Margin="0"
+                      Padding="0"
+                      Click="MaximizeButton_Click">
+                <TextBlock x:Name="MaximizeIconTextBlock"
+                           Style="{StaticResource IconL}"
+                           Text="&#xea10;"
+                           Margin="0"
+                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+              </Button>
+              <Button x:Name="CloseButton"
+                      Style="{StaticResource TitleBarCloseButtonStyle}"
+                      Margin="0"
+                      Padding="0"
+                      Click="CloseButton_Click">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe5cd;"
+                           Margin="0"
+                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+              </Button>
+            </StackPanel>
           </StackPanel>
-        </DockPanel>
+        </Grid>
       </Border>
 
       <!-- Content Pages -->

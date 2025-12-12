@@ -67,6 +67,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        UpdateMaximizeButtonIcon();
         AttachUploadViewEvents();
         AttachAccountsViewEvents();
         AttachChannelViewEvents();
@@ -110,7 +111,77 @@ public partial class MainWindow : Window
 
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
+        StateChanged += MainWindow_StateChanged;
     }
+
+    #region Window Chrome
+
+    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left)
+        {
+            return;
+        }
+
+        if (e.ClickCount == 2 &&
+            (ResizeMode == ResizeMode.CanResize || ResizeMode == ResizeMode.CanResizeWithGrip))
+        {
+            ToggleWindowState();
+            return;
+        }
+
+        try
+        {
+            DragMove();
+        }
+        catch
+        {
+            // Ignore drag failures when mouse is released early
+        }
+    }
+
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        ToggleWindowState();
+    }
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void ToggleWindowState()
+    {
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+
+        UpdateMaximizeButtonIcon();
+    }
+
+    private void UpdateMaximizeButtonIcon()
+    {
+        if (MaximizeIconTextBlock is null)
+        {
+            return;
+        }
+
+        MaximizeIconTextBlock.Text = WindowState == WindowState.Maximized
+            ? "\uE5D1"
+            : "\uE5D0";
+    }
+
+    private void MainWindow_StateChanged(object? sender, EventArgs e)
+    {
+        UpdateMaximizeButtonIcon();
+    }
+
+    #endregion
 
     private void AttachUploadViewEvents()
     {
