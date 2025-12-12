@@ -32,7 +32,7 @@ Optionally, a **local AI model** helps you create titles, descriptions and tags.
 
 ## 🖼️ Screenshots
 
-<img width="1201" height="882" alt="grafik" src="https://github.com/user-attachments/assets/aa02e648-a981-42e6-b779-727d127dd5e8" />
+<img width="1369" height="1034" alt="grafik" src="https://github.com/user-attachments/assets/b54594cf-c286-4c86-a36f-ef4903a08815" />
 
 ---
 
