@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,6 +27,9 @@ public partial class MainWindow
 
         _settings.Persona ??= new ChannelPersona();
         _settings.Llm ??= new LlmSettings();
+        _settings.TitleSuggestionCount = Math.Clamp(_settings.TitleSuggestionCount, 1, 5);
+        _settings.DescriptionSuggestionCount = Math.Clamp(_settings.DescriptionSuggestionCount, 1, 5);
+        _settings.TagsSuggestionCount = Math.Clamp(_settings.TagsSuggestionCount, 1, 5);
 
         ApplySettingsToUi();
     }

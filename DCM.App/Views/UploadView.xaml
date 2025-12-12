@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
-<Grid Margin="0,0,16,0">
+<Grid x:Name="RootGrid" Margin="0,0,16,0">
   <Grid.RowDefinitions>
     <RowDefinition Height="Auto"/>
     <RowDefinition Height="Auto"/>
@@ -12,7 +12,7 @@
   </Grid.RowDefinitions>
 
   <!-- HEADER -->
-  <StackPanel Grid.Row="0">
+  <StackPanel x:Name="HeaderPanel" Grid.Row="0">
     <TextBlock Text="{DynamicResource Upload}"
                FontSize="{StaticResource FontSizeXL}"
                FontWeight="SemiBold"
@@ -146,7 +146,7 @@
            Visibility="Collapsed"/>
 
   <!-- ZWEI-SPALTEN-LAYOUT -->
-  <Grid Grid.Row="3">
+  <Grid x:Name="MainContentGrid" Grid.Row="3">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"
                         MinWidth="350"/>
@@ -157,7 +157,7 @@
     </Grid.ColumnDefinitions>
 
     <!-- LINKE SPALTE -->
-    <StackPanel Grid.Column="0">
+    <StackPanel x:Name="LeftColumnPanel" Grid.Column="0">
 
       <!-- Titel -->
       <GroupBox Tag="{Binding ElementName=TitleTextBox}"
@@ -647,6 +647,191 @@
       </GroupBox>
 
     </StackPanel>
+  </Grid>
+
+  <!-- Vorschlags-Popup -->
+  <Grid x:Name="SuggestionOverlay"
+        Grid.Row="0"
+        Grid.RowSpan="4"
+        Background="#66000000"
+        Visibility="Collapsed"
+        Panel.ZIndex="10">
+    <Grid.Resources>
+      <Style x:Key="SuggestionCloseButtonStyle"
+             TargetType="Button">
+        <Setter Property="Width"
+                Value="32"/>
+        <Setter Property="Height"
+                Value="24"/>
+        <Setter Property="Padding"
+                Value="0"/>
+        <Setter Property="FontFamily"
+                Value="Segoe MDL2 Assets"/>
+        <Setter Property="FontSize"
+                Value="12"/>
+        <Setter Property="Foreground"
+                Value="{StaticResource DangerBrush}"/>
+        <Setter Property="Background"
+                Value="Transparent"/>
+        <Setter Property="BorderThickness"
+                Value="0"/>
+        <Setter Property="Cursor"
+                Value="Hand"/>
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="Button">
+              <Border x:Name="closeBorder"
+                      Background="{TemplateBinding Background}"
+                      CornerRadius="{StaticResource RadiusS}">
+                <ContentPresenter HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver"
+                         Value="True">
+                  <Setter TargetName="closeBorder"
+                          Property="Background"
+                          Value="{StaticResource DangerBrush}"/>
+                  <Setter Property="Foreground"
+                          Value="{StaticResource PrimaryTextBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed"
+                         Value="True">
+                  <Setter TargetName="closeBorder"
+                          Property="Background"
+                          Value="{StaticResource AccentRedHoverBrush}"/>
+                  <Setter Property="Foreground"
+                          Value="{StaticResource PrimaryTextBrush}"/>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+
+      <Style x:Key="SuggestionItemButtonStyle"
+             TargetType="Button">
+        <Setter Property="Background"
+                Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness"
+                Value="1"/>
+        <Setter Property="Padding"
+                Value="10,8"/>
+        <Setter Property="HorizontalContentAlignment"
+                Value="Left"/>
+        <Setter Property="Cursor"
+                Value="Hand"/>
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="Button">
+              <Border x:Name="border"
+                      Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{TemplateBinding BorderThickness}"
+                      CornerRadius="{StaticResource RadiusS}">
+                <ContentPresenter Margin="{TemplateBinding Padding}"/>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver"
+                         Value="True">
+                  <Setter TargetName="border"
+                          Property="BorderBrush"
+                          Value="{StaticResource BorderHoverBrush}"/>
+                  <Setter TargetName="border"
+                          Property="Background"
+                          Value="{StaticResource SurfaceHoverBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed"
+                         Value="True">
+                  <Setter TargetName="border"
+                          Property="Background"
+                          Value="{StaticResource SurfacePressedBrush}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled"
+                         Value="False">
+                  <Setter TargetName="border"
+                          Property="Opacity"
+                          Value="0.6"/>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </Grid.Resources>
+
+    <Grid VerticalAlignment="Stretch"
+          HorizontalAlignment="Center">
+      <Border x:Name="SuggestionDialog"
+              Background="{StaticResource SurfaceBrush}"
+              BorderBrush="{StaticResource BorderHoverBrush}"
+              BorderThickness="1"
+              CornerRadius="{StaticResource RadiusM}"
+              Padding="0"
+              Width="{Binding ElementName=LeftColumnPanel, Path=ActualWidth}"
+              MaxHeight="{Binding ElementName=LeftColumnPanel, Path=ActualHeight}"
+              MinWidth="360"
+              MaxWidth="780"
+              VerticalAlignment="Top"
+              Margin="0,100,0,0">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="2"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+
+          <Border Grid.Row="0"
+                  Background="{StaticResource MagicAIGradientBrush}"
+                  CornerRadius="{StaticResource RadiusM}"/>
+
+          <StackPanel Grid.Row="1"
+                      Margin="{StaticResource SpacingAllL}">
+            <DockPanel LastChildFill="False"
+                       Margin="0,0,0,12">
+              <TextBlock x:Name="SuggestionTitleTextBlock"
+                         DockPanel.Dock="Left"
+                         FontSize="{StaticResource FontSizeL}"
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         VerticalAlignment="Center"/>
+              <Button x:Name="SuggestionCloseButton"
+                      DockPanel.Dock="Right"
+                      Style="{StaticResource SuggestionCloseButtonStyle}"
+                      Click="SuggestionCloseButton_Click">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe5cd;"
+                           Margin="0"
+                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+              </Button>
+            </DockPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <ItemsControl x:Name="SuggestionItemsControl">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button Style="{StaticResource SuggestionItemButtonStyle}"
+                            Margin="0,0,0,8"
+                            Click="SuggestionItemButton_Click"
+                            HorizontalAlignment="Stretch">
+                      <TextBlock Text="{Binding}"
+                                 TextWrapping="Wrap"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
   </Grid>
 </Grid>
 </UserControl>

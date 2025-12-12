@@ -108,8 +108,8 @@ public class SimpleFallbackSuggestionServiceTests
 
         var result = await _service.SuggestDescriptionAsync(project, persona);
 
-        Assert.NotNull(result);
-        Assert.Contains("Mein Video Titel", result);
+        Assert.NotEmpty(result);
+        Assert.Contains(result, d => d.Contains("Mein Video Titel"));
     }
 
     [Fact]
@@ -123,8 +123,8 @@ public class SimpleFallbackSuggestionServiceTests
 
         var result = await _service.SuggestDescriptionAsync(project, persona);
 
-        Assert.NotNull(result);
-        Assert.Contains("TestChannel", result);
+        Assert.NotEmpty(result);
+        Assert.Contains(result, d => d.Contains("TestChannel"));
     }
 
     [Fact]
@@ -137,9 +137,9 @@ public class SimpleFallbackSuggestionServiceTests
 
         var result = await _service.SuggestDescriptionAsync(project, persona);
 
-        Assert.NotNull(result);
-        Assert.Contains("gaming", result);
-        Assert.Contains("tutorial", result);
+        Assert.NotEmpty(result);
+        Assert.Contains(result, d => d.Contains("gaming"));
+        Assert.Contains(result, d => d.Contains("tutorial"));
     }
 
     [Fact]
@@ -150,8 +150,8 @@ public class SimpleFallbackSuggestionServiceTests
 
         var result = await _service.SuggestDescriptionAsync(project, persona);
 
-        Assert.NotNull(result);
-        Assert.Contains("automatisch generiert", result);
+        Assert.NotEmpty(result);
+        Assert.Contains(result, d => d.Contains("automatisch generiert"));
     }
 
     [Fact]

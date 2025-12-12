@@ -63,6 +63,7 @@ public partial class MainWindow : Window
     private UploadView UploadView => UploadPageView ?? throw new InvalidOperationException("Upload view is not ready.");
     private readonly UiEventAggregator _eventAggregator = UiEventAggregator.Instance;
     private readonly List<IDisposable> _eventSubscriptions = new();
+    private SuggestionTarget _activeSuggestionTarget = SuggestionTarget.None;
 
     public MainWindow()
     {
@@ -213,6 +214,8 @@ public partial class MainWindow : Window
         UploadPageView.ThumbnailClearButtonClicked += ThumbnailClearButton_Click;
 
         UploadPageView.FocusTargetOnContainerClicked += FocusTargetOnContainerClick;
+        UploadPageView.SuggestionItemClicked += UploadView_SuggestionItemClicked;
+        UploadPageView.SuggestionCloseButtonClicked += UploadView_SuggestionCloseButtonClicked;
     }
 
     private void AttachAccountsViewEvents()
@@ -620,6 +623,10 @@ public partial class MainWindow : Window
 
     private async void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
     {
+        CloseSuggestionPopup();
+
+        CloseSuggestionPopup();
+
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
 
@@ -632,9 +639,10 @@ public partial class MainWindow : Window
 
         try
         {
-            var titles = await _contentSuggestionService.SuggestTitlesAsync(
-                project,
-                _settings.Persona,
+            var titles = await CollectSuggestionsAsync(
+                () => _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona, cancellationToken),
+                Math.Max(1, _settings.TitleSuggestionCount),
+                maxRetries: 2,
                 cancellationToken);
 
             if (titles is null || titles.Count == 0)
@@ -645,11 +653,22 @@ public partial class MainWindow : Window
                 return;
             }
 
-            UploadView.TitleTextBox.Text = titles[0];
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", titles.Count);
-            _logger.Info(
-                LocalizationHelper.Format("Log.LLM.TitleGeneration.Success", titles[0]),
-                LlmLogSource);
+            var desired = Math.Max(1, _settings.TitleSuggestionCount);
+            var trimmed = titles.Take(Math.Max(1, desired)).ToList();
+
+            if (desired <= 1 || trimmed.Count <= 1)
+            {
+                UploadView.TitleTextBox.Text = trimmed[0];
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", 1);
+                _logger.Info(
+                    LocalizationHelper.Format("Log.LLM.TitleGeneration.Success", trimmed[0]),
+                    LlmLogSource);
+            }
+            else
+            {
+                ShowSuggestionPopup(SuggestionTarget.Title, trimmed, LocalizationHelper.Get("Upload.Fields.Title"));
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", trimmed.Count);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -673,6 +692,8 @@ public partial class MainWindow : Window
 
     private async void GenerateDescriptionButton_Click(object sender, RoutedEventArgs e)
     {
+        CloseSuggestionPopup();
+
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
 
@@ -685,21 +706,32 @@ public partial class MainWindow : Window
 
         try
         {
-            var description = await _contentSuggestionService.SuggestDescriptionAsync(
-                project,
-                _settings.Persona,
+            var descriptions = await CollectSuggestionsAsync(
+                () => _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona, cancellationToken),
+                Math.Max(1, _settings.DescriptionSuggestionCount),
+                maxRetries: 2,
                 cancellationToken);
 
-            if (!string.IsNullOrWhiteSpace(description))
+            if (descriptions is null || descriptions.Count == 0)
             {
-                UploadView.DescriptionTextBox.Text = description;
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoDescriptions");
+                _logger.Warning(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.NoSuggestions"), LlmLogSource);
+                return;
+            }
+
+            var desired = Math.Max(1, _settings.DescriptionSuggestionCount);
+            var trimmed = descriptions.Take(Math.Max(1, desired)).ToList();
+
+            if (desired <= 1 || trimmed.Count <= 1)
+            {
+                UploadView.DescriptionTextBox.Text = trimmed[0];
                 StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionInserted");
                 _logger.Info(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Success"), LlmLogSource);
             }
             else
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoDescriptions");
-                _logger.Warning(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.NoSuggestions"), LlmLogSource);
+                ShowSuggestionPopup(SuggestionTarget.Description, trimmed, LocalizationHelper.Get("Upload.Fields.Description"));
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateDescription");
             }
         }
         catch (OperationCanceledException)
@@ -743,11 +775,24 @@ public partial class MainWindow : Window
 
             if (tags is not null && tags.Count > 0)
             {
-                UploadView.TagsTextBox.Text = string.Join(", ", tags);
-                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsInserted", tags.Count);
-                _logger.Info(
-                    LocalizationHelper.Format("Log.LLM.TagGeneration.Success", tags.Count),
-                    LlmLogSource);
+                var desired = Math.Max(1, _settings.TagsSuggestionCount);
+                var suggestions = BuildTagSuggestionSets(tags, desired);
+
+                if (desired <= 1 || suggestions.Count <= 1)
+                {
+                    var joined = suggestions.FirstOrDefault() ?? string.Join(", ", tags);
+                    UploadView.TagsTextBox.Text = joined;
+                    var count = joined.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
+                    StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsInserted", count);
+                    _logger.Info(
+                        LocalizationHelper.Format("Log.LLM.TagGeneration.Success", count),
+                        LlmLogSource);
+                }
+                else
+                {
+                    ShowSuggestionPopup(SuggestionTarget.Tags, suggestions, LocalizationHelper.Get("Upload.Fields.Tags"));
+                    StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsInserted", tags.Count);
+                }
             }
             else
             {
@@ -773,6 +818,138 @@ public partial class MainWindow : Window
             UploadView.GenerateTagsButton.IsEnabled = true;
             UpdateLogLinkIndicator();
         }
+    }
+
+    private void UploadView_SuggestionItemClicked(object? sender, string suggestion)
+    {
+        switch (_activeSuggestionTarget)
+        {
+            case SuggestionTarget.Title:
+                UploadView.TitleTextBox.Text = suggestion;
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", 1);
+                break;
+            case SuggestionTarget.Description:
+                UploadView.DescriptionTextBox.Text = suggestion;
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionInserted");
+                break;
+            case SuggestionTarget.Tags:
+                UploadView.TagsTextBox.Text = suggestion;
+                var tagCount = suggestion.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsInserted", tagCount);
+                break;
+        }
+
+        CloseSuggestionPopup();
+    }
+
+    private void UploadView_SuggestionCloseButtonClicked(object? sender, EventArgs e) => CloseSuggestionPopup();
+
+    private void ShowSuggestionPopup(SuggestionTarget target, IReadOnlyList<string> suggestions, string title)
+    {
+        _activeSuggestionTarget = target;
+        UploadView.ShowSuggestionOverlay(title, suggestions);
+    }
+
+    private void CloseSuggestionPopup()
+    {
+        _activeSuggestionTarget = SuggestionTarget.None;
+        UploadView.HideSuggestionOverlay();
+    }
+
+    private static async Task<List<string>> CollectSuggestionsAsync(
+        Func<Task<IReadOnlyList<string>>> producer,
+        int desiredCount,
+        int maxRetries,
+        CancellationToken cancellationToken)
+    {
+        desiredCount = Math.Max(1, desiredCount);
+        maxRetries = Math.Max(0, maxRetries);
+
+        var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var ordered = new List<string>();
+
+        var attempts = 0;
+        while (attempts == 0 || (attempts <= maxRetries && ordered.Count < desiredCount))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IReadOnlyList<string> batch;
+            try
+            {
+                batch = await producer();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch
+            {
+                break;
+            }
+
+            if (batch is not null)
+            {
+                foreach (var item in batch)
+                {
+                    if (string.IsNullOrWhiteSpace(item))
+                    {
+                        continue;
+                    }
+
+                    if (unique.Add(item))
+                    {
+                        ordered.Add(item);
+
+                        if (ordered.Count >= desiredCount)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            attempts++;
+        }
+
+        return ordered;
+    }
+
+    private static List<string> BuildTagSuggestionSets(IReadOnlyList<string> tags, int desiredCount)
+    {
+        var cleaned = tags
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (cleaned.Count == 0)
+        {
+            return new List<string>();
+        }
+
+        desiredCount = Math.Max(1, desiredCount);
+        if (desiredCount == 1)
+        {
+            return new List<string> { string.Join(", ", cleaned) };
+        }
+
+        var results = new List<string>();
+        var groupSize = Math.Max(5, (int)Math.Ceiling(cleaned.Count / (double)desiredCount));
+
+        for (var i = 0; i < cleaned.Count && results.Count < desiredCount; i += groupSize)
+        {
+            var slice = cleaned.Skip(i).Take(groupSize).ToList();
+            if (slice.Count > 0)
+            {
+                results.Add(string.Join(", ", slice));
+            }
+        }
+
+        if (results.Count == 0)
+        {
+            results.Add(string.Join(", ", cleaned));
+        }
+
+        return results;
     }
 
     #endregion
@@ -1127,4 +1304,12 @@ public partial class MainWindow : Window
     }
 
     #endregion
+
+    private enum SuggestionTarget
+    {
+        None,
+        Title,
+        Description,
+        Tags
+    }
 }

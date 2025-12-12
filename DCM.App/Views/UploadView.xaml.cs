@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Effects;
 using DCM.Core.Models;
 
 namespace DCM.App.Views;
@@ -27,6 +31,8 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? GenerateTagsButtonClicked;
     public event RoutedEventHandler? TranscribeButtonClicked;
     public event RoutedEventHandler? TranscriptionExportButtonClicked;
+    public event EventHandler<string>? SuggestionItemClicked;
+    public event EventHandler? SuggestionCloseButtonClicked;
 
     public event DragEventHandler? ThumbnailDropDragOver;
     public event DragEventHandler? ThumbnailDropDragLeave;
@@ -96,6 +102,33 @@ public partial class UploadView : UserControl
     private void FocusTargetOnContainerClick(object sender, MouseButtonEventArgs e) =>
         FocusTargetOnContainerClicked?.Invoke(sender, e);
 
+    private void SuggestionItemButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.DataContext is string suggestion)
+        {
+            SuggestionItemClicked?.Invoke(this, suggestion);
+        }
+    }
+
+    private void SuggestionCloseButton_Click(object sender, RoutedEventArgs e) =>
+        SuggestionCloseButtonClicked?.Invoke(this, e);
+
+    public void ShowSuggestionOverlay(string title, IEnumerable<string> suggestions)
+    {
+        SuggestionTitleTextBlock.Text = title;
+        SuggestionItemsControl.ItemsSource = suggestions?.ToList() ?? new List<string>();
+        SuggestionOverlay.Visibility = Visibility.Visible;
+        SetContentBlur(isEnabled: true);
+    }
+
+    public void HideSuggestionOverlay()
+    {
+        SuggestionOverlay.Visibility = Visibility.Collapsed;
+        SuggestionItemsControl.ItemsSource = null;
+        SuggestionTitleTextBlock.Text = string.Empty;
+        SetContentBlur(isEnabled: false);
+    }
+
     public void SetDefaultVisibility(VideoVisibility visibility)
     {
         if (VisibilityComboBox is null)
@@ -113,5 +146,13 @@ public partial class UploadView : UserControl
                 return;
             }
         }
+    }
+
+    private void SetContentBlur(bool isEnabled)
+    {
+        var effect = isEnabled ? new BlurEffect { Radius = 3 } : null;
+        HeaderPanel.Effect = effect;
+        VideoDropZone.Effect = effect;
+        MainContentGrid.Effect = effect;
     }
 }

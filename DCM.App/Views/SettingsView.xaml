@@ -564,6 +564,79 @@
                   </StackPanel>
                 </GroupBox>
 
+                <!-- Vorschlagsanzahl -->
+                <GroupBox>
+                  <StackPanel>
+                    <TextBlock Text="Vorschlagsanzahl"
+                               Style="{StaticResource TextLabel}"
+                               Margin="0,-6,0,8"/>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="{StaticResource SpacingS}"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="{StaticResource SpacingS}"/>
+                        <RowDefinition Height="Auto"/>
+                      </Grid.RowDefinitions>
+
+                      <TextBlock Grid.Row="0"
+                                 Grid.Column="0"
+                                 Text="Titel"
+                                 VerticalAlignment="Center"
+                                 Foreground="{StaticResource TextSecondaryBrush}"/>
+                      <ComboBox x:Name="TitleSuggestionCountComboBox"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Width="80"
+                                HorizontalAlignment="Left">
+                        <ComboBoxItem Content="1"/>
+                        <ComboBoxItem Content="2"/>
+                        <ComboBoxItem Content="3"/>
+                        <ComboBoxItem Content="4"/>
+                        <ComboBoxItem Content="5"/>
+                      </ComboBox>
+
+                      <TextBlock Grid.Row="2"
+                                 Grid.Column="0"
+                                 Text="Beschreibung"
+                                 VerticalAlignment="Center"
+                                 Foreground="{StaticResource TextSecondaryBrush}"/>
+                      <ComboBox x:Name="DescriptionSuggestionCountComboBox"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Width="80"
+                                HorizontalAlignment="Left">
+                        <ComboBoxItem Content="1"/>
+                        <ComboBoxItem Content="2"/>
+                        <ComboBoxItem Content="3"/>
+                        <ComboBoxItem Content="4"/>
+                        <ComboBoxItem Content="5"/>
+                      </ComboBox>
+
+                      <TextBlock Grid.Row="4"
+                                 Grid.Column="0"
+                                 Text="Tags"
+                                 VerticalAlignment="Center"
+                                 Foreground="{StaticResource TextSecondaryBrush}"/>
+                      <ComboBox x:Name="TagsSuggestionCountComboBox"
+                                Grid.Row="4"
+                                Grid.Column="1"
+                                Width="80"
+                                HorizontalAlignment="Left">
+                        <ComboBoxItem Content="1"/>
+                        <ComboBoxItem Content="2"/>
+                        <ComboBoxItem Content="3"/>
+                        <ComboBoxItem Content="4"/>
+                        <ComboBoxItem Content="5"/>
+                      </ComboBox>
+                    </Grid>
+                  </StackPanel>
+                </GroupBox>
+
               </StackPanel>
             </Grid>
           </Grid>

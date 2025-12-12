@@ -84,6 +84,24 @@ public partial class SettingsView : UserControl
         set => DefaultSchedulingTimeTextBox.Text = value ?? string.Empty;
     }
 
+    public int TitleSuggestionCount
+    {
+        get => GetSelectedSuggestionCount(TitleSuggestionCountComboBox, 5);
+        set => SetSelectedSuggestionCount(TitleSuggestionCountComboBox, value, 5);
+    }
+
+    public int DescriptionSuggestionCount
+    {
+        get => GetSelectedSuggestionCount(DescriptionSuggestionCountComboBox, 3);
+        set => SetSelectedSuggestionCount(DescriptionSuggestionCountComboBox, value, 3);
+    }
+
+    public int TagsSuggestionCount
+    {
+        get => GetSelectedSuggestionCount(TagsSuggestionCountComboBox, 1);
+        set => SetSelectedSuggestionCount(TagsSuggestionCountComboBox, value, 1);
+    }
+
     public string LlmModelPath
     {
         get => LlmModelPathTextBox.Text ?? string.Empty;
@@ -115,6 +133,9 @@ public partial class SettingsView : UserControl
         DefaultSchedulingTime = string.IsNullOrWhiteSpace(settings.DefaultSchedulingTime)
             ? Constants.DefaultSchedulingTime
             : settings.DefaultSchedulingTime;
+        TitleSuggestionCount = Math.Max(1, settings.TitleSuggestionCount);
+        DescriptionSuggestionCount = Math.Max(1, settings.DescriptionSuggestionCount);
+        TagsSuggestionCount = Math.Max(1, settings.TagsSuggestionCount);
 
         SelectComboBoxItemByTag(DefaultVisibilityComboBox, settings.DefaultVisibility);
 
@@ -137,6 +158,9 @@ public partial class SettingsView : UserControl
         settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTime)
             ? null
             : DefaultSchedulingTime.Trim();
+        settings.TitleSuggestionCount = TitleSuggestionCount;
+        settings.DescriptionSuggestionCount = DescriptionSuggestionCount;
+        settings.TagsSuggestionCount = TagsSuggestionCount;
 
         settings.DefaultVisibility = GetDefaultVisibility();
         settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
@@ -336,6 +360,41 @@ public partial class SettingsView : UserControl
                     comboBox.SelectedItem = comboItem;
                     return;
                 }
+            }
+        }
+    }
+
+    private static int GetSelectedSuggestionCount(ComboBox comboBox, int fallback)
+    {
+        if (comboBox.SelectedItem is ComboBoxItem item &&
+            int.TryParse(item.Content?.ToString(), out var parsed) &&
+            parsed is >= 1 and <= 5)
+        {
+            return parsed;
+        }
+
+        return fallback;
+    }
+
+    private static void SetSelectedSuggestionCount(ComboBox comboBox, int value, int fallback)
+    {
+        var target = Math.Clamp(value, 1, 5);
+        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        {
+            if (int.TryParse(item.Content?.ToString(), out var parsed) && parsed == target)
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+        }
+
+        // fallback
+        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        {
+            if (int.TryParse(item.Content?.ToString(), out var parsed) && parsed == fallback)
+            {
+                comboBox.SelectedItem = item;
+                return;
             }
         }
     }

@@ -78,4 +78,19 @@ public sealed class AppSettings
     /// Die gespeicherte UI-Sprache (z.B. "de-DE" oder "en-US").
     /// </summary>
     public string? Language { get; set; }
+
+    /// <summary>
+    /// Anzahl der anzuzeigenden TitelvorschlÃ¤ge.
+    /// </summary>
+    public int TitleSuggestionCount { get; set; } = 5;
+
+    /// <summary>
+    /// Anzahl der anzuzeigenden BeschreibungsvorschlÃ¤ge.
+    /// </summary>
+    public int DescriptionSuggestionCount { get; set; } = 3;
+
+    /// <summary>
+    /// Anzahl der anzuzeigenden Tag-VorschlÃ¤ge.
+    /// </summary>
+    public int TagsSuggestionCount { get; set; } = 1;
 }

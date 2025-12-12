@@ -197,8 +197,9 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
         sb.AppendLine("<|system|>");
         sb.AppendLine("Du generierst YouTube-Videotitel auf Deutsch.");
-        sb.AppendLine("Ausgabe: Genau 3 Titel, jeder in einer eigenen Zeile.");
-        sb.AppendLine("Format: Nur die Titel, nichts anderes.");
+        sb.AppendLine("Ausgabe: Bis zu 5 Titel, jeder in einer eigenen Zeile.");
+        sb.AppendLine("Format: Nur die Titel, nichts anderes; kein Satz davor oder danach.");
+        sb.AppendLine("Jeder Titel ist ein einzelner kurzer Satz (5-12 Wörter), keine Nummerierung oder Aufzählungszeichen.");
         sb.AppendLine("Verboten: Nummerierung, Anführungszeichen, Aufzählungszeichen, Erklärungen.");
         sb.AppendLine("<|end|>");
 
@@ -213,7 +214,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             sb.AppendLine();
         }
 
-        sb.AppendLine("Generiere 3 neue, unterschiedliche Titel basierend auf diesem Transkript:");
+        sb.AppendLine("Generiere bis zu 5 neue, unterschiedliche Titel basierend auf diesem Transkript:");
         sb.AppendLine();
         sb.AppendLine("---TRANSKRIPT START---");
         sb.Append(TextCleaningUtility.TruncateTranscript(project.TranscriptText!, MaxTranscriptCharsForTitles));
@@ -233,6 +234,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(line => !string.IsNullOrWhiteSpace(line))
             .Where(line => !TextCleaningUtility.IsMetaLine(line))
+            .Select(StripListPrefix)
             .Where(line => !ContainsPromptLeakage(line, customPromptWords))
             .Where(line => line.Length > 5 && line.Length < 150)
             .Select(TextCleaningUtility.CleanTitleLine)
@@ -247,7 +249,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
     #region SuggestDescriptionAsync
 
-    public async Task<string?> SuggestDescriptionAsync(
+    public async Task<IReadOnlyList<string>> SuggestDescriptionAsync(
         UploadProject project,
         ChannelPersona persona,
         CancellationToken cancellationToken = default)
@@ -278,29 +280,16 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                 return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
-            var cleaned = CleanDescriptionResponse(response, project);
+            var descriptions = ParseDescriptionResponses(response, project);
 
-            if (string.IsNullOrWhiteSpace(cleaned) || cleaned.Length < 20)
+            if (descriptions.Count == 0)
             {
                 _logger.Warning("Beschreibung: Bereinigte Response zu kurz -> Fallback", "ContentSuggestion");
                 return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
             }
 
-            var customPromptWords = ExtractFilterWords(_settings.DescriptionCustomPrompt);
-            if (ContainsPromptLeakage(cleaned, customPromptWords))
-            {
-                _logger.Warning("Beschreibung: Prompt-Leakage erkannt -> Fallback", "ContentSuggestion");
-                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
-            }
-
-            if (IsDescriptionJustTitle(cleaned, project))
-            {
-                _logger.Warning("Beschreibung: Ist nur Titel-Kopie -> Fallback", "ContentSuggestion");
-                return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
-            }
-
-            _logger.Info($"Beschreibung generiert, Länge: {cleaned.Length} Zeichen", "ContentSuggestion");
-            return cleaned;
+            _logger.Info($"Beschreibung generiert, Anzahl: {descriptions.Count}", "ContentSuggestion");
+            return descriptions;
         }
         catch (OperationCanceledException)
         {
@@ -323,7 +312,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         sb.AppendLine("<|system|>");
         sb.AppendLine("Du schreibst YouTube-Videobeschreibungen auf Deutsch.");
         sb.AppendLine("WICHTIG: Die Beschreibung muss den VIDEO-INHALT zusammenfassen, NICHT den Titel wiederholen!");
-        sb.AppendLine("Ausgabe: Nur die fertige Beschreibung, 2-4 Sätze Fließtext.");
+        sb.AppendLine("Ausgabe: Bis zu 5 unterschiedliche Beschreibungen, jeweils als eigener Absatz, getrennt durch eine Leerzeile.");
+        sb.AppendLine("Jeder Absatz umfasst 2-4 Sätze, klarer Fließtext, mindestens 80 Zeichen.");
         sb.AppendLine("Verboten: Aufzählungen, Emojis, Hashtags, Überschriften, Erklärungen, Titel-Wiederholung.");
         sb.AppendLine("<|end|>");
 
@@ -345,7 +335,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             sb.AppendLine();
         }
 
-        sb.AppendLine("Schreibe eine neue Beschreibung die den VIDEO-INHALT zusammenfasst basierend auf diesem Transkript:");
+        sb.AppendLine("Schreibe bis zu 5 neue, verschiedene Beschreibungen, die den VIDEO-INHALT zusammenfassen, basierend auf diesem Transkript:");
         sb.AppendLine();
         sb.AppendLine("---TRANSKRIPT START---");
         sb.Append(TextCleaningUtility.TruncateTranscript(project.TranscriptText!, MaxTranscriptCharsForDescription));
@@ -416,7 +406,40 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         return false;
     }
 
-    private static string CleanDescriptionResponse(string response, UploadProject project)
+    private List<string> ParseDescriptionResponses(string response, UploadProject project)
+    {
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            return new List<string>();
+        }
+
+        var normalized = response.Replace("\r\n", "\n");
+        var parts = normalized
+            .Split(new[] { "\n\n", "---" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        if (parts.Count == 0)
+        {
+            parts.Add(normalized);
+        }
+
+        var customPromptWords = ExtractFilterWords(_settings.DescriptionCustomPrompt);
+
+        var cleaned = parts
+            .Select(p => CleanDescriptionBlock(p, project))
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Where(p => p.Length >= 20)
+            .Where(p => !ContainsPromptLeakage(p, customPromptWords))
+            .Where(p => !IsDescriptionJustTitle(p, project))
+            .Select(p => p.Trim())
+            .Distinct()
+            .Take(5)
+            .ToList();
+
+        return cleaned;
+    }
+
+    private static string CleanDescriptionBlock(string response, UploadProject project)
     {
         if (string.IsNullOrWhiteSpace(response))
         {
@@ -426,6 +449,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         var lines = response
             .Split('\n')
             .Select(l => l.Trim())
+            .Select(StripListPrefix)
             .Where(l => !TextCleaningUtility.IsMetaLine(l))
             .Where(l => !l.StartsWith("Beschreibung:", StringComparison.OrdinalIgnoreCase))
             .Where(l => !l.StartsWith("YouTube-Beschreibung:", StringComparison.OrdinalIgnoreCase))
@@ -708,4 +732,31 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
     [GeneratedRegex(@"session[:\s]*[a-f0-9]{8}")]
     private static partial Regex SessionIdLeakageRegex();
+
+    private static string StripListPrefix(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = text.TrimStart();
+
+        if (NumberedListRegex().IsMatch(trimmed))
+        {
+            trimmed = NumberedListRegex().Replace(trimmed, string.Empty).TrimStart();
+        }
+        else if (BulletListRegex().IsMatch(trimmed))
+        {
+            trimmed = BulletListRegex().Replace(trimmed, string.Empty).TrimStart();
+        }
+
+        return trimmed;
+    }
+
+    [GeneratedRegex(@"^\d+[\.\)]\s*")]
+    private static partial Regex NumberedListRegex();
+
+    [GeneratedRegex(@"^[-\*\u2022]\s*")]
+    private static partial Regex BulletListRegex();
 }

@@ -9,7 +9,7 @@ public interface IContentSuggestionService
         ChannelPersona persona,
         CancellationToken cancellationToken = default);
 
-    Task<string?> SuggestDescriptionAsync(
+    Task<IReadOnlyList<string>> SuggestDescriptionAsync(
         UploadProject project,
         ChannelPersona persona,
         CancellationToken cancellationToken = default);

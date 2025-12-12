@@ -80,7 +80,7 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         return Task.FromResult<IReadOnlyList<string>>(suggestions);
     }
 
-    public Task<string?> SuggestDescriptionAsync(
+    public Task<IReadOnlyList<string>> SuggestDescriptionAsync(
         UploadProject project,
         ChannelPersona persona,
         CancellationToken cancellationToken = default)
@@ -119,7 +119,7 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
         var result = string.Join("\n", parts);
         _logger.Debug($"Fallback-Beschreibung generiert: {result.Length} Zeichen", "FallbackSuggestion");
 
-        return Task.FromResult<string?>(result);
+        return Task.FromResult<IReadOnlyList<string>>(new List<string> { result });
     }
 
     public Task<IReadOnlyList<string>> SuggestTagsAsync(
