@@ -65,6 +65,7 @@ public partial class MainWindow : Window
     private readonly UiEventAggregator _eventAggregator = UiEventAggregator.Instance;
     private readonly List<IDisposable> _eventSubscriptions = new();
     private SuggestionTarget _activeSuggestionTarget = SuggestionTarget.None;
+    private bool _isThemeInitializing;
 
     public MainWindow()
     {
@@ -106,6 +107,7 @@ public partial class MainWindow : Window
 
         InitializePlatformComboBox();
         InitializeLanguageComboBox();
+        InitializeThemeComboBox();
         InitializeChannelLanguageComboBox();
         InitializeSchedulingDefaults();
         InitializeLlmSettingsTab();
@@ -290,6 +292,7 @@ public partial class MainWindow : Window
         SettingsPageView.DefaultVideoFolderBrowseButtonClicked += DefaultVideoFolderBrowseButton_Click;
         SettingsPageView.DefaultThumbnailFolderBrowseButtonClicked += DefaultThumbnailFolderBrowseButton_Click;
         SettingsPageView.LanguageComboBoxSelectionChanged += LanguageComboBox_SelectionChanged;
+        SettingsPageView.ThemeComboBoxSelectionChanged += ThemeComboBox_SelectionChanged;
         SettingsPageView.TranscriptionDownloadButtonClicked += TranscriptionDownloadButton_Click;
         SettingsPageView.TranscriptionModelSizeSelectionChanged += TranscriptionModelSizeComboBox_SelectionChanged;
         SettingsPageView.LlmModeComboBoxSelectionChanged += LlmModeComboBox_SelectionChanged;
@@ -499,6 +502,84 @@ public partial class MainWindow : Window
 
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.LanguageChanged", selectedLang.DisplayName);
         _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
+    }
+
+    #endregion
+
+    #region Theme Selection
+
+    private void InitializeThemeComboBox()
+    {
+        if (SettingsPageView is null)
+        {
+            return;
+        }
+
+        _isThemeInitializing = true;
+        var themeName = string.IsNullOrWhiteSpace(_settings.Theme) ? "Dark" : _settings.Theme.Trim();
+        SettingsPageView.SetSelectedTheme(themeName);
+        _isThemeInitializing = false;
+    }
+
+    private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isThemeInitializing)
+        {
+            return;
+        }
+
+        var selectedTheme = SettingsPageView?.GetSelectedTheme();
+        if (string.IsNullOrWhiteSpace(selectedTheme))
+        {
+            return;
+        }
+
+        _settings.Theme = selectedTheme;
+        ApplyTheme(selectedTheme);
+        SaveSettings();
+
+        StatusTextBlock.Text = $"Theme switched to {selectedTheme}.";
+    }
+
+    private void ApplyTheme(string? themeName)
+    {
+        var target = string.IsNullOrWhiteSpace(themeName) ? "Dark" : themeName.Trim();
+        var themeUri = new Uri($"Themes/{target}Theme.xaml", UriKind.Relative);
+
+        try
+        {
+            var dictionaries = Application.Current.Resources.MergedDictionaries;
+            var newThemeDictionary = new ResourceDictionary { Source = themeUri };
+
+            var existingIndex = FindThemeDictionaryIndex(dictionaries);
+            if (existingIndex >= 0)
+            {
+                dictionaries[existingIndex] = newThemeDictionary;
+            }
+            else
+            {
+                dictionaries.Add(newThemeDictionary);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Failed to apply theme '{target}': {ex.Message}", SettingsLogSource, ex);
+        }
+    }
+
+    private static int FindThemeDictionaryIndex(IList<ResourceDictionary> dictionaries)
+    {
+        for (var i = 0; i < dictionaries.Count; i++)
+        {
+            var source = dictionaries[i].Source?.OriginalString ?? string.Empty;
+            if (source.Contains("/Themes/", StringComparison.OrdinalIgnoreCase) ||
+                source.EndsWith("Theme.xaml", StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     #endregion

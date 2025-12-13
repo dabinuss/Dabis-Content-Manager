@@ -93,4 +93,9 @@ public sealed class AppSettings
     /// Anzahl der anzuzeigenden Tag-VorschlÃ¤ge.
     /// </summary>
     public int TagsSuggestionCount { get; set; } = 1;
+
+    /// <summary>
+    /// Aktives UI-Theme (z. B. "Dark" oder "Light").
+    /// </summary>
+    public string Theme { get; set; } = "Dark";
 }

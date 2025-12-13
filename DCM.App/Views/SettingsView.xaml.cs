@@ -26,6 +26,7 @@ public partial class SettingsView : UserControl
     public event RoutedEventHandler? DefaultVideoFolderBrowseButtonClicked;
     public event RoutedEventHandler? DefaultThumbnailFolderBrowseButtonClicked;
     public event SelectionChangedEventHandler? LanguageComboBoxSelectionChanged;
+    public event SelectionChangedEventHandler? ThemeComboBoxSelectionChanged;
     public event RoutedEventHandler? TranscriptionDownloadButtonClicked;
     public event SelectionChangedEventHandler? TranscriptionModelSizeSelectionChanged;
     public event SelectionChangedEventHandler? LlmModeComboBoxSelectionChanged;
@@ -43,6 +44,9 @@ public partial class SettingsView : UserControl
 
     private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         LanguageComboBoxSelectionChanged?.Invoke(sender, e);
+
+    private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        ThemeComboBoxSelectionChanged?.Invoke(sender, e);
 
     private void TranscriptionDownloadButton_Click(object sender, RoutedEventArgs e) =>
         TranscriptionDownloadButtonClicked?.Invoke(sender, e);
@@ -126,6 +130,32 @@ public partial class SettingsView : UserControl
 
     public LanguageInfo? GetSelectedLanguage() => LanguageComboBox.SelectedItem as LanguageInfo;
 
+    public void SetSelectedTheme(string? themeName)
+    {
+        var target = string.IsNullOrWhiteSpace(themeName) ? "Dark" : themeName.Trim();
+        SelectComboBoxItemByTag(ThemeComboBox, target);
+    }
+
+    public string GetSelectedTheme()
+    {
+        if (ThemeComboBox.SelectedItem is ComboBoxItem item)
+        {
+            var tag = item.Tag?.ToString();
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                return tag;
+            }
+
+            var content = item.Content?.ToString();
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                return content;
+            }
+        }
+
+        return "Dark";
+    }
+
     public void ApplyAppSettings(AppSettings settings)
     {
         DefaultVideoFolder = settings.DefaultVideoFolder ?? string.Empty;
@@ -138,6 +168,7 @@ public partial class SettingsView : UserControl
         TagsSuggestionCount = Math.Max(1, settings.TagsSuggestionCount);
 
         SelectComboBoxItemByTag(DefaultVisibilityComboBox, settings.DefaultVisibility);
+        SetSelectedTheme(settings.Theme);
 
         ConfirmBeforeUploadCheckBox.IsChecked = settings.ConfirmBeforeUpload;
         AutoApplyDefaultTemplateCheckBox.IsChecked = settings.AutoApplyDefaultTemplate;
@@ -161,6 +192,7 @@ public partial class SettingsView : UserControl
         settings.TitleSuggestionCount = TitleSuggestionCount;
         settings.DescriptionSuggestionCount = DescriptionSuggestionCount;
         settings.TagsSuggestionCount = TagsSuggestionCount;
+        settings.Theme = GetSelectedTheme();
 
         settings.DefaultVisibility = GetDefaultVisibility();
         settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;

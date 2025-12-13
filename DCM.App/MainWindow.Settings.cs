@@ -30,6 +30,9 @@ public partial class MainWindow
         _settings.TitleSuggestionCount = Math.Clamp(_settings.TitleSuggestionCount, 1, 5);
         _settings.DescriptionSuggestionCount = Math.Clamp(_settings.DescriptionSuggestionCount, 1, 5);
         _settings.TagsSuggestionCount = Math.Clamp(_settings.TagsSuggestionCount, 1, 5);
+        _settings.Theme = string.IsNullOrWhiteSpace(_settings.Theme) ? "Dark" : _settings.Theme.Trim();
+
+        ApplyTheme(_settings.Theme);
 
         ApplySettingsToUi();
     }

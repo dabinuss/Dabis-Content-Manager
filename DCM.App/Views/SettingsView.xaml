@@ -90,6 +90,22 @@
                   </StackPanel>
                 </GroupBox>
 
+                <!-- Theme -->
+                <GroupBox>
+                  <StackPanel>
+                    <TextBlock Text="Theme"
+                               Style="{StaticResource TextLabel}"
+                               Margin="0,-6,0,8"/>
+                    <ComboBox x:Name="ThemeComboBox"
+                              MinWidth="200"
+                              SelectionChanged="ThemeComboBox_SelectionChanged">
+                      <ComboBoxItem Content="Dark"
+                                    Tag="Dark"
+                                    IsSelected="True"/>
+                    </ComboBox>
+                  </StackPanel>
+                </GroupBox>
+
                 <!-- Ordner -->
                 <GroupBox>
                   <StackPanel>
