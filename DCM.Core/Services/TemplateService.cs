@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using DCM.Core.Logging;
 using DCM.Core.Models;
@@ -48,23 +51,6 @@ public sealed partial class TemplateService
 
         _logger.Debug($"Template wird auf Projekt '{project.Title}' angewendet", "TemplateService");
 
-        string? transcriptSnippet = null;
-
-        if (!string.IsNullOrWhiteSpace(project.TranscriptText))
-        {
-            var text = project.TranscriptText.Trim();
-
-            const int maxLength = 280;
-            if (text.Length > maxLength)
-            {
-                transcriptSnippet = text[..maxLength].TrimEnd() + "…";
-            }
-            else
-            {
-                transcriptSnippet = text;
-            }
-        }
-
         // Tags kommasepariert
         var tagsCsv = project.Tags is not null && project.Tags.Count > 0
             ? string.Join(", ", project.Tags)
@@ -78,32 +64,28 @@ public sealed partial class TemplateService
         var dict = new Dictionary<string, string?>
         {
             ["TITLE"] = project.Title,
-            ["DATE"] = project.ScheduledTime?.ToString("yyyy-MM-dd"),
+            ["DESCRIPTION"] = project.Description ?? string.Empty,
             ["TAGS"] = tagsCsv,
             ["HASHTAGS"] = hashTags,
-            ["PLAYLIST"] = project.PlaylistId,
+            ["PLAYLIST"] = project.PlaylistTitle ?? project.PlaylistId,
+            ["PLAYLIST_ID"] = project.PlaylistId,
             ["VISIBILITY"] = project.Visibility.ToString(),
             ["PLATFORM"] = project.Platform.ToString(),
+            ["SCHEDULEDDATE"] = project.ScheduledTime?.ToString("yyyy-MM-dd") ?? string.Empty,
+            ["SCHEDULEDTIME"] = project.ScheduledTime?.ToString("HH:mm") ?? string.Empty,
+            ["DATE"] = DateTime.Now.ToString("yyyy-MM-dd"),
             ["CREATED_AT"] = project.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
-            ["TRANSCRIPT_SNIPPET"] = transcriptSnippet,
-            ["TRANSCRIPT"] = project.TranscriptText,
-            ["YEAR"] = DateTime.Now.Year.ToString(),
-            ["MONTH"] = DateTime.Now.ToString("MM"),
-            ["DAY"] = DateTime.Now.ToString("dd"),
             ["VIDEOFILE"] = string.IsNullOrWhiteSpace(project.VideoFilePath)
                 ? string.Empty
                 : Path.GetFileName(project.VideoFilePath),
-            ["VIDEOPATH"] = project.VideoFilePath ?? string.Empty,
-            ["SCHEDULEDDATE"] = project.ScheduledTime?.ToString("yyyy-MM-dd") ?? string.Empty,
-            ["SCHEDULEDTIME"] = project.ScheduledTime?.ToString("HH:mm") ?? string.Empty,
-            ["DESCRIPTION"] = project.Description ?? string.Empty
+            ["TRANSCRIPT"] = project.TranscriptText
         };
 
         return ApplyTemplate(template, dict);
     }
 
     /// <summary>
-    /// Bereinigt einen Tag für die Verwendung als Hashtag.
+    /// Bereinigt einen Tag fuer die Verwendung als Hashtag.
     /// Lowercase, keine Leerzeichen, keine Sonderzeichen.
     /// </summary>
     private static string SanitizeHashtag(string tag)

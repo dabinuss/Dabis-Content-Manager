@@ -672,12 +672,19 @@ public partial class MainWindow : Window
         var placeholders = new[]
         {
             "{Title}",
-            "{Channel}",
             "{Description}",
-            "{CTA}",
+            "{Tags}",
             "{Hashtags}",
-            "{Url}",
-            "{Date}"
+            "{Playlist}",
+            "{Playlist_Id}",
+            "{Visibility}",
+            "{Platform}",
+            "{ScheduledDate}",
+            "{ScheduledTime}",
+            "{Date}",
+            "{CreatedAt}",
+            "{VideoFile}",
+            "{Transcript}"
         };
 
         TemplatesPageView?.SetPlaceholders(placeholders);

@@ -23,6 +23,8 @@ public sealed class UploadProject
 
     public string Description { get; set; } = string.Empty;
 
+    public string? PlaylistTitle { get; set; }
+
     /// <summary>
     /// Optionaler Volltext-Transkriptinhalt (z. B. von externer Transkript-Engine).
     /// </summary>

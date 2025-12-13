@@ -381,7 +381,7 @@ public partial class MainWindow
             return;
         }
 
-        var project = BuildUploadProjectFromUi(includeScheduling: false);
+        var project = BuildUploadProjectFromUi(includeScheduling: true);
 
         // Prevent compounding description when re-applying the same template with {DESCRIPTION}
         if (_lastAppliedTemplate is not null &&
@@ -620,9 +620,11 @@ public partial class MainWindow
         }
 
         string? playlistId;
+        string? playlistTitle = null;
         if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
         {
             playlistId = plItem.Id;
+            playlistTitle = plItem.Title;
         }
         else
         {
@@ -653,6 +655,7 @@ public partial class MainWindow
             Platform = platform,
             Visibility = visibility,
             PlaylistId = playlistId,
+            PlaylistTitle = playlistTitle,
             ScheduledTime = scheduledTime,
             ThumbnailPath = UploadView.ThumbnailPathTextBox.Text,
             TranscriptText = UploadView.TranscriptTextBox.Text
@@ -723,11 +726,10 @@ public partial class MainWindow
     {
         if (_lastAppliedTemplate is not null && _lastAppliedTemplateHasDescriptionPlaceholder)
         {
-            var project = BuildUploadProjectFromUi(includeScheduling: false);
+            var project = BuildUploadProjectFromUi(includeScheduling: true);
             project.Description = newDescription ?? string.Empty;
             var applied = _templateService.ApplyTemplate(_lastAppliedTemplate.Body, project);
             _lastAppliedTemplateResult = applied;
-            _lastAppliedTemplateBaseDescription = newDescription;
             SetDescriptionText(applied);
         }
         else

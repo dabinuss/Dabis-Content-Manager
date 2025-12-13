@@ -75,7 +75,7 @@ public partial class MainWindow
             return;
         }
 
-        var project = BuildUploadProjectFromUi(includeScheduling: false);
+        var project = BuildUploadProjectFromUi(includeScheduling: true);
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
         _lastAppliedTemplate = tmpl;
         _lastAppliedTemplateHasDescriptionPlaceholder = TemplateHasDescriptionPlaceholder(tmpl);
