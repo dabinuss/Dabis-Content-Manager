@@ -160,7 +160,7 @@ public sealed class AppLogger : IAppLogger, IDisposable
         try
         {
             _fileQueue.CompleteAdding();
-            _writerTask.Wait(TimeSpan.FromSeconds(2));
+            _writerTask.Wait(TimeSpan.FromMilliseconds(500));
         }
         catch
         {

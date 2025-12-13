@@ -25,6 +25,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace DCM.App;
 
@@ -1158,7 +1159,7 @@ public partial class MainWindow : Window
 
     #region Transkript-Export
 
-    private void TranscriptionExportButton_Click(object sender, RoutedEventArgs e)
+    private async void TranscriptionExportButton_Click(object sender, RoutedEventArgs e)
     {
         var transcript = UploadView.TranscriptTextBox.Text;
         if (string.IsNullOrWhiteSpace(transcript))
@@ -1204,7 +1205,7 @@ public partial class MainWindow : Window
 
         try
         {
-            File.WriteAllText(dialog.FileName, transcript, System.Text.Encoding.UTF8);
+            await File.WriteAllTextAsync(dialog.FileName, transcript, Encoding.UTF8);
             StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportSuccess", dialog.FileName);
             _logger.Info(LocalizationHelper.Format("Log.Transcription.ExportSuccess", dialog.FileName), TranscriptionLogSource);
         }

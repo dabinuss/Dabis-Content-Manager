@@ -72,7 +72,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         _logger = logger ?? AppLogger.Instance;
     }
 
-    private bool EnsureLlmReady()
+    private async Task<bool> EnsureLlmReadyAsync(CancellationToken cancellationToken)
     {
         if (!_settings.IsLocalMode)
         {
@@ -84,27 +84,32 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             return true;
         }
 
-        lock (_initLock)
+        return await Task.Run(() =>
         {
-            if (_llmClient.IsReady)
+            lock (_initLock)
             {
-                return true;
-            }
+                if (_llmClient.IsReady)
+                {
+                    return true;
+                }
 
-            _logger.Debug("Initialisiere LLM-Client...", "ContentSuggestion");
-            var result = _llmClient.TryInitialize();
-            
-            if (result)
-            {
-                _logger.Info("LLM-Client erfolgreich initialisiert", "ContentSuggestion");
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.Debug("Initialisiere LLM-Client...", "ContentSuggestion");
+                var result = _llmClient.TryInitialize();
+
+                if (result)
+                {
+                    _logger.Info("LLM-Client erfolgreich initialisiert", "ContentSuggestion");
+                }
+                else
+                {
+                    _logger.Warning("LLM-Client konnte nicht initialisiert werden", "ContentSuggestion");
+                }
+
+                return result;
             }
-            else
-            {
-                _logger.Warning("LLM-Client konnte nicht initialisiert werden", "ContentSuggestion");
-            }
-            
-            return result;
-        }
+        }, cancellationToken);
     }
 
     private static bool HasTranscript(UploadProject project)
@@ -146,7 +151,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
         }
 
-        if (!EnsureLlmReady())
+        if (!await EnsureLlmReadyAsync(cancellationToken))
         {
             _logger.Debug("Titel: LLM nicht bereit -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestTitlesAsync(project, persona, cancellationToken);
@@ -260,7 +265,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
         }
 
-        if (!EnsureLlmReady())
+        if (!await EnsureLlmReadyAsync(cancellationToken))
         {
             _logger.Debug("Beschreibung: LLM nicht bereit -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestDescriptionAsync(project, persona, cancellationToken);
@@ -521,7 +526,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);
         }
 
-        if (!EnsureLlmReady())
+        if (!await EnsureLlmReadyAsync(cancellationToken))
         {
             _logger.Debug("Tags: LLM nicht bereit -> Fallback", "ContentSuggestion");
             return await _fallbackSuggestionService.SuggestTagsAsync(project, persona, cancellationToken);

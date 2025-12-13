@@ -444,7 +444,7 @@ public partial class MainWindow
                 progressReporter,
                 CancellationToken.None);
 
-            _uploadHistoryService.AddEntry(project, result);
+            await Task.Run(() => _uploadHistoryService.AddEntry(project, result));
             await LoadUploadHistoryAsync();
 
             if (result.Success)
