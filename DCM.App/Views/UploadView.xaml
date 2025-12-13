@@ -667,7 +667,7 @@
         <Setter Property="Padding"
                 Value="0"/>
         <Setter Property="FontFamily"
-                Value="Segoe MDL2 Assets"/>
+                Value="{StaticResource MaterialIconsFont}"/>
         <Setter Property="FontSize"
                 Value="12"/>
         <Setter Property="Foreground"
@@ -776,7 +776,7 @@
               MinWidth="360"
               MaxWidth="780"
               VerticalAlignment="Top"
-              Margin="0,100,0,0">
+              Margin="0,120,0,0">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="2"/>

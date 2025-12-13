@@ -5,8 +5,8 @@
                     xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core">
 
 
-  <FontFamily x:Key="PrimaryFontFamily">Segoe UI</FontFamily>
-  <FontFamily x:Key="MonospaceFontFamily">Consolas</FontFamily>
+  <FontFamily x:Key="PrimaryFont">Segoe UI</FontFamily>
+  <FontFamily x:Key="LogFont">Consolas</FontFamily>
   <FontFamily x:Key="MaterialIconsFont">
     pack://application:,,,/DCM.App;component/Assets/Fonts/MaterialIcons-Regular.ttf#Material Icons
   </FontFamily>
@@ -168,7 +168,7 @@
   <Style x:Key="TextHeadingXL"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeXL}"/>
     <Setter Property="FontWeight"
@@ -180,7 +180,7 @@
   <Style x:Key="TextHeadingL"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeL}"/>
     <Setter Property="FontWeight"
@@ -192,7 +192,7 @@
   <Style x:Key="TextBody"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="FontWeight"
@@ -204,7 +204,7 @@
   <Style x:Key="TextSecondary"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeS}"/>
     <Setter Property="FontWeight"
@@ -216,7 +216,7 @@
   <Style x:Key="TextCaption"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeXS}"/>
     <Setter Property="FontWeight"
@@ -228,7 +228,7 @@
   <Style x:Key="TextLabel"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeS}"/>
     <Setter Property="FontWeight"

@@ -4,10 +4,14 @@
                     xmlns:win="clr-namespace:System.Windows;assembly=PresentationFramework"
                     xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core">
 
+  <!-- Layout relies on Visual tokens (Brushes, Fonts, Sizes, etc.) -->
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="DarkTheme.Visual.xaml" />
   </ResourceDictionary.MergedDictionaries>
-  <!-- SPACING SYSTEM - consistent spacing -->
+
+  <!-- =================================================================== -->
+  <!-- SPACING SYSTEM - consistent spacing                                  -->
+  <!-- =================================================================== -->
 
   <GridLength x:Key="SpacingXS">2</GridLength>
   <GridLength x:Key="SpacingS">4</GridLength>
@@ -47,7 +51,9 @@
   <Thickness x:Key="GroupBoxPadding">12</Thickness>
   <Thickness x:Key="GroupBoxMargin">0, -8</Thickness>
 
-  <!-- CORNER RADIUS SYSTEM - Einheitliche Eckenradien   -->
+  <!-- =================================================================== -->
+  <!-- CORNER RADIUS SYSTEM - Einheitliche Eckenradien                       -->
+  <!-- =================================================================== -->
 
   <CornerRadius x:Key="RadiusS">4</CornerRadius>
   <CornerRadius x:Key="RadiusM">6</CornerRadius>
@@ -55,195 +61,5 @@
   <CornerRadius x:Key="RadiusXL">12</CornerRadius>
   <CornerRadius x:Key="RadiusPill">16</CornerRadius>
   <CornerRadius x:Key="RadiusCircle">999</CornerRadius>
-
-  <Style x:Key="SidebarNavButton"
-         TargetType="RadioButton">
-    <Setter Property="Background"
-            Value="Transparent"/>
-    <Setter Property="Foreground"
-            Value="{StaticResource TextMutedBrush}"/>
-    <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
-    <Setter Property="FontSize"
-            Value="{StaticResource FontSizeM}"/>
-    <Setter Property="BorderThickness"
-            Value="0"/>
-    <Setter Property="Padding"
-            Value="{StaticResource SidebarItemPadding}"/>
-    <Setter Property="Margin"
-            Value="{StaticResource SidebarItemMargin}"/>
-    <Setter Property="Cursor"
-            Value="Hand"/>
-    <Setter Property="HorizontalContentAlignment"
-            Value="Left"/>
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="RadioButton">
-          <Border x:Name="border"
-                  Background="{TemplateBinding Background}"
-                  BorderThickness="1,0,0,0"
-                  BorderBrush="Transparent"
-                  CornerRadius="{StaticResource RadiusL}"
-                  Padding="{TemplateBinding Padding}">
-            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                              VerticalAlignment="Center"/>
-          </Border>
-          <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver"
-                     Value="True">
-              <Setter Property="Foreground"
-                      Value="{StaticResource TextSecondaryBrush}"/>
-              <Setter TargetName="border"
-                      Property="Background"
-                      Value="{StaticResource SidebarHoverBrush}"/>
-            </Trigger>
-            <Trigger Property="IsChecked"
-                     Value="True">
-              <Setter Property="Foreground"
-                      Value="{StaticResource TextPrimaryBrush}"/>
-              <Setter TargetName="border"
-                      Property="BorderBrush"
-                      Value="{StaticResource PrimaryBrush}"/>
-              <Setter TargetName="border"
-                      Property="Background"
-                      Value="{StaticResource SidebarHoverBrush}"/>
-            </Trigger>
-          </ControlTemplate.Triggers>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
-  <!-- DROP ZONE STYLES  -->
-
-  <!-- Dashed border brush for drop zones -->
-  <VisualBrush x:Key="DashedBorderBrush">
-    <VisualBrush.Visual>
-      <Rectangle StrokeDashArray="8 4"
-                 Stroke="{StaticResource BorderBrush}"
-                 StrokeThickness="2"
-                 Width="100"
-                 Height="100"/>
-    </VisualBrush.Visual>
-  </VisualBrush>
-
-  <!-- Video Drop Zone Style -->
-  <Style x:Key="VideoDropZoneStyle"
-         TargetType="Border">
-    <Setter Property="Background"
-            Value="{StaticResource InputFocusBrush}"/>
-    <Setter Property="BorderThickness"
-            Value="2"/>
-    <Setter Property="CornerRadius"
-            Value="{StaticResource RadiusL}"/>
-    <Setter Property="MinHeight"
-            Value="120"/>
-    <Setter Property="Cursor"
-            Value="Hand"/>
-    <Setter Property="AllowDrop"
-            Value="True"/>
-  </Style>
-
-  <!-- Thumbnail Drop Zone Style -->
-  <Style x:Key="ThumbnailDropZoneStyle"
-         TargetType="Border">
-    <Setter Property="Background"
-            Value="{StaticResource InputFocusBrush}"/>
-    <Setter Property="BorderBrush"
-            Value="{StaticResource BorderBrush}"/>
-    <Setter Property="BorderThickness"
-            Value="2"/>
-    <Setter Property="CornerRadius"
-            Value="{StaticResource RadiusM}"/>
-    <Setter Property="HorizontalAlignment"
-            Value="Stretch"/>
-    <Setter Property="Cursor"
-            Value="Hand"/>
-    <Setter Property="AllowDrop"
-            Value="True"/>
-  </Style>
-
-  <!-- PLATFORM TOGGLE BUTTON -->
-
-  <Style x:Key="PlatformToggleButton"
-         TargetType="ToggleButton">
-    <Setter Property="Cursor"
-            Value="Hand"/>
-    <Setter Property="Margin"
-            Value="0,0,8,0"/>
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="ToggleButton">
-          <Border x:Name="PlatformBorder"
-                  Width="90"
-                  Height="60"
-                  CornerRadius="{StaticResource RadiusM}"
-                  BorderThickness="2"
-                  BorderBrush="{StaticResource BorderBrush}"
-                  Background="{StaticResource SurfaceBrush}">
-            <Grid>
-              <ContentPresenter HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
-              <Border x:Name="CheckOverlay"
-                      Background="#2000FF00"
-                      CornerRadius="{StaticResource RadiusM}"
-                      Visibility="Collapsed">
-                <TextBlock Text="OK"
-                           FontSize="{StaticResource FontSizeL}"
-                           FontWeight="Bold"
-                           Foreground="{StaticResource SuccessBrush}"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Top"
-                           Margin="0,4,6,0"/>
-              </Border>
-            </Grid>
-          </Border>
-          <ControlTemplate.Triggers>
-            <Trigger Property="IsChecked"
-                     Value="True">
-              <Setter TargetName="PlatformBorder"
-                      Property="BorderBrush"
-                      Value="{StaticResource SuccessBrush}"/>
-              <Setter TargetName="PlatformBorder"
-                      Property="Background"
-                      Value="#1A4CAF50"/>
-              <Setter TargetName="CheckOverlay"
-                      Property="Visibility"
-                      Value="Visible"/>
-            </Trigger>
-            <Trigger Property="IsMouseOver"
-                     Value="True">
-              <Setter TargetName="PlatformBorder"
-                      Property="Background"
-                      Value="{StaticResource SurfaceLightBrush}"/>
-            </Trigger>
-            <Trigger Property="IsEnabled"
-                     Value="False">
-              <Setter Property="Opacity"
-                      Value="0.4"/>
-              <Setter Property="Cursor"
-                      Value="Arrow"/>
-            </Trigger>
-          </ControlTemplate.Triggers>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
-  <!-- SERVICE ICON BORDER -->
-
-  <Style x:Key="ServiceIconBorder"
-         TargetType="Border">
-    <Setter Property="Width"
-            Value="32"/>
-    <Setter Property="Height"
-            Value="32"/>
-    <Setter Property="CornerRadius"
-            Value="{StaticResource RadiusS}"/>
-    <Setter Property="Margin"
-            Value="2"/>
-    <Setter Property="Cursor"
-            Value="Hand"/>
-  </Style>
 
 </ResourceDictionary>

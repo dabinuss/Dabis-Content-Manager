@@ -113,7 +113,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <TextBlock Text="{Binding FormattedMessage}"
-                       FontFamily="Consolas"
+                       FontFamily="{StaticResource PrimaryFont}"
                        FontSize="12"
                        Padding="4,2"
                        TextWrapping="NoWrap">

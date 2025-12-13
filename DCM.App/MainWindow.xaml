@@ -44,7 +44,7 @@
       <Setter Property="Padding"
               Value="0"/>
       <Setter Property="FontFamily"
-              Value="Segoe MDL2 Assets"/>
+              Value="{StaticResource MaterialIconsFont}"/>
       <Setter Property="FontSize"
               Value="12"/>
       <Setter Property="Foreground"

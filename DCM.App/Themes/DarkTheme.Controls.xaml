@@ -5,10 +5,180 @@
                     xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core">
 
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="DarkTheme.Visual.xaml" />
+    <!-- Visual is merged by Layout -->
     <ResourceDictionary Source="DarkTheme.Layout.xaml" />
   </ResourceDictionary.MergedDictionaries>
-  <!-- BUTTON STYLES                                                    -->
+
+  <!-- =================================================================== -->
+  <!-- COMPONENT STYLES (reusable UI patterns)                               -->
+  <!-- =================================================================== -->
+
+  <!-- Sidebar Navigation Button -->
+  <Style x:Key="SidebarNavButton"
+         TargetType="RadioButton">
+    <Setter Property="Background"
+            Value="Transparent"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextMutedBrush}"/>
+    <Setter Property="FontFamily"
+            Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeM}"/>
+    <Setter Property="BorderThickness"
+            Value="0"/>
+    <Setter Property="Padding"
+            Value="{StaticResource SidebarItemPadding}"/>
+    <Setter Property="Margin"
+            Value="{StaticResource SidebarItemMargin}"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="HorizontalContentAlignment"
+            Value="Left"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Border x:Name="border"
+                  Background="{TemplateBinding Background}"
+                  BorderThickness="1,0,0,0"
+                  BorderBrush="Transparent"
+                  CornerRadius="{StaticResource RadiusL}"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextSecondaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SidebarHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsChecked"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextPrimaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="BorderBrush"
+                      Value="{StaticResource PrimaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SidebarHoverBrush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- DROP ZONE STYLES -->
+
+  <!-- Video Drop Zone Style -->
+  <Style x:Key="VideoDropZoneStyle"
+         TargetType="Border">
+    <Setter Property="Background"
+            Value="{StaticResource InputFocusBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="2"/>
+    <Setter Property="CornerRadius"
+            Value="{StaticResource RadiusL}"/>
+    <Setter Property="MinHeight"
+            Value="120"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="AllowDrop"
+            Value="True"/>
+  </Style>
+
+  <!-- Thumbnail Drop Zone Style -->
+  <Style x:Key="ThumbnailDropZoneStyle"
+         TargetType="Border">
+    <Setter Property="Background"
+            Value="{StaticResource InputFocusBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="2"/>
+    <Setter Property="CornerRadius"
+            Value="{StaticResource RadiusM}"/>
+    <Setter Property="HorizontalAlignment"
+            Value="Stretch"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="AllowDrop"
+            Value="True"/>
+  </Style>
+
+  <!-- PLATFORM TOGGLE BUTTON -->
+  <Style x:Key="PlatformToggleButton"
+         TargetType="ToggleButton">
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="Margin"
+            Value="0,0,8,0"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToggleButton">
+          <Border x:Name="PlatformBorder"
+                  Width="90"
+                  Height="60"
+                  CornerRadius="{StaticResource RadiusM}"
+                  BorderThickness="2"
+                  BorderBrush="{StaticResource BorderBrush}"
+                  Background="{StaticResource SurfaceBrush}">
+            <Grid>
+              <ContentPresenter HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+              <Border x:Name="CheckOverlay"
+                      Background="#2000FF00"
+                      CornerRadius="{StaticResource RadiusM}"
+                      Visibility="Collapsed">
+                <TextBlock Text="OK"
+                           FontSize="{StaticResource FontSizeL}"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource SuccessBrush}"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Top"
+                           Margin="0,4,6,0"/>
+              </Border>
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked"
+                     Value="True">
+              <Setter TargetName="PlatformBorder"
+                      Property="BorderBrush"
+                      Value="{StaticResource SuccessBrush}"/>
+              <Setter TargetName="PlatformBorder"
+                      Property="Background"
+                      Value="#1A4CAF50"/>
+              <Setter TargetName="CheckOverlay"
+                      Property="Visibility"
+                      Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter TargetName="PlatformBorder"
+                      Property="Background"
+                      Value="{StaticResource SurfaceLightBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled"
+                     Value="False">
+              <Setter Property="Opacity"
+                      Value="0.4"/>
+              <Setter Property="Cursor"
+                      Value="Arrow"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- =================================================================== -->
+  <!-- BUTTON STYLES                                                       -->
+  <!-- =================================================================== -->
 
   <!-- Primary Button -->
   <Style x:Key="PrimaryButton"
@@ -18,7 +188,7 @@
     <Setter Property="Foreground"
             Value="{StaticResource PrimaryTextBrush}"/>
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="FontWeight"
@@ -76,7 +246,7 @@
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="BorderThickness"
@@ -132,7 +302,7 @@
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="BorderBrush"
@@ -190,8 +360,11 @@
     </Setter>
   </Style>
 
-  <!-- MODERN GROUPBOX (Card Style)                                     -->
+  <!-- =================================================================== -->
+  <!-- GROUPBOX / CARDS                                                    -->
+  <!-- =================================================================== -->
 
+  <!-- MODERN GROUPBOX (Card Style) -->
   <Style x:Key="ModernGroupBox"
          TargetType="GroupBox">
     <Setter Property="Background"
@@ -210,7 +383,6 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="GroupBox">
-
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
@@ -219,7 +391,7 @@
 
             <!-- Header -->
             <TextBlock Text="{TemplateBinding Header}"
-                       FontFamily="{StaticResource PrimaryFontFamily}"
+                       FontFamily="{StaticResource PrimaryFont}"
                        FontSize="{StaticResource FontSizeS}"
                        FontWeight="{StaticResource FontWeightSemiBold}"
                        Foreground="{StaticResource TextSecondaryBrush}"
@@ -239,7 +411,6 @@
 
           <!-- TRIGGERS -->
           <ControlTemplate.Triggers>
-
             <!-- 1) HOVER -->
             <Trigger Property="IsMouseOver"
                      Value="True">
@@ -258,20 +429,24 @@
                       Property="BorderThickness"
                       Value="1"/>
             </Trigger>
-
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
   </Style>
 
+  <!-- GroupBox (basiert auf ModernGroupBox) -->
+  <Style TargetType="GroupBox"
+         BasedOn="{StaticResource ModernGroupBox}"/>
 
-  <!-- GLOBALE DEFAULT STYLES                                           -->
+  <!-- =================================================================== -->
+  <!-- GLOBAL DEFAULT STYLES                                               -->
+  <!-- =================================================================== -->
 
   <!-- Window -->
   <Style TargetType="Window">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="Background"
@@ -281,7 +456,7 @@
   <!-- TextBlock -->
   <Style TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
   </Style>
@@ -289,7 +464,7 @@
   <!-- Label -->
   <Style TargetType="Label">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="Foreground"
@@ -300,10 +475,14 @@
             Value="Center"/>
   </Style>
 
+  <!-- =================================================================== -->
+  <!-- INPUT CONTROLS                                                      -->
+  <!-- =================================================================== -->
+
   <!-- TextBox mit Error-State -->
   <Style TargetType="TextBox">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="Background"
@@ -408,7 +587,7 @@
   <!-- ComboBox mit Error-State -->
   <Style TargetType="ComboBox">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="Background"
@@ -560,7 +739,7 @@
   <!-- ComboBoxItem -->
   <Style TargetType="ComboBoxItem">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="Background"
             Value="Transparent"/>
     <Setter Property="Foreground"
@@ -599,14 +778,10 @@
     </Setter>
   </Style>
 
-  <!-- GroupBox (basiert auf ModernGroupBox) -->
-  <Style TargetType="GroupBox"
-         BasedOn="{StaticResource ModernGroupBox}"/>
-
   <!-- DatePicker -->
   <Style TargetType="DatePicker">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="Foreground"
@@ -722,7 +897,7 @@
   <!-- DatePickerTextBox -->
   <Style TargetType="DatePickerTextBox">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="Background"
@@ -773,7 +948,7 @@
   <!-- CheckBox -->
   <Style TargetType="CheckBox">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="Foreground"
@@ -902,32 +1077,15 @@
       </Setter.Value>
     </Setter>
   </Style>
-  <!--
 
-    <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
-    <Setter Property="FontSize"
-            Value="{StaticResource FontSizeM}"/>
-    <Setter Property="Foreground"
-            Value="{StaticResource TextSecondaryBrush}"/>
-    <Setter Property="Margin"
-            Value="0,2"/>
-    <Setter Property="Cursor"
-            Value="Hand"/>
-    <Style.Triggers>
-        <Trigger Property="IsEnabled"
-                 Value="False">
-            <Setter Property="Foreground"
-                    Value="{StaticResource TextDisabledBrush}"/>
-        </Trigger>
-    </Style.Triggers>
-    </Style>
--->
+  <!-- =================================================================== -->
+  <!-- LISTS                                                               -->
+  <!-- =================================================================== -->
 
   <!-- ListBox -->
   <Style TargetType="ListBox">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="Background"
             Value="{StaticResource InputBackgroundBrush}"/>
     <Setter Property="Foreground"
@@ -950,7 +1108,7 @@
   <!-- ListBoxItem -->
   <Style TargetType="ListBoxItem">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="Padding"
@@ -969,10 +1127,14 @@
     </Style.Triggers>
   </Style>
 
+  <!-- =================================================================== -->
+  <!-- DATAGRID                                                            -->
+  <!-- =================================================================== -->
+
   <!-- DataGrid -->
   <Style TargetType="DataGrid">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="Background"
@@ -994,7 +1156,7 @@
   <!-- DataGridColumnHeader -->
   <Style TargetType="DataGridColumnHeader">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
             Value="{StaticResource FontSizeM}"/>
     <Setter Property="FontWeight"
@@ -1014,7 +1176,7 @@
   <!-- DataGridCell -->
   <Style TargetType="DataGridCell">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="BorderThickness"
@@ -1035,7 +1197,7 @@
   <!-- DataGridRow -->
   <Style TargetType="DataGridRow">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFontFamily}"/>
+            Value="{StaticResource PrimaryFont}"/>
     <Setter Property="Background"
             Value="Transparent"/>
     <Style.Triggers>
@@ -1051,6 +1213,10 @@
       </Trigger>
     </Style.Triggers>
   </Style>
+
+  <!-- =================================================================== -->
+  <!-- MISC                                                                -->
+  <!-- =================================================================== -->
 
   <!-- Slider -->
   <Style TargetType="Slider">
@@ -1071,7 +1237,10 @@
     </Style.Triggers>
   </Style>
 
-  <!-- ScrollBar -->
+  <!-- =================================================================== -->
+  <!-- SCROLLBAR                                                           -->
+  <!-- =================================================================== -->
+
   <Style x:Key="ScrollBarRepeatButtonStyle"
          TargetType="RepeatButton">
     <Setter Property="Focusable"
@@ -1201,6 +1370,10 @@
       </Trigger>
     </Style.Triggers>
   </Style>
+
+  <!-- =================================================================== -->
+  <!-- PROGRESSBAR                                                         -->
+  <!-- =================================================================== -->
 
   <!-- ProgressBar -->
   <Style TargetType="ProgressBar">
