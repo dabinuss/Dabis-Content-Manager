@@ -4,108 +4,108 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
   <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="{StaticResource SpacingM}"/>
-            <RowDefinition Height="*"/>
-          </Grid.RowDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="{StaticResource SpacingM}"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
 
-          <!-- HEADER -->
-          <StackPanel Grid.Row="0">
-            <TextBlock Text="{DynamicResource History}"
-                       FontSize="{StaticResource FontSizeXL}"
-                       FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"
-                       Margin="0,0,0,16"/>
-          </StackPanel>
+    <!-- HEADER -->
+    <StackPanel Grid.Row="0">
+      <TextBlock Text="{DynamicResource History}"
+                 FontSize="{StaticResource FontSizeXL}"
+                 FontWeight="SemiBold"
+                 Foreground="{StaticResource TextPrimaryBrush}"
+                 Margin="0,0,0,16"/>
+    </StackPanel>
 
-          <Border Grid.Row="1"
-                  Background="{StaticResource SurfaceBrush}"
-                  BorderBrush="{StaticResource BorderBrush}"
-                  BorderThickness="1"
-                  CornerRadius="{StaticResource RadiusL}"
-                  Padding="10,8">
-            <StackPanel Orientation="Horizontal">
-              <Label Content="{DynamicResource Platform}"
-                     Margin="0,0,4,0"/>
-              <ComboBox x:Name="HistoryPlatformFilterComboBox"
-                        Width="120"
-                        Margin="{StaticResource SpacingHorizontalL}"
-                        SelectionChanged="HistoryFilter_Changed">
-                <ComboBoxItem Content="{DynamicResource Common.All}"
-                              IsSelected="True"/>
-                <ComboBoxItem Content="{DynamicResource Platform.YouTube}"
-                              Tag="{x:Static core:PlatformType.YouTube}"/>
-              </ComboBox>
+    <Border Grid.Row="1"
+            Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource RadiusL}"
+            Padding="10,8">
+      <StackPanel Orientation="Horizontal">
+        <Label Content="{DynamicResource Platform}"
+               Margin="0,0,4,0"/>
+        <ComboBox x:Name="HistoryPlatformFilterComboBox"
+                  Width="120"
+                  Margin="{StaticResource SpacingHorizontalL}"
+                  SelectionChanged="HistoryFilter_Changed">
+          <ComboBoxItem Content="{DynamicResource Common.All}"
+                        IsSelected="True"/>
+          <ComboBoxItem Content="{DynamicResource Platform.YouTube}"
+                        Tag="{x:Static core:PlatformType.YouTube}"/>
+        </ComboBox>
 
-              <Label Content="Status:"
-                     Margin="0,0,4,0"/>
-              <ComboBox x:Name="HistoryStatusFilterComboBox"
-                        Width="120"
-                        Margin="{StaticResource SpacingHorizontalL}"
-                        SelectionChanged="HistoryFilter_Changed">
-                <ComboBoxItem Content="Alle"
-                              IsSelected="True"/>
-                <ComboBoxItem Content="{DynamicResource History.Success}"
-                              Tag="Success"/>
-                <ComboBoxItem Content="{DynamicResource History.Error}"
-                              Tag="Error"/>
-              </ComboBox>
+        <Label Content="{DynamicResource History.Filter.Status}"
+               Margin="0,0,4,0"/>
+        <ComboBox x:Name="HistoryStatusFilterComboBox"
+                  Width="120"
+                  Margin="{StaticResource SpacingHorizontalL}"
+                  SelectionChanged="HistoryFilter_Changed">
+          <ComboBoxItem Content="{DynamicResource History.Filter.All}"
+                        IsSelected="True"/>
+          <ComboBoxItem Content="{DynamicResource History.Success}"
+                        Tag="Success"/>
+          <ComboBoxItem Content="{DynamicResource History.Error}"
+                        Tag="Error"/>
+        </ComboBox>
 
-              <Button x:Name="HistoryClearButton"
-                      Content="{DynamicResource History.ClearList}"
-                      Style="{StaticResource SecondaryButton}"
-                      Click="HistoryClearButton_Click"/>
-            </StackPanel>
-          </Border>
+        <Button x:Name="HistoryClearButton"
+                Content="{DynamicResource History.ClearList}"
+                Style="{StaticResource SecondaryButton}"
+                Click="HistoryClearButton_Click"/>
+      </StackPanel>
+    </Border>
 
-          <Border Grid.Row="3"
-                  Background="{StaticResource SurfaceBrush}"
-                  BorderBrush="{StaticResource BorderBrush}"
-                  BorderThickness="1"
-                  CornerRadius="{StaticResource RadiusL}"
-                  Padding="1">
-            <DataGrid x:Name="HistoryDataGrid"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      CanUserAddRows="False"
-                      HeadersVisibility="Column"
-                      SelectionMode="Single"
-                      EnableRowVirtualization="True"
-                      EnableColumnVirtualization="True"
-                      VirtualizingPanel.IsVirtualizing="True"
-                      VirtualizingPanel.VirtualizationMode="Recycling"
-                      ScrollViewer.CanContentScroll="True"
-                      MouseDoubleClick="HistoryDataGrid_MouseDoubleClick">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="{DynamicResource History.List.DateTime}"
-                                    Binding="{Binding DateTime, StringFormat=G}"
-                                    Width="140"/>
-                <DataGridTextColumn Header="{DynamicResource Common.Platform}"
-                                    Binding="{Binding Platform}"
-                                    Width="80"/>
-                <DataGridTextColumn Header="{DynamicResource History.List.Title}"
-                                    Binding="{Binding VideoTitle}"
-                                    Width="*"/>
-                <DataGridTextColumn Header="{DynamicResource Common.Status}"
-                                    Binding="{Binding Status}"
-                                    Width="70"/>
-                <DataGridTemplateColumn Header="{DynamicResource History.List.Link}"
-                                        Width="180">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <TextBlock TextTrimming="CharacterEllipsis">
+    <Border Grid.Row="3"
+            Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource RadiusL}"
+            Padding="1">
+      <DataGrid x:Name="HistoryDataGrid"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                CanUserAddRows="False"
+                HeadersVisibility="Column"
+                SelectionMode="Single"
+                EnableRowVirtualization="True"
+                EnableColumnVirtualization="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                ScrollViewer.CanContentScroll="True"
+                MouseDoubleClick="HistoryDataGrid_MouseDoubleClick">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="{DynamicResource History.List.DateTime}"
+                              Binding="{Binding DateTime, StringFormat=G}"
+                              Width="140"/>
+          <DataGridTextColumn Header="{DynamicResource Common.Platform}"
+                              Binding="{Binding Platform}"
+                              Width="80"/>
+          <DataGridTextColumn Header="{DynamicResource History.List.Title}"
+                              Binding="{Binding VideoTitle}"
+                              Width="*"/>
+          <DataGridTextColumn Header="{DynamicResource Common.Status}"
+                              Binding="{Binding Status}"
+                              Width="70"/>
+          <DataGridTemplateColumn Header="{DynamicResource History.List.Link}"
+                                  Width="180">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock TextTrimming="CharacterEllipsis">
                                                 <Hyperlink NavigateUri="{Binding VideoUrl}"
                                                            RequestNavigate="OpenUrlInBrowser">
                                                     <Run Text="{Binding VideoUrl}"/>
                                                 </Hyperlink>
-                      </TextBlock>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Border>
+                </TextBlock>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
   </Grid>
 </UserControl>

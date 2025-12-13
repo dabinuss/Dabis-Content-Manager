@@ -63,8 +63,8 @@
   <sys:String x:Key="Transcription.Phase.Completed">Abgeschlossen</sys:String>
   <sys:String x:Key="Transcription.Phase.Failed">Fehlgeschlagen</sys:String>
   <sys:String x:Key="Transcription.Progress.Transcribing">Transkribiere... {0:F0}%</sys:String>
-  <sys:String x:Key="Transcription.Progress.TimeMinutes"> (~{0:F0} Min. verbleibend)</sys:String>
-  <sys:String x:Key="Transcription.Progress.TimeSeconds"> (~{0:F0}s verbleibend)</sys:String>
+  <sys:String x:Key="Transcription.Progress.TimeMinutes">(~{0:F0} Min. verbleibend)</sys:String>
+  <sys:String x:Key="Transcription.Progress.TimeSeconds">(~{0:F0}s verbleibend)</sys:String>
   <sys:String x:Key="Transcription.Dependency.Type.FFmpeg">FFmpeg</sys:String>
   <sys:String x:Key="Transcription.Dependency.Type.Whisper">Whisper-Modell</sys:String>
   <sys:String x:Key="Transcription.Dependency.Progress.Percent">{0}: {1:F0}%</sys:String>
@@ -269,6 +269,7 @@
   <sys:String x:Key="Accounts.ComingSoon">
     Weitere Dienste wie TikTok und Instagram folgen in kommenden Versionen.
   </sys:String>
+  <sys:String x:Key="Accounts.YouTube.Test">test</sys:String>
   <sys:String x:Key="Accounts.YouTube">YouTube-Konto</sys:String>
   <sys:String x:Key="Accounts.YouTube.Short">YT</sys:String>
   <sys:String x:Key="Accounts.YouTube.Connect">Verbinden</sys:String>
@@ -302,6 +303,7 @@
   <sys:String x:Key="Templates.Fields.Notes">Notiz zur Vorlage</sys:String>
   <sys:String x:Key="Templates.Fields.TemplateBody">Vorlagen Text</sys:String>
   <sys:String x:Key="Templates.DefaultName">Neues Template</sys:String>
+  <sys:String x:Key="Templates.Placeholders.Insert">Platzhalter einfuegen</sys:String>
   <sys:String x:Key="Status.Templates.LoadFailed">Vorlagen konnten nicht geladen werden: {0}</sys:String>
   <sys:String x:Key="Status.Templates.SaveFailed">Vorlagen konnten nicht gespeichert werden: {0}</sys:String>
   <sys:String x:Key="Status.Template.AutoApplied">Vorlage "{0}" automatisch angewendet.</sys:String>
@@ -330,12 +332,16 @@
   <sys:String x:Key="Status.History.LoadFailed">Upload-Historie konnte nicht geladen werden: {0}</sys:String>
   <sys:String x:Key="Status.History.Cleared">Upload-Historie gelöscht.</sys:String>
   <sys:String x:Key="Status.History.ClearFailed">Historie konnte nicht gelöscht werden: {0}</sys:String>
+  <sys:String x:Key="History.Filter.Status">Status:</sys:String>
+  <sys:String x:Key="History.Filter.All">Alle</sys:String>
 
   <!-- Settings -->
   <sys:String x:Key="Settings">Einstellungen</sys:String>
   <sys:String x:Key="Settings.SaveAll">Alle Änderungen Speichern</sys:String>
   <sys:String x:Key="Settings.Language">Sprache</sys:String>
   <sys:String x:Key="Settings.Language.Restart.Hint">Einige Änderungen werden sofort wirksam.</sys:String>
+  <sys:String x:Key="Settings.Theme">Theme</sys:String>
+  <sys:String x:Key="Settings.Theme.Dark">Dark</sys:String>
   <sys:String x:Key="Settings.StandardFolders">Standard-Ordner</sys:String>
   <sys:String x:Key="Settings.VideoFolder">Video-Ordner</sys:String>
   <sys:String x:Key="Settings.ThumbnailFolder">Thumbnail-Ordner</sys:String>
@@ -361,6 +367,10 @@
   <sys:String x:Key="Settings.WhisperLanguage.Detect">Automatisch erkennen</sys:String>
   <sys:String x:Key="Settings.Msg.NotChecked">nicht geprüft</sys:String>
   <sys:String x:Key="Settings.Whisper.Download">Whisper installieren</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Count">Vorschlagsanzahl</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Title">Titel</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Description">Beschreibung</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Tags">Tags</sys:String>
   <sys:String x:Key="Settings.LLM">KI Einstellungen</sys:String>
   <sys:String x:Key="Settings.LLM.Mode">Modus</sys:String>
   <sys:String x:Key="Settings.LLM.Off">Aus</sys:String>
@@ -373,6 +383,7 @@
   <sys:String x:Key="Settings.LLM.ModelType.Tooltip">Erkennt den Modelltyp automatisch anhand des Dateinamens.</sys:String>
   <sys:String x:Key="Settings.LLM.SystemPrompt">Modeltyp</sys:String>
   <sys:String x:Key="Settings.LLM.Status">Nicht konfiguriert</sys:String>
+  <sys:String x:Key="Settings.LLM.MaxTokensHint">(64-1024)</sys:String>
   <sys:String x:Key="Dialog.LLMModel.Title">GGUF-Modelldatei auswählen</sys:String>
   <sys:String x:Key="Dialog.LLMModel.Filter">GGUF-Modelle|*.gguf|Alle Dateien|*.*</sys:String>
   <sys:String x:Key="Status.Settings.LoadFailed">Einstellungen konnten nicht geladen werden: {0}</sys:String>

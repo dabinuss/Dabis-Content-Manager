@@ -63,8 +63,8 @@
   <sys:String x:Key="Transcription.Phase.Completed">Completed</sys:String>
   <sys:String x:Key="Transcription.Phase.Failed">Failed</sys:String>
   <sys:String x:Key="Transcription.Progress.Transcribing">Transcribing... {0:F0}%</sys:String>
-  <sys:String x:Key="Transcription.Progress.TimeMinutes"> (~{0:F0} min remaining)</sys:String>
-  <sys:String x:Key="Transcription.Progress.TimeSeconds"> (~{0:F0}s remaining)</sys:String>
+  <sys:String x:Key="Transcription.Progress.TimeMinutes">(~{0:F0} min remaining)</sys:String>
+  <sys:String x:Key="Transcription.Progress.TimeSeconds">(~{0:F0}s remaining)</sys:String>
   <sys:String x:Key="Transcription.Dependency.Type.FFmpeg">FFmpeg</sys:String>
   <sys:String x:Key="Transcription.Dependency.Type.Whisper">Whisper model</sys:String>
   <sys:String x:Key="Transcription.Dependency.Progress.Percent">{0}: {1:F0}%</sys:String>
@@ -269,6 +269,7 @@
   <sys:String x:Key="Accounts.ComingSoon">
     Additional services like TikTok and Instagram will be available in future versions.
   </sys:String>
+  <sys:String x:Key="Accounts.YouTube.Test">test</sys:String>
   <sys:String x:Key="Accounts.YouTube">YouTube Account</sys:String>
   <sys:String x:Key="Accounts.YouTube.Short">YT</sys:String>
   <sys:String x:Key="Accounts.YouTube.Connect">Connect</sys:String>
@@ -294,6 +295,7 @@
 
   <!-- Templates -->
   <sys:String x:Key="Templates">Templates</sys:String>
+  <sys:String x:Key="Templates.Placeholders.Insert">Insert placeholders</sys:String>
   <sys:String x:Key="Templates.Header">Available Templates</sys:String>
   <sys:String x:Key="Templates.Edit">Edit Template</sys:String>
   <sys:String x:Key="Templates.Fields.Name">Name</sys:String>
@@ -319,6 +321,8 @@
 
   <!-- History -->
   <sys:String x:Key="History">History</sys:String>
+  <sys:String x:Key="History.Filter.Status">Status:</sys:String>
+  <sys:String x:Key="History.Filter.All">All</sys:String>
   <sys:String x:Key="History.Success">Success</sys:String>
   <sys:String x:Key="History.Error">Error</sys:String>
   <sys:String x:Key="History.List.DateTime">Date/Time</sys:String>
@@ -336,6 +340,8 @@
   <sys:String x:Key="Settings.SaveAll">Save All Changes</sys:String>
   <sys:String x:Key="Settings.Language">Language</sys:String>
   <sys:String x:Key="Settings.Language.Restart.Hint">Some changes take effect immediately.</sys:String>
+  <sys:String x:Key="Settings.Theme">Theme</sys:String>
+  <sys:String x:Key="Settings.Theme.Dark">Dark</sys:String>
   <sys:String x:Key="Settings.StandardFolders">Default Folders</sys:String>
   <sys:String x:Key="Settings.VideoFolder">Video Folder</sys:String>
   <sys:String x:Key="Settings.ThumbnailFolder">Thumbnail Folder</sys:String>
@@ -361,6 +367,11 @@
   <sys:String x:Key="Settings.WhisperLanguage.Detect">Detect Automatically</sys:String>
   <sys:String x:Key="Settings.Msg.NotChecked">not checked</sys:String>
   <sys:String x:Key="Settings.Whisper.Download">Install Whisper</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Count">Suggestion count</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Title">Title</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Description">Description</sys:String>
+  <sys:String x:Key="Settings.Suggestions.Tags">Tags</sys:String>
+  <sys:String x:Key="Settings.LLM.MaxTokensHint">(64-1024)</sys:String>
   <sys:String x:Key="Settings.LLM">AI Settings</sys:String>
   <sys:String x:Key="Settings.LLM.Mode">Mode</sys:String>
   <sys:String x:Key="Settings.LLM.Off">Off</sys:String>

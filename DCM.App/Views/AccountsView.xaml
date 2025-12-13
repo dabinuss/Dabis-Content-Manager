@@ -3,282 +3,282 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
-<Grid Margin="0,0,16,0">
-  <Grid.RowDefinitions>
-    <RowDefinition Height="Auto"/>
-    <!-- Header -->
-    <RowDefinition Height="Auto"/>
-    <!-- Service Tabs -->
-    <RowDefinition Height="{StaticResource SpacingL}"/>
-    <RowDefinition Height="*"/>
-    <!-- Content -->
-  </Grid.RowDefinitions>
+  <Grid Margin="0,0,16,0">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <!-- Header -->
+      <RowDefinition Height="Auto"/>
+      <!-- Service Tabs -->
+      <RowDefinition Height="{StaticResource SpacingL}"/>
+      <RowDefinition Height="*"/>
+      <!-- Content -->
+    </Grid.RowDefinitions>
 
-  <!-- HEADER -->
-  <StackPanel Grid.Row="0">
-    <TextBlock Text="{DynamicResource Accounts}"
-               FontSize="{StaticResource FontSizeXL}"
-               FontWeight="SemiBold"
-               Foreground="{StaticResource TextPrimaryBrush}"/>
-  </StackPanel>
+    <!-- HEADER -->
+    <StackPanel Grid.Row="0">
+      <TextBlock Text="{DynamicResource Accounts}"
+                 FontSize="{StaticResource FontSizeXL}"
+                 FontWeight="SemiBold"
+                 Foreground="{StaticResource TextPrimaryBrush}"/>
+    </StackPanel>
 
-  <!-- SERVICE-TABS OBEN (YOUTUBE / TIKTOK / INSTAGRAM) -->
-  <StackPanel Grid.Row="1"
-              Orientation="Horizontal"
-              Margin="0,16,0,0">
-    <!-- YouTube Tab -->
-    <ToggleButton x:Name="AccountsYouTubeTab"
-                  Style="{StaticResource PlatformToggleButton}"
-                  IsChecked="True"
-                  Margin="0,0,8,0"
-                  Tag="YouTube"
-                  Checked="AccountsServiceTab_Checked">
-      <StackPanel VerticalAlignment="Center"
-                  HorizontalAlignment="Center">
-        <TextBlock Style="{StaticResource IconL}"
-                   Text="&#xe038;"
-                   Margin="0,0,0,4"/>
-        <TextBlock Text=" test"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextSecondaryBrush}"
-                   HorizontalAlignment="Center"
-                   TextWrapping="Wrap"/>
-      </StackPanel>
-    </ToggleButton>
-
-    <!-- TikTok Tab (Platzhalter, deaktiviert) -->
-    <ToggleButton x:Name="AccountsTikTokTab"
-                  Style="{StaticResource PlatformToggleButton}"
-                  IsEnabled="False"
-                  Margin="0,0,8,0"
-                  Tag="TikTok"
-                  Checked="AccountsServiceTab_Checked">
-      <StackPanel VerticalAlignment="Center"
-                  HorizontalAlignment="Center">
-        <Border Width="28"
-                Height="20"
-                CornerRadius="{StaticResource RadiusM}"
-                Background="Black"
-                Margin="0,0,0,4">
-          <TextBlock Text="♪"
+    <!-- SERVICE-TABS OBEN (YOUTUBE / TIKTOK / INSTAGRAM) -->
+    <StackPanel Grid.Row="1"
+                Orientation="Horizontal"
+                Margin="0,16,0,0">
+      <!-- YouTube Tab -->
+      <ToggleButton x:Name="AccountsYouTubeTab"
+                    Style="{StaticResource PlatformToggleButton}"
+                    IsChecked="True"
+                    Margin="0,0,8,0"
+                    Tag="YouTube"
+                    Checked="AccountsServiceTab_Checked">
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+          <TextBlock Style="{StaticResource IconL}"
+                     Text="&#xe038;"
+                     Margin="0,0,0,4"/>
+          <TextBlock Text="{DynamicResource Accounts.YouTube.Test}"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextSecondaryBrush}"
                      HorizontalAlignment="Center"
-                     VerticalAlignment="Center"
-                     FontSize="{StaticResource FontSizeS}"
-                     Foreground="White"/>
-        </Border>
-        <TextBlock Text="{DynamicResource Platform.TikTok}"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   HorizontalAlignment="Center"
-                   TextWrapping="Wrap"/>
-      </StackPanel>
-    </ToggleButton>
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </ToggleButton>
 
-    <!-- Instagram Tab (Platzhalter, deaktiviert) -->
-    <ToggleButton x:Name="AccountsInstagramTab"
-                  Style="{StaticResource PlatformToggleButton}"
-                  IsEnabled="False"
-                  Tag="Instagram"
-                  Checked="AccountsServiceTab_Checked">
-      <StackPanel VerticalAlignment="Center"
-                  HorizontalAlignment="Center">
-        <Border Width="28"
-                Height="20"
-                CornerRadius="{StaticResource RadiusM}"
-                Background="{StaticResource PlatformInstagramBrush}"
-                Margin="0,0,0,4">
-          <TextBlock Text="◎"
+      <!-- TikTok Tab (Platzhalter, deaktiviert) -->
+      <ToggleButton x:Name="AccountsTikTokTab"
+                    Style="{StaticResource PlatformToggleButton}"
+                    IsEnabled="False"
+                    Margin="0,0,8,0"
+                    Tag="TikTok"
+                    Checked="AccountsServiceTab_Checked">
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+          <Border Width="28"
+                  Height="20"
+                  CornerRadius="{StaticResource RadiusM}"
+                  Background="Black"
+                  Margin="0,0,0,4">
+            <TextBlock Text="♪"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontSize="{StaticResource FontSizeS}"
+                       Foreground="White"/>
+          </Border>
+          <TextBlock Text="{DynamicResource Platform.TikTok}"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextMutedBrush}"
                      HorizontalAlignment="Center"
-                     VerticalAlignment="Center"
-                     FontSize="{StaticResource FontSizeS}"
-                     Foreground="White"/>
-        </Border>
-        <TextBlock Text="{DynamicResource Platform.Instagram}"
-                   FontSize="{StaticResource FontSizeXS}"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </ToggleButton>
+
+      <!-- Instagram Tab (Platzhalter, deaktiviert) -->
+      <ToggleButton x:Name="AccountsInstagramTab"
+                    Style="{StaticResource PlatformToggleButton}"
+                    IsEnabled="False"
+                    Tag="Instagram"
+                    Checked="AccountsServiceTab_Checked">
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+          <Border Width="28"
+                  Height="20"
+                  CornerRadius="{StaticResource RadiusM}"
+                  Background="{StaticResource PlatformInstagramBrush}"
+                  Margin="0,0,0,4">
+            <TextBlock Text="◎"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontSize="{StaticResource FontSizeS}"
+                       Foreground="White"/>
+          </Border>
+          <TextBlock Text="{DynamicResource Platform.Instagram}"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     HorizontalAlignment="Center"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+      </ToggleButton>
+    </StackPanel>
+
+    <!-- CONTENT-BEREICHE PRO SERVICE -->
+    <Grid Grid.Row="3">
+
+      <!-- YOUTUBE CONTENT -->
+      <Grid x:Name="AccountsYouTubeContent">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*"
+                            MinWidth="320"/>
+          <ColumnDefinition Width="{StaticResource SpacingXL}"/>
+          <ColumnDefinition Width="*"
+                            MinWidth="260"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- LINKE SPALTE: VERBINDUNG + SICHERHEIT -->
+        <StackPanel Grid.Column="0">
+
+          <!-- Verbindung -->
+          <GroupBox>
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Accounts.YouTube}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,4"/>
+
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon / Avatar -->
+                <Border Grid.Column="0"
+                        Width="40"
+                        Height="40"
+                        CornerRadius="{StaticResource RadiusCircle}"
+                        Background="{StaticResource PlatformYouTubeBrush}"
+                        Margin="0,0,12,0">
+                  <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
+                             Foreground="White"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             FontWeight="Bold"
+                             FontSize="{StaticResource FontSizeM}"/>
+                </Border>
+
+                <!-- Status -->
+                <StackPanel Grid.Column="1"
+                            VerticalAlignment="Center">
+                  <TextBlock x:Name="YouTubeAccountStatusTextBlock"
+                             Text="{DynamicResource Accounts.YouTube.Msg.NotConnected}"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"/>
+                  <TextBlock Text="{DynamicResource Accounts.YouTube.Msg.ClickToConnect}"
+                             Foreground="{StaticResource TextMutedBrush}"
+                             FontSize="{StaticResource FontSizeS}"/>
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                  <Button x:Name="YouTubeConnectButton"
+                          Content="{DynamicResource Accounts.YouTube.Connect}"
+                          Style="{StaticResource PrimaryButton}"
+                          Click="YouTubeConnectButton_Click"
+                          Margin="0,0,6,0"/>
+                  <Button x:Name="YouTubeDisconnectButton"
+                          Content="{DynamicResource Accounts.YouTube.Disconnect}"
+                          Style="{StaticResource SecondaryButton}"
+                          Click="YouTubeDisconnectButton_Click"/>
+                </StackPanel>
+              </Grid>
+
+              <!-- Kurzbeschreibung -->
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Description}"
+                         Margin="0,10,0,0"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </GroupBox>
+
+          <!-- Sicherheit / Speicherung -->
+          <GroupBox Margin="0,12,0,0">
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.SecurityTitle}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,4"/>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line1}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,2"/>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line2}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,2"/>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line3}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </GroupBox>
+
+        </StackPanel>
+
+        <!-- RECHTE SPALTE: PLAYLISTS + NUTZUNG -->
+        <StackPanel Grid.Column="2">
+
+          <!-- Playlists / Standard-Playlist -->
+          <GroupBox>
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Playlists}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,4"/>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Playlists.Descr}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,6"/>
+              <ListBox x:Name="YouTubePlaylistsListBox"
+                       DisplayMemberPath="Title"
+                       Height="200"
+                       SelectionChanged="YouTubePlaylistsListBox_SelectionChanged"/>
+            </StackPanel>
+          </GroupBox>
+
+          <!-- Wie DCM das Konto nutzt -->
+          <GroupBox Margin="0,12,0,0">
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.UsageTitle}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,4"/>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line1}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,2"/>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line2}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,2"/>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line3}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </GroupBox>
+
+        </StackPanel>
+      </Grid>
+
+      <!-- TIKTOK CONTENT (PLATZHALTER) -->
+      <Grid x:Name="AccountsTikTokContent"
+            Visibility="Collapsed">
+        <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
+                   FontSize="{StaticResource FontSizeS}"
                    Foreground="{StaticResource TextMutedBrush}"
-                   HorizontalAlignment="Center"
-                   TextWrapping="Wrap"/>
-      </StackPanel>
-    </ToggleButton>
-  </StackPanel>
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Top"
+                   Margin="0,4,0,0"/>
+      </Grid>
 
-  <!-- CONTENT-BEREICHE PRO SERVICE -->
-  <Grid Grid.Row="3">
+      <!-- INSTAGRAM CONTENT (PLATZHALTER) -->
+      <Grid x:Name="AccountsInstagramContent"
+            Visibility="Collapsed">
+        <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
+                   FontSize="{StaticResource FontSizeS}"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Top"
+                   Margin="0,4,0,0"/>
+      </Grid>
 
-    <!-- YOUTUBE CONTENT -->
-    <Grid x:Name="AccountsYouTubeContent">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="2*"
-                          MinWidth="320"/>
-        <ColumnDefinition Width="{StaticResource SpacingXL}"/>
-        <ColumnDefinition Width="*"
-                          MinWidth="260"/>
-      </Grid.ColumnDefinitions>
-
-      <!-- LINKE SPALTE: VERBINDUNG + SICHERHEIT -->
-      <StackPanel Grid.Column="0">
-
-        <!-- Verbindung -->
-        <GroupBox>
-          <StackPanel>
-            <TextBlock Text="{DynamicResource Accounts.YouTube}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
-
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-
-              <!-- Icon / Avatar -->
-              <Border Grid.Column="0"
-                      Width="40"
-                      Height="40"
-                      CornerRadius="{StaticResource RadiusCircle}"
-                      Background="{StaticResource PlatformYouTubeBrush}"
-                      Margin="0,0,12,0">
-                <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
-                           Foreground="White"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           FontWeight="Bold"
-                           FontSize="{StaticResource FontSizeM}"/>
-              </Border>
-
-              <!-- Status -->
-              <StackPanel Grid.Column="1"
-                          VerticalAlignment="Center">
-                <TextBlock x:Name="YouTubeAccountStatusTextBlock"
-                           Text="{DynamicResource Accounts.YouTube.Msg.NotConnected}"
-                           Foreground="{StaticResource TextPrimaryBrush}"
-                           FontWeight="Medium"
-                           FontSize="{StaticResource FontSizeM}"/>
-                <TextBlock Text="{DynamicResource Accounts.YouTube.Msg.ClickToConnect}"
-                           Foreground="{StaticResource TextMutedBrush}"
-                           FontSize="{StaticResource FontSizeS}"/>
-              </StackPanel>
-
-              <!-- Buttons -->
-              <StackPanel Grid.Column="2"
-                          Orientation="Horizontal"
-                          VerticalAlignment="Center">
-                <Button x:Name="YouTubeConnectButton"
-                        Content="{DynamicResource Accounts.YouTube.Connect}"
-                        Style="{StaticResource PrimaryButton}"
-                        Click="YouTubeConnectButton_Click"
-                        Margin="0,0,6,0"/>
-                <Button x:Name="YouTubeDisconnectButton"
-                        Content="{DynamicResource Accounts.YouTube.Disconnect}"
-                        Style="{StaticResource SecondaryButton}"
-                        Click="YouTubeDisconnectButton_Click"/>
-              </StackPanel>
-            </Grid>
-
-            <!-- Kurzbeschreibung -->
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Description}"
-                       Margin="0,10,0,0"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"/>
-          </StackPanel>
-        </GroupBox>
-
-        <!-- Sicherheit / Speicherung -->
-        <GroupBox Margin="0,12,0,0">
-          <StackPanel>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.SecurityTitle}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line1}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,2"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line2}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,2"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line3}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"/>
-          </StackPanel>
-        </GroupBox>
-
-      </StackPanel>
-
-      <!-- RECHTE SPALTE: PLAYLISTS + NUTZUNG -->
-      <StackPanel Grid.Column="2">
-
-        <!-- Playlists / Standard-Playlist -->
-        <GroupBox>
-          <StackPanel>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Playlists}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Playlists.Descr}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,6"/>
-            <ListBox x:Name="YouTubePlaylistsListBox"
-                     DisplayMemberPath="Title"
-                     Height="200"
-                     SelectionChanged="YouTubePlaylistsListBox_SelectionChanged"/>
-          </StackPanel>
-        </GroupBox>
-
-        <!-- Wie DCM das Konto nutzt -->
-        <GroupBox Margin="0,12,0,0">
-          <StackPanel>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.UsageTitle}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line1}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,2"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line2}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,2"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line3}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       TextWrapping="Wrap"/>
-          </StackPanel>
-        </GroupBox>
-
-      </StackPanel>
     </Grid>
-
-    <!-- TIKTOK CONTENT (PLATZHALTER) -->
-    <Grid x:Name="AccountsTikTokContent"
-          Visibility="Collapsed">
-      <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
-                 FontSize="{StaticResource FontSizeS}"
-                 Foreground="{StaticResource TextMutedBrush}"
-                 TextWrapping="Wrap"
-                 VerticalAlignment="Top"
-                 Margin="0,4,0,0"/>
-    </Grid>
-
-    <!-- INSTAGRAM CONTENT (PLATZHALTER) -->
-    <Grid x:Name="AccountsInstagramContent"
-          Visibility="Collapsed">
-      <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
-                 FontSize="{StaticResource FontSizeS}"
-                 Foreground="{StaticResource TextMutedBrush}"
-                 TextWrapping="Wrap"
-                 VerticalAlignment="Top"
-                 Margin="0,4,0,0"/>
-    </Grid>
-
   </Grid>
-</Grid>
 </UserControl>

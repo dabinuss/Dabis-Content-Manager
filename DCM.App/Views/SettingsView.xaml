@@ -93,13 +93,13 @@
                 <!-- Theme -->
                 <GroupBox>
                   <StackPanel>
-                    <TextBlock Text="Theme"
+                    <TextBlock Text="{DynamicResource Settings.Theme}"
                                Style="{StaticResource TextLabel}"
                                Margin="0,-6,0,8"/>
                     <ComboBox x:Name="ThemeComboBox"
                               MinWidth="200"
                               SelectionChanged="ThemeComboBox_SelectionChanged">
-                      <ComboBoxItem Content="Dark"
+                      <ComboBoxItem Content="{DynamicResource Settings.Theme.Dark}"
                                     Tag="Dark"
                                     IsSelected="True"/>
                     </ComboBox>
@@ -494,7 +494,7 @@
                                    Margin="8,0,0,0"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    FontSize="{StaticResource FontSizeS}"
-                                   Text="(64-1024)"/>
+                                   Text="{DynamicResource Settings.LLM.MaxTokensHint}"/>
                       </StackPanel>
 
                       <TextBlock Grid.Row="2"
@@ -583,7 +583,7 @@
                 <!-- Vorschlagsanzahl -->
                 <GroupBox>
                   <StackPanel>
-                    <TextBlock Text="Vorschlagsanzahl"
+                    <TextBlock Text="{DynamicResource Settings.Suggestions.Count}"
                                Style="{StaticResource TextLabel}"
                                Margin="0,-6,0,8"/>
                     <Grid>
@@ -601,7 +601,7 @@
 
                       <TextBlock Grid.Row="0"
                                  Grid.Column="0"
-                                 Text="Titel"
+                                 Text="{DynamicResource Settings.Suggestions.Title}"
                                  VerticalAlignment="Center"
                                  Foreground="{StaticResource TextSecondaryBrush}"/>
                       <ComboBox x:Name="TitleSuggestionCountComboBox"
@@ -618,7 +618,7 @@
 
                       <TextBlock Grid.Row="2"
                                  Grid.Column="0"
-                                 Text="Beschreibung"
+                                 Text="{DynamicResource Settings.Suggestions.Description}"
                                  VerticalAlignment="Center"
                                  Foreground="{StaticResource TextSecondaryBrush}"/>
                       <ComboBox x:Name="DescriptionSuggestionCountComboBox"
@@ -635,7 +635,7 @@
 
                       <TextBlock Grid.Row="4"
                                  Grid.Column="0"
-                                 Text="Tags"
+                                 Text="{DynamicResource Settings.Suggestions.Tags}"
                                  VerticalAlignment="Center"
                                  Foreground="{StaticResource TextSecondaryBrush}"/>
                       <ComboBox x:Name="TagsSuggestionCountComboBox"

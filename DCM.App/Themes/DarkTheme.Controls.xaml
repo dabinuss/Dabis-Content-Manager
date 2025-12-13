@@ -133,26 +133,6 @@
   </Style>
 
   <!-- =================================================================== -->
-  <!-- UPLOAD / DROPZONE PATTERNS                                           -->
-  <!-- =================================================================== -->
-
-  <!-- Dashed dropzone border brush (used for VideoDropZone) -->
-  <VisualBrush x:Key="DropZoneDashedBorderBrush"
-               Stretch="Fill"
-               Viewbox="0,0,100,100"
-               ViewboxUnits="Absolute">
-    <VisualBrush.Visual>
-      <Rectangle Width="100"
-                 Height="100"
-                 StrokeDashArray="8 4"
-                 Stroke="{StaticResource BorderBrush}"
-                 StrokeThickness="2"
-                 RadiusX="8"
-                 RadiusY="8"/>
-    </VisualBrush.Visual>
-  </VisualBrush>
-
-  <!-- =================================================================== -->
   <!-- SUGGESTION OVERLAY (UploadView)                                      -->
   <!-- =================================================================== -->
 
