@@ -4,11 +4,6 @@
                     xmlns:win="clr-namespace:System.Windows;assembly=PresentationFramework"
                     xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core">
 
-  <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="DarkTheme.Visual.xaml" />
-    <ResourceDictionary Source="DarkTheme.Layout.xaml" />
-    <ResourceDictionary Source="DarkTheme.Controls.xaml" />
-    <ResourceDictionary Source="DarkTheme.Effects.xaml" />
-  </ResourceDictionary.MergedDictionaries>
+  <!-- Theme effects (animations, blur etc.) -->
 
 </ResourceDictionary>

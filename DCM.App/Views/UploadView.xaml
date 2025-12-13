@@ -535,7 +535,7 @@
                     <Image x:Name="ThumbnailPreviewImage"
                            Stretch="Uniform"/>
                     <Border x:Name="ThumbnailOverlay"
-                            Background="#80000000"
+                            Background="{StaticResource OverlayDimBrush}"
                             Opacity="0">
                       <StackPanel HorizontalAlignment="Center"
                                   VerticalAlignment="Center">
@@ -653,7 +653,7 @@
   <Grid x:Name="SuggestionOverlay"
         Grid.Row="0"
         Grid.RowSpan="4"
-        Background="#66000000"
+        Background="{StaticResource OverlayMediumBrush}"
         Visibility="Collapsed"
         Panel.ZIndex="10">
     <Grid.Resources>
