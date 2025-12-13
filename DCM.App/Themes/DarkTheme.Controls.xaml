@@ -6,7 +6,7 @@
 
   <ResourceDictionary.MergedDictionaries>
     <!-- Visual is merged by Layout -->
-    <ResourceDictionary Source="DarkTheme.Layout.xaml" />
+    <ResourceDictionary Source="DarkTheme.Layout.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
   <!-- =================================================================== -->
@@ -75,21 +75,43 @@
   <!-- DROP ZONE STYLES -->
 
   <!-- Video Drop Zone Style -->
+  <!-- Video Drop Zone Style (mit echtem dashed Rahmen, nicht skaliert) -->
   <Style x:Key="VideoDropZoneStyle"
-         TargetType="Border">
+         TargetType="ContentControl">
     <Setter Property="Background"
             Value="{StaticResource InputFocusBrush}"/>
-    <Setter Property="BorderThickness"
-            Value="2"/>
-    <Setter Property="CornerRadius"
-            Value="{StaticResource RadiusL}"/>
     <Setter Property="MinHeight"
             Value="120"/>
     <Setter Property="Cursor"
             Value="Hand"/>
     <Setter Property="AllowDrop"
             Value="True"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ContentControl">
+          <Grid SnapsToDevicePixels="True">
+
+            <!-- Hintergrund + CornerRadius -->
+            <Border Background="{TemplateBinding Background}"
+                    CornerRadius="{StaticResource RadiusL}">
+              <ContentPresenter/>
+            </Border>
+
+            <!-- Dashed Overlay Border -->
+            <Rectangle IsHitTestVisible="False"
+                       Margin="1"
+                       RadiusX="8"
+                       RadiusY="8"
+                       Stroke="{StaticResource BorderBrush}"
+                       StrokeThickness="2"
+                       StrokeDashArray="6 4"
+                       SnapsToDevicePixels="True"/>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
   </Style>
+
 
   <!-- Thumbnail Drop Zone Style -->
   <Style x:Key="ThumbnailDropZoneStyle"
@@ -109,6 +131,135 @@
     <Setter Property="AllowDrop"
             Value="True"/>
   </Style>
+
+  <!-- =================================================================== -->
+  <!-- UPLOAD / DROPZONE PATTERNS                                           -->
+  <!-- =================================================================== -->
+
+  <!-- Dashed dropzone border brush (used for VideoDropZone) -->
+  <VisualBrush x:Key="DropZoneDashedBorderBrush"
+               Stretch="Fill"
+               Viewbox="0,0,100,100"
+               ViewboxUnits="Absolute">
+    <VisualBrush.Visual>
+      <Rectangle Width="100"
+                 Height="100"
+                 StrokeDashArray="8 4"
+                 Stroke="{StaticResource BorderBrush}"
+                 StrokeThickness="2"
+                 RadiusX="8"
+                 RadiusY="8"/>
+    </VisualBrush.Visual>
+  </VisualBrush>
+
+  <!-- =================================================================== -->
+  <!-- SUGGESTION OVERLAY (UploadView)                                      -->
+  <!-- =================================================================== -->
+
+  <Style x:Key="SuggestionCloseButtonStyle"
+         TargetType="Button">
+    <Setter Property="Width"
+            Value="32"/>
+    <Setter Property="Height"
+            Value="24"/>
+    <Setter Property="Padding"
+            Value="0"/>
+    <Setter Property="FontFamily"
+            Value="{StaticResource MaterialIconsFont}"/>
+    <Setter Property="FontSize"
+            Value="12"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource DangerBrush}"/>
+    <Setter Property="Background"
+            Value="Transparent"/>
+    <Setter Property="BorderThickness"
+            Value="0"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="closeBorder"
+                  Background="{TemplateBinding Background}"
+                  CornerRadius="{StaticResource RadiusS}">
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter TargetName="closeBorder"
+                      Property="Background"
+                      Value="{StaticResource DangerBrush}"/>
+              <Setter Property="Foreground"
+                      Value="{StaticResource PrimaryTextBrush}"/>
+            </Trigger>
+            <Trigger Property="IsPressed"
+                     Value="True">
+              <Setter TargetName="closeBorder"
+                      Property="Background"
+                      Value="{StaticResource AccentRedHoverBrush}"/>
+              <Setter Property="Foreground"
+                      Value="{StaticResource PrimaryTextBrush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="SuggestionItemButtonStyle"
+         TargetType="Button">
+    <Setter Property="Background"
+            Value="{StaticResource InputBackgroundBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="1"/>
+    <Setter Property="Padding"
+            Value="10,8"/>
+    <Setter Property="HorizontalContentAlignment"
+            Value="Left"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="border"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{StaticResource RadiusS}">
+            <ContentPresenter Margin="{TemplateBinding Padding}"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter TargetName="border"
+                      Property="BorderBrush"
+                      Value="{StaticResource BorderHoverBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SurfaceHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsPressed"
+                     Value="True">
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SurfacePressedBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled"
+                     Value="False">
+              <Setter TargetName="border"
+                      Property="Opacity"
+                      Value="0.6"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
 
   <!-- PLATFORM TOGGLE BUTTON -->
   <Style x:Key="PlatformToggleButton"
