@@ -52,6 +52,12 @@ public partial class MainWindow : Window
 
     private readonly List<Template> _loadedTemplates = new();
     private Template? _currentEditingTemplate;
+    private Template? _lastAppliedTemplate;
+    private bool _lastAppliedTemplateHasDescriptionPlaceholder;
+    private string? _lastAppliedTemplateBaseDescription;
+    private string? _lastAppliedTemplateResult;
+    private bool _isTemplateBinding;
+    private bool _isSettingDescriptionText;
 
     private readonly List<YouTubePlaylistInfo> _youTubePlaylists = new();
 
@@ -78,6 +84,7 @@ public partial class MainWindow : Window
         AttachHistoryViewEvents();
         AttachSettingsViewEvents();
         RegisterEventSubscriptions();
+        InitializeTemplatePlaceholders();
 
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
 
@@ -202,6 +209,7 @@ public partial class MainWindow : Window
         UploadPageView.VideoChangeButtonClicked += VideoChangeButton_Click;
         UploadPageView.UploadButtonClicked += UploadButton_Click;
         UploadPageView.TitleTextBoxTextChanged += TitleTextBox_TextChanged;
+        UploadPageView.DescriptionTextBoxTextChanged += DescriptionTextBox_TextChanged;
         UploadPageView.GenerateTitleButtonClicked += GenerateTitleButton_Click;
         UploadPageView.GenerateDescriptionButtonClicked += GenerateDescriptionButton_Click;
         UploadPageView.TemplateComboBoxSelectionChanged += TemplateComboBox_SelectionChanged;
@@ -659,6 +667,22 @@ public partial class MainWindow : Window
         UploadPageView?.SetDefaultVisibility(_settings.DefaultVisibility);
     }
 
+    private void InitializeTemplatePlaceholders()
+    {
+        var placeholders = new[]
+        {
+            "{Title}",
+            "{Channel}",
+            "{Description}",
+            "{CTA}",
+            "{Hashtags}",
+            "{Url}",
+            "{Date}"
+        };
+
+        TemplatesPageView?.SetPlaceholders(placeholders);
+    }
+
     private void InitializeChannelLanguageComboBox()
     {
         var cultures = CultureInfo
@@ -806,7 +830,7 @@ public partial class MainWindow : Window
 
             if (desired <= 1 || trimmed.Count <= 1)
             {
-                UploadView.DescriptionTextBox.Text = trimmed[0];
+                ApplyGeneratedDescription(trimmed[0]);
                 StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionInserted");
                 _logger.Info(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Success"), LlmLogSource);
             }
@@ -911,7 +935,7 @@ public partial class MainWindow : Window
                 StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", 1);
                 break;
             case SuggestionTarget.Description:
-                UploadView.DescriptionTextBox.Text = suggestion;
+                ApplyGeneratedDescription(suggestion);
                 StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionInserted");
                 break;
             case SuggestionTarget.Tags:

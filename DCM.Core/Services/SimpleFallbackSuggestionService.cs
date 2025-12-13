@@ -97,24 +97,7 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
             parts.Add(string.Empty);
         }
 
-        if (!string.IsNullOrWhiteSpace(persona.ChannelName))
-        {
-            parts.Add($"📺 Kanal: {persona.ChannelName}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(persona.ContentType))
-        {
-            parts.Add($"🎬 Content: {persona.ContentType}");
-        }
-
-        if (project.Tags.Count > 0)
-        {
-            parts.Add(string.Empty);
-            parts.Add($"Tags: {string.Join(", ", project.Tags)}");
-        }
-
-        parts.Add(string.Empty);
-        parts.Add("[Beschreibung wurde automatisch generiert - bitte anpassen]");
+        // Keine weiteren Platzhalter-/Hinweis-Texte hinzufügen – nur Titel übernehmen
 
         var result = string.Join("\n", parts);
         _logger.Debug($"Fallback-Beschreibung generiert: {result.Length} Zeichen", "FallbackSuggestion");

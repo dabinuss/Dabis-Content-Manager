@@ -7,7 +7,8 @@ namespace DCM.Core.Services;
 public sealed partial class TemplateService
 {
     private static readonly Regex PlaceholderRegex =
-        new(@"\{\{\s*(?<name>[A-Za-z0-9_]+)\s*\}\}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        new(@"\{+\s*(?<name>[A-Za-z0-9_]+)\s*\}+",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private readonly IAppLogger _logger;
 

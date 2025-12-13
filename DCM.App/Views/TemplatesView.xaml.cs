@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using DCM.Core.Models;
@@ -56,6 +57,9 @@ public partial class TemplatesView : UserControl
         TemplatePlatformComboBox.ItemsSource = platforms;
     }
 
+    public void SetPlaceholders(IEnumerable<string> placeholders) =>
+        PlaceholderItemsControl.ItemsSource = placeholders?.ToList() ?? new List<string>();
+
     public record TemplateEditorState(
         string Name,
         PlatformType Platform,
@@ -99,4 +103,24 @@ public partial class TemplatesView : UserControl
 
     private void TemplateListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         TemplateListBoxSelectionChanged?.Invoke(sender, e);
+
+    private void PlaceholderButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Content is not string placeholder)
+        {
+            return;
+        }
+
+        if (TemplateBodyEditorTextBox is null)
+        {
+            return;
+        }
+
+        var tb = TemplateBodyEditorTextBox;
+        tb.Focus();
+        var caret = tb.CaretIndex;
+        var text = tb.Text ?? string.Empty;
+        tb.Text = text.Insert(caret, placeholder);
+        tb.CaretIndex = caret + placeholder.Length;
+    }
 }

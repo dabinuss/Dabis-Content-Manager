@@ -24,6 +24,7 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? VideoChangeButtonClicked;
     public event RoutedEventHandler? UploadButtonClicked;
     public event TextChangedEventHandler? TitleTextBoxTextChanged;
+    public event TextChangedEventHandler? DescriptionTextBoxTextChanged;
     public event RoutedEventHandler? GenerateTitleButtonClicked;
     public event RoutedEventHandler? GenerateDescriptionButtonClicked;
     public event SelectionChangedEventHandler? TemplateComboBoxSelectionChanged;
@@ -62,6 +63,9 @@ public partial class UploadView : UserControl
 
     private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
         TitleTextBoxTextChanged?.Invoke(sender, e);
+
+    private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+        DescriptionTextBoxTextChanged?.Invoke(sender, e);
 
     private void GenerateTitleButton_Click(object sender, RoutedEventArgs e) =>
         GenerateTitleButtonClicked?.Invoke(sender, e);

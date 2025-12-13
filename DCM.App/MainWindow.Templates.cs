@@ -50,6 +50,16 @@ public partial class MainWindow
 
     private void TemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_isTemplateBinding)
+        {
+            return;
+        }
+
+        _lastAppliedTemplate = null;
+        _lastAppliedTemplateHasDescriptionPlaceholder = false;
+        _lastAppliedTemplateBaseDescription = null;
+        _lastAppliedTemplateResult = null;
+
         if (!_settings.AutoApplyDefaultTemplate)
         {
             return;
@@ -67,7 +77,11 @@ public partial class MainWindow
 
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
-        UploadView.DescriptionTextBox.Text = result;
+        _lastAppliedTemplate = tmpl;
+        _lastAppliedTemplateHasDescriptionPlaceholder = TemplateHasDescriptionPlaceholder(tmpl);
+        _lastAppliedTemplateBaseDescription = UploadView.DescriptionTextBox.Text ?? string.Empty;
+        _lastAppliedTemplateResult = result;
+        SetDescriptionText(result);
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.AutoApplied", tmpl.Name);
     }
 
@@ -117,6 +131,13 @@ public partial class MainWindow
             {
                 _currentEditingTemplate = null;
                 LoadTemplateIntoEditor(null);
+            }
+            if (_lastAppliedTemplate?.Id == tmpl.Id)
+            {
+                _lastAppliedTemplate = null;
+                _lastAppliedTemplateHasDescriptionPlaceholder = false;
+                _lastAppliedTemplateBaseDescription = null;
+                _lastAppliedTemplateResult = null;
             }
 
             SaveTemplatesToRepository();
@@ -219,10 +240,20 @@ public partial class MainWindow
 
     private void RefreshTemplateBindings()
     {
+        _isTemplateBinding = true;
         TemplatesPageView?.BindTemplates(_loadedTemplates, _currentEditingTemplate);
 
         UploadView.TemplateComboBox.ItemsSource = null;
         UploadView.TemplateComboBox.ItemsSource = _loadedTemplates;
+        if (_currentEditingTemplate is not null && _loadedTemplates.Contains(_currentEditingTemplate))
+        {
+            UploadView.TemplateComboBox.SelectedItem = _currentEditingTemplate;
+        }
+        else if (_loadedTemplates.Count > 0 && UploadView.TemplateComboBox.SelectedItem is null)
+        {
+            UploadView.TemplateComboBox.SelectedIndex = 0;
+        }
+        _isTemplateBinding = false;
     }
 
     #endregion

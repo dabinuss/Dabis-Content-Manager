@@ -211,17 +211,18 @@
                      Style="{StaticResource TextLabel}"
                      Margin="0,-6,0,4"/>
           <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingM}"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="{StaticResource SpacingM}"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
 
             <TextBox x:Name="DescriptionTextBox"
                      Grid.Row="0"
                      AcceptsReturn="True"
                      VerticalScrollBarVisibility="Auto"
                      TextWrapping="Wrap"
+                     TextChanged="DescriptionTextBox_TextChanged"
                      MinHeight="140"/>
 
             <!-- Template & Buttons -->
@@ -247,7 +248,7 @@
               <ComboBox x:Name="TemplateComboBox"
                         Grid.Column="1"
                         DisplayMemberPath="Name"
-                        ToolTip="Template für die Beschreibung"
+                        ToolTip="Template fuer die Beschreibung"
                         SelectionChanged="TemplateComboBox_SelectionChanged"
                         Margin="0,0,6,0"/>
               <Button x:Name="ApplyTemplateButton"

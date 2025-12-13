@@ -10,6 +10,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Text.RegularExpressions;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
@@ -175,6 +176,34 @@ public partial class MainWindow
     private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         UpdateUploadButtonState();
+    }
+
+    private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isSettingDescriptionText)
+        {
+            return;
+        }
+
+        var current = UploadView.DescriptionTextBox.Text ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            _lastAppliedTemplate = null;
+            _lastAppliedTemplateHasDescriptionPlaceholder = false;
+            _lastAppliedTemplateBaseDescription = null;
+            _lastAppliedTemplateResult = null;
+            return;
+        }
+
+        if (_lastAppliedTemplate is not null)
+        {
+            var trimmedCurrent = current.Trim();
+            if (!string.Equals(trimmedCurrent, _lastAppliedTemplateResult?.Trim(), StringComparison.Ordinal))
+            {
+                _lastAppliedTemplateBaseDescription = current;
+            }
+        }
     }
 
     private void FocusTargetOnContainerClick(object sender, MouseButtonEventArgs e)
@@ -353,9 +382,26 @@ public partial class MainWindow
         }
 
         var project = BuildUploadProjectFromUi(includeScheduling: false);
+
+        // Prevent compounding description when re-applying the same template with {DESCRIPTION}
+        if (_lastAppliedTemplate is not null &&
+            tmpl.Id == _lastAppliedTemplate.Id &&
+            _lastAppliedTemplateBaseDescription is not null)
+        {
+            project.Description = _lastAppliedTemplateBaseDescription;
+        }
+        else
+        {
+            _lastAppliedTemplateBaseDescription = UploadView.DescriptionTextBox.Text ?? string.Empty;
+        }
+
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
 
-        UploadView.DescriptionTextBox.Text = result;
+        _lastAppliedTemplate = tmpl;
+        _lastAppliedTemplateHasDescriptionPlaceholder = TemplateHasDescriptionPlaceholder(tmpl);
+        _lastAppliedTemplateResult = result;
+
+        SetDescriptionText(result);
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.Applied", tmpl.Name);
 
         _logger.Info(
@@ -622,6 +668,72 @@ public partial class MainWindow
         var enabled = UploadView.ScheduleCheckBox.IsChecked == true;
         UploadView.ScheduleDatePicker.IsEnabled = enabled;
         UploadView.ScheduleTimeTextBox.IsEnabled = enabled;
+    }
+
+    private void SetDescriptionText(string newText)
+    {
+        try
+        {
+            _isSettingDescriptionText = true;
+            UploadView.DescriptionTextBox.Text = newText?.Trim() ?? string.Empty;
+        }
+        finally
+        {
+            _isSettingDescriptionText = false;
+        }
+    }
+
+    private void AppendDescriptionText(string newText)
+    {
+        var existing = UploadView.DescriptionTextBox.Text ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(existing))
+        {
+            SetDescriptionText(newText);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newText))
+        {
+            return;
+        }
+
+        try
+        {
+            _isSettingDescriptionText = true;
+            UploadView.DescriptionTextBox.Text =
+                $"{existing.TrimEnd()}{Environment.NewLine}{Environment.NewLine}{newText.Trim()}";
+        }
+        finally
+        {
+            _isSettingDescriptionText = false;
+        }
+    }
+
+    private static bool TemplateHasDescriptionPlaceholder(Template tmpl)
+    {
+        if (tmpl is null || string.IsNullOrWhiteSpace(tmpl.Body))
+        {
+            return false;
+        }
+
+        return Regex.IsMatch(tmpl.Body, @"\{+\s*description\s*\}+", RegexOptions.IgnoreCase);
+    }
+
+    private void ApplyGeneratedDescription(string newDescription)
+    {
+        if (_lastAppliedTemplate is not null && _lastAppliedTemplateHasDescriptionPlaceholder)
+        {
+            var project = BuildUploadProjectFromUi(includeScheduling: false);
+            project.Description = newDescription ?? string.Empty;
+            var applied = _templateService.ApplyTemplate(_lastAppliedTemplate.Body, project);
+            _lastAppliedTemplateResult = applied;
+            _lastAppliedTemplateBaseDescription = newDescription;
+            SetDescriptionText(applied);
+        }
+        else
+        {
+            AppendDescriptionText(newDescription);
+        }
     }
 
     #endregion

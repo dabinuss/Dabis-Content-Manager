@@ -80,6 +80,8 @@
                                MinHeight="120"/>
                 <RowDefinition Height="{StaticResource SpacingL}"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="{StaticResource SpacingS}"/>
+                <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
 
               <Label Content="{DynamicResource Templates.Fields.Name}"
@@ -129,9 +131,34 @@
                        TextWrapping="Wrap"
                        VerticalScrollBarVisibility="Auto"/>
 
+              <StackPanel Grid.Row="12"
+                          Grid.Column="0"
+                          Grid.ColumnSpan="2">
+                <TextBlock Text="Platzhalter einfuegen"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           Margin="0,0,0,4"/>
+                <ItemsControl x:Name="PlaceholderItemsControl">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Button Content="{Binding}"
+                              Margin="0,0,6,6"
+                              Style="{StaticResource SecondaryButton}"
+                              Padding="10,4"
+                              Click="PlaceholderButton_Click"/>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
               <Button x:Name="TemplateSaveButton"
                       Content="{DynamicResource Common.Save}"
-                      Grid.Row="12"
+                      Grid.Row="14"
                       Grid.Column="1"
                       Style="{StaticResource PrimaryButton}"
                       HorizontalAlignment="Left"
