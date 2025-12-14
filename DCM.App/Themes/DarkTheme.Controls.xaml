@@ -127,6 +127,75 @@
     </Setter>
   </Style>
 
+  <!-- NEW: Sidebar section header (non-clickable) -->
+  <Style x:Key="SidebarNavSectionHeader"
+         TargetType="TextBlock">
+    <Setter Property="FontFamily"
+            Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeXS}"/>
+    <Setter Property="FontWeight"
+            Value="{StaticResource FontWeightSemiBold}"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextMutedBrush}"/>
+    <Setter Property="Margin"
+            Value="18,14,12,6"/>
+    <Setter Property="Text"
+            Value="SECTION"/>
+  </Style>
+
+  <!-- NEW: Sidebar sub navigation button (always visible, indented) -->
+  <Style x:Key="SidebarNavSubButton"
+         TargetType="RadioButton"
+         BasedOn="{StaticResource SidebarNavButton}">
+    <Setter Property="Padding"
+            Value="14,8"/>
+    <Setter Property="Margin"
+            Value="6,0"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Border x:Name="border"
+                  Background="{TemplateBinding Background}"
+                  BorderThickness="1,0,0,0"
+                  BorderBrush="Transparent"
+                  CornerRadius="{StaticResource RadiusL}"
+                  Padding="{TemplateBinding Padding}">
+            <Grid>
+
+              <ContentPresenter Grid.Column="1"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"/>
+            </Grid>
+          </Border>
+
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextSecondaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SidebarHoverBrush}"/>
+            </Trigger>
+
+            <Trigger Property="IsChecked"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextPrimaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="BorderBrush"
+                      Value="{StaticResource PrimaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SidebarHoverBrush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <!-- DROP ZONE STYLES -->
 
   <!-- Video Drop Zone Style (mit echtem dashed Rahmen, nicht skaliert) -->

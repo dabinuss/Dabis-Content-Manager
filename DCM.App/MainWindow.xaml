@@ -158,98 +158,120 @@
                 Margin="12,0,12,8"/>
 
         <!-- Navigation -->
-        <StackPanel Grid.Row="2">
-          <RadioButton x:Name="NavUpload"
-                       Style="{StaticResource SidebarNavButton}"
-                       IsChecked="True"
-                       Checked="NavButton_Checked"
-                       Tag="0">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xf09b;"
-                         Margin="0,0,24,0"/>
-              <TextBlock Text="{DynamicResource Nav.Uploads}"
-                         FontWeight="SemiBold"
-                         FontSize="{StaticResource FontSizeM}"
-                         VerticalAlignment="Center"/>
-            </StackPanel>
-          </RadioButton>
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <StackPanel>
 
-          <RadioButton x:Name="NavAccounts"
-                       Style="{StaticResource SidebarNavButton}"
-                       Checked="NavButton_Checked"
-                       Tag="1">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xe1a0;"
-                         Margin="0,0,24,0"/>
-              <TextBlock Text="{DynamicResource Nav.Accounts}"
-                         FontWeight="SemiBold"
-                         FontSize="{StaticResource FontSizeM}"
-                         VerticalAlignment="Center"/>
-            </StackPanel>
-          </RadioButton>
+            <!-- UPLOAD -->
+            <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
+                       Text="UPLOAD"/>
 
-          <RadioButton x:Name="NavChannel"
-                       Style="{StaticResource SidebarNavButton}"
-                       Checked="NavButton_Checked"
-                       Tag="2">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xf8d1;"
-                         Margin="0,0,24,0"/>
-              <TextBlock Text="{DynamicResource Nav.Channels}"
-                         FontWeight="SemiBold"
-                         FontSize="{StaticResource FontSizeM}"
-                         VerticalAlignment="Center"/>
-            </StackPanel>
-          </RadioButton>
+            <RadioButton x:Name="NavUpload"
+                         Style="{StaticResource SidebarNavSubButton}"
+                         IsChecked="True"
+                         Checked="NavButton_Checked"
+                         Tag="0">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xf09b;"
+                           Margin="0,0,16,0"/>
+                <TextBlock Text="{DynamicResource Nav.Uploads}"
+                           FontWeight="Medium"
+                           FontSize="{StaticResource FontSizeM}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </RadioButton>
 
-          <RadioButton x:Name="NavTemplates"
-                       Style="{StaticResource SidebarNavButton}"
-                       Checked="NavButton_Checked"
-                       Tag="3">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xe02f;"
-                         Margin="0,0,24,0"/>
-              <TextBlock Text="{DynamicResource Nav.Templates}"
-                         FontWeight="SemiBold"
-                         FontSize="{StaticResource FontSizeM}"
-                         VerticalAlignment="Center"/>
-            </StackPanel>
-          </RadioButton>
+            <RadioButton x:Name="NavHistory"
+                         Style="{StaticResource SidebarNavSubButton}"
+                         Checked="NavButton_Checked"
+                         Tag="4">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe889;"
+                           Margin="0,0,16,0"/>
+                <TextBlock Text="{DynamicResource Nav.History}"
+                           FontWeight="Medium"
+                           FontSize="{StaticResource FontSizeM}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </RadioButton>
 
-          <RadioButton x:Name="NavHistory"
-                       Style="{StaticResource SidebarNavButton}"
-                       Checked="NavButton_Checked"
-                       Tag="4">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xe889;"
-                         Margin="0,0,24,0"/>
-              <TextBlock Text="{DynamicResource Nav.History}"
-                         FontWeight="SemiBold"
-                         FontSize="{StaticResource FontSizeM}"
-                         VerticalAlignment="Center"/>
-            </StackPanel>
-          </RadioButton>
+            <!-- CHANNEL / SETUP -->
+            <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
+                       Text="CHANNEL &amp; SETUP"/>
 
-          <RadioButton x:Name="NavSettings"
-                       Style="{StaticResource SidebarNavButton}"
-                       Checked="NavButton_Checked"
-                       Tag="5">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xe8b8;"
-                         Margin="0,0,24,0"/>
-              <TextBlock Text="{DynamicResource Nav.Settings}"
-                         FontWeight="SemiBold"
-                         FontSize="{StaticResource FontSizeM}"
-                         VerticalAlignment="Center"/>
-            </StackPanel>
-          </RadioButton>
-        </StackPanel>
+            <RadioButton x:Name="NavAccounts"
+                         Style="{StaticResource SidebarNavSubButton}"
+                         Checked="NavButton_Checked"
+                         Tag="1">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe1a0;"
+                           Margin="0,0,16,0"/>
+                <TextBlock Text="{DynamicResource Nav.Accounts}"
+                           FontWeight="Medium"
+                           FontSize="{StaticResource FontSizeM}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </RadioButton>
+
+            <RadioButton x:Name="NavChannel"
+                         Style="{StaticResource SidebarNavSubButton}"
+                         Checked="NavButton_Checked"
+                         Tag="2">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xf8d1;"
+                           Margin="0,0,16,0"/>
+                <TextBlock Text="{DynamicResource Nav.Channels}"
+                           FontWeight="Medium"
+                           FontSize="{StaticResource FontSizeM}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </RadioButton>
+
+            <RadioButton x:Name="NavTemplates"
+                         Style="{StaticResource SidebarNavSubButton}"
+                         Checked="NavButton_Checked"
+                         Tag="3">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe02f;"
+                           Margin="0,0,16,0"/>
+                <TextBlock Text="{DynamicResource Nav.Templates}"
+                           FontWeight="Medium"
+                           FontSize="{StaticResource FontSizeM}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </RadioButton>
+
+            <!-- APP -->
+            <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
+                       Text="APP"/>
+
+            <RadioButton x:Name="NavSettings"
+                         Style="{StaticResource SidebarNavSubButton}"
+                         Checked="NavButton_Checked"
+                         Tag="5">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe8b8;"
+                           Margin="0,0,16,0"/>
+                <TextBlock Text="{DynamicResource Nav.Settings}"
+                           FontWeight="Medium"
+                           FontSize="{StaticResource FontSizeM}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </RadioButton>
+
+            <Border Height="10"
+                    Background="Transparent"/>
+
+          </StackPanel>
+        </ScrollViewer>
+
 
         <!-- Footer in Sidebar -->
         <StackPanel Grid.Row="3"
