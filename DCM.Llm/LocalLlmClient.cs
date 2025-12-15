@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading;
 using DCM.Core.Configuration;
 using DCM.Core.Logging;
 using DCM.Core.Services;
@@ -16,17 +17,26 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     private readonly object _lock = new();
     private readonly LlmModelType _detectedModelType;
 
+    // Konservativ: schützt die Inferenz vor parallelen Runs (StatelessExecutor ist nicht garantiert thread-safe)
+    private readonly SemaphoreSlim _inferenceGate = new(1, 1);
+
     private LLamaWeights? _model;
     private ModelParams? _modelParams;
     private StatelessExecutor? _executor;
     private bool _initialized;
     private bool _initializationAttempted;
+
+    // Wichtig: NICHT volatile, damit Volatile.Read/Write keine CS0420 Warnung erzeugen.
     private bool _disposed;
+
     private string? _initError;
 
     private const long MinimumModelSizeBytes = 50 * 1024 * 1024;
     private static readonly byte[] GgufMagic = { 0x47, 0x47, 0x55, 0x46 };
-    private static bool _nativeBackendConfigured;
+
+    // Native Backend: retry-fähig (Flag erst nach Erfolg setzen)
+    private static readonly object _nativeBackendLock = new();
+    private static int _nativeBackendConfigured; // 0 = false, 1 = true
 
     #region Model Profiles
 
@@ -34,7 +44,8 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
     {
         public static class Phi3
         {
-            public static List<string> AntiPrompts => new()
+            // Kein List<string>-Neubau pro Call -> weniger GC
+            public static readonly string[] AntiPrompts =
             {
                 "<|end|>",
                 "<|user|>",
@@ -54,7 +65,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
         public static class Mistral3
         {
-            public static List<string> AntiPrompts => new()
+            public static readonly string[] AntiPrompts =
             {
                 "</s>",
                 "[INST]"
@@ -148,7 +159,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         return LlmModelType.Phi3;
     }
 
-    private List<string> GetAntiPrompts()
+    private string[] GetAntiPrompts()
     {
         return _detectedModelType switch
         {
@@ -174,27 +185,36 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
     private void ConfigureNativeBackend()
     {
-        if (_nativeBackendConfigured)
+        if (Volatile.Read(ref _nativeBackendConfigured) == 1)
         {
             return;
         }
 
-        _nativeBackendConfigured = true;
-
-        try
+        lock (_nativeBackendLock)
         {
-            var baseDir = AppContext.BaseDirectory;
-            var runtimeDir = Path.Combine(baseDir, "runtimes");
+            if (_nativeBackendConfigured == 1)
+            {
+                return;
+            }
 
-            NativeLibraryConfig.All.WithSearchDirectory(baseDir);
-            NativeLibraryConfig.All.WithSearchDirectory(runtimeDir);
-            NativeLibraryConfig.All.WithAutoFallback(true);
+            try
+            {
+                var baseDir = AppContext.BaseDirectory;
+                var runtimeDir = Path.Combine(baseDir, "runtimes");
 
-            _logger.Debug($"Native Backend-Suche konfiguriert (Base: {baseDir}, Runtimes: {runtimeDir})", "LocalLlm");
-        }
-        catch (Exception ex)
-        {
-            _logger.Warning($"Native Backend-Konfiguration fehlgeschlagen, verwende Standard: {ex.Message}", "LocalLlm");
+                NativeLibraryConfig.All.WithSearchDirectory(baseDir);
+                NativeLibraryConfig.All.WithSearchDirectory(runtimeDir);
+                NativeLibraryConfig.All.WithAutoFallback(true);
+
+                Volatile.Write(ref _nativeBackendConfigured, 1);
+
+                _logger.Debug($"Native Backend-Suche konfiguriert (Base: {baseDir}, Runtimes: {runtimeDir})", "LocalLlm");
+            }
+            catch (Exception ex)
+            {
+                // Flag bleibt 0 -> erneuter Versuch bei nächster Instanz möglich
+                _logger.Warning($"Native Backend-Konfiguration fehlgeschlagen, verwende Standard: {ex.Message}", "LocalLlm");
+            }
         }
     }
 
@@ -256,9 +276,9 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             }
 
             return buffer[0] == GgufMagic[0]
-                && buffer[1] == GgufMagic[1]
-                && buffer[2] == GgufMagic[2]
-                && buffer[3] == GgufMagic[3];
+                   && buffer[1] == GgufMagic[1]
+                   && buffer[2] == GgufMagic[2]
+                   && buffer[3] == GgufMagic[3];
         }
         catch
         {
@@ -272,6 +292,30 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         {
             return TryInitializeCore();
         }
+    }
+
+    private static int GetGpuLayerCount()
+    {
+        // Default beibehalten (Kompat), aber optional per Env überschreibbar
+        const int defaultLayers = 35;
+
+        try
+        {
+            var raw = Environment.GetEnvironmentVariable("DCM_LLM_GPU_LAYERS");
+            if (!string.IsNullOrWhiteSpace(raw)
+                && int.TryParse(raw, out var parsed)
+                && parsed >= 0
+                && parsed <= 200)
+            {
+                return parsed;
+            }
+        }
+        catch
+        {
+            // Ignorieren -> Default
+        }
+
+        return defaultLayers;
     }
 
     private bool TryInitializeCore()
@@ -298,7 +342,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             _logger.Info($"Lade LLM-Modell: {_settings.LocalModelPath} (Typ: {_detectedModelType})", "LocalLlm");
 
             var contextSize = _settings.ContextSize > 0 ? (uint)_settings.ContextSize : 4096u;
-            const int gpuLayerCount = 35;
+            var gpuLayerCount = GetGpuLayerCount();
 
             _modelParams = new ModelParams(_settings.LocalModelPath!)
             {
@@ -384,6 +428,39 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         _executor = null;
     }
 
+    // Optionaler interner Reset (kein Interface-Bruch). Kann in kontrollierten Flows genutzt werden.
+    // Aktuell bewusst NICHT aufgerufen, um bestehendes Verhalten nicht zu ändern.
+    private void ResetInitializationState()
+    {
+        lock (_lock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _initialized = false;
+            _initializationAttempted = false;
+            _initError = null;
+
+            DisposeExecutor();
+            _modelParams = null;
+
+            try
+            {
+                _model?.Dispose();
+            }
+            catch
+            {
+                // Ignorieren
+            }
+
+            _model = null;
+
+            ValidateModelPath();
+        }
+    }
+
     public async Task<string> CompleteAsync(string prompt, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
@@ -394,6 +471,8 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         StatelessExecutor executor;
         InferenceParams inferenceParams;
         string formattedPrompt;
+        int tokenCountLimit;
+        const int charLimit = 1500;
 
         lock (_lock)
         {
@@ -419,21 +498,49 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             // Prompt formatieren mit Modellprofil
             formattedPrompt = FormatPrompt(prompt);
 
+            // 0 ist gültig (deterministisch). Negativ oder NaN -> Fallback.
+            var temperature = _settings.Temperature;
+            if (float.IsNaN(temperature) || temperature < 0f)
+            {
+                temperature = 0.7f;
+            }
+
+            // Token-Limit konsistent: InferenceParams.MaxTokens ist die Quelle der Wahrheit.
+            var maxTokens = _settings.MaxTokens;
+            if (maxTokens <= 0)
+            {
+                maxTokens = 256;
+            }
+            maxTokens = Math.Min(maxTokens, 512);
+            tokenCountLimit = maxTokens;
+
             var samplingPipeline = new DefaultSamplingPipeline
             {
-                Temperature = _settings.Temperature > 0 ? _settings.Temperature : 0.7f
+                Temperature = temperature
             };
 
             inferenceParams = new InferenceParams
             {
-                MaxTokens = Math.Min(_settings.MaxTokens > 0 ? _settings.MaxTokens : 256, 512),
+                MaxTokens = maxTokens,
                 AntiPrompts = GetAntiPrompts(),
                 SamplingPipeline = samplingPipeline
             };
         }
 
+        var gateAcquired = false;
+
         try
         {
+            await _inferenceGate.WaitAsync(cancellationToken);
+            gateAcquired = true;
+
+            // Falls zwischenzeitlich disposed wurde, nicht mehr starten (verhindert Executor-after-dispose).
+            if (Volatile.Read(ref _disposed))
+            {
+                _logger.Warning("CompleteAsync gestartet, aber Client wurde zwischenzeitlich disposed", "LocalLlm");
+                return "[LLM wurde disposed]";
+            }
+
             _logger.Debug($"LLM-Inferenz gestartet (Profil: {_detectedModelType}), Prompt-Länge: {formattedPrompt.Length} Zeichen", "LocalLlm");
 
             var result = new StringBuilder();
@@ -441,19 +548,17 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
             await foreach (var token in executor.InferAsync(formattedPrompt, inferenceParams, cancellationToken))
             {
-                lock (_lock)
+                if (Volatile.Read(ref _disposed))
                 {
-                    if (_disposed)
-                    {
-                        _logger.Warning("LLM während der Generierung disposed", "LocalLlm");
-                        return "[LLM wurde während der Generierung disposed]";
-                    }
+                    _logger.Warning("LLM während der Generierung disposed", "LocalLlm");
+                    return "[LLM wurde während der Generierung disposed]";
                 }
 
                 result.Append(token);
                 tokenCount++;
 
-                if (result.Length > 1500 || tokenCount > 400)
+                // Konsistent: Token-Limit kommt von InferenceParams.MaxTokens
+                if (tokenCount >= tokenCountLimit || result.Length > charLimit)
                 {
                     _logger.Debug($"LLM-Limit erreicht: {result.Length} Zeichen, {tokenCount} Tokens", "LocalLlm");
                     break;
@@ -474,10 +579,25 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             _logger.Error($"LLM-Inferenz fehlgeschlagen: {ex.Message}", "LocalLlm", ex);
             return $"[LLM-Fehler: {ex.Message}]";
         }
+        finally
+        {
+            if (gateAcquired)
+            {
+                try
+                {
+                    _inferenceGate.Release();
+                }
+                catch
+                {
+                    // Ignorieren
+                }
+            }
+        }
     }
 
     public void Dispose()
     {
+        // Markiere disposed unter Lock, damit neue Aufrufe sofort stoppen.
         lock (_lock)
         {
             if (_disposed)
@@ -486,8 +606,38 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             }
 
             _logger.Debug("LocalLlmClient wird disposed", "LocalLlm");
+            Volatile.Write(ref _disposed, true);
+        }
 
-            _disposed = true;
+        // Warte konservativ auf laufende Inferenz, bevor wir Executor/Model freigeben.
+        // (Kein await im Dispose -> sync Wait ist ok)
+        var gateAcquired = false;
+        try
+        {
+            _inferenceGate.Wait();
+            gateAcquired = true;
+        }
+        catch
+        {
+            // Ignorieren
+        }
+        finally
+        {
+            if (gateAcquired)
+            {
+                try
+                {
+                    _inferenceGate.Release();
+                }
+                catch
+                {
+                    // Ignorieren
+                }
+            }
+        }
+
+        lock (_lock)
+        {
             _initialized = false;
 
             DisposeExecutor();
@@ -506,5 +656,8 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
             _logger.Debug("LocalLlmClient disposed", "LocalLlm");
         }
+
+        // SemaphoreSlim nicht disposed -> vermeidet seltene Race-Crashes bei späten Calls.
+        // (Ist klein, langlebig, und der Client selbst lebt typischerweise bis App-Ende.)
     }
 }
