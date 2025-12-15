@@ -4,8 +4,13 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <!-- Nur Theme, keine Strings*.xaml hier -->
-        <ResourceDictionary Source="Themes/DarkTheme.xaml"/>
+        <!-- Localization -->
+        <ResourceDictionary Source="Localization/Strings.xaml"/>
+        <!-- Theme resources in correct order -->
+        <ResourceDictionary Source="Themes/DarkTheme.Visual.xaml"/>
+        <ResourceDictionary Source="Themes/DarkTheme.Layout.xaml"/>
+        <ResourceDictionary Source="Themes/DarkTheme.Controls.xaml"/>
+        <ResourceDictionary Source="Themes/DarkTheme.Effects.xaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
