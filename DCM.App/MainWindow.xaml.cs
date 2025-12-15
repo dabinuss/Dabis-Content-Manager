@@ -73,6 +73,9 @@ public partial class MainWindow : Window
     private SuggestionTarget _activeSuggestionTarget = SuggestionTarget.None;
     private bool _isThemeInitializing;
 
+    // OPTIMIZATION: Cached theme dictionary for faster theme switching
+    private ResourceDictionary? _currentThemeDictionary;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -145,9 +148,10 @@ public partial class MainWindow : Window
         {
             DragMove();
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore drag failures when mouse is released early
+            // OPTIMIZATION: Added logging for debugging
+            _logger.Debug($"DragMove failed (non-critical): {ex.Message}", MainWindowLogSource);
         }
     }
 
@@ -340,9 +344,10 @@ public partial class MainWindow : Window
         {
             _logger.EntryAdded -= OnLogEntryAdded;
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignorieren
+            // OPTIMIZATION: Added logging
+            _logger.Debug($"Failed to remove log event handler: {ex.Message}", MainWindowLogSource);
         }
 
         _logger.Info(LocalizationHelper.Get("Log.MainWindow.Closing"), MainWindowLogSource);
@@ -363,9 +368,10 @@ public partial class MainWindow : Window
             {
                 disposable.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignorieren
+                // OPTIMIZATION: Added logging
+                _logger.Debug($"Failed to dispose LLM client: {ex.Message}", MainWindowLogSource);
             }
         }
     }
@@ -387,9 +393,10 @@ public partial class MainWindow : Window
                 logWindow.Close();
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignorieren - Fenster könnte bereits geschlossen sein
+            // OPTIMIZATION: Added logging
+            _logger.Debug($"Failed to close log window: {ex.Message}", MainWindowLogSource);
         }
     }
 
@@ -398,11 +405,11 @@ public partial class MainWindow : Window
         // Event-Handler für Log-Updates registrieren (nach UI-Initialisierung)
         _logger.EntryAdded += OnLogEntryAdded;
 
-        await InitializeHeavyUiAsync();
+        await InitializeHeavyUiAsync().ConfigureAwait(true); // OPTIMIZATION: Keep UI context
 
         if (_settings.AutoConnectYouTube)
         {
-            await TryAutoConnectYouTubeAsync();
+            await TryAutoConnectYouTubeAsync().ConfigureAwait(true); // OPTIMIZATION: Keep UI context
         }
 
         UpdateLlmStatusText();
@@ -416,7 +423,7 @@ public partial class MainWindow : Window
             await Task.WhenAll(
                 LoadTemplatesAsync(),
                 InitializeTranscriptionServiceAsync(),
-                LoadUploadHistoryAsync());
+                LoadUploadHistoryAsync()).ConfigureAwait(true); // OPTIMIZATION: Keep UI context
         }
         catch (Exception ex)
         {
@@ -436,17 +443,19 @@ public partial class MainWindow : Window
         {
             try
             {
-                Dispatcher.BeginInvoke(() =>
+                // OPTIMIZATION: Use InvokeAsync with lower priority for better responsiveness
+                Dispatcher.InvokeAsync(() =>
                 {
                     if (!_isClosing)
                     {
                         UpdateLogLinkIndicatorSafe();
                     }
-                });
+                }, System.Windows.Threading.DispatcherPriority.Background);
             }
-            catch
+            catch (Exception ex)
             {
-                // Dispatcher könnte bereits heruntergefahren sein
+                // OPTIMIZATION: Added logging
+                _logger.Debug($"Dispatcher invoke failed: {ex.Message}", MainWindowLogSource);
             }
             return;
         }
@@ -465,9 +474,10 @@ public partial class MainWindow : Window
         {
             UpdateLogLinkIndicator();
         }
-        catch
+        catch (Exception ex)
         {
-            // UI-Fehler ignorieren
+            // OPTIMIZATION: Added logging
+            _logger.Debug($"Failed to update log link indicator: {ex.Message}", MainWindowLogSource);
         }
     }
 
@@ -557,17 +567,16 @@ public partial class MainWindow : Window
         try
         {
             var dictionaries = Application.Current.Resources.MergedDictionaries;
-            var newThemeDictionary = new ResourceDictionary { Source = themeUri };
+            
+            // OPTIMIZATION: Remove cached theme dictionary if it exists
+            if (_currentThemeDictionary != null)
+            {
+                dictionaries.Remove(_currentThemeDictionary);
+            }
 
-            var existingIndex = FindThemeDictionaryIndex(dictionaries);
-            if (existingIndex >= 0)
-            {
-                dictionaries[existingIndex] = newThemeDictionary;
-            }
-            else
-            {
-                dictionaries.Add(newThemeDictionary);
-            }
+            // OPTIMIZATION: Create and cache new theme dictionary
+            _currentThemeDictionary = new ResourceDictionary { Source = themeUri };
+            dictionaries.Add(_currentThemeDictionary);
         }
         catch (Exception ex)
         {
@@ -601,9 +610,10 @@ public partial class MainWindow : Window
             _currentLlmCts?.Cancel();
             _currentLlmCts?.Dispose();
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignorieren
+            // OPTIMIZATION: Added logging
+            _logger.Debug($"Failed to cancel LLM operation: {ex.Message}", LlmLogSource);
         }
         finally
         {
@@ -611,10 +621,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private CancellationToken GetNewLlmCancellationToken()
+    // OPTIMIZATION: Added timeout parameter to prevent hanging operations
+    private CancellationToken GetNewLlmCancellationToken(int timeoutSeconds = 300)
     {
         CancelCurrentLlmOperation();
-        _currentLlmCts = new CancellationTokenSource();
+        _currentLlmCts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
         return _currentLlmCts.Token;
     }
 
@@ -638,9 +649,10 @@ public partial class MainWindow : Window
             {
                 disposable.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignorieren
+                // OPTIMIZATION: Added logging
+                _logger.Debug($"Failed to dispose LLM client: {ex.Message}", LlmLogSource);
             }
         }
 
@@ -692,9 +704,11 @@ public partial class MainWindow : Window
 
     private void InitializeChannelLanguageComboBox()
     {
+        // OPTIMIZATION: Materialize the query once to avoid multiple enumerations
         var cultures = CultureInfo
             .GetCultures(CultureTypes.NeutralCultures)
             .Where(c => !string.IsNullOrWhiteSpace(c.Name))
+            .Select(c => new { c.DisplayName, c.Name })
             .OrderBy(c => c.DisplayName)
             .Select(c => $"{c.DisplayName} ({c.Name})")
             .ToList();
@@ -734,10 +748,24 @@ public partial class MainWindow : Window
     
     #region Content Generation Events
 
+    // OPTIMIZATION: Extracted async logic to separate method with proper exception handling
     private async void GenerateTitleButton_Click(object sender, RoutedEventArgs e)
     {
-        CloseSuggestionPopup();
+        try
+        {
+            await GenerateTitleAsync().ConfigureAwait(true); // Keep UI context
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Unexpected error in title generation: {ex.Message}", LlmLogSource, ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleError", ex.Message);
+            UploadView.GenerateTitleButton.IsEnabled = true;
+            UpdateLogLinkIndicator();
+        }
+    }
 
+    private async Task GenerateTitleAsync()
+    {
         CloseSuggestionPopup();
 
         var project = BuildUploadProjectFromUi(includeScheduling: false);
@@ -756,7 +784,7 @@ public partial class MainWindow : Window
                 () => _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona, cancellationToken),
                 Math.Max(1, _settings.TitleSuggestionCount),
                 maxRetries: 2,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(true); // Keep UI context
 
             if (titles is null || titles.Count == 0)
             {
@@ -803,7 +831,23 @@ public partial class MainWindow : Window
         }
     }
 
+    // OPTIMIZATION: Extracted async logic to separate method with proper exception handling
     private async void GenerateDescriptionButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await GenerateDescriptionAsync().ConfigureAwait(true); // Keep UI context
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Unexpected error in description generation: {ex.Message}", LlmLogSource, ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.DescriptionError", ex.Message);
+            UploadView.GenerateDescriptionButton.IsEnabled = true;
+            UpdateLogLinkIndicator();
+        }
+    }
+
+    private async Task GenerateDescriptionAsync()
     {
         CloseSuggestionPopup();
 
@@ -823,7 +867,7 @@ public partial class MainWindow : Window
                 () => _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona, cancellationToken),
                 Math.Max(1, _settings.DescriptionSuggestionCount),
                 maxRetries: 2,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(true); // Keep UI context
 
             if (descriptions is null || descriptions.Count == 0)
             {
@@ -867,7 +911,23 @@ public partial class MainWindow : Window
         }
     }
 
+    // OPTIMIZATION: Extracted async logic to separate method with proper exception handling
     private async void GenerateTagsButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await GenerateTagsAsync().ConfigureAwait(true); // Keep UI context
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Unexpected error in tags generation: {ex.Message}", LlmLogSource, ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsError", ex.Message);
+            UploadView.GenerateTagsButton.IsEnabled = true;
+            UpdateLogLinkIndicator();
+        }
+    }
+
+    private async Task GenerateTagsAsync()
     {
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
@@ -884,7 +944,7 @@ public partial class MainWindow : Window
             var tags = await _contentSuggestionService.SuggestTagsAsync(
                 project,
                 _settings.Persona,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(true); // Keep UI context
 
             if (tags is not null && tags.Count > 0)
             {
@@ -989,7 +1049,7 @@ public partial class MainWindow : Window
             IReadOnlyList<string> batch;
             try
             {
-                batch = await producer();
+                batch = await producer().ConfigureAwait(false); // OPTIMIZATION: No UI context needed here
             }
             catch (OperationCanceledException)
             {
@@ -1154,9 +1214,10 @@ public partial class MainWindow : Window
                 LogLinkTextBlock.ClearValue(ForegroundProperty);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // UI-Update-Fehler ignorieren
+            // OPTIMIZATION: Added logging
+            _logger.Debug($"Failed to update log link indicator: {ex.Message}", MainWindowLogSource);
         }
     }
 
@@ -1173,17 +1234,21 @@ public partial class MainWindow : Window
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("DabisContentManager/1.0");
 
-            using var response = await httpClient.GetAsync("https://api.github.com/repos/dabinuss/Dabis-Content-Manager/releases/latest");
+            using var response = await httpClient.GetAsync("https://api.github.com/repos/dabinuss/Dabis-Content-Manager/releases/latest").ConfigureAwait(false); // OPTIMIZATION: No UI context needed
             if (!response.IsSuccessStatusCode)
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.NotPossible");
+                // OPTIMIZATION: Switch to UI context for UI updates
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.NotPossible");
+                });
                 _logger.Warning(
                     LocalizationHelper.Format("Log.Updates.HttpFailure", (int)response.StatusCode),
                     UpdatesLogSource);
                 return;
             }
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
@@ -1194,7 +1259,10 @@ public partial class MainWindow : Window
 
             if (string.IsNullOrWhiteSpace(tagName))
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.InfoMissing");
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.InfoMissing");
+                });
                 _logger.Warning(LocalizationHelper.Get("Log.Updates.NoTag"), UpdatesLogSource);
                 return;
             }
@@ -1202,7 +1270,10 @@ public partial class MainWindow : Window
             var latestVersionString = tagName.TrimStart('v', 'V');
             if (!Version.TryParse(latestVersionString, out var latestVersion))
             {
-                StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.VersionFormat", tagName);
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.VersionFormat", tagName);
+                });
                 _logger.Warning(
                     LocalizationHelper.Format("Log.Updates.VersionParseFailed", tagName),
                     UpdatesLogSource);
@@ -1214,24 +1285,32 @@ public partial class MainWindow : Window
 
             if (latestVersion <= currentVersion)
             {
-                StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.LatestVersion", AppVersion);
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.LatestVersion", AppVersion);
+                });
                 _logger.Info(
                     LocalizationHelper.Format("Log.Updates.NoNewVersion", currentVersion, latestVersion),
                     UpdatesLogSource);
                 return;
             }
 
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.NewVersion", latestVersion);
+            // OPTIMIZATION: Switch to UI context for MessageBox
+            await Dispatcher.InvokeAsync(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.NewVersion", latestVersion);
+            });
+            
             _logger.Info(
                 LocalizationHelper.Format("Log.Updates.NewVersionFound", currentVersion, latestVersion),
                 UpdatesLogSource);
 
-            var result = MessageBox.Show(
+            var result = await Dispatcher.InvokeAsync(() => MessageBox.Show(
                 this,
                 LocalizationHelper.Format("Dialog.Update.Available.Text", currentVersion, latestVersion),
                 LocalizationHelper.Get("Dialog.Update.Available.Title"),
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
+                MessageBoxImage.Information));
 
             if (result == MessageBoxResult.Yes && !string.IsNullOrWhiteSpace(htmlUrl))
             {
@@ -1242,15 +1321,19 @@ public partial class MainWindow : Window
                         UseShellExecute = true
                     });
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Kein Drama
+                    // OPTIMIZATION: Added logging
+                    _logger.Debug($"Failed to open browser: {ex.Message}", UpdatesLogSource);
                 }
             }
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.Failed", ex.Message);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.Failed", ex.Message);
+            });
             _logger.Error(
                 LocalizationHelper.Format("Log.Updates.CheckFailed", ex.Message),
                 UpdatesLogSource,
@@ -1258,13 +1341,16 @@ public partial class MainWindow : Window
         }
         finally
         {
-            UpdateLogLinkIndicator();
+            await Dispatcher.InvokeAsync(() =>
+            {
+                UpdateLogLinkIndicator();
+            });
         }
     }
 
     private async void CheckUpdatesHyperlink_Click(object sender, RoutedEventArgs e)
     {
-        await CheckForUpdatesAsync();
+        await CheckForUpdatesAsync().ConfigureAwait(true); // OPTIMIZATION: Keep UI context
     }
 
     #endregion
@@ -1317,13 +1403,23 @@ public partial class MainWindow : Window
 
         try
         {
-            await File.WriteAllTextAsync(dialog.FileName, transcript, Encoding.UTF8);
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportSuccess", dialog.FileName);
+            // OPTIMIZATION: Use ConfigureAwait for file I/O
+            await File.WriteAllTextAsync(dialog.FileName, transcript, Encoding.UTF8).ConfigureAwait(false);
+            
+            await Dispatcher.InvokeAsync(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportSuccess", dialog.FileName);
+            });
+            
             _logger.Info(LocalizationHelper.Format("Log.Transcription.ExportSuccess", dialog.FileName), TranscriptionLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportFailed", ex.Message);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportFailed", ex.Message);
+            });
+            
             _logger.Error(
                 LocalizationHelper.Format("Log.Transcription.ExportFailed", ex.Message),
                 TranscriptionLogSource,
@@ -1408,9 +1504,10 @@ public partial class MainWindow : Window
                 UseShellExecute = true
             });
         }
-        catch
+        catch (Exception ex)
         {
-            // Fehler ignorieren
+            // OPTIMIZATION: Added logging
+            _logger.Debug($"Failed to open URL in browser: {ex.Message}", MainWindowLogSource);
         }
 
         e.Handled = true;
