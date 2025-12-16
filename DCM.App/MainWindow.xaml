@@ -100,366 +100,371 @@
     </Style>
   </Window.Resources>
 
-  <Grid>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="220"/>
-      <ColumnDefinition Width="1"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
+  <Border BorderBrush="{StaticResource PrimaryTextBrush}"
+          BorderThickness="1"
+          SnapsToDevicePixels="True">
 
-    <Border Grid.Column="0"
-            Grid.ColumnSpan="3"
-            Height="2"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Top"
-            Background="{StaticResource MagicAIGradientBrush}"
-            Panel.ZIndex="5"
-            IsHitTestVisible="False"/>
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="220"/>
+        <ColumnDefinition Width="1"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
 
-    <!-- Linke Sidebar -->
-    <Border Grid.Column="0"
-            Background="{StaticResource SidebarBrush}">
-      <Grid>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+      <Border Grid.Column="0"
+              Grid.ColumnSpan="3"
+              Height="3"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Top"
+              Background="{StaticResource MagicAIGradientBrush}"
+              Panel.ZIndex="5"
+              IsHitTestVisible="False"/>
 
-        <!-- Logo / App Name -->
-        <StackPanel Grid.Row="0"
-                    Margin="{StaticResource SidebarPadding}">
-          <Image Source="/DCM.App;component/Assets/logo.png"
-                 Width="180"
-                 Height="59"
-                 Stretch="Uniform"
-                 Margin="{StaticResource SpacingVerticalM}"
-                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
-          <TextBlock Text="{DynamicResource App.Name}"
-                     FontSize="{StaticResource FontSizeL}"
-                     FontWeight="SemiBold"
-                     Foreground="{StaticResource TextPrimaryBrush}"/>
-          <TextBlock FontSize="{StaticResource FontSizeS}"
-                     Foreground="{StaticResource TextMutedBrush}"
-                     Margin="0,2,0,0">
+      <!-- Linke Sidebar -->
+      <Border Grid.Column="0"
+              Background="{StaticResource SidebarBrush}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <!-- Logo / App Name -->
+          <StackPanel Grid.Row="0"
+                      Margin="{StaticResource SidebarPadding}">
+            <Image Source="/DCM.App;component/Assets/logo.png"
+                   Width="180"
+                   Height="59"
+                   Stretch="Uniform"
+                   Margin="{StaticResource SpacingVerticalM}"
+                   MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
+            <TextBlock Text="{DynamicResource App.Name}"
+                       FontSize="{StaticResource FontSizeL}"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock FontSize="{StaticResource FontSizeS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       Margin="0,2,0,0">
                         <Run Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}"/>
                         <Run Text=" · "/>
                         <Hyperlink Click="CheckUpdatesHyperlink_Click">
                             <Run Text="{DynamicResource App.CheckUpdates}"/>
                         </Hyperlink>
-          </TextBlock>
-        </StackPanel>
-
-        <!-- Trennlinie -->
-        <Border Grid.Row="1"
-                Height="1"
-                Background="{StaticResource BorderBrush}"
-                Margin="12,0,12,8"/>
-
-        <!-- Navigation -->
-        <ScrollViewer Grid.Row="2"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
-          <StackPanel>
-
-            <!-- UPLOAD -->
-            <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
-                       Text="UPLOAD"/>
-
-            <RadioButton x:Name="NavUpload"
-                         Style="{StaticResource SidebarNavSubButton}"
-                         IsChecked="True"
-                         Checked="NavButton_Checked"
-                         Tag="0">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xf09b;"
-                           Margin="0,0,16,0"/>
-                <TextBlock Text="{DynamicResource Nav.Uploads}"
-                           FontWeight="Medium"
-                           FontSize="{StaticResource FontSizeM}"
-                           VerticalAlignment="Center"/>
-              </StackPanel>
-            </RadioButton>
-
-            <RadioButton x:Name="NavHistory"
-                         Style="{StaticResource SidebarNavSubButton}"
-                         Checked="NavButton_Checked"
-                         Tag="4">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xe889;"
-                           Margin="0,0,16,0"/>
-                <TextBlock Text="{DynamicResource Nav.History}"
-                           FontWeight="Medium"
-                           FontSize="{StaticResource FontSizeM}"
-                           VerticalAlignment="Center"/>
-              </StackPanel>
-            </RadioButton>
-
-            <!-- CHANNEL / SETUP -->
-            <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
-                       Text="CHANNEL &amp; SETUP"/>
-
-            <RadioButton x:Name="NavAccounts"
-                         Style="{StaticResource SidebarNavSubButton}"
-                         Checked="NavButton_Checked"
-                         Tag="1">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xe1a0;"
-                           Margin="0,0,16,0"/>
-                <TextBlock Text="{DynamicResource Nav.Accounts}"
-                           FontWeight="Medium"
-                           FontSize="{StaticResource FontSizeM}"
-                           VerticalAlignment="Center"/>
-              </StackPanel>
-            </RadioButton>
-
-            <RadioButton x:Name="NavChannel"
-                         Style="{StaticResource SidebarNavSubButton}"
-                         Checked="NavButton_Checked"
-                         Tag="2">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xf8d1;"
-                           Margin="0,0,16,0"/>
-                <TextBlock Text="{DynamicResource Nav.Channels}"
-                           FontWeight="Medium"
-                           FontSize="{StaticResource FontSizeM}"
-                           VerticalAlignment="Center"/>
-              </StackPanel>
-            </RadioButton>
-
-            <RadioButton x:Name="NavTemplates"
-                         Style="{StaticResource SidebarNavSubButton}"
-                         Checked="NavButton_Checked"
-                         Tag="3">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xe02f;"
-                           Margin="0,0,16,0"/>
-                <TextBlock Text="{DynamicResource Nav.Templates}"
-                           FontWeight="Medium"
-                           FontSize="{StaticResource FontSizeM}"
-                           VerticalAlignment="Center"/>
-              </StackPanel>
-            </RadioButton>
-
-            <!-- APP -->
-            <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
-                       Text="APP"/>
-
-            <RadioButton x:Name="NavSettings"
-                         Style="{StaticResource SidebarNavSubButton}"
-                         Checked="NavButton_Checked"
-                         Tag="5">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xe8b8;"
-                           Margin="0,0,16,0"/>
-                <TextBlock Text="{DynamicResource Nav.Settings}"
-                           FontWeight="Medium"
-                           FontSize="{StaticResource FontSizeM}"
-                           VerticalAlignment="Center"/>
-              </StackPanel>
-            </RadioButton>
-
-            <Border Height="10"
-                    Background="Transparent"/>
-
+            </TextBlock>
           </StackPanel>
-        </ScrollViewer>
 
-
-        <!-- Footer in Sidebar -->
-        <StackPanel Grid.Row="3"
-                    Margin="{StaticResource SidebarPadding}">
-          <Border Height="1"
+          <!-- Trennlinie -->
+          <Border Grid.Row="1"
+                  Height="1"
                   Background="{StaticResource BorderBrush}"
-                  Margin="0,0,0,12"/>
+                  Margin="12,0,12,8"/>
 
-          <TextBlock x:Name="LogLinkTextBlock"
-                     FontSize="{StaticResource FontSizeM}"
-                     Cursor="Hand"
-                     Margin="{StaticResource SpacingVerticalM}"
-                     MouseLeftButtonDown="LogLink_Click"
-                     ToolTip="Anwendungs-Log anzeigen">
-            <TextBlock.Style>
-              <Style TargetType="TextBlock">
-                <Setter Property="Foreground"
-                        Value="{StaticResource TextMutedBrush}"/>
-                <Setter Property="Text"
-                        Value="📋 Log"/>
-                <Style.Triggers>
-                  <Trigger Property="IsMouseOver"
-                           Value="True">
-                    <Setter Property="Foreground"
-                            Value="{StaticResource PrimaryBrush}"/>
-                  </Trigger>
-                </Style.Triggers>
-              </Style>
-            </TextBlock.Style>
-          </TextBlock>
+          <!-- Navigation -->
+          <ScrollViewer Grid.Row="2"
+                        VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
 
-          <TextBlock FontSize="{StaticResource FontSizeS}"
-                     Margin="{StaticResource SpacingVerticalM}">
+              <!-- UPLOAD -->
+              <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
+                         Text="UPLOAD"/>
+
+              <RadioButton x:Name="NavUpload"
+                           Style="{StaticResource SidebarNavSubButton}"
+                           IsChecked="True"
+                           Checked="NavButton_Checked"
+                           Tag="0">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xf09b;"
+                             Margin="0,0,16,0"/>
+                  <TextBlock Text="{DynamicResource Nav.Uploads}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+              </RadioButton>
+
+              <RadioButton x:Name="NavHistory"
+                           Style="{StaticResource SidebarNavSubButton}"
+                           Checked="NavButton_Checked"
+                           Tag="4">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xe889;"
+                             Margin="0,0,16,0"/>
+                  <TextBlock Text="{DynamicResource Nav.History}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+              </RadioButton>
+
+              <!-- CHANNEL / SETUP -->
+              <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
+                         Text="CHANNEL &amp; SETUP"/>
+
+              <RadioButton x:Name="NavAccounts"
+                           Style="{StaticResource SidebarNavSubButton}"
+                           Checked="NavButton_Checked"
+                           Tag="1">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xe1a0;"
+                             Margin="0,0,16,0"/>
+                  <TextBlock Text="{DynamicResource Nav.Accounts}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+              </RadioButton>
+
+              <RadioButton x:Name="NavChannel"
+                           Style="{StaticResource SidebarNavSubButton}"
+                           Checked="NavButton_Checked"
+                           Tag="2">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xf8d1;"
+                             Margin="0,0,16,0"/>
+                  <TextBlock Text="{DynamicResource Nav.Channels}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+              </RadioButton>
+
+              <RadioButton x:Name="NavTemplates"
+                           Style="{StaticResource SidebarNavSubButton}"
+                           Checked="NavButton_Checked"
+                           Tag="3">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xe02f;"
+                             Margin="0,0,16,0"/>
+                  <TextBlock Text="{DynamicResource Nav.Templates}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+              </RadioButton>
+
+              <!-- APP -->
+              <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
+                         Text="APP"/>
+
+              <RadioButton x:Name="NavSettings"
+                           Style="{StaticResource SidebarNavSubButton}"
+                           Checked="NavButton_Checked"
+                           Tag="5">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xe8b8;"
+                             Margin="0,0,16,0"/>
+                  <TextBlock Text="{DynamicResource Nav.Settings}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+              </RadioButton>
+
+              <Border Height="10"
+                      Background="Transparent"/>
+
+            </StackPanel>
+          </ScrollViewer>
+
+
+          <!-- Footer in Sidebar -->
+          <StackPanel Grid.Row="3"
+                      Margin="{StaticResource SidebarPadding}">
+            <Border Height="1"
+                    Background="{StaticResource BorderBrush}"
+                    Margin="0,0,0,12"/>
+
+            <TextBlock x:Name="LogLinkTextBlock"
+                       FontSize="{StaticResource FontSizeM}"
+                       Cursor="Hand"
+                       Margin="{StaticResource SpacingVerticalM}"
+                       MouseLeftButtonDown="LogLink_Click"
+                       ToolTip="Anwendungs-Log anzeigen">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Foreground"
+                          Value="{StaticResource TextMutedBrush}"/>
+                  <Setter Property="Text"
+                          Value="📋 Log"/>
+                  <Style.Triggers>
+                    <Trigger Property="IsMouseOver"
+                             Value="True">
+                      <Setter Property="Foreground"
+                              Value="{StaticResource PrimaryBrush}"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+
+            <TextBlock FontSize="{StaticResource FontSizeS}"
+                       Margin="{StaticResource SpacingVerticalM}">
                         <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
                                    RequestNavigate="OpenUrlInBrowser">
                             <Run Text="{DynamicResource App.Github}"/>
                         </Hyperlink>
-          </TextBlock>
+            </TextBlock>
 
-          <TextBlock Text="{DynamicResource App.Copyright}"
-                     FontSize="{StaticResource FontSizeXS}"
-                     Foreground="{StaticResource TextMutedBrush}"/>
-        </StackPanel>
-      </Grid>
-    </Border>
-
-    <!-- Trennlinie zwischen Sidebar und Content -->
-    <Border Grid.Column="1"
-            Background="{StaticResource BorderBrush}"/>
-
-    <!-- Hauptbereich -->
-    <Grid Grid.Column="2">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-      </Grid.RowDefinitions>
-
-      <!-- Header mit Status und Progress -->
-      <Border Grid.Row="0"
-              Background="{StaticResource SurfaceBrush}"
-              BorderBrush="{StaticResource BorderBrush}"
-              BorderThickness="0,0,0,1"
-              Padding="{StaticResource HeaderPadding}"
-              MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
-
-          <StackPanel Grid.Column="0"
-                      Orientation="Horizontal"
-                      VerticalAlignment="Center">
-            <TextBlock Text="{DynamicResource Status}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       FontSize="{StaticResource FontSizeM}"
-                       Margin="0,0,6,0"/>
-            <TextBlock x:Name="StatusTextBlock"
-                       Text="{DynamicResource Status.Ready}"
-                       Foreground="{StaticResource TextPrimaryBrush}"
-                       FontSize="{StaticResource FontSizeM}"
-                       FontWeight="SemiBold"/>
-          </StackPanel>
-
-          <StackPanel Grid.Column="2"
-                      Orientation="Horizontal"
-                      VerticalAlignment="Center">
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-              <ProgressBar x:Name="UploadProgressBar"
-                           Width="160"
-                           Height="14"
-                           Minimum="0"
-                           Maximum="100"
-                           Value="0"
-                           Visibility="Collapsed"
-                           Margin="{StaticResource SpacingHorizontalM}"/>
-              <TextBlock x:Name="UploadProgressLabel"
-                         VerticalAlignment="Center"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Text=""
-                         Visibility="Collapsed"/>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal"
-                        Margin="12,0,0,0">
-              <Button x:Name="MinimizeButton"
-                      Style="{StaticResource TitleBarButtonStyle}"
-                      Margin="0"
-                      Padding="0"
-                      Click="MinimizeButton_Click">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xe931;"
-                           Margin="0"
-                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-              </Button>
-              <Button x:Name="MaximizeButton"
-                      Style="{StaticResource TitleBarButtonStyle}"
-                      Margin="0"
-                      Padding="0"
-                      Click="MaximizeButton_Click">
-                <TextBlock x:Name="MaximizeIconTextBlock"
-                           Style="{StaticResource IconL}"
-                           Text="&#xea10;"
-                           Margin="0"
-                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-              </Button>
-              <Button x:Name="CloseButton"
-                      Style="{StaticResource TitleBarCloseButtonStyle}"
-                      Margin="0"
-                      Padding="0"
-                      Click="CloseButton_Click">
-                <TextBlock Style="{StaticResource IconL}"
-                           Text="&#xe5cd;"
-                           Margin="0"
-                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-              </Button>
-            </StackPanel>
+            <TextBlock Text="{DynamicResource App.Copyright}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"/>
           </StackPanel>
         </Grid>
       </Border>
 
-      <!-- Content Pages -->
-      <Grid Grid.Row="1"
-            Margin="{StaticResource ContentPadding}">
+      <!-- Trennlinie zwischen Sidebar und Content -->
+      <Border Grid.Column="1"
+              Background="{StaticResource BorderBrush}"/>
 
-        <!-- Page 0: Neuer Upload -->
-        <ScrollViewer x:Name="PageUpload"
-                      VerticalScrollBarVisibility="Auto"
-                      Visibility="Visible">
-          <views:UploadView x:Name="UploadPageView"/>
-        </ScrollViewer>
+      <!-- Hauptbereich -->
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <!-- Page 1: Konten -->
-        <ScrollViewer x:Name="PageAccounts"
-                      VerticalScrollBarVisibility="Auto"
-                      Visibility="Collapsed">
-          <views:AccountsView x:Name="AccountsPageView"/>
-        </ScrollViewer>
+        <!-- Header mit Status und Progress -->
+        <Border Grid.Row="0"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="{StaticResource HeaderPadding}"
+                MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- Page 2: Kanalprofil -->
-        <ScrollViewer x:Name="PageChannel"
-                      VerticalScrollBarVisibility="Auto"
-                      Visibility="Collapsed">
-          <views:ChannelView x:Name="ChannelPageView"/>
-        </ScrollViewer>
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+              <TextBlock Text="{DynamicResource Status}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{StaticResource FontSizeM}"
+                         Margin="0,0,6,0"/>
+              <TextBlock x:Name="StatusTextBlock"
+                         Text="{DynamicResource Status.Ready}"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         FontSize="{StaticResource FontSizeM}"
+                         FontWeight="SemiBold"/>
+            </StackPanel>
 
-        <!-- Page 3: Templates -->
-        <Grid x:Name="PageTemplates"
-              Visibility="Collapsed">
-          <views:TemplatesView x:Name="TemplatesPageView"/>
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+              <StackPanel Orientation="Horizontal"
+                          VerticalAlignment="Center">
+                <ProgressBar x:Name="UploadProgressBar"
+                             Width="160"
+                             Height="14"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="0"
+                             Visibility="Collapsed"
+                             Margin="{StaticResource SpacingHorizontalM}"/>
+                <TextBlock x:Name="UploadProgressLabel"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Text=""
+                           Visibility="Collapsed"/>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal"
+                          Margin="12,0,0,0">
+                <Button x:Name="MinimizeButton"
+                        Style="{StaticResource TitleBarButtonStyle}"
+                        Margin="0"
+                        Padding="0"
+                        Click="MinimizeButton_Click">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xe931;"
+                             Margin="0"
+                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Button x:Name="MaximizeButton"
+                        Style="{StaticResource TitleBarButtonStyle}"
+                        Margin="0"
+                        Padding="0"
+                        Click="MaximizeButton_Click">
+                  <TextBlock x:Name="MaximizeIconTextBlock"
+                             Style="{StaticResource IconL}"
+                             Text="&#xea10;"
+                             Margin="0"
+                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+                <Button x:Name="CloseButton"
+                        Style="{StaticResource TitleBarCloseButtonStyle}"
+                        Margin="0"
+                        Padding="0"
+                        Click="CloseButton_Click">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xe5cd;"
+                             Margin="0"
+                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                </Button>
+              </StackPanel>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- Content Pages -->
+        <Grid Grid.Row="1"
+              Margin="{StaticResource ContentPadding}">
+
+          <!-- Page 0: Neuer Upload -->
+          <ScrollViewer x:Name="PageUpload"
+                        VerticalScrollBarVisibility="Auto"
+                        Visibility="Visible">
+            <views:UploadView x:Name="UploadPageView"/>
+          </ScrollViewer>
+
+          <!-- Page 1: Konten -->
+          <ScrollViewer x:Name="PageAccounts"
+                        VerticalScrollBarVisibility="Auto"
+                        Visibility="Collapsed">
+            <views:AccountsView x:Name="AccountsPageView"/>
+          </ScrollViewer>
+
+          <!-- Page 2: Kanalprofil -->
+          <ScrollViewer x:Name="PageChannel"
+                        VerticalScrollBarVisibility="Auto"
+                        Visibility="Collapsed">
+            <views:ChannelView x:Name="ChannelPageView"/>
+          </ScrollViewer>
+
+          <!-- Page 3: Templates -->
+          <Grid x:Name="PageTemplates"
+                Visibility="Collapsed">
+            <views:TemplatesView x:Name="TemplatesPageView"/>
+          </Grid>
+
+          <!-- Page 4: Historie -->
+          <Grid x:Name="PageHistory"
+                Visibility="Collapsed">
+            <views:HistoryView x:Name="HistoryPageView"/>
+          </Grid>
+
+          <!-- Page 5: Einstellungen -->
+          <ScrollViewer x:Name="PageSettings"
+                        VerticalScrollBarVisibility="Auto"
+                        Visibility="Collapsed">
+            <views:SettingsView x:Name="SettingsPageView"/>
+          </ScrollViewer>
         </Grid>
-
-        <!-- Page 4: Historie -->
-        <Grid x:Name="PageHistory"
-              Visibility="Collapsed">
-          <views:HistoryView x:Name="HistoryPageView"/>
-        </Grid>
-
-        <!-- Page 5: Einstellungen -->
-        <ScrollViewer x:Name="PageSettings"
-                      VerticalScrollBarVisibility="Auto"
-                      Visibility="Collapsed">
-          <views:SettingsView x:Name="SettingsPageView"/>
-        </ScrollViewer>
       </Grid>
     </Grid>
-  </Grid>
+  </Border>
 </Window>
