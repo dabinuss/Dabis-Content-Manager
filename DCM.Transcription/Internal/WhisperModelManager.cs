@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using DCM.Core;
 using DCM.Core.Configuration;
 
@@ -10,6 +11,10 @@ namespace DCM.Transcription.Internal;
 internal sealed class WhisperModelManager
 {
     private readonly HttpClient _httpClient;
+
+    // Minimaler State-Lock: verhindert Race-Glitches bei parallelen Statuschecks/Downloads
+    private readonly object _stateLock = new();
+
     private string? _currentModelPath;
     private WhisperModelSize? _currentModelSize;
 
@@ -21,17 +26,47 @@ internal sealed class WhisperModelManager
     /// <summary>
     /// Gibt an, ob ein Modell verfügbar ist.
     /// </summary>
-    public bool IsAvailable => _currentModelPath is not null && File.Exists(_currentModelPath);
+    public bool IsAvailable
+    {
+        get
+        {
+            string? path;
+            lock (_stateLock)
+            {
+                path = _currentModelPath;
+            }
+
+            return path is not null && File.Exists(path);
+        }
+    }
 
     /// <summary>
     /// Pfad zum aktuellen Modell.
     /// </summary>
-    public string? ModelPath => _currentModelPath;
+    public string? ModelPath
+    {
+        get
+        {
+            lock (_stateLock)
+            {
+                return _currentModelPath;
+            }
+        }
+    }
 
     /// <summary>
     /// Größe des aktuellen Modells.
     /// </summary>
-    public WhisperModelSize? ModelSize => _currentModelSize;
+    public WhisperModelSize? ModelSize
+    {
+        get
+        {
+            lock (_stateLock)
+            {
+                return _currentModelSize;
+            }
+        }
+    }
 
     /// <summary>
     /// Prüft, ob ein bestimmtes Modell verfügbar ist.
@@ -48,8 +83,11 @@ internal sealed class WhisperModelManager
 
             if (fileInfo.Length >= expectedSize * 0.5)
             {
-                _currentModelPath = modelPath;
-                _currentModelSize = size;
+                lock (_stateLock)
+                {
+                    _currentModelPath = modelPath;
+                    _currentModelSize = size;
+                }
                 return true;
             }
         }
@@ -91,8 +129,9 @@ internal sealed class WhisperModelManager
         IProgress<DependencyDownloadProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        // Sicherstellen, dass der Ordner existiert (Property erstellt ihn)
-        var modelsFolder = Constants.WhisperModelsFolder;
+        // Defensiv: Ordner wirklich anlegen
+        Directory.CreateDirectory(Constants.WhisperModelsFolder);
+
         var modelPath = GetModelPath(size);
         var tempPath = modelPath + ".download";
         var url = size.GetDownloadUrl();
@@ -102,22 +141,20 @@ internal sealed class WhisperModelManager
             progress?.Report(DependencyDownloadProgress.WhisperModelDownload(0));
 
             // Falls alte Temp-Datei existiert, löschen
-            if (File.Exists(tempPath))
-            {
-                File.Delete(tempPath);
-            }
+            CleanupTempFile(tempPath);
 
             using var response = await _httpClient.GetAsync(
                 url,
                 HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
 
-            var totalBytes = response.Content.Headers.ContentLength ?? size.GetApproximateSizeBytes();
+            var expectedBytes = size.GetApproximateSizeBytes();
+            var totalBytes = response.Content.Headers.ContentLength ?? expectedBytes;
             var downloadedBytes = 0L;
 
-            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             await using var fileStream = new FileStream(
                 tempPath,
                 FileMode.Create,
@@ -128,17 +165,20 @@ internal sealed class WhisperModelManager
 
             var buffer = new byte[81920];
             int bytesRead;
-            var lastReportTime = DateTime.UtcNow;
 
-            while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
+            // Progress nur alle ~100ms reporten
+            var throttle = Stopwatch.StartNew();
+            long lastReportMs = 0;
+
+            while ((bytesRead = await contentStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false)) > 0)
             {
-                await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
                 downloadedBytes += bytesRead;
 
-                // Progress nur alle 100ms reporten
-                if ((DateTime.UtcNow - lastReportTime).TotalMilliseconds > 100)
+                var nowMs = throttle.ElapsedMilliseconds;
+                if (nowMs - lastReportMs > 100)
                 {
-                    var percent = (double)downloadedBytes / totalBytes * 100;
+                    var percent = totalBytes > 0 ? (double)downloadedBytes / totalBytes * 100 : 0;
 
                     progress?.Report(new DependencyDownloadProgress(
                         DependencyType.WhisperModel,
@@ -147,24 +187,66 @@ internal sealed class WhisperModelManager
                         downloadedBytes,
                         totalBytes));
 
-                    lastReportTime = DateTime.UtcNow;
+                    lastReportMs = nowMs;
                 }
             }
 
-            // Stream schließen bevor wir die Datei verschieben
-            await fileStream.FlushAsync(cancellationToken);
-            fileStream.Close();
+            await fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-            // Umbenennen nach erfolgreichem Download
-            if (File.Exists(modelPath))
+            // Sanity-Check (gleiche Schwelle wie CheckAvailability: >= 50% expected)
+            // -> verhindert "Download OK aber Datei praktisch leer/kaputt".
+            try
             {
-                File.Delete(modelPath);
+                var fi = new FileInfo(tempPath);
+                if (!fi.Exists || fi.Length < expectedBytes * 0.5)
+                {
+                    CleanupTempFile(tempPath);
+
+                    progress?.Report(new DependencyDownloadProgress(
+                        DependencyType.WhisperModel,
+                        0,
+                        "Download unvollständig oder beschädigt. Bitte erneut versuchen."));
+
+                    return false;
+                }
+            }
+            catch
+            {
+                // Wenn wir nicht prüfen können, machen wir weiter wie bisher
             }
 
-            File.Move(tempPath, modelPath);
+            // Umbenennen/Ersetzen möglichst atomar (File.Replace ist framework-breit verfügbar)
+            if (File.Exists(modelPath))
+            {
+                try
+                {
+                    File.Replace(tempPath, modelPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                }
+                catch
+                {
+                    // Fallback auf Delete+Move (Semantik wie vorher)
+                    try
+                    {
+                        File.Delete(modelPath);
+                    }
+                    catch
+                    {
+                        // ignorieren
+                    }
 
-            _currentModelPath = modelPath;
-            _currentModelSize = size;
+                    File.Move(tempPath, modelPath);
+                }
+            }
+            else
+            {
+                File.Move(tempPath, modelPath);
+            }
+
+            lock (_stateLock)
+            {
+                _currentModelPath = modelPath;
+                _currentModelSize = size;
+            }
 
             progress?.Report(DependencyDownloadProgress.WhisperModelDownload(100, totalBytes, totalBytes));
 
@@ -172,7 +254,6 @@ internal sealed class WhisperModelManager
         }
         catch (OperationCanceledException)
         {
-            // Temp-Datei aufräumen
             CleanupTempFile(tempPath);
             throw;
         }
@@ -200,6 +281,8 @@ internal sealed class WhisperModelManager
             }
 
             var path = GetModelPath(size);
+            var tempPath = path + ".download";
+
             try
             {
                 if (File.Exists(path))
@@ -211,12 +294,14 @@ internal sealed class WhisperModelManager
             {
                 // Ignorieren
             }
+
+            // Temp-Reste ebenfalls entfernen
+            CleanupTempFile(tempPath);
         }
     }
 
     private static string GetModelPath(WhisperModelSize size)
     {
-        // Constants.WhisperModelsFolder erstellt den Ordner automatisch
         return Path.Combine(Constants.WhisperModelsFolder, size.GetFileName());
     }
 

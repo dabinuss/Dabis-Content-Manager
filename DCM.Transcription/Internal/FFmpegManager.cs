@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.IO.Compression;
+using System.Linq;
 using System.Runtime.InteropServices;
 using DCM.Core;
 
@@ -9,7 +11,7 @@ namespace DCM.Transcription.Internal;
 /// </summary>
 internal sealed class FFmpegManager
 {
-    private const string FFmpegWindowsDownloadUrl = 
+    private const string FFmpegWindowsDownloadUrl =
         "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip";
 
     private readonly HttpClient _httpClient;
@@ -46,19 +48,29 @@ internal sealed class FFmpegManager
         if (appFfmpegPath is not null)
         {
             _ffmpegPath = appFfmpegPath;
-            _ffprobePath = GetFFprobePath(appFfmpegPath);
+
+            // ffprobe bevorzugt im gleichen Ordner wie ffmpeg
+            _ffprobePath = GetFFprobePath(appFfmpegPath)
+                           ?? FindInSystemPath(GetExeName("ffprobe"));
+
             return true;
         }
 
         // Dann im PATH suchen
-        var systemFfmpegPath = FindInSystemPath();
+        var systemFfmpegPath = FindInSystemPath(GetExeName("ffmpeg"));
         if (systemFfmpegPath is not null)
         {
             _ffmpegPath = systemFfmpegPath;
-            _ffprobePath = GetFFprobePath(systemFfmpegPath);
+
+            // ffprobe bevorzugt im gleichen Ordner wie ffmpeg
+            _ffprobePath = GetFFprobePath(systemFfmpegPath)
+                           ?? FindInSystemPath(GetExeName("ffprobe"));
+
             return true;
         }
 
+        _ffmpegPath = null;
+        _ffprobePath = null;
         return false;
     }
 
@@ -79,25 +91,36 @@ internal sealed class FFmpegManager
             return false;
         }
 
+        var extractPath = Constants.FFmpegFolder;
+
+        // Zip atomar laden -> weniger kaputte zip-Dateien bei Abbruch
+        var zipPath = Path.Combine(extractPath, "ffmpeg-download.zip");
+        var tempZipPath = zipPath + ".download";
+
         try
         {
             progress?.Report(DependencyDownloadProgress.FFmpegDownload(0, "Starte Download..."));
 
-            // Sicherstellen, dass der Ordner existiert (Property erstellt ihn)
-            var extractPath = Constants.FFmpegFolder;
-            var zipPath = Path.Combine(extractPath, "ffmpeg-download.zip");
+            Directory.CreateDirectory(extractPath);
+
+            // Alte Temp-Zip löschen
+            TryDeleteFile(tempZipPath);
 
             // Download mit Progress
             await DownloadFileAsync(
                 FFmpegWindowsDownloadUrl,
-                zipPath,
+                tempZipPath,
                 progress,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
+
+            // TempZip -> Zip (Overwrite über Delete um Framework-kompatibel zu bleiben)
+            TryDeleteFile(zipPath);
+            File.Move(tempZipPath, zipPath);
 
             progress?.Report(DependencyDownloadProgress.FFmpegDownload(90, "Entpacke..."));
 
             // Alte Dateien löschen falls vorhanden
-            var existingDirs = Directory.GetDirectories(extractPath, "ffmpeg-*");
+            var existingDirs = SafeGetDirectories(extractPath, "ffmpeg-*");
             foreach (var dir in existingDirs)
             {
                 try
@@ -114,14 +137,7 @@ internal sealed class FFmpegManager
             ZipFile.ExtractToDirectory(zipPath, extractPath, overwriteFiles: true);
 
             // Zip löschen
-            try
-            {
-                File.Delete(zipPath);
-            }
-            catch
-            {
-                // Ignorieren
-            }
+            TryDeleteFile(zipPath);
 
             progress?.Report(DependencyDownloadProgress.FFmpegDownload(100, "Abgeschlossen."));
 
@@ -130,10 +146,15 @@ internal sealed class FFmpegManager
         }
         catch (OperationCanceledException)
         {
+            // Cleanup
+            TryDeleteFile(tempZipPath);
             throw;
         }
         catch (Exception ex)
         {
+            // Cleanup
+            TryDeleteFile(tempZipPath);
+
             progress?.Report(new DependencyDownloadProgress(
                 DependencyType.FFmpeg,
                 0,
@@ -158,14 +179,14 @@ internal sealed class FFmpegManager
         using var response = await _httpClient.GetAsync(
             url,
             HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
 
         var totalBytes = response.Content.Headers.ContentLength ?? 0;
         var downloadedBytes = 0L;
 
-        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         await using var fileStream = new FileStream(
             destinationPath,
             FileMode.Create,
@@ -176,15 +197,18 @@ internal sealed class FFmpegManager
 
         var buffer = new byte[81920];
         int bytesRead;
-        var lastReportTime = DateTime.UtcNow;
 
-        while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
+        // Progress nur alle ~100ms reporten (Stopwatch stabiler als DateTime)
+        var throttle = Stopwatch.StartNew();
+        long lastReportMs = 0;
+
+        while ((bytesRead = await contentStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false)) > 0)
         {
-            await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+            await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
             downloadedBytes += bytesRead;
 
-            // Progress nur alle 100ms reporten
-            if ((DateTime.UtcNow - lastReportTime).TotalMilliseconds > 100)
+            var nowMs = throttle.ElapsedMilliseconds;
+            if (nowMs - lastReportMs > 100)
             {
                 var percent = totalBytes > 0
                     ? (double)downloadedBytes / totalBytes * 85 // 85% für Download, 15% für Entpacken
@@ -197,10 +221,27 @@ internal sealed class FFmpegManager
                     downloadedBytes,
                     totalBytes));
 
-                lastReportTime = DateTime.UtcNow;
+                lastReportMs = nowMs;
             }
         }
+
+        // Falls Download sehr schnell war: einmal final reporten
+        {
+            var percent = totalBytes > 0
+                ? (double)downloadedBytes / totalBytes * 85
+                : 0;
+
+            progress?.Report(new DependencyDownloadProgress(
+                DependencyType.FFmpeg,
+                percent,
+                "FFmpeg wird heruntergeladen...",
+                downloadedBytes,
+                totalBytes));
+        }
     }
+
+    private static string GetExeName(string baseName)
+        => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{baseName}.exe" : baseName;
 
     private static string? FindInAppFolder()
     {
@@ -212,12 +253,12 @@ internal sealed class FFmpegManager
         }
 
         // Suche in Unterordnern (z.B. ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe)
-        var exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "ffmpeg.exe" : "ffmpeg";
+        var exeName = GetExeName("ffmpeg");
 
         try
         {
-            var files = Directory.GetFiles(ffmpegFolder, exeName, SearchOption.AllDirectories);
-            return files.FirstOrDefault();
+            // EnumerateFiles ist speicherschonender als GetFiles
+            return Directory.EnumerateFiles(ffmpegFolder, exeName, SearchOption.AllDirectories).FirstOrDefault();
         }
         catch
         {
@@ -225,18 +266,18 @@ internal sealed class FFmpegManager
         }
     }
 
-    private static string? FindInSystemPath()
+    private static string? FindInSystemPath(string exeName)
     {
-        var exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "ffmpeg.exe" : "ffmpeg";
         var pathEnv = Environment.GetEnvironmentVariable("PATH");
-
         if (string.IsNullOrEmpty(pathEnv))
         {
             return null;
         }
 
         var separator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ';' : ':';
-        var paths = pathEnv.Split(separator);
+        var paths = pathEnv.Split(separator)
+            .Select(p => p.Trim())
+            .Where(p => p.Length > 0);
 
         foreach (var path in paths)
         {
@@ -265,9 +306,36 @@ internal sealed class FFmpegManager
             return null;
         }
 
-        var ffprobeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "ffprobe.exe" : "ffprobe";
+        var ffprobeName = GetExeName("ffprobe");
         var ffprobePath = Path.Combine(directory, ffprobeName);
 
         return File.Exists(ffprobePath) ? ffprobePath : null;
+    }
+
+    private static string[] SafeGetDirectories(string root, string pattern)
+    {
+        try
+        {
+            return Directory.GetDirectories(root, pattern);
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            // Ignorieren
+        }
     }
 }
