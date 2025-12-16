@@ -15,9 +15,23 @@ namespace DCM.YouTube;
 
 public sealed class YouTubePlatformClient : IPlatformClient
 {
+    private const string UserKey = "user";
+
+    private static readonly string[] Scopes =
+    [
+        YouTubeService.Scope.Youtube,
+        YouTubeService.Scope.YoutubeUpload,
+        YouTubeService.Scope.YoutubeReadonly
+    ];
+
+    // Empirisch: YouTube lehnt publishAt "zu nah" an jetzt oft mit invalidPublishAt ab.
+    private static readonly TimeSpan MinScheduledPublishLeadTime = TimeSpan.FromMinutes(15);
+
     private readonly string _clientSecretsPath;
     private readonly string _tokenFolder;
     private readonly IAppLogger _logger;
+
+    private readonly SemaphoreSlim _serviceInitLock = new(1, 1);
 
     private UserCredential? _credential;
     private YouTubeService? _service;
@@ -61,17 +75,10 @@ public sealed class YouTubePlatformClient : IPlatformClient
         {
             _logger.Debug("Versuche Silent-Connect mit gespeicherten Tokens...", "YouTube");
 
-            var secrets = await GoogleClientSecrets.FromFileAsync(_clientSecretsPath, cancellationToken);
-            var scopes = new[]
-            {
-                YouTubeService.Scope.Youtube,
-                YouTubeService.Scope.YoutubeUpload,
-                YouTubeService.Scope.YoutubeReadonly
-            };
-
+            var secrets = await LoadSecretsAsync(cancellationToken);
             var dataStore = new FileDataStore(_tokenFolder, true);
 
-            var storedToken = await dataStore.GetAsync<TokenResponse>("user");
+            var storedToken = await dataStore.GetAsync<TokenResponse>(UserKey);
             if (storedToken is null)
             {
                 _logger.Debug("Kein gespeichertes Token gefunden", "YouTube");
@@ -81,11 +88,11 @@ public sealed class YouTubePlatformClient : IPlatformClient
             var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
             {
                 ClientSecrets = secrets.Secrets,
-                Scopes = scopes,
+                Scopes = Scopes,
                 DataStore = dataStore
             });
 
-            var credential = new UserCredential(flow, "user", storedToken);
+            var credential = new UserCredential(flow, UserKey, storedToken);
 
             if (credential.Token.IsStale)
             {
@@ -99,24 +106,9 @@ public sealed class YouTubePlatformClient : IPlatformClient
             }
 
             _credential = credential;
+            _service = CreateService(credential);
 
-            _service = new YouTubeService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = Constants.ApplicationName
-            });
-
-            try
-            {
-                var req = _service.Channels.List("snippet");
-                req.Mine = true;
-                var resp = await req.ExecuteAsync(cancellationToken);
-                ChannelTitle = resp.Items?.FirstOrDefault()?.Snippet?.Title;
-            }
-            catch (Exception ex)
-            {
-                _logger.Warning($"Kanal-Titel konnte nicht abgerufen werden: {ex.Message}", "YouTube");
-            }
+            await TryLoadChannelTitleAsync(_service, cancellationToken);
 
             _logger.Info($"Silent-Connect erfolgreich: {ChannelTitle ?? "Unbekannt"}", "YouTube");
             return true;
@@ -219,6 +211,39 @@ public sealed class YouTubePlatformClient : IPlatformClient
             return UploadResult.Failed(errorMsg);
         }
 
+        // --- Scheduling / Privacy ---
+        // YouTube-Regel: status.publishAt kann nur gesetzt werden, wenn status.privacyStatus=private ist.
+        // Außerdem wird publishAt "zu nah" an jetzt oft abgelehnt (invalidPublishAt).
+        var privacyStatus = MapPrivacyStatus(project.Visibility);
+        DateTimeOffset? publishAtUtc = null;
+
+        if (project.ScheduledTime is DateTimeOffset scheduled)
+        {
+            var scheduledUtc = scheduled.ToUniversalTime();
+            var minUtc = DateTimeOffset.UtcNow.Add(MinScheduledPublishLeadTime);
+
+            if (scheduledUtc > minUtc)
+            {
+                publishAtUtc = scheduledUtc;
+
+                if (!string.Equals(privacyStatus, "private", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.Debug("Scheduled publish requested; overriding privacyStatus to private (YouTube requirement).", "YouTube");
+                    privacyStatus = "private";
+                }
+
+                _logger.Debug($"Video geplant für (UTC): {scheduledUtc:u}", "YouTube");
+            }
+            else
+            {
+                _logger.Warning(
+                    $"ScheduledTime ist zu nah oder in der Vergangenheit ({scheduled:g}). Upload läuft ohne Planung.",
+                    "YouTube");
+
+                progress?.Report(new UploadProgressInfo(0, "Geplanter Zeitpunkt ist zu nah/ungültig – Upload ohne Planung."));
+            }
+        }
+
         var video = new Video
         {
             Snippet = new VideoSnippet
@@ -231,18 +256,12 @@ public sealed class YouTubePlatformClient : IPlatformClient
             },
             Status = new VideoStatus
             {
-                PrivacyStatus = MapPrivacyStatus(project.Visibility)
+                PrivacyStatus = privacyStatus,
+                PublishAtDateTimeOffset = publishAtUtc
             }
         };
 
-        if (project.ScheduledTime is DateTimeOffset scheduled &&
-            scheduled > DateTimeOffset.Now.AddMinutes(1))
-        {
-            video.Status.PublishAtDateTimeOffset = scheduled;
-            _logger.Debug($"Video geplant für: {scheduled:g}", "YouTube");
-        }
-
-        using var fileStream = new FileStream(project.VideoFilePath, FileMode.Open, FileAccess.Read);
+        using var fileStream = OpenVideoReadStream(project.VideoFilePath);
         var totalBytes = fileStream.Length;
 
         _logger.Debug($"Video-Größe: {totalBytes / 1024 / 1024:F2} MB", "YouTube");
@@ -254,7 +273,7 @@ public sealed class YouTubePlatformClient : IPlatformClient
             "video/*"
         );
 
-        insertRequest.ProgressChanged += uploadProgress =>
+        void OnProgressChanged(IUploadProgress uploadProgress)
         {
             switch (uploadProgress.Status)
             {
@@ -262,30 +281,64 @@ public sealed class YouTubePlatformClient : IPlatformClient
                     _logger.Debug("Upload startet...", "YouTube");
                     progress?.Report(new UploadProgressInfo(0, "Upload startet...", totalBytes == 0));
                     break;
+
                 case UploadStatus.Uploading:
+                {
                     var percent = totalBytes > 0
                         ? (double)uploadProgress.BytesSent / totalBytes * 100d
                         : 0d;
+
+                    percent = Math.Max(0d, Math.Min(100d, percent));
                     progress?.Report(new UploadProgressInfo(percent, "Video wird hochgeladen...", totalBytes == 0));
                     break;
+                }
+
                 case UploadStatus.Completed:
                     _logger.Debug("Video-Upload abgeschlossen", "YouTube");
                     progress?.Report(new UploadProgressInfo(100, "Video-Upload abgeschlossen."));
                     break;
+
                 case UploadStatus.Failed:
+                {
                     var errorMsg = uploadProgress.Exception?.Message ?? "Upload fehlgeschlagen.";
                     _logger.Error($"Upload fehlgeschlagen: {errorMsg}", "YouTube");
                     progress?.Report(new UploadProgressInfo(0, errorMsg));
                     break;
+                }
             }
-        };
+        }
 
-        var uploadProgress = await insertRequest.UploadAsync(cancellationToken);
+        insertRequest.ProgressChanged += OnProgressChanged;
 
-        if (uploadProgress.Exception is not null)
+        IUploadProgress uploadProgressResult;
+        try
         {
-            _logger.Error($"Upload-Exception: {uploadProgress.Exception.Message}", "YouTube", uploadProgress.Exception);
-            return UploadResult.Failed(uploadProgress.Exception.Message);
+            uploadProgressResult = await insertRequest.UploadAsync(cancellationToken);
+        }
+        finally
+        {
+            insertRequest.ProgressChanged -= OnProgressChanged;
+        }
+
+        if (uploadProgressResult.Exception is not null)
+        {
+            if (uploadProgressResult.Exception is Google.GoogleApiException gex && IsInvalidPublishAt(gex))
+            {
+                var msg =
+                    $"YouTube hat den geplanten Veröffentlichungszeitpunkt abgelehnt (invalidPublishAt). " +
+                    $"Tipp: Scheduling erfordert privacyStatus=private und der Zeitpunkt muss deutlich in der Zukunft liegen " +
+                    $"(probier ≥ {(int)MinScheduledPublishLeadTime.TotalMinutes} Minuten; falls es weiter knallt: 60 Minuten).";
+
+                _logger.Error(
+                    $"Upload-Exception (invalidPublishAt). ScheduledTime: {project.ScheduledTime:g}, PrivacyStatus(sent): {privacyStatus}, PublishAt(UTC): {publishAtUtc:u}",
+                    "YouTube",
+                    gex);
+
+                return UploadResult.Failed(msg);
+            }
+
+            _logger.Error($"Upload-Exception: {uploadProgressResult.Exception.Message}", "YouTube", uploadProgressResult.Exception);
+            return UploadResult.Failed(uploadProgressResult.Exception.Message);
         }
 
         if (insertRequest.ResponseBody?.Id is null)
@@ -338,7 +391,7 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
             try
             {
-                using var thumbStream = new FileStream(project.ThumbnailPath, FileMode.Open, FileAccess.Read);
+                using var thumbStream = OpenThumbnailReadStream(project.ThumbnailPath);
                 var ext = Path.GetExtension(project.ThumbnailPath);
                 var contentType = GetThumbnailMimeType(ext);
 
@@ -366,47 +419,81 @@ public sealed class YouTubePlatformClient : IPlatformClient
             return;
         }
 
-        if (!File.Exists(_clientSecretsPath))
+        await _serviceInitLock.WaitAsync(cancellationToken);
+        try
         {
-            var errorMsg = $"YouTube Client-Secrets fehlen: {_clientSecretsPath}";
-            _logger.Error(errorMsg, "YouTube");
-            throw new InvalidOperationException(errorMsg);
+            if (_service is not null)
+            {
+                return;
+            }
+
+            if (!File.Exists(_clientSecretsPath))
+            {
+                var errorMsg = $"YouTube Client-Secrets fehlen: {_clientSecretsPath}";
+                _logger.Error(errorMsg, "YouTube");
+                throw new InvalidOperationException(errorMsg);
+            }
+
+            _logger.Debug("Lade YouTube Client-Secrets...", "YouTube");
+            var secrets = await LoadSecretsAsync(cancellationToken);
+
+            var dataStore = new FileDataStore(_tokenFolder, true);
+
+            _logger.Debug("Starte OAuth-Autorisierung...", "YouTube");
+
+            _credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                secrets.Secrets,
+                Scopes,
+                UserKey,
+                cancellationToken,
+                dataStore);
+
+            _service = CreateService(_credential);
+
+            await TryLoadChannelTitleAsync(_service, cancellationToken);
+
+            _logger.Debug($"YouTube-Service initialisiert, Kanal: {ChannelTitle}", "YouTube");
         }
-
-        _logger.Debug("Lade YouTube Client-Secrets...", "YouTube");
-
-        var secrets = await GoogleClientSecrets.FromFileAsync(_clientSecretsPath, cancellationToken);
-
-        var scopes = new[]
+        finally
         {
-            YouTubeService.Scope.Youtube,
-            YouTubeService.Scope.YoutubeUpload,
-            YouTubeService.Scope.YoutubeReadonly
-        };
+            _serviceInitLock.Release();
+        }
+    }
 
-        var dataStore = new FileDataStore(_tokenFolder, true);
+    private Task<GoogleClientSecrets> LoadSecretsAsync(CancellationToken cancellationToken) =>
+        GoogleClientSecrets.FromFileAsync(_clientSecretsPath, cancellationToken);
 
-        _logger.Debug("Starte OAuth-Autorisierung...", "YouTube");
-
-        _credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-            secrets.Secrets,
-            scopes,
-            "user",
-            cancellationToken,
-            dataStore);
-
-        _service = new YouTubeService(new BaseClientService.Initializer
+    private static YouTubeService CreateService(UserCredential credential) =>
+        new(new BaseClientService.Initializer
         {
-            HttpClientInitializer = _credential,
+            HttpClientInitializer = credential,
             ApplicationName = Constants.ApplicationName
         });
 
-        var req = _service.Channels.List("snippet");
-        req.Mine = true;
-        var resp = await req.ExecuteAsync(cancellationToken);
+    private async Task TryLoadChannelTitleAsync(YouTubeService service, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var req = service.Channels.List("snippet");
+            req.Mine = true;
+            var resp = await req.ExecuteAsync(cancellationToken);
+            ChannelTitle = resp.Items?.FirstOrDefault()?.Snippet?.Title;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning($"Kanal-Titel konnte nicht abgerufen werden: {ex.Message}", "YouTube");
+        }
+    }
 
-        ChannelTitle = resp.Items?.FirstOrDefault()?.Snippet?.Title;
-        _logger.Debug($"YouTube-Service initialisiert, Kanal: {ChannelTitle}", "YouTube");
+    private static bool IsInvalidPublishAt(Google.GoogleApiException ex)
+    {
+        var errors = ex.Error?.Errors;
+        if (errors is null || errors.Count == 0)
+        {
+            return false;
+        }
+
+        return errors.Any(e => string.Equals(e.Reason, "invalidPublishAt", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string MapPrivacyStatus(VideoVisibility visibility) =>
@@ -425,8 +512,7 @@ public sealed class YouTubePlatformClient : IPlatformClient
             return false;
         }
 
-        return Directory.EnumerateFiles(_tokenFolder)
-            .Any(f => Path.GetFileName(f).Contains("TokenResponse", StringComparison.OrdinalIgnoreCase));
+        return Directory.EnumerateFiles(_tokenFolder).Any();
     }
 
     private static string GetThumbnailMimeType(string? extension)
@@ -443,5 +529,29 @@ public sealed class YouTubePlatformClient : IPlatformClient
             ".png" => "image/png",
             _ => "image/jpeg"
         };
+    }
+
+    private static FileStream OpenVideoReadStream(string path)
+    {
+        return new FileStream(path, new FileStreamOptions
+        {
+            Mode = FileMode.Open,
+            Access = FileAccess.Read,
+            Share = FileShare.Read,
+            BufferSize = 1024 * 1024,
+            Options = FileOptions.Asynchronous | FileOptions.SequentialScan
+        });
+    }
+
+    private static FileStream OpenThumbnailReadStream(string path)
+    {
+        return new FileStream(path, new FileStreamOptions
+        {
+            Mode = FileMode.Open,
+            Access = FileAccess.Read,
+            Share = FileShare.Read,
+            BufferSize = 256 * 1024,
+            Options = FileOptions.Asynchronous | FileOptions.SequentialScan
+        });
     }
 }
