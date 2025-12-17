@@ -82,6 +82,18 @@ public partial class SettingsView : UserControl
         set => DefaultThumbnailFolderTextBox.Text = value ?? string.Empty;
     }
 
+    public bool RememberDraftsBetweenSessions
+    {
+        get => RememberDraftsCheckBox.IsChecked == true;
+        set => RememberDraftsCheckBox.IsChecked = value;
+    }
+
+    public bool AutoCleanDrafts
+    {
+        get => AutoCleanDraftsCheckBox.IsChecked == true;
+        set => AutoCleanDraftsCheckBox.IsChecked = value;
+    }
+
     public string DefaultSchedulingTime
     {
         get => DefaultSchedulingTimeTextBox.Text ?? string.Empty;
@@ -174,6 +186,8 @@ public partial class SettingsView : UserControl
         AutoApplyDefaultTemplateCheckBox.IsChecked = settings.AutoApplyDefaultTemplate;
         OpenBrowserAfterUploadCheckBox.IsChecked = settings.OpenBrowserAfterUpload;
         AutoConnectYouTubeCheckBox.IsChecked = settings.AutoConnectYouTube;
+        RememberDraftsBetweenSessions = settings.RememberDraftsBetweenSessions;
+        AutoCleanDrafts = settings.AutoRemoveCompletedDrafts;
     }
 
     public void UpdateAppSettings(AppSettings settings)
@@ -199,6 +213,8 @@ public partial class SettingsView : UserControl
         settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
         settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
         settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
+        settings.RememberDraftsBetweenSessions = RememberDraftsBetweenSessions;
+        settings.AutoRemoveCompletedDrafts = AutoCleanDrafts;
     }
 
     public void ApplyLlmSettings(LlmSettings settings)

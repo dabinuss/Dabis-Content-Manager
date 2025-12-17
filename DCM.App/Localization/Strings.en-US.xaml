@@ -45,6 +45,7 @@
   <sys:String x:Key="Status.Transcription.LoadDependencies">Loading transcription dependencies...</sys:String>
   <sys:String x:Key="Status.Transcription.DependenciesFailed">Transcription dependencies could not be loaded.</sys:String>
   <sys:String x:Key="Status.Transcription.Canceled">Transcription canceled.</sys:String>
+  <sys:String x:Key="Status.Transcription.Queued">Transcription queued.</sys:String>
   <sys:String x:Key="Status.Transcription.Error">Transcription failed: {0}</sys:String>
   <sys:String x:Key="Status.Transcription.Completed">Transcription completed ({0:F1}s).</sys:String>
   <sys:String x:Key="Status.Transcription.ResultFailed">Transcription failed: {0}</sys:String>
@@ -211,6 +212,8 @@
   <sys:String x:Key="Upload.Fields.Publication.Time">Time:</sys:String>
   <sys:String x:Key="Dialog.Video.Open.Title">Select video</sys:String>
   <sys:String x:Key="Dialog.Video.Open.Filter">Video Files|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm|All Files|*.*</sys:String>
+  <sys:String x:Key="Dialog.Video.Replace.Title">Replace video?</sys:String>
+  <sys:String x:Key="Dialog.Video.Replace.Text">Replace the currently selected video? Choose &quot;Yes&quot; to replace it or &quot;No&quot; to create a new card.</sys:String>
   <sys:String x:Key="Dialog.Thumbnail.Open.Title">Select thumbnail</sys:String>
   <sys:String x:Key="Dialog.Thumbnail.Open.Filter">Images|*.png;*.jpg;*.jpeg|All Files|*.*</sys:String>
   <sys:String x:Key="Status.Template.NoneSelected">No template selected.</sys:String>

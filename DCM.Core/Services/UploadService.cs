@@ -1,3 +1,4 @@
+using System.Text;
 using DCM.Core.Logging;
 using DCM.Core.Models;
 
@@ -11,6 +12,7 @@ namespace DCM.Core.Services;
 /// </summary>
 public sealed class UploadService
 {
+    private const int YouTubeDescriptionLimit = 5000;
     private readonly IReadOnlyList<IPlatformClient> _platformClients;
     private readonly TemplateService _templateService;
     private readonly IAppLogger _logger;
@@ -51,6 +53,30 @@ public sealed class UploadService
             {
                 _logger.Debug("Template übersprungen - Beschreibung bereits vorhanden", "UploadService");
             }
+        }
+
+        var sanitizedDescription = SanitizeDescription(project.Description);
+        if (!string.Equals(project.Description, sanitizedDescription, StringComparison.Ordinal))
+        {
+            var originalLength = project.Description?.Length ?? 0;
+            var sanitizedLength = sanitizedDescription.Length;
+
+            if (sanitizedLength < originalLength)
+            {
+                _logger.Warning(
+                    $"Beschreibung wurde auf {sanitizedLength} Zeichen gekürzt (maximal erlaubt: {YouTubeDescriptionLimit}).",
+                    "UploadService");
+            }
+            else
+            {
+                _logger.Warning("Beschreibung enthielt ungültige Zeichen und wurde bereinigt.", "UploadService");
+            }
+
+            project.Description = sanitizedDescription;
+        }
+        else
+        {
+            project.Description = sanitizedDescription;
         }
 
         // Validierung des Projekts
@@ -102,5 +128,33 @@ public sealed class UploadService
             _logger.Error($"Unerwarteter Fehler beim Upload: {ex.Message}", "UploadService", ex);
             return UploadResult.Failed($"Unerwarteter Fehler: {ex.Message}");
         }
+    }
+
+    private static string SanitizeDescription(string? rawText)
+    {
+        if (string.IsNullOrEmpty(rawText))
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder(rawText.Length);
+
+        foreach (var ch in rawText)
+        {
+            if (char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t')
+            {
+                continue;
+            }
+
+            builder.Append(ch);
+        }
+
+        var sanitized = builder.ToString();
+        if (sanitized.Length <= YouTubeDescriptionLimit)
+        {
+            return sanitized;
+        }
+
+        return sanitized[..YouTubeDescriptionLimit];
     }
 }

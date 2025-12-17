@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -12,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using DCM.App.Events;
 using DCM.App.Infrastructure;
+using DCM.App.Models;
 using DCM.App.Views;
 using DCM.Core;
 using DCM.Core.Configuration;
@@ -24,6 +26,8 @@ using DCM.Transcription;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Windows.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 
@@ -72,6 +76,15 @@ public partial class MainWindow : Window
     private readonly List<IDisposable> _eventSubscriptions = new();
     private SuggestionTarget _activeSuggestionTarget = SuggestionTarget.None;
     private bool _isThemeInitializing;
+    private readonly ObservableCollection<UploadDraft> _uploadDrafts = new();
+    private UploadDraft? _activeDraft;
+    private bool _isLoadingDraft;
+    private DispatcherTimer? _draftPersistenceTimer;
+    private bool _draftPersistenceDirty;
+    private bool _isRestoringDrafts;
+    private bool _isUploading;
+    private UploadDraft? _activeUploadDraft;
+    private CancellationTokenSource? _activeUploadCts;
 
     // OPTIMIZATION: Cached theme dictionary for faster theme switching
     private ResourceDictionary? _currentThemeDictionary;
@@ -88,6 +101,7 @@ public partial class MainWindow : Window
         AttachSettingsViewEvents();
         RegisterEventSubscriptions();
         InitializeTemplatePlaceholders();
+        InitializeUploadDrafts();
 
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
 
@@ -214,6 +228,8 @@ public partial class MainWindow : Window
         UploadPageView.UploadButtonClicked += UploadButton_Click;
         UploadPageView.TitleTextBoxTextChanged += TitleTextBox_TextChanged;
         UploadPageView.DescriptionTextBoxTextChanged += DescriptionTextBox_TextChanged;
+        UploadPageView.TagsTextBoxTextChanged += TagsTextBox_TextChanged;
+        UploadPageView.TranscriptTextBoxTextChanged += TranscriptTextBox_TextChanged;
         UploadPageView.GenerateTitleButtonClicked += GenerateTitleButton_Click;
         UploadPageView.GenerateDescriptionButtonClicked += GenerateDescriptionButton_Click;
         UploadPageView.TemplateComboBoxSelectionChanged += TemplateComboBox_SelectionChanged;
@@ -231,6 +247,21 @@ public partial class MainWindow : Window
         UploadPageView.FocusTargetOnContainerClicked += FocusTargetOnContainerClick;
         UploadPageView.SuggestionItemClicked += UploadView_SuggestionItemClicked;
         UploadPageView.SuggestionCloseButtonClicked += UploadView_SuggestionCloseButtonClicked;
+        UploadPageView.UploadItemsSelectionChanged += UploadItemsListBox_SelectionChanged;
+        UploadPageView.AddVideosButtonClicked += AddVideosButton_Click;
+        UploadPageView.UploadAllButtonClicked += UploadAllButton_Click;
+        UploadPageView.TranscribeAllButtonClicked += TranscribeAllButton_Click;
+        UploadPageView.RemoveDraftButtonClicked += RemoveDraftButton_Click;
+    }
+
+    private void InitializeUploadDrafts()
+    {
+        if (UploadPageView is null)
+        {
+            return;
+        }
+
+        UploadView.SetUploadItemsSource(_uploadDrafts);
     }
 
     private void AttachAccountsViewEvents()
@@ -338,6 +369,8 @@ public partial class MainWindow : Window
 
         // Fensterzustand speichern
         WindowStateManager.Save(this);
+        _draftPersistenceTimer?.Stop();
+        _draftPersistenceTimer = null;
 
         // Event-Handler zuerst entfernen
         try

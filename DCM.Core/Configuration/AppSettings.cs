@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DCM.Core.Models;
 
 namespace DCM.Core.Configuration;
@@ -98,4 +99,19 @@ public sealed class AppSettings
     /// Aktives UI-Theme (z. B. "Dark" oder "Light").
     /// </summary>
     public string Theme { get; set; } = "Dark";
+
+    /// <summary>
+    /// Ob Upload-Entwürfe zwischen Sitzungen wiederhergestellt werden sollen.
+    /// </summary>
+    public bool RememberDraftsBetweenSessions { get; set; } = true;
+
+    /// <summary>
+    /// Ob erfolgreich abgeschlossene Entwürfe automatisch entfernt werden sollen.
+    /// </summary>
+    public bool AutoRemoveCompletedDrafts { get; set; } = true;
+
+    /// <summary>
+    /// Persistierte Upload-Entwürfe für einen späteren Neustart.
+    /// </summary>
+    public List<UploadDraftSnapshot> SavedDrafts { get; set; } = new();
 }

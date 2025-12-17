@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -32,6 +33,13 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? GenerateTagsButtonClicked;
     public event RoutedEventHandler? TranscribeButtonClicked;
     public event RoutedEventHandler? TranscriptionExportButtonClicked;
+    public event TextChangedEventHandler? TagsTextBoxTextChanged;
+    public event TextChangedEventHandler? TranscriptTextBoxTextChanged;
+    public event SelectionChangedEventHandler? UploadItemsSelectionChanged;
+    public event RoutedEventHandler? AddVideosButtonClicked;
+    public event RoutedEventHandler? UploadAllButtonClicked;
+    public event RoutedEventHandler? TranscribeAllButtonClicked;
+    public event RoutedEventHandler? RemoveDraftButtonClicked;
     public event EventHandler<string>? SuggestionItemClicked;
     public event EventHandler? SuggestionCloseButtonClicked;
 
@@ -88,6 +96,27 @@ public partial class UploadView : UserControl
     private void TranscriptionExportButton_Click(object sender, RoutedEventArgs e) =>
         TranscriptionExportButtonClicked?.Invoke(sender, e);
 
+    private void TagsTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+        TagsTextBoxTextChanged?.Invoke(sender, e);
+
+    private void TranscriptTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+        TranscriptTextBoxTextChanged?.Invoke(sender, e);
+
+    private void UploadItemsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        UploadItemsSelectionChanged?.Invoke(sender, e);
+
+    private void AddVideosButton_Click(object sender, RoutedEventArgs e) =>
+        AddVideosButtonClicked?.Invoke(sender, e);
+
+    private void UploadAllButton_Click(object sender, RoutedEventArgs e) =>
+        UploadAllButtonClicked?.Invoke(sender, e);
+
+    private void TranscribeAllButton_Click(object sender, RoutedEventArgs e) =>
+        TranscribeAllButtonClicked?.Invoke(sender, e);
+
+    private void RemoveDraftButton_Click(object sender, RoutedEventArgs e) =>
+        RemoveDraftButtonClicked?.Invoke(sender, e);
+
     private void ThumbnailDrop_DragOver(object sender, DragEventArgs e) =>
         ThumbnailDropDragOver?.Invoke(sender, e);
 
@@ -131,6 +160,18 @@ public partial class UploadView : UserControl
         SuggestionItemsControl.ItemsSource = null;
         SuggestionTitleTextBlock.Text = string.Empty;
         SetContentBlur(isEnabled: false);
+    }
+
+    public void SetUploadItemsSource(IEnumerable? source)
+    {
+        UploadItemsListBox.ItemsSource = source;
+    }
+
+    public object? GetSelectedUploadItem() => UploadItemsListBox.SelectedItem;
+
+    public void SetSelectedUploadItem(object? item)
+    {
+        UploadItemsListBox.SelectedItem = item;
     }
 
     public void SetDefaultVisibility(VideoVisibility visibility)

@@ -45,6 +45,7 @@
   <sys:String x:Key="Status.Transcription.LoadDependencies">Lade Transkriptions-Abhängigkeiten...</sys:String>
   <sys:String x:Key="Status.Transcription.DependenciesFailed">Transkriptions-Abhängigkeiten konnten nicht geladen werden.</sys:String>
   <sys:String x:Key="Status.Transcription.Canceled">Transkription abgebrochen.</sys:String>
+  <sys:String x:Key="Status.Transcription.Queued">Transkription in Warteschlange.</sys:String>
   <sys:String x:Key="Status.Transcription.Error">Transkription fehlgeschlagen: {0}</sys:String>
   <sys:String x:Key="Status.Transcription.Completed">Transkription abgeschlossen ({0:F1}s).</sys:String>
   <sys:String x:Key="Status.Transcription.ResultFailed">Transkription fehlgeschlagen: {0}</sys:String>
@@ -211,6 +212,8 @@
   <sys:String x:Key="Upload.Fields.Publication.Time">Zeit:</sys:String>
   <sys:String x:Key="Dialog.Video.Open.Title">Video auswählen</sys:String>
   <sys:String x:Key="Dialog.Video.Open.Filter">Video-Dateien|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm|Alle Dateien|*.*</sys:String>
+  <sys:String x:Key="Dialog.Video.Replace.Title">Video ersetzen?</sys:String>
+  <sys:String x:Key="Dialog.Video.Replace.Text">Soll das aktuell ausgewählte Video ersetzt werden? Wähle &quot;Ja&quot;, um es zu ersetzen, oder &quot;Nein&quot;, um eine neue Karte zu erstellen.</sys:String>
   <sys:String x:Key="Dialog.Thumbnail.Open.Title">Thumbnail auswählen</sys:String>
   <sys:String x:Key="Dialog.Thumbnail.Open.Filter">Bilder|*.png;*.jpg;*.jpeg|Alle Dateien|*.*</sys:String>
   <sys:String x:Key="Status.Template.NoneSelected">Keine Vorlage ausgewählt.</sys:String>

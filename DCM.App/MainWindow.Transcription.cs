@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
@@ -5,7 +6,9 @@ using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Transcription;
 using System.Threading.Tasks;
+using System.Linq;
 using System.Windows.Controls;
+using DCM.App.Models;
 
 namespace DCM.App;
 
@@ -15,6 +18,7 @@ public partial class MainWindow
     private ITranscriptionService? _transcriptionService;
     private CancellationTokenSource? _transcriptionCts;
     private bool _isTranscribing;
+    private UploadDraft? _activeTranscriptionDraft;
 
     #region Transcription Initialization
 
@@ -97,18 +101,24 @@ public partial class MainWindow
             return;
         }
 
-        var videoPath = UploadView.VideoPathTextBox.Text;
+        var draft = _activeDraft;
+        if (draft is null)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
+            return;
+        }
 
+        var videoPath = draft.VideoPath;
         if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
         {
             StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
             return;
         }
 
-        await StartTranscriptionAsync(videoPath);
+        await StartTranscriptionAsync(draft);
     }
 
-    private async Task StartTranscriptionAsync(string videoFilePath)
+    private async Task StartTranscriptionAsync(UploadDraft draft)
     {
         if (_transcriptionService is null)
         {
@@ -116,15 +126,37 @@ public partial class MainWindow
             return;
         }
 
+        if (!_uploadDrafts.Contains(draft))
+        {
+            return;
+        }
+
+        if (_activeDraft != draft)
+        {
+            SetActiveDraft(draft);
+        }
+
+        if (string.IsNullOrWhiteSpace(draft.VideoPath) || !File.Exists(draft.VideoPath))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
+            return;
+        }
+
         _isTranscribing = true;
         _transcriptionCts = new CancellationTokenSource();
         var cancellationToken = _transcriptionCts.Token;
+        _activeTranscriptionDraft = draft;
+        draft.TranscriptionState = UploadDraftTranscriptionState.Running;
+        draft.TranscriptionStatus = LocalizationHelper.Get("Transcription.Phase.Initializing");
+        draft.IsTranscriptionProgressIndeterminate = true;
+        draft.TranscriptionProgress = 0;
+        ScheduleDraftPersistence();
 
         UpdateTranscriptionButtonState();
         ShowTranscriptionProgress();
 
         _logger.Info(
-            LocalizationHelper.Format("Log.Transcription.Started", Path.GetFileName(videoFilePath)),
+            LocalizationHelper.Format("Log.Transcription.Started", Path.GetFileName(draft.VideoPath)),
             TranscriptionLogSource);
 
         try
@@ -155,36 +187,51 @@ public partial class MainWindow
             var language = _settings.Transcription?.Language;
             var transcriptionProgress = new Progress<TranscriptionProgress>(ReportTranscriptionProgress);
 
-            var result = await _transcriptionService.TranscribeAsync(
-                videoFilePath,
-                language,
-                transcriptionProgress,
-                cancellationToken);
+                var result = await _transcriptionService.TranscribeAsync(
+                    draft.VideoPath,
+                    language,
+                    transcriptionProgress,
+                    cancellationToken);
 
             // Ergebnis verarbeiten
-            OnTranscriptionCompleted(result);
+            OnTranscriptionCompleted(draft, result);
         }
         catch (OperationCanceledException)
         {
             StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.Canceled");
             UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceled"));
             _logger.Debug(LocalizationHelper.Get("Log.Transcription.Canceled"), TranscriptionLogSource);
+            draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
+            draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Canceled");
         }
         catch (Exception ex)
         {
             StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.Error", ex.Message);
             UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.Error", ex.Message));
             _logger.Error(LocalizationHelper.Format("Log.Transcription.Failed", ex.Message), TranscriptionLogSource, ex);
+            draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
+            draft.TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.Error", ex.Message);
         }
         finally
         {
             _isTranscribing = false;
             _transcriptionCts?.Dispose();
             _transcriptionCts = null;
+            if (draft.TranscriptionState == UploadDraftTranscriptionState.Running)
+            {
+                draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
+                draft.TranscriptionStatus = LocalizationHelper.Get("Transcription.Phase.Failed");
+            }
 
             HideTranscriptionProgress();
             UpdateTranscriptionButtonState();
             UpdateLogLinkIndicator();
+            if (ReferenceEquals(_activeTranscriptionDraft, draft))
+            {
+                _activeTranscriptionDraft = null;
+            }
+
+            _ = StartNextQueuedAutoTranscriptionAsync();
         }
     }
 
@@ -207,11 +254,20 @@ public partial class MainWindow
         }
     }
 
-    private void OnTranscriptionCompleted(TranscriptionResult result)
+    private void OnTranscriptionCompleted(UploadDraft draft, TranscriptionResult result)
     {
         if (result.Success && !string.IsNullOrWhiteSpace(result.Text))
         {
-            UploadView.TranscriptTextBox.Text = result.Text;
+            draft.Transcript = result.Text;
+            if (draft == _activeDraft)
+            {
+                UploadView.TranscriptTextBox.Text = result.Text;
+            }
+            else
+            {
+                draft.Transcript = result.Text;
+            }
+
             StatusTextBlock.Text = LocalizationHelper.Format(
                 "Status.Transcription.Completed",
                 result.Duration.TotalSeconds);
@@ -219,6 +275,12 @@ public partial class MainWindow
             _logger.Info(
                 LocalizationHelper.Format("Log.Transcription.Success", result.Text.Length, result.Duration.TotalSeconds),
                 TranscriptionLogSource);
+            draft.TranscriptionState = UploadDraftTranscriptionState.Completed;
+            draft.TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.Completed", result.Duration.TotalSeconds);
+            draft.IsTranscriptionProgressIndeterminate = false;
+            draft.TranscriptionProgress = 100;
+            ScheduleDraftPersistence();
+            TryAutoRemoveDraft(draft);
         }
         else
         {
@@ -230,6 +292,11 @@ public partial class MainWindow
             _logger.Warning(
                 LocalizationHelper.Format("Log.Transcription.Failed", result.ErrorMessage ?? string.Empty),
                 TranscriptionLogSource);
+            draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
+            draft.TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.ResultFailed", errorText);
+            draft.IsTranscriptionProgressIndeterminate = false;
+            draft.TranscriptionProgress = 0;
+            ScheduleDraftPersistence();
         }
     }
 
@@ -316,6 +383,14 @@ public partial class MainWindow
         UploadView.TranscriptionPhaseTextBlock.Text = message;
         UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         StatusTextBlock.Text = progress.Message ?? message;
+
+        if (_activeTranscriptionDraft is not null)
+        {
+            _activeTranscriptionDraft.IsTranscriptionProgressIndeterminate = false;
+            _activeTranscriptionDraft.TranscriptionProgress = Math.Clamp(progress.Percent, 0, 100);
+            _activeTranscriptionDraft.TranscriptionStatus = message;
+            ScheduleDraftPersistence();
+        }
     }
 
     private void ReportTranscriptionProgress(TranscriptionProgress progress)
@@ -346,6 +421,16 @@ public partial class MainWindow
         UploadView.TranscriptionPhaseTextBlock.Text = phaseText;
         UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         StatusTextBlock.Text = progress.Message ?? phaseText;
+
+        if (_activeTranscriptionDraft is not null)
+        {
+            var percent = Math.Clamp(progress.Percent, 0, 100);
+            var isIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
+            _activeTranscriptionDraft.IsTranscriptionProgressIndeterminate = isIndeterminate;
+            _activeTranscriptionDraft.TranscriptionProgress = percent;
+            _activeTranscriptionDraft.TranscriptionStatus = phaseText;
+            ScheduleDraftPersistence();
+        }
     }
 
     private static string FormatTranscribingProgress(TranscriptionProgress progress)
@@ -395,7 +480,7 @@ public partial class MainWindow
 
     private void UpdateTranscriptionButtonState()
     {
-        var hasVideo = !string.IsNullOrWhiteSpace(UploadView.VideoPathTextBox.Text);
+        var hasVideo = _activeDraft?.HasVideo == true;
         SetButtonState(UploadView.TranscribeButton, _isTranscribing, _isTranscribing || hasVideo);
     }
 
@@ -403,12 +488,17 @@ public partial class MainWindow
 
     #region Auto-Transcription
 
-    private async Task TryAutoTranscribeAsync(string videoFilePath)
+    private async Task TryAutoTranscribeAsync(UploadDraft draft)
     {
         // Kleine Verzögerung um UI-Thread Zeit zu geben
         await Task.Delay(100);
 
         if (_transcriptionService is null)
+        {
+            return;
+        }
+
+        if (!_uploadDrafts.Contains(draft))
         {
             return;
         }
@@ -427,18 +517,73 @@ public partial class MainWindow
         // Prüfung muss auf UI-Thread sein
         if (!Dispatcher.CheckAccess())
         {
-            await Dispatcher.InvokeAsync(async () => await TryAutoTranscribeAsync(videoFilePath));
+            await Dispatcher.InvokeAsync(async () => await TryAutoTranscribeAsync(draft));
+            return;
+        }
+
+        if (_isTranscribing)
+        {
+            QueueDraftForTranscription(draft);
             return;
         }
 
         // Nur wenn das Transkript-Feld leer ist
-        if (!string.IsNullOrWhiteSpace(UploadView.TranscriptTextBox.Text))
+        var transcriptText = draft == _activeDraft
+            ? UploadView.TranscriptTextBox.Text
+            : draft.Transcript;
+        if (!string.IsNullOrWhiteSpace(transcriptText))
         {
             return;
         }
 
         _logger.Debug(LocalizationHelper.Get("Log.Transcription.AutoStarted"), TranscriptionLogSource);
-        await StartTranscriptionAsync(videoFilePath);
+        await StartTranscriptionAsync(draft);
+    }
+
+    private void QueueDraftForTranscription(UploadDraft draft)
+    {
+        draft.TranscriptionState = UploadDraftTranscriptionState.Pending;
+        draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
+        draft.IsTranscriptionProgressIndeterminate = true;
+        draft.TranscriptionProgress = 0;
+        ScheduleDraftPersistence();
+    }
+
+    private Task StartNextQueuedAutoTranscriptionAsync()
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            return Dispatcher.InvokeAsync(StartNextQueuedAutoTranscriptionCoreAsync).Task;
+        }
+
+        return StartNextQueuedAutoTranscriptionCoreAsync();
+    }
+
+    private async Task StartNextQueuedAutoTranscriptionCoreAsync()
+    {
+        if (_settings.Transcription?.AutoTranscribeOnVideoSelect != true)
+        {
+            return;
+        }
+
+        if (_isTranscribing)
+        {
+            return;
+        }
+
+        var nextDraft = _uploadDrafts
+            .FirstOrDefault(d =>
+                d.HasVideo &&
+                string.IsNullOrWhiteSpace(d.Transcript) &&
+                (d.TranscriptionState == UploadDraftTranscriptionState.Pending ||
+                 d.TranscriptionState == UploadDraftTranscriptionState.None));
+
+        if (nextDraft is null)
+        {
+            return;
+        }
+
+        await StartTranscriptionAsync(nextDraft);
     }
 
     #endregion

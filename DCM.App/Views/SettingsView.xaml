@@ -218,13 +218,17 @@
                                   Grid.Column="0"
                                   Grid.ColumnSpan="3">
                         <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
-                                  Content="{DynamicResource Settings.StandardReleaseTime}"/>
-                        <CheckBox x:Name="AutoApplyDefaultTemplateCheckBox"
                                   Content="{DynamicResource Settings.ConfirmUpload}"/>
+                        <CheckBox x:Name="AutoApplyDefaultTemplateCheckBox"
+                                  Content="{DynamicResource Settings.StandardReleaseTime}"/>
                         <CheckBox x:Name="OpenBrowserAfterUploadCheckBox"
                                   Content="{DynamicResource Settings.OpenBrowserAfterUpload}"/>
                         <CheckBox x:Name="AutoConnectYouTubeCheckBox"
                                   Content="{DynamicResource Settings.AutomaticConnect}"/>
+                        <CheckBox x:Name="RememberDraftsCheckBox"
+                                  Content="Uploads zwischen Sitzungen merken"/>
+                        <CheckBox x:Name="AutoCleanDraftsCheckBox"
+                                  Content="Erledigte Drafts automatisch entfernen"/>
                       </StackPanel>
                     </Grid>
                   </StackPanel>
