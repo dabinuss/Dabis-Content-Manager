@@ -46,6 +46,9 @@
   <sys:String x:Key="Status.Transcription.DependenciesFailed">Transkriptions-Abhängigkeiten konnten nicht geladen werden.</sys:String>
   <sys:String x:Key="Status.Transcription.Canceled">Transkription abgebrochen.</sys:String>
   <sys:String x:Key="Status.Transcription.Queued">Transkription in Warteschlange.</sys:String>
+  <sys:String x:Key="Upload.Upload.Cancel">Upload abbrechen</sys:String>
+  <sys:String x:Key="Upload.Transcription.Queue.Prioritize">Jetzt transkribieren</sys:String>
+  <sys:String x:Key="Upload.Transcription.Queue.Skip">Aus Warteschlange entfernen</sys:String>
   <sys:String x:Key="Status.Transcription.Error">Transkription fehlgeschlagen: {0}</sys:String>
   <sys:String x:Key="Status.Transcription.Completed">Transkription abgeschlossen ({0:F1}s).</sys:String>
   <sys:String x:Key="Status.Transcription.ResultFailed">Transkription fehlgeschlagen: {0}</sys:String>

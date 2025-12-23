@@ -40,6 +40,9 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? UploadAllButtonClicked;
     public event RoutedEventHandler? TranscribeAllButtonClicked;
     public event RoutedEventHandler? RemoveDraftButtonClicked;
+    public event RoutedEventHandler? CancelUploadButtonClicked;
+    public event RoutedEventHandler? TranscriptionPrioritizeButtonClicked;
+    public event RoutedEventHandler? TranscriptionSkipButtonClicked;
     public event EventHandler<string>? SuggestionItemClicked;
     public event EventHandler? SuggestionCloseButtonClicked;
 
@@ -116,6 +119,15 @@ public partial class UploadView : UserControl
 
     private void RemoveDraftButton_Click(object sender, RoutedEventArgs e) =>
         RemoveDraftButtonClicked?.Invoke(sender, e);
+
+    private void CancelDraftUploadButton_Click(object sender, RoutedEventArgs e) =>
+        CancelUploadButtonClicked?.Invoke(sender, e);
+
+    private void TranscriptionQueuePrioritizeButton_Click(object sender, RoutedEventArgs e) =>
+        TranscriptionPrioritizeButtonClicked?.Invoke(sender, e);
+
+    private void TranscriptionQueueSkipButton_Click(object sender, RoutedEventArgs e) =>
+        TranscriptionSkipButtonClicked?.Invoke(sender, e);
 
     private void ThumbnailDrop_DragOver(object sender, DragEventArgs e) =>
         ThumbnailDropDragOver?.Invoke(sender, e);

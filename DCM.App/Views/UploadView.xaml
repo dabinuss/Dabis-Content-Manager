@@ -109,13 +109,36 @@
                                  Foreground="{StaticResource TextMutedBrush}"
                                  Margin="0,2,0,0"/>
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Content="{DynamicResource Common.Remove}"
-                            Style="{StaticResource SecondaryButton}"
-                            Tag="{Binding}"
-                            Click="RemoveDraftButton_Click"
-                            Margin="8,0,0,0"
-                            Padding="8,2"/>
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                      <Button Content="{DynamicResource Common.Remove}"
+                              Style="{StaticResource SecondaryButton}"
+                              Tag="{Binding}"
+                              Click="RemoveDraftButton_Click"
+                              Margin="8,0,0,0"
+                              Padding="8,2"/>
+                      <Button Content="{DynamicResource Upload.Upload.Cancel}"
+                              Tag="{Binding}"
+                              Click="CancelDraftUploadButton_Click"
+                              Margin="8,0,0,0"
+                              Padding="8,2">
+                        <Button.Style>
+                          <Style TargetType="Button"
+                                 BasedOn="{StaticResource SecondaryButton}">
+                            <Setter Property="Visibility"
+                                    Value="Collapsed"/>
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding UploadState}"
+                                           Value="{x:Static models:UploadDraftUploadState.Uploading}">
+                                <Setter Property="Visibility"
+                                        Value="Visible"/>
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </Button.Style>
+                      </Button>
+                    </StackPanel>
                   </Grid>
 
                   <Grid Grid.Row="1"
@@ -219,7 +242,34 @@
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    Margin="6,0,0,0"
                                    TextWrapping="Wrap"
-                                   MaxWidth="160"/>
+                                  MaxWidth="160"/>
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal"
+                                  Margin="0,4,0,0">
+                        <StackPanel.Style>
+                          <Style TargetType="StackPanel">
+                            <Setter Property="Visibility"
+                                    Value="Collapsed"/>
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding TranscriptionState}"
+                                           Value="{x:Static models:UploadDraftTranscriptionState.Pending}">
+                                <Setter Property="Visibility"
+                                        Value="Visible"/>
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </StackPanel.Style>
+                        <Button Content="{DynamicResource Upload.Transcription.Queue.Prioritize}"
+                                Style="{StaticResource SecondaryButton}"
+                                Tag="{Binding}"
+                                Click="TranscriptionQueuePrioritizeButton_Click"
+                                Padding="8,2"/>
+                        <Button Content="{DynamicResource Upload.Transcription.Queue.Skip}"
+                                Style="{StaticResource SecondaryButton}"
+                                Tag="{Binding}"
+                                Click="TranscriptionQueueSkipButton_Click"
+                                Padding="8,2"
+                                Margin="8,0,0,0"/>
                       </StackPanel>
                     </StackPanel>
                   </Grid>

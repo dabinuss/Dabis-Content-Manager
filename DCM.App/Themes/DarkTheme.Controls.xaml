@@ -547,7 +547,7 @@
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="1"/>
+            Value="2"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="Padding"

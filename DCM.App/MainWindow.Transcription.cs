@@ -31,6 +31,7 @@ public partial class MainWindow
             _logger.Debug(LocalizationHelper.Get("Log.Transcription.ServiceInitialized"), TranscriptionLogSource);
             UpdateTranscriptionButtonState();
             UpdateTranscriptionStatusDisplay();
+            await StartNextQueuedAutoTranscriptionCoreAsync();
         }
         catch (Exception ex)
         {
@@ -141,6 +142,8 @@ public partial class MainWindow
             StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
             return;
         }
+
+        RemoveDraftFromTranscriptionQueue(draft.Id, persist: false);
 
         _isTranscribing = true;
         _transcriptionCts = new CancellationTokenSource();
@@ -508,6 +511,11 @@ public partial class MainWindow
             return;
         }
 
+        if (!draft.HasVideo)
+        {
+            return;
+        }
+
         if (!_transcriptionService.IsReady)
         {
             _logger.Debug(LocalizationHelper.Get("Log.Transcription.AutoSkip"), TranscriptionLogSource);
@@ -542,6 +550,16 @@ public partial class MainWindow
 
     private void QueueDraftForTranscription(UploadDraft draft)
     {
+        if (!draft.HasVideo)
+        {
+            return;
+        }
+
+        if (!_transcriptionQueue.Contains(draft.Id))
+        {
+            _transcriptionQueue.Add(draft.Id);
+        }
+
         draft.TranscriptionState = UploadDraftTranscriptionState.Pending;
         draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
         draft.IsTranscriptionProgressIndeterminate = true;
@@ -571,19 +589,83 @@ public partial class MainWindow
             return;
         }
 
-        var nextDraft = _uploadDrafts
-            .FirstOrDefault(d =>
+        UploadDraft? nextDraft = null;
+        var queueChanged = false;
+
+        while (_transcriptionQueue.Count > 0 && nextDraft is null)
+        {
+            var nextId = _transcriptionQueue[0];
+            RemoveDraftFromTranscriptionQueue(nextId, persist: false);
+            queueChanged = true;
+            nextDraft = _uploadDrafts.FirstOrDefault(d =>
+                d.Id == nextId &&
                 d.HasVideo &&
-                string.IsNullOrWhiteSpace(d.Transcript) &&
-                (d.TranscriptionState == UploadDraftTranscriptionState.Pending ||
-                 d.TranscriptionState == UploadDraftTranscriptionState.None));
+                string.IsNullOrWhiteSpace(d.Transcript));
+        }
 
         if (nextDraft is null)
+        {
+            var candidate = _uploadDrafts
+                .FirstOrDefault(d =>
+                    d.HasVideo &&
+                    string.IsNullOrWhiteSpace(d.Transcript) &&
+                    (d.TranscriptionState == UploadDraftTranscriptionState.Pending ||
+                     d.TranscriptionState == UploadDraftTranscriptionState.None));
+
+            if (candidate is null)
+            {
+                if (queueChanged)
+                {
+                    ScheduleDraftPersistence();
+                }
+
+                return;
+            }
+
+            var wasQueued = _transcriptionQueue.Contains(candidate.Id);
+            RemoveDraftFromTranscriptionQueue(candidate.Id, persist: false);
+            if (wasQueued)
+            {
+                queueChanged = true;
+            }
+
+            nextDraft = candidate;
+        }
+
+        ScheduleDraftPersistence();
+
+        await StartTranscriptionAsync(nextDraft);
+    }
+
+    private void MoveDraftToFrontOfTranscriptionQueue(UploadDraft draft)
+    {
+        if (!draft.HasVideo)
         {
             return;
         }
 
-        await StartTranscriptionAsync(nextDraft);
+        RemoveDraftFromTranscriptionQueue(draft.Id, persist: false);
+        _transcriptionQueue.Insert(0, draft.Id);
+        draft.TranscriptionState = UploadDraftTranscriptionState.Pending;
+        draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
+        draft.IsTranscriptionProgressIndeterminate = true;
+        draft.TranscriptionProgress = 0;
+        ScheduleDraftPersistence();
+    }
+
+    private void RemoveDraftFromTranscriptionQueue(Guid draftId, bool persist = true)
+    {
+        var removed = false;
+
+        while (_transcriptionQueue.Remove(draftId))
+        {
+            removed = true;
+        }
+
+        if (removed && persist)
+        {
+            ScheduleDraftPersistence();
+        }
     }
 
     #endregion

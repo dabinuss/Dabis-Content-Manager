@@ -9,7 +9,7 @@ namespace DCM.App.Models;
 
 public sealed class UploadDraft : INotifyPropertyChanged
 {
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; private set; } = Guid.NewGuid();
 
     private string _videoPath = string.Empty;
     private string _title = string.Empty;
@@ -225,6 +225,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
     {
         return new UploadDraftSnapshot
         {
+            Id = Id,
             VideoPath = VideoPath,
             Title = Title,
             Description = Description,
@@ -250,6 +251,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
             ThumbnailPath = snapshot.ThumbnailPath ?? string.Empty,
             Transcript = snapshot.Transcript ?? string.Empty
         };
+
+        draft.Id = snapshot.Id == Guid.Empty ? Guid.NewGuid() : snapshot.Id;
 
         if (Enum.TryParse(snapshot.UploadState, out UploadDraftUploadState uploadState))
         {

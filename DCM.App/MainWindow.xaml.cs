@@ -77,6 +77,7 @@ public partial class MainWindow : Window
     private SuggestionTarget _activeSuggestionTarget = SuggestionTarget.None;
     private bool _isThemeInitializing;
     private readonly ObservableCollection<UploadDraft> _uploadDrafts = new();
+    private readonly List<Guid> _transcriptionQueue = new();
     private UploadDraft? _activeDraft;
     private bool _isLoadingDraft;
     private DispatcherTimer? _draftPersistenceTimer;
@@ -252,6 +253,9 @@ public partial class MainWindow : Window
         UploadPageView.UploadAllButtonClicked += UploadAllButton_Click;
         UploadPageView.TranscribeAllButtonClicked += TranscribeAllButton_Click;
         UploadPageView.RemoveDraftButtonClicked += RemoveDraftButton_Click;
+        UploadPageView.CancelUploadButtonClicked += CancelUploadButton_Click;
+        UploadPageView.TranscriptionPrioritizeButtonClicked += TranscriptionPrioritizeButton_Click;
+        UploadPageView.TranscriptionSkipButtonClicked += TranscriptionSkipButton_Click;
     }
 
     private void InitializeUploadDrafts()

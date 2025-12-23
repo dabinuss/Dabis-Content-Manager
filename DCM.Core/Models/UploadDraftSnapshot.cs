@@ -4,6 +4,7 @@ namespace DCM.Core.Models;
 
 public sealed class UploadDraftSnapshot
 {
+    public Guid Id { get; set; }
     public string? VideoPath { get; set; }
     public string? Title { get; set; }
     public string? Description { get; set; }

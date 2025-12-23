@@ -50,10 +50,37 @@ public partial class MainWindow
 
         try
         {
+            _transcriptionQueue.Clear();
+
             foreach (var snapshot in snapshots)
             {
                 var draft = UploadDraft.FromSnapshot(snapshot);
                 _uploadDrafts.Add(draft);
+            }
+
+            var storedQueue = _settings.PendingTranscriptionQueue ?? new List<Guid>();
+            foreach (var draftId in storedQueue)
+            {
+                var candidate = _uploadDrafts.FirstOrDefault(d => d.Id == draftId);
+                if (candidate is null ||
+                    !candidate.HasVideo ||
+                    !string.IsNullOrWhiteSpace(candidate.Transcript))
+                {
+                    continue;
+                }
+
+                if (!_transcriptionQueue.Contains(draftId))
+                {
+                    _transcriptionQueue.Add(draftId);
+                }
+
+                if (candidate.TranscriptionState == UploadDraftTranscriptionState.None)
+                {
+                    candidate.TranscriptionState = UploadDraftTranscriptionState.Pending;
+                    candidate.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
+                    candidate.IsTranscriptionProgressIndeterminate = true;
+                    candidate.TranscriptionProgress = 0;
+                }
             }
 
             if (_uploadDrafts.Count > 0)
@@ -106,6 +133,7 @@ public partial class MainWindow
         if (_settings.RememberDraftsBetweenSessions != true)
         {
             _settings.SavedDrafts?.Clear();
+            _settings.PendingTranscriptionQueue?.Clear();
             SaveSettings();
             return;
         }
@@ -115,6 +143,7 @@ public partial class MainWindow
             .ToList();
 
         _settings.SavedDrafts = snapshots;
+        _settings.PendingTranscriptionQueue = _transcriptionQueue.ToList();
         SaveSettings();
     }
 
@@ -130,6 +159,7 @@ public partial class MainWindow
             CancelActiveUpload();
         }
 
+        RemoveDraftFromTranscriptionQueue(draft.Id);
         var wasActive = draft == _activeDraft;
         _uploadDrafts.Remove(draft);
         ResetDraftState(draft);
@@ -215,6 +245,7 @@ public partial class MainWindow
         if (_settings.RememberDraftsBetweenSessions != true)
         {
             _settings.SavedDrafts?.Clear();
+            _settings.PendingTranscriptionQueue?.Clear();
         }
         else
         {
@@ -383,6 +414,50 @@ public partial class MainWindow
         }
 
         RemoveDraft(draft);
+    }
+
+    private void CancelUploadButton_Click(object sender, RoutedEventArgs e)
+    {
+        var draft = (sender as FrameworkElement)?.Tag as UploadDraft;
+        if (draft is null)
+        {
+            return;
+        }
+
+        if (_isUploading && _activeUploadDraft == draft)
+        {
+            CancelActiveUpload();
+        }
+    }
+
+    private async void TranscriptionPrioritizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not UploadDraft draft)
+        {
+            return;
+        }
+
+        MoveDraftToFrontOfTranscriptionQueue(draft);
+
+        if (!_isTranscribing)
+        {
+            await StartTranscriptionAsync(draft);
+        }
+    }
+
+    private void TranscriptionSkipButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not UploadDraft draft)
+        {
+            return;
+        }
+
+        RemoveDraftFromTranscriptionQueue(draft.Id);
+        draft.TranscriptionState = UploadDraftTranscriptionState.None;
+        draft.TranscriptionStatus = string.Empty;
+        draft.TranscriptionProgress = 0;
+        draft.IsTranscriptionProgressIndeterminate = true;
+        ScheduleDraftPersistence();
     }
 
     private void SetActiveDraft(UploadDraft? draft)
