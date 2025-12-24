@@ -55,10 +55,7 @@ public partial class MainWindow
             return;
         }
 
-        _lastAppliedTemplate = null;
-        _lastAppliedTemplateHasDescriptionPlaceholder = false;
-        _lastAppliedTemplateBaseDescription = null;
-        _lastAppliedTemplateResult = null;
+        _templateState.Reset();
 
         if (!_settings.AutoApplyDefaultTemplate)
         {
@@ -77,10 +74,12 @@ public partial class MainWindow
 
         var project = BuildUploadProjectFromUi(includeScheduling: true);
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
-        _lastAppliedTemplate = tmpl;
-        _lastAppliedTemplateHasDescriptionPlaceholder = TemplateHasDescriptionPlaceholder(tmpl);
-        _lastAppliedTemplateBaseDescription = UploadView.DescriptionTextBox.Text ?? string.Empty;
-        _lastAppliedTemplateResult = result;
+        var baseDescription = UploadView.DescriptionTextBox.Text ?? string.Empty;
+        _templateState.Record(
+            tmpl,
+            baseDescription,
+            result,
+            TemplateHasDescriptionPlaceholder(tmpl));
         SetDescriptionText(result);
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.AutoApplied", tmpl.Name);
     }
@@ -132,12 +131,9 @@ public partial class MainWindow
                 _currentEditingTemplate = null;
                 LoadTemplateIntoEditor(null);
             }
-            if (_lastAppliedTemplate?.Id == tmpl.Id)
+            if (_templateState.Matches(tmpl))
             {
-                _lastAppliedTemplate = null;
-                _lastAppliedTemplateHasDescriptionPlaceholder = false;
-                _lastAppliedTemplateBaseDescription = null;
-                _lastAppliedTemplateResult = null;
+                _templateState.Reset();
             }
 
             SaveTemplatesToRepository();

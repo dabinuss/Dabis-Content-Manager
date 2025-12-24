@@ -516,23 +516,18 @@ public partial class MainWindow
         UploadView.VideoPathTextBox.Text = string.Empty;
         UploadView.VideoFileNameTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
         UploadView.VideoFileSizeTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
-        UploadView.VideoDropEmptyState.Visibility = Visibility.Visible;
-        UploadView.VideoDropSelectedState.Visibility = Visibility.Collapsed;
+        SetVideoDropState(false);
         UploadView.TitleTextBox.Text = string.Empty;
         UploadView.DescriptionTextBox.Text = string.Empty;
         UploadView.TagsTextBox.Text = string.Empty;
         UploadView.TranscriptTextBox.Text = string.Empty;
-        UploadView.ThumbnailPathTextBox.Text = string.Empty;
-        UploadView.ThumbnailPreviewImage.Source = null;
-        UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
-        UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
+        ClearThumbnailPreview();
     }
 
     private void PopulateActiveDraftView(UploadDraft draft)
     {
         UploadView.VideoPathTextBox.Text = draft.VideoPath;
-        UploadView.VideoDropEmptyState.Visibility = draft.HasVideo ? Visibility.Collapsed : Visibility.Visible;
-        UploadView.VideoDropSelectedState.Visibility = draft.HasVideo ? Visibility.Visible : Visibility.Collapsed;
+        SetVideoDropState(draft.HasVideo);
         UploadView.VideoFileNameTextBlock.Text = string.IsNullOrWhiteSpace(draft.FileName)
             ? Path.GetFileName(draft.VideoPath)
             : draft.FileName;
@@ -544,17 +539,32 @@ public partial class MainWindow
         UploadView.TagsTextBox.Text = draft.TagsCsv;
         UploadView.TranscriptTextBox.Text = draft.Transcript;
 
-        if (!string.IsNullOrWhiteSpace(draft.ThumbnailPath) &&
-            File.Exists(draft.ThumbnailPath))
+        ApplyDraftThumbnailToUi(draft.ThumbnailPath);
+    }
+
+    private void SetVideoDropState(bool hasVideo)
+    {
+        UploadView.VideoDropEmptyState.Visibility = hasVideo ? Visibility.Collapsed : Visibility.Visible;
+        UploadView.VideoDropSelectedState.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ClearThumbnailPreview()
+    {
+        UploadView.ThumbnailPathTextBox.Text = string.Empty;
+        UploadView.ThumbnailPreviewImage.Source = null;
+        UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
+        UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
+    }
+
+    private void ApplyDraftThumbnailToUi(string? thumbnailPath)
+    {
+        if (!string.IsNullOrWhiteSpace(thumbnailPath) && File.Exists(thumbnailPath))
         {
-            ApplyThumbnailToUi(draft.ThumbnailPath);
+            ApplyThumbnailToUi(thumbnailPath);
         }
         else
         {
-            UploadView.ThumbnailPathTextBox.Text = string.Empty;
-            UploadView.ThumbnailPreviewImage.Source = null;
-            UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
-            UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
+            ClearThumbnailPreview();
         }
     }
 
@@ -660,24 +670,17 @@ public partial class MainWindow
         if (_activeDraft == draft)
         {
             UploadView.VideoPathTextBox.Text = filePath;
-            UploadView.VideoDropEmptyState.Visibility = Visibility.Collapsed;
-            UploadView.VideoDropSelectedState.Visibility = Visibility.Visible;
+            SetVideoDropState(true);
         }
 
-        var fileInfo = new FileInfo(filePath);
-
-        var directory = fileInfo.DirectoryName;
-        if (!string.IsNullOrWhiteSpace(directory))
-        {
-            _settings.LastVideoFolder = directory;
-            SaveSettings();
-        }
+        RememberLastVideoFolder(Path.GetDirectoryName(filePath));
 
         UpdateUploadButtonState();
         UpdateTranscriptionButtonState();
 
+        var (fileName, _) = GetFileDisplayInfo(filePath);
         _logger.Info(
-            LocalizationHelper.Format("Log.Upload.VideoSelected", fileInfo.Name),
+            LocalizationHelper.Format("Log.Upload.VideoSelected", fileName),
             UploadLogSource);
 
         if (triggerAutoTranscribe && draft == _activeDraft)
@@ -698,11 +701,7 @@ public partial class MainWindow
         var filePath = draft.VideoPath;
         try
         {
-            var (fileName, fileSize) = await Task.Run(() =>
-            {
-                var fileInfo = new FileInfo(filePath);
-                return (fileInfo.Name, fileInfo.Length);
-            });
+            var (fileName, fileSize) = await Task.Run(() => GetFileDisplayInfo(filePath));
 
             draft.TranscriptionStatus ??= string.Empty;
 
@@ -757,6 +756,41 @@ public partial class MainWindow
         return $"{size:0.##} {sizes[order]}";
     }
 
+    private static (string FileName, long FileSize) GetFileDisplayInfo(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return (string.Empty, 0);
+        }
+
+        try
+        {
+            var info = new FileInfo(filePath);
+            var fileSize = info.Exists ? info.Length : 0;
+            return (info.Name, fileSize);
+        }
+        catch
+        {
+            return (Path.GetFileName(filePath) ?? string.Empty, 0);
+        }
+    }
+
+    private void RememberLastVideoFolder(string? directory)
+    {
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            return;
+        }
+
+        if (string.Equals(_settings.LastVideoFolder, directory, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _settings.LastVideoFolder = directory;
+        ScheduleSettingsSave();
+    }
+
     private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (_isLoadingDraft)
@@ -784,21 +818,11 @@ public partial class MainWindow
 
         if (string.IsNullOrWhiteSpace(current))
         {
-            _lastAppliedTemplate = null;
-            _lastAppliedTemplateHasDescriptionPlaceholder = false;
-            _lastAppliedTemplateBaseDescription = null;
-            _lastAppliedTemplateResult = null;
+            _templateState.Reset();
             return;
         }
 
-        if (_lastAppliedTemplate is not null)
-        {
-            var trimmedCurrent = current.Trim();
-            if (!string.Equals(trimmedCurrent, _lastAppliedTemplateResult?.Trim(), StringComparison.Ordinal))
-            {
-                _lastAppliedTemplateBaseDescription = current;
-            }
-        }
+        _templateState.UpdateBaseDescriptionIfChanged(current);
 
         if (_isLoadingDraft)
         {
@@ -964,13 +988,13 @@ public partial class MainWindow
             _activeDraft.ThumbnailPath = filePath;
         }
 
-        var fileInfo = new FileInfo(filePath);
-        UploadView.ThumbnailFileNameTextBlock.Text = fileInfo.Name;
+        var (fileName, _) = GetFileDisplayInfo(filePath);
+        UploadView.ThumbnailFileNameTextBlock.Text = fileName;
 
         if (ApplyThumbnailToUi(filePath))
         {
             _logger.Info(
-                LocalizationHelper.Format("Log.Upload.ThumbnailSelected", fileInfo.Name),
+                LocalizationHelper.Format("Log.Upload.ThumbnailSelected", fileName),
                 UploadLogSource);
         }
 
@@ -1005,15 +1029,12 @@ public partial class MainWindow
 
     private void ThumbnailClearButton_Click(object sender, RoutedEventArgs e)
     {
-        UploadView.ThumbnailPathTextBox.Text = string.Empty;
-        UploadView.ThumbnailPreviewImage.Source = null;
+        ClearThumbnailPreview();
         if (_activeDraft is not null)
         {
             _activeDraft.ThumbnailPath = string.Empty;
         }
 
-        UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
-        UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
         ScheduleDraftPersistence();
     }
 
@@ -1066,23 +1087,24 @@ public partial class MainWindow
 
         var project = BuildUploadProjectFromUi(includeScheduling: true);
 
-        // Prevent compounding description when re-applying the same template with {DESCRIPTION}
-        if (_lastAppliedTemplate is not null &&
-            tmpl.Id == _lastAppliedTemplate.Id &&
-            _lastAppliedTemplateBaseDescription is not null)
+        string baseDescription;
+        if (_templateState.TryGetBaseDescription(tmpl, out var storedBase))
         {
-            project.Description = _lastAppliedTemplateBaseDescription;
+            baseDescription = storedBase;
+            project.Description = storedBase;
         }
         else
         {
-            _lastAppliedTemplateBaseDescription = UploadView.DescriptionTextBox.Text ?? string.Empty;
+            baseDescription = UploadView.DescriptionTextBox.Text ?? string.Empty;
         }
 
         var result = _templateService.ApplyTemplate(tmpl.Body, project);
 
-        _lastAppliedTemplate = tmpl;
-        _lastAppliedTemplateHasDescriptionPlaceholder = TemplateHasDescriptionPlaceholder(tmpl);
-        _lastAppliedTemplateResult = result;
+        _templateState.Record(
+            tmpl,
+            baseDescription,
+            result,
+            TemplateHasDescriptionPlaceholder(tmpl));
 
         SetDescriptionText(result);
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.Applied", tmpl.Name);
@@ -1539,12 +1561,12 @@ public partial class MainWindow
 
     private void ApplyGeneratedDescription(string newDescription)
     {
-        if (_lastAppliedTemplate is not null && _lastAppliedTemplateHasDescriptionPlaceholder)
+        if (_templateState.Template is not null && _templateState.HasDescriptionPlaceholder)
         {
             var project = BuildUploadProjectFromUi(includeScheduling: true);
             project.Description = newDescription ?? string.Empty;
-            var applied = _templateService.ApplyTemplate(_lastAppliedTemplate.Body, project);
-            _lastAppliedTemplateResult = applied;
+            var applied = _templateService.ApplyTemplate(_templateState.Template.Body, project);
+            _templateState.UpdateLastResult(applied);
             SetDescriptionText(applied);
         }
         else

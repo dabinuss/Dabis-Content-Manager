@@ -56,10 +56,7 @@ public partial class MainWindow : Window
 
     private readonly List<Template> _loadedTemplates = new();
     private Template? _currentEditingTemplate;
-    private Template? _lastAppliedTemplate;
-    private bool _lastAppliedTemplateHasDescriptionPlaceholder;
-    private string? _lastAppliedTemplateBaseDescription;
-    private string? _lastAppliedTemplateResult;
+    private readonly TemplateApplicationState _templateState = new();
     private bool _isTemplateBinding;
     private bool _isSettingDescriptionText;
 
@@ -82,6 +79,8 @@ public partial class MainWindow : Window
     private bool _isLoadingDraft;
     private DispatcherTimer? _draftPersistenceTimer;
     private bool _draftPersistenceDirty;
+    private DispatcherTimer? _settingsSaveTimer;
+    private bool _settingsSaveDirty;
     private bool _isRestoringDrafts;
     private bool _isUploading;
     private UploadDraft? _activeUploadDraft;
@@ -400,6 +399,13 @@ public partial class MainWindow : Window
         if (_draftPersistenceDirty)
         {
             PersistDrafts();
+        }
+        _settingsSaveTimer?.Stop();
+        _settingsSaveTimer = null;
+        if (_settingsSaveDirty)
+        {
+            _settingsSaveDirty = false;
+            SaveSettings();
         }
 
         // Event-Handler zuerst entfernen
@@ -1584,5 +1590,71 @@ public partial class MainWindow : Window
         Title,
         Description,
         Tags
+    }
+
+    private sealed class TemplateApplicationState
+    {
+        public Template? Template { get; private set; }
+        public bool HasDescriptionPlaceholder { get; private set; }
+        public string? BaseDescription { get; private set; }
+        public string? LastResult { get; private set; }
+
+        public void Record(Template template, string baseDescription, string result, bool hasPlaceholder)
+        {
+            Template = template;
+            BaseDescription = baseDescription;
+            LastResult = result ?? string.Empty;
+            HasDescriptionPlaceholder = hasPlaceholder;
+        }
+
+        public void Reset()
+        {
+            Template = null;
+            BaseDescription = null;
+            LastResult = null;
+            HasDescriptionPlaceholder = false;
+        }
+
+        public bool Matches(Template? template) =>
+            Template is not null &&
+            template is not null &&
+            string.Equals(Template.Id, template.Id, StringComparison.OrdinalIgnoreCase);
+
+        public bool TryGetBaseDescription(Template template, out string baseDescription)
+        {
+            if (Matches(template) && BaseDescription is not null)
+            {
+                baseDescription = BaseDescription;
+                return true;
+            }
+
+            baseDescription = string.Empty;
+            return false;
+        }
+
+        public void UpdateBaseDescriptionIfChanged(string? currentDescription)
+        {
+            if (Template is null)
+            {
+                return;
+            }
+
+            var trimmedCurrent = (currentDescription ?? string.Empty).Trim();
+            var trimmedResult = (LastResult ?? string.Empty).Trim();
+            if (!string.Equals(trimmedCurrent, trimmedResult, StringComparison.Ordinal))
+            {
+                BaseDescription = currentDescription;
+            }
+        }
+
+        public void UpdateLastResult(string result)
+        {
+            if (Template is null)
+            {
+                return;
+            }
+
+            LastResult = result ?? string.Empty;
+        }
     }
 }

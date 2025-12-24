@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
@@ -50,6 +51,40 @@ public partial class MainWindow
         catch
         {
             // Für jetzt nicht kritisch.
+        }
+    }
+
+    private void ScheduleSettingsSave()
+    {
+        if (_isClosing)
+        {
+            SaveSettings();
+            return;
+        }
+
+        _settingsSaveDirty = true;
+
+        if (_settingsSaveTimer is null)
+        {
+            _settingsSaveTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            _settingsSaveTimer.Tick += SettingsSaveTimer_Tick;
+        }
+
+        _settingsSaveTimer.Stop();
+        _settingsSaveTimer.Start();
+    }
+
+    private void SettingsSaveTimer_Tick(object? sender, EventArgs e)
+    {
+        _settingsSaveTimer?.Stop();
+
+        if (_settingsSaveDirty)
+        {
+            _settingsSaveDirty = false;
+            SaveSettings();
         }
     }
 
