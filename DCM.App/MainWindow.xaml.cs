@@ -375,6 +375,10 @@ public partial class MainWindow : Window
         WindowStateManager.Save(this);
         _draftPersistenceTimer?.Stop();
         _draftPersistenceTimer = null;
+        if (_draftPersistenceDirty)
+        {
+            PersistDrafts();
+        }
 
         // Event-Handler zuerst entfernen
         try

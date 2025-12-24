@@ -47,6 +47,8 @@ public partial class MainWindow
         }
 
         _isRestoringDrafts = true;
+        var removedDuringRestore = false;
+        var autoRemoveCompleted = _settings.AutoRemoveCompletedDrafts == true;
 
         try
         {
@@ -55,6 +57,13 @@ public partial class MainWindow
             foreach (var snapshot in snapshots)
             {
                 var draft = UploadDraft.FromSnapshot(snapshot);
+
+                if (autoRemoveCompleted && ShouldAutoRemoveDraft(draft))
+                {
+                    removedDuringRestore = true;
+                    continue;
+                }
+
                 _uploadDrafts.Add(draft);
             }
 
@@ -86,6 +95,11 @@ public partial class MainWindow
             if (_uploadDrafts.Count > 0)
             {
                 SetActiveDraft(_uploadDrafts[0]);
+            }
+
+            if (removedDuringRestore)
+            {
+                PersistDrafts();
             }
         }
         finally
@@ -215,6 +229,11 @@ public partial class MainWindow
         draft.IsTranscriptionProgressIndeterminate = true;
     }
 
+    private static bool ShouldAutoRemoveDraft(UploadDraft draft) =>
+        draft.UploadState == UploadDraftUploadState.Completed &&
+        (draft.TranscriptionState == UploadDraftTranscriptionState.None ||
+         draft.TranscriptionState == UploadDraftTranscriptionState.Completed);
+
     private void TryAutoRemoveDraft(UploadDraft draft)
     {
         if (_settings.AutoRemoveCompletedDrafts != true)
@@ -227,17 +246,17 @@ public partial class MainWindow
             return;
         }
 
-        if (draft.UploadState == UploadDraftUploadState.Completed &&
-            (draft.TranscriptionState == UploadDraftTranscriptionState.None ||
-             draft.TranscriptionState == UploadDraftTranscriptionState.Completed))
+        if (!ShouldAutoRemoveDraft(draft))
         {
-            if (_isTranscribing && _activeTranscriptionDraft == draft)
-            {
-                return;
-            }
-
-            RemoveDraft(draft);
+            return;
         }
+
+        if (_isTranscribing && _activeTranscriptionDraft == draft)
+        {
+            return;
+        }
+
+        RemoveDraft(draft);
     }
 
     private void ApplyDraftPreferenceSettings()
