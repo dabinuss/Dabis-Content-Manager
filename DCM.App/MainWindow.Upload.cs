@@ -1174,9 +1174,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             var validationText = LocalizationHelper.Format("Status.Upload.ValidationFailed", ex.Message);
-            StatusTextBlock.Text = validationText;
-            draft.UploadState = UploadDraftUploadState.Failed;
-            draft.UploadStatus = validationText;
+            UpdateUploadStatus(draft, UploadDraftUploadState.Failed, validationText);
             _logger.Warning(
                 LocalizationHelper.Format("Log.Upload.ValidationFailed", ex.Message),
                 UploadLogSource);
@@ -1197,17 +1195,18 @@ public partial class MainWindow
         UpdateUploadButtonState();
         var cancellationToken = uploadCts.Token;
 
-        draft.UploadState = UploadDraftUploadState.Uploading;
         var preparingText = LocalizationHelper.Get("Status.Upload.Preparing");
-        draft.UploadStatus = preparingText;
-        draft.IsUploadProgressIndeterminate = true;
-        draft.UploadProgress = 0;
+        UpdateUploadStatus(
+            draft,
+            UploadDraftUploadState.Uploading,
+            preparingText,
+            isProgressIndeterminate: true,
+            progressPercent: 0);
         ScheduleDraftPersistence();
 
         _logger.Info(
             LocalizationHelper.Format("Log.Upload.Started", project.Title),
             UploadLogSource);
-        StatusTextBlock.Text = preparingText;
         ShowUploadProgress(preparingText);
 
         var progressReporter = new Progress<UploadProgressInfo>(info =>
@@ -1243,11 +1242,9 @@ public partial class MainWindow
 
             if (result.Success)
             {
-                draft.UploadState = UploadDraftUploadState.Completed;
                 var videoUrlText = result.VideoUrl?.ToString() ?? string.Empty;
                 var successText = LocalizationHelper.Format("Status.Upload.Success", videoUrlText);
-                draft.UploadStatus = successText;
-                StatusTextBlock.Text = successText;
+                UpdateUploadStatus(draft, UploadDraftUploadState.Completed, successText);
                 _logger.Info(
                     LocalizationHelper.Format("Log.Upload.Success", videoUrlText),
                     UploadLogSource);
@@ -1275,21 +1272,20 @@ public partial class MainWindow
                 if (cancellationToken.IsCancellationRequested)
                 {
                     var canceledText = LocalizationHelper.Get("Status.Upload.Canceled");
-                    draft.UploadState = UploadDraftUploadState.Pending;
-                    draft.UploadStatus = canceledText;
-                    draft.IsUploadProgressIndeterminate = false;
-                    draft.UploadProgress = 0;
-                    StatusTextBlock.Text = canceledText;
+                    UpdateUploadStatus(
+                        draft,
+                        UploadDraftUploadState.Pending,
+                        canceledText,
+                        isProgressIndeterminate: false,
+                        progressPercent: 0);
                     _logger.Info("Upload canceled.", UploadLogSource);
                     ScheduleDraftPersistence();
                     return;
                 }
 
-                draft.UploadState = UploadDraftUploadState.Failed;
                 var errorText = result.ErrorMessage ?? string.Empty;
                 var failure = LocalizationHelper.Format("Status.Upload.Failed", errorText);
-                draft.UploadStatus = failure;
-                StatusTextBlock.Text = failure;
+                UpdateUploadStatus(draft, UploadDraftUploadState.Failed, failure);
                 _logger.Error(
                     LocalizationHelper.Format("Log.Upload.Failed", errorText),
                     UploadLogSource);
@@ -1299,20 +1295,19 @@ public partial class MainWindow
         catch (OperationCanceledException)
         {
             var canceledText = LocalizationHelper.Get("Status.Upload.Canceled");
-            draft.UploadState = UploadDraftUploadState.Pending;
-            draft.UploadStatus = canceledText;
-            draft.IsUploadProgressIndeterminate = false;
-            draft.UploadProgress = 0;
-            StatusTextBlock.Text = canceledText;
+            UpdateUploadStatus(
+                draft,
+                UploadDraftUploadState.Pending,
+                canceledText,
+                isProgressIndeterminate: false,
+                progressPercent: 0);
             _logger.Info("Upload canceled.", UploadLogSource);
             ScheduleDraftPersistence();
         }
         catch (Exception ex)
         {
-            draft.UploadState = UploadDraftUploadState.Failed;
             var unexpected = LocalizationHelper.Format("Status.Upload.UnexpectedError", ex.Message);
-            draft.UploadStatus = unexpected;
-            StatusTextBlock.Text = unexpected;
+            UpdateUploadStatus(draft, UploadDraftUploadState.Failed, unexpected);
             _logger.Error(
                 LocalizationHelper.Format("Log.Upload.UnexpectedError", ex.Message),
                 UploadLogSource,
@@ -1392,6 +1387,33 @@ public partial class MainWindow
             UploadProgressBar.Value = 0;
             UploadProgressLabel.Text = string.Empty;
         });
+    }
+
+    private void UpdateUploadStatus(
+        UploadDraft draft,
+        UploadDraftUploadState state,
+        string statusText,
+        bool? isProgressIndeterminate = null,
+        double? progressPercent = null,
+        bool updateStatusText = true)
+    {
+        draft.UploadState = state;
+        draft.UploadStatus = statusText;
+
+        if (isProgressIndeterminate.HasValue)
+        {
+            draft.IsUploadProgressIndeterminate = isProgressIndeterminate.Value;
+        }
+
+        if (progressPercent.HasValue)
+        {
+            draft.UploadProgress = progressPercent.Value;
+        }
+
+        if (updateStatusText)
+        {
+            StatusTextBlock.Text = statusText;
+        }
     }
 
     #endregion

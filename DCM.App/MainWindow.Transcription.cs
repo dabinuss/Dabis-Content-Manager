@@ -149,10 +149,14 @@ public partial class MainWindow
         _transcriptionCts = new CancellationTokenSource();
         var cancellationToken = _transcriptionCts.Token;
         _activeTranscriptionDraft = draft;
-        draft.TranscriptionState = UploadDraftTranscriptionState.Running;
-        draft.TranscriptionStatus = LocalizationHelper.Get("Transcription.Phase.Initializing");
-        draft.IsTranscriptionProgressIndeterminate = true;
-        draft.TranscriptionProgress = 0;
+        var initializingText = LocalizationHelper.Get("Transcription.Phase.Initializing");
+        UpdateTranscriptionStatus(
+            draft,
+            UploadDraftTranscriptionState.Running,
+            initializingText,
+            isProgressIndeterminate: true,
+            progressPercent: 0,
+            updateStatusText: false);
         ScheduleDraftPersistence();
 
         UpdateTranscriptionButtonState();
@@ -201,19 +205,17 @@ public partial class MainWindow
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.Canceled");
+            var canceledStatus = LocalizationHelper.Get("Status.Transcription.Canceled");
+            UpdateTranscriptionStatus(draft, UploadDraftTranscriptionState.Failed, canceledStatus);
             UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceled"));
             _logger.Debug(LocalizationHelper.Get("Log.Transcription.Canceled"), TranscriptionLogSource);
-            draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
-            draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Canceled");
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.Error", ex.Message);
+            var errorStatus = LocalizationHelper.Format("Status.Transcription.Error", ex.Message);
+            UpdateTranscriptionStatus(draft, UploadDraftTranscriptionState.Failed, errorStatus);
             UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.Error", ex.Message));
             _logger.Error(LocalizationHelper.Format("Log.Transcription.Failed", ex.Message), TranscriptionLogSource, ex);
-            draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
-            draft.TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.Error", ex.Message);
         }
         finally
         {
@@ -222,8 +224,12 @@ public partial class MainWindow
             _transcriptionCts = null;
             if (draft.TranscriptionState == UploadDraftTranscriptionState.Running)
             {
-                draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
-                draft.TranscriptionStatus = LocalizationHelper.Get("Transcription.Phase.Failed");
+                var failedPhaseText = LocalizationHelper.Get("Transcription.Phase.Failed");
+                UpdateTranscriptionStatus(
+                    draft,
+                    UploadDraftTranscriptionState.Failed,
+                    failedPhaseText,
+                    updateStatusText: false);
             }
 
             HideTranscriptionProgress();
@@ -271,34 +277,38 @@ public partial class MainWindow
                 draft.Transcript = result.Text;
             }
 
-            StatusTextBlock.Text = LocalizationHelper.Format(
+            var completedStatus = LocalizationHelper.Format(
                 "Status.Transcription.Completed",
                 result.Duration.TotalSeconds);
+            UpdateTranscriptionStatus(
+                draft,
+                UploadDraftTranscriptionState.Completed,
+                completedStatus,
+                isProgressIndeterminate: false,
+                progressPercent: 100);
             UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.CompletedIn", result.Duration.TotalSeconds));
             _logger.Info(
                 LocalizationHelper.Format("Log.Transcription.Success", result.Text.Length, result.Duration.TotalSeconds),
                 TranscriptionLogSource);
-            draft.TranscriptionState = UploadDraftTranscriptionState.Completed;
-            draft.TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.Completed", result.Duration.TotalSeconds);
-            draft.IsTranscriptionProgressIndeterminate = false;
-            draft.TranscriptionProgress = 100;
             ScheduleDraftPersistence();
             TryAutoRemoveDraft(draft);
         }
         else
         {
             var errorText = result.ErrorMessage ?? string.Empty;
-            StatusTextBlock.Text = LocalizationHelper.Format(
+            var failureStatus = LocalizationHelper.Format(
                 "Status.Transcription.ResultFailed",
                 errorText);
+            UpdateTranscriptionStatus(
+                draft,
+                UploadDraftTranscriptionState.Failed,
+                failureStatus,
+                isProgressIndeterminate: false,
+                progressPercent: 0);
             UpdateTranscriptionPhaseText(result.ErrorMessage ?? LocalizationHelper.Get("Transcription.Phase.Failed"));
             _logger.Warning(
                 LocalizationHelper.Format("Log.Transcription.Failed", result.ErrorMessage ?? string.Empty),
                 TranscriptionLogSource);
-            draft.TranscriptionState = UploadDraftTranscriptionState.Failed;
-            draft.TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.ResultFailed", errorText);
-            draft.IsTranscriptionProgressIndeterminate = false;
-            draft.TranscriptionProgress = 0;
             ScheduleDraftPersistence();
         }
     }
@@ -640,10 +650,41 @@ public partial class MainWindow
 
     private void MarkDraftQueued(UploadDraft draft)
     {
-        draft.TranscriptionState = UploadDraftTranscriptionState.Pending;
-        draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
-        draft.IsTranscriptionProgressIndeterminate = true;
-        draft.TranscriptionProgress = 0;
+        var queuedStatus = LocalizationHelper.Get("Status.Transcription.Queued");
+        UpdateTranscriptionStatus(
+            draft,
+            UploadDraftTranscriptionState.Pending,
+            queuedStatus,
+            isProgressIndeterminate: true,
+            progressPercent: 0,
+            updateStatusText: false);
+    }
+
+    private void UpdateTranscriptionStatus(
+        UploadDraft draft,
+        UploadDraftTranscriptionState state,
+        string statusText,
+        bool? isProgressIndeterminate = null,
+        double? progressPercent = null,
+        bool updateStatusText = true)
+    {
+        draft.TranscriptionState = state;
+        draft.TranscriptionStatus = statusText;
+
+        if (isProgressIndeterminate.HasValue)
+        {
+            draft.IsTranscriptionProgressIndeterminate = isProgressIndeterminate.Value;
+        }
+
+        if (progressPercent.HasValue)
+        {
+            draft.TranscriptionProgress = progressPercent.Value;
+        }
+
+        if (updateStatusText)
+        {
+            StatusTextBlock.Text = statusText;
+        }
     }
 
     private void RemoveDraftFromTranscriptionQueue(Guid draftId, bool persist = true)
