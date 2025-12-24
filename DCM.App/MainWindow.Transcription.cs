@@ -459,26 +459,17 @@ public partial class MainWindow
     // Allgemeine Funktion zum Umschalten von Button-States
     private void SetButtonState(Button button, bool isActive)
     {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => SetButtonState(button, isActive));
-            return;
-        }
-
-        button.Tag = isActive ? "active" : "default";
+        OnUiThread(() => button.Tag = isActive ? "active" : "default");
     }
 
     // Optional: Mit Enable/Disable
     private void SetButtonState(Button button, bool isActive, bool isEnabled)
     {
-        if (!Dispatcher.CheckAccess())
+        OnUiThread(() =>
         {
-            Dispatcher.BeginInvoke(() => SetButtonState(button, isActive, isEnabled));
-            return;
-        }
-
-        button.Tag = isActive ? "active" : "default";
-        button.IsEnabled = isEnabled;
+            button.Tag = isActive ? "active" : "default";
+            button.IsEnabled = isEnabled;
+        });
     }
 
     private void UpdateTranscriptionButtonState()
@@ -560,10 +551,7 @@ public partial class MainWindow
             _transcriptionQueue.Add(draft.Id);
         }
 
-        draft.TranscriptionState = UploadDraftTranscriptionState.Pending;
-        draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
-        draft.IsTranscriptionProgressIndeterminate = true;
-        draft.TranscriptionProgress = 0;
+        MarkDraftQueued(draft);
         ScheduleDraftPersistence();
     }
 
@@ -646,11 +634,16 @@ public partial class MainWindow
 
         RemoveDraftFromTranscriptionQueue(draft.Id, persist: false);
         _transcriptionQueue.Insert(0, draft.Id);
+        MarkDraftQueued(draft);
+        ScheduleDraftPersistence();
+    }
+
+    private void MarkDraftQueued(UploadDraft draft)
+    {
         draft.TranscriptionState = UploadDraftTranscriptionState.Pending;
         draft.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
         draft.IsTranscriptionProgressIndeterminate = true;
         draft.TranscriptionProgress = 0;
-        ScheduleDraftPersistence();
     }
 
     private void RemoveDraftFromTranscriptionQueue(Guid draftId, bool persist = true)

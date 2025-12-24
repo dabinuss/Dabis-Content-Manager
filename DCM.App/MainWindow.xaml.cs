@@ -364,6 +364,28 @@ public partial class MainWindow : Window
         _eventSubscriptions.Clear();
     }
 
+    private void OnUiThread(Action action)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        Dispatcher.BeginInvoke(action);
+    }
+
+    private Task OnUiThreadAsync(Action action)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        return Dispatcher.InvokeAsync(action).Task;
+    }
+
     #region Lifecycle
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)

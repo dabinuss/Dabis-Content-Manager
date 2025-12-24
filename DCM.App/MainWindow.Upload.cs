@@ -383,16 +383,8 @@ public partial class MainWindow
         if (_settings.ConfirmBeforeUpload)
         {
             var confirmMessage = $"Sollen alle {readyDrafts.Count} Videos hochgeladen werden?";
-            var confirmResult = MessageBox.Show(
-                this,
-                confirmMessage,
-                LocalizationHelper.Get("Dialog.Upload.Confirm.Title"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (confirmResult != MessageBoxResult.Yes)
+            if (!ConfirmUpload(confirmMessage))
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.Canceled");
                 return;
             }
         }
@@ -503,48 +495,11 @@ public partial class MainWindow
 
             if (draft is null)
             {
-                UploadView.VideoPathTextBox.Text = string.Empty;
-                UploadView.VideoFileNameTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
-                UploadView.VideoFileSizeTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
-                UploadView.VideoDropEmptyState.Visibility = Visibility.Visible;
-                UploadView.VideoDropSelectedState.Visibility = Visibility.Collapsed;
-                UploadView.TitleTextBox.Text = string.Empty;
-                UploadView.DescriptionTextBox.Text = string.Empty;
-                UploadView.TagsTextBox.Text = string.Empty;
-                UploadView.TranscriptTextBox.Text = string.Empty;
-                UploadView.ThumbnailPathTextBox.Text = string.Empty;
-                UploadView.ThumbnailPreviewImage.Source = null;
-                UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
-                UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
+                ClearActiveDraftView();
             }
             else
             {
-                UploadView.VideoPathTextBox.Text = draft.VideoPath;
-                UploadView.VideoDropEmptyState.Visibility = draft.HasVideo ? Visibility.Collapsed : Visibility.Visible;
-                UploadView.VideoDropSelectedState.Visibility = draft.HasVideo ? Visibility.Visible : Visibility.Collapsed;
-                UploadView.VideoFileNameTextBlock.Text = string.IsNullOrWhiteSpace(draft.FileName)
-                    ? Path.GetFileName(draft.VideoPath)
-                    : draft.FileName;
-                UploadView.VideoFileSizeTextBlock.Text = string.IsNullOrWhiteSpace(draft.FileSizeDisplay)
-                    ? FormatFileSize(0)
-                    : draft.FileSizeDisplay;
-                UploadView.TitleTextBox.Text = draft.Title;
-                UploadView.DescriptionTextBox.Text = draft.Description;
-                UploadView.TagsTextBox.Text = draft.TagsCsv;
-                UploadView.TranscriptTextBox.Text = draft.Transcript;
-
-                if (!string.IsNullOrWhiteSpace(draft.ThumbnailPath) &&
-                    File.Exists(draft.ThumbnailPath))
-                {
-                    ApplyThumbnailToUi(draft.ThumbnailPath);
-                }
-                else
-                {
-                    UploadView.ThumbnailPathTextBox.Text = string.Empty;
-                    UploadView.ThumbnailPreviewImage.Source = null;
-                    UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
-                    UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
-                }
+                PopulateActiveDraftView(draft);
             }
         }
         finally
@@ -554,6 +509,53 @@ public partial class MainWindow
 
         UpdateUploadButtonState();
         UpdateTranscriptionButtonState();
+    }
+
+    private void ClearActiveDraftView()
+    {
+        UploadView.VideoPathTextBox.Text = string.Empty;
+        UploadView.VideoFileNameTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
+        UploadView.VideoFileSizeTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
+        UploadView.VideoDropEmptyState.Visibility = Visibility.Visible;
+        UploadView.VideoDropSelectedState.Visibility = Visibility.Collapsed;
+        UploadView.TitleTextBox.Text = string.Empty;
+        UploadView.DescriptionTextBox.Text = string.Empty;
+        UploadView.TagsTextBox.Text = string.Empty;
+        UploadView.TranscriptTextBox.Text = string.Empty;
+        UploadView.ThumbnailPathTextBox.Text = string.Empty;
+        UploadView.ThumbnailPreviewImage.Source = null;
+        UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
+        UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
+    }
+
+    private void PopulateActiveDraftView(UploadDraft draft)
+    {
+        UploadView.VideoPathTextBox.Text = draft.VideoPath;
+        UploadView.VideoDropEmptyState.Visibility = draft.HasVideo ? Visibility.Collapsed : Visibility.Visible;
+        UploadView.VideoDropSelectedState.Visibility = draft.HasVideo ? Visibility.Visible : Visibility.Collapsed;
+        UploadView.VideoFileNameTextBlock.Text = string.IsNullOrWhiteSpace(draft.FileName)
+            ? Path.GetFileName(draft.VideoPath)
+            : draft.FileName;
+        UploadView.VideoFileSizeTextBlock.Text = string.IsNullOrWhiteSpace(draft.FileSizeDisplay)
+            ? FormatFileSize(0)
+            : draft.FileSizeDisplay;
+        UploadView.TitleTextBox.Text = draft.Title;
+        UploadView.DescriptionTextBox.Text = draft.Description;
+        UploadView.TagsTextBox.Text = draft.TagsCsv;
+        UploadView.TranscriptTextBox.Text = draft.Transcript;
+
+        if (!string.IsNullOrWhiteSpace(draft.ThumbnailPath) &&
+            File.Exists(draft.ThumbnailPath))
+        {
+            ApplyThumbnailToUi(draft.ThumbnailPath);
+        }
+        else
+        {
+            UploadView.ThumbnailPathTextBox.Text = string.Empty;
+            UploadView.ThumbnailPreviewImage.Source = null;
+            UploadView.ThumbnailEmptyState.Visibility = Visibility.Visible;
+            UploadView.ThumbnailPreviewState.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void VideoDrop_DragOver(object sender, DragEventArgs e)
@@ -704,25 +706,14 @@ public partial class MainWindow
 
             draft.TranscriptionStatus ??= string.Empty;
 
-            if (!Dispatcher.CheckAccess())
-            {
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    if (_activeDraft == draft)
-                    {
-                        UploadView.VideoFileNameTextBlock.Text = fileName;
-                        UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
-                    }
-                });
-            }
-            else
+            await OnUiThreadAsync(() =>
             {
                 if (_activeDraft == draft)
                 {
                     UploadView.VideoFileNameTextBlock.Text = fileName;
                     UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
                 }
-            }
+            });
 
             _logger.Info(
                 LocalizationHelper.Format("Log.Upload.VideoSelected", fileName),
@@ -742,7 +733,7 @@ public partial class MainWindow
                 UploadLogSource,
                 ex);
 
-            await Dispatcher.InvokeAsync(() =>
+            await OnUiThreadAsync(() =>
             {
                 if (_activeDraft == draft)
                 {
@@ -1111,21 +1102,31 @@ public partial class MainWindow
 
         if (_settings.ConfirmBeforeUpload)
         {
-            var confirmResult = MessageBox.Show(
-                this,
-                LocalizationHelper.Get("Dialog.Upload.Confirm.Text"),
-                LocalizationHelper.Get("Dialog.Upload.Confirm.Title"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (confirmResult != MessageBoxResult.Yes)
+            if (!ConfirmUpload(LocalizationHelper.Get("Dialog.Upload.Confirm.Text")))
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.Canceled");
                 return;
             }
         }
 
         await UploadDraftAsync(_activeDraft);
+    }
+
+    private bool ConfirmUpload(string message)
+    {
+        var result = MessageBox.Show(
+            this,
+            message,
+            LocalizationHelper.Get("Dialog.Upload.Confirm.Title"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        var confirmed = result == MessageBoxResult.Yes;
+        if (!confirmed)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.Canceled");
+        }
+
+        return confirmed;
     }
 
     private async Task UploadDraftAsync(UploadDraft draft)
@@ -1347,59 +1348,50 @@ public partial class MainWindow
 
     private void ShowUploadProgress(string message)
     {
-        if (!Dispatcher.CheckAccess())
+        OnUiThread(() =>
         {
-            Dispatcher.BeginInvoke(() => ShowUploadProgress(message));
-            return;
-        }
+            UploadProgressBar.Visibility = Visibility.Visible;
+            UploadProgressLabel.Visibility = Visibility.Visible;
 
-        UploadProgressBar.Visibility = Visibility.Visible;
-        UploadProgressLabel.Visibility = Visibility.Visible;
-
-        UploadProgressBar.IsIndeterminate = true;
-        UploadProgressBar.Value = 0;
-        UploadProgressLabel.Text = message;
+            UploadProgressBar.IsIndeterminate = true;
+            UploadProgressBar.Value = 0;
+            UploadProgressLabel.Text = message;
+        });
     }
 
     private void ReportUploadProgress(UploadProgressInfo info)
     {
-        if (!Dispatcher.CheckAccess())
+        OnUiThread(() =>
         {
-            Dispatcher.BeginInvoke(() => ReportUploadProgress(info));
-            return;
-        }
+            UploadProgressBar.Visibility = Visibility.Visible;
+            UploadProgressLabel.Visibility = Visibility.Visible;
 
-        UploadProgressBar.Visibility = Visibility.Visible;
-        UploadProgressLabel.Visibility = Visibility.Visible;
+            UploadProgressBar.IsIndeterminate = info.IsIndeterminate;
 
-        UploadProgressBar.IsIndeterminate = info.IsIndeterminate;
+            if (!info.IsIndeterminate)
+            {
+                var percent = double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100);
+                UploadProgressBar.Value = percent;
+            }
 
-        if (!info.IsIndeterminate)
-        {
-            var percent = double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100);
-            UploadProgressBar.Value = percent;
-        }
-
-        if (!string.IsNullOrWhiteSpace(info.Message))
-        {
-            UploadProgressLabel.Text = info.Message;
-            StatusTextBlock.Text = info.Message;
-        }
+            if (!string.IsNullOrWhiteSpace(info.Message))
+            {
+                UploadProgressLabel.Text = info.Message;
+                StatusTextBlock.Text = info.Message;
+            }
+        });
     }
 
     private void HideUploadProgress()
     {
-        if (!Dispatcher.CheckAccess())
+        OnUiThread(() =>
         {
-            Dispatcher.BeginInvoke(HideUploadProgress);
-            return;
-        }
-
-        UploadProgressBar.Visibility = Visibility.Collapsed;
-        UploadProgressLabel.Visibility = Visibility.Collapsed;
-        UploadProgressBar.IsIndeterminate = false;
-        UploadProgressBar.Value = 0;
-        UploadProgressLabel.Text = string.Empty;
+            UploadProgressBar.Visibility = Visibility.Collapsed;
+            UploadProgressLabel.Visibility = Visibility.Collapsed;
+            UploadProgressBar.IsIndeterminate = false;
+            UploadProgressBar.Value = 0;
+            UploadProgressLabel.Text = string.Empty;
+        });
     }
 
     #endregion
