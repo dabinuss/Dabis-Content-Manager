@@ -614,6 +614,26 @@
   <Style TargetType="GroupBox"
          BasedOn="{StaticResource ModernGroupBox}"/>
 
+  <Style x:Key="SettingsSectionGroupBox"
+         TargetType="GroupBox"
+         BasedOn="{StaticResource ModernGroupBox}">
+    <Setter Property="Margin"
+            Value="{StaticResource SettingsSectionSpacing}"/>
+  </Style>
+
+  <Style x:Key="SettingsSectionGroupBox.Compact"
+         TargetType="GroupBox"
+         BasedOn="{StaticResource ModernGroupBox}">
+    <Setter Property="Margin"
+            Value="{StaticResource SettingsSectionSpacingCompact}"/>
+  </Style>
+
+  <Style x:Key="SettingsColumnStackStyle"
+         TargetType="StackPanel">
+    <Setter Property="VerticalAlignment"
+            Value="Top"/>
+  </Style>
+
   <!-- =================================================================== -->
   <!-- GLOBAL DEFAULT STYLES                                               -->
   <!-- =================================================================== -->

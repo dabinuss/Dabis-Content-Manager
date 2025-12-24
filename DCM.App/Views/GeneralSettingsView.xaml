@@ -35,17 +35,20 @@
       </Button>
     </Grid>
 
-    <Grid Grid.Row="2">
+    <Grid Grid.Row="2"
+          HorizontalAlignment="Left"
+          MaxWidth="{StaticResource SettingsContentMaxWidth}">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"
-                          MinWidth="350"/>
+                          MinWidth="{StaticResource SettingsColumnMinWidth}"/>
         <ColumnDefinition Width="{StaticResource SpacingXL}"/>
         <ColumnDefinition Width="*"
-                          MinWidth="350"/>
+                          MinWidth="{StaticResource SettingsColumnMinWidth}"/>
       </Grid.ColumnDefinitions>
 
-      <StackPanel Grid.Column="0">
-        <GroupBox Margin="0,0,0,16">
+      <StackPanel Grid.Column="0"
+                  Style="{StaticResource SettingsColumnStackStyle}">
+        <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
           <StackPanel>
             <TextBlock Text="{DynamicResource Settings.Language}"
                        Style="{StaticResource TextLabel}"
@@ -60,7 +63,7 @@
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Margin="0,0,0,16">
+        <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
           <StackPanel>
             <TextBlock Text="{DynamicResource Settings.Theme}"
                        Style="{StaticResource TextLabel}"
@@ -75,7 +78,7 @@
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Margin="0,0,0,16">
+        <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
           <StackPanel>
             <TextBlock Text="{DynamicResource Settings.StandardFolders}"
                        Style="{StaticResource TextLabel}"
@@ -113,8 +116,9 @@
 
       </StackPanel>
 
-      <StackPanel Grid.Column="2">
-        <GroupBox Margin="0,0,0,16">
+      <StackPanel Grid.Column="2"
+                  Style="{StaticResource SettingsColumnStackStyle}">
+        <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
           <StackPanel>
             <TextBlock Text="{DynamicResource Settings.UploadSettings}"
                        Style="{StaticResource TextLabel}"
@@ -155,7 +159,7 @@
           </StackPanel>
         </GroupBox>
 
-        <GroupBox Margin="0,0,0,16">
+        <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
           <StackPanel>
             <TextBlock Text="{DynamicResource Settings.Drafts}"
                        Style="{StaticResource TextLabel}"
@@ -167,7 +171,7 @@
           </StackPanel>
         </GroupBox>
 
-        <GroupBox>
+        <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
           <StackPanel>
             <TextBlock Text="{DynamicResource Settings.Transcription}"
                        Style="{StaticResource TextLabel}"

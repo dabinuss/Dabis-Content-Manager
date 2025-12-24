@@ -36,19 +36,19 @@
     <ScrollViewer Grid.Row="2"
                   VerticalScrollBarVisibility="Auto">
       <Grid HorizontalAlignment="Left"
-            MaxWidth="1040"
+            MaxWidth="{StaticResource SettingsContentMaxWidth}"
             VerticalAlignment="Top">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"
-                            MinWidth="350"/>
+                            MinWidth="{StaticResource SettingsColumnMinWidth}"/>
           <ColumnDefinition Width="{StaticResource SpacingXL}"/>
           <ColumnDefinition Width="*"
-                            MinWidth="350"/>
+                            MinWidth="{StaticResource SettingsColumnMinWidth}"/>
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0"
-                    VerticalAlignment="Top">
-          <GroupBox Margin="0,0,0,12">
+                    Style="{StaticResource SettingsColumnStackStyle}">
+          <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
             <StackPanel>
               <TextBlock Text="{DynamicResource Settings.LLM.Mode}"
                          Style="{StaticResource TextLabel}"
@@ -119,7 +119,7 @@
             </StackPanel>
           </GroupBox>
 
-          <GroupBox Margin="0,0,0,12">
+          <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
             <StackPanel>
               <TextBlock Text="{DynamicResource Settings.LLM.Parameters}"
                          Style="{StaticResource TextLabel}"
@@ -168,8 +168,8 @@
         </StackPanel>
 
         <StackPanel Grid.Column="2"
-                    VerticalAlignment="Top">
-          <GroupBox Margin="0,0,0,12">
+                    Style="{StaticResource SettingsColumnStackStyle}">
+          <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
             <StackPanel>
               <TextBlock Text="{DynamicResource Settings.LLM.Prompts}"
                          Style="{StaticResource TextLabel}"
@@ -207,7 +207,7 @@
             </StackPanel>
           </GroupBox>
 
-          <GroupBox>
+          <GroupBox Style="{StaticResource SettingsSectionGroupBox}">
             <StackPanel>
               <TextBlock Text="{DynamicResource Settings.Suggestions.Count}"
                          Style="{StaticResource TextLabel}"
