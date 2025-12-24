@@ -356,6 +356,9 @@
   <sys:String x:Key="Dialog.ThumbnailFolder.Title">Standard-Thumbnailordner auswählen</sys:String>
   <sys:String x:Key="Settings.UploadSettings">Standard Upload Einstellungen</sys:String>
   <sys:String x:Key="Settings.StandardReleaseTime">Standard Release Zeit</sys:String>
+  <sys:String x:Key="Settings.Drafts">Entwürfe</sys:String>
+  <sys:String x:Key="Settings.Drafts.Remember">Entwürfe zwischen Sitzungen merken</sys:String>
+  <sys:String x:Key="Settings.Drafts.AutoClean">Abgeschlossene Entwürfe automatisch entfernen</sys:String>
   <sys:String x:Key="Settings.ConfirmUpload">Vor Upload um Bestätigung fragen</sys:String>
   <sys:String x:Key="Settings.AutomaticTemplateApply">Vorlage automatisch anwenden</sys:String>
   <sys:String x:Key="Settings.OpenBrowserAfterUpload">Nach Upload Browser öffnen</sys:String>

@@ -255,7 +255,7 @@
               <TextBlock Style="{StaticResource SidebarNavSectionHeader}"
                          Text="APP"/>
 
-              <RadioButton x:Name="NavSettings"
+              <RadioButton x:Name="NavSettingsGeneral"
                            Style="{StaticResource SidebarNavSubButton}"
                            Checked="NavButton_Checked"
                            Tag="5">
@@ -264,6 +264,21 @@
                              Text="&#xe8b8;"
                              Margin="0,0,16,0"/>
                   <TextBlock Text="{DynamicResource Nav.Settings}"
+                             FontWeight="Medium"
+                             FontSize="{StaticResource FontSizeM}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+              </RadioButton>
+
+              <RadioButton x:Name="NavSettingsLlm"
+                           Style="{StaticResource SidebarNavSubButton}"
+                           Checked="NavButton_Checked"
+                           Tag="6">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource IconL}"
+                             Text="&#xe86f;"
+                             Margin="0,0,16,0"/>
+                  <TextBlock Text="{DynamicResource Settings.LLM}"
                              FontWeight="Medium"
                              FontSize="{StaticResource FontSizeM}"
                              VerticalAlignment="Center"/>
@@ -457,11 +472,18 @@
             <views:HistoryView x:Name="HistoryPageView"/>
           </Grid>
 
-          <!-- Page 5: Einstellungen -->
-          <ScrollViewer x:Name="PageSettings"
+          <!-- Page 5: Allgemeine Einstellungen -->
+          <ScrollViewer x:Name="PageGeneralSettings"
                         VerticalScrollBarVisibility="Auto"
                         Visibility="Collapsed">
-            <views:SettingsView x:Name="SettingsPageView"/>
+            <views:GeneralSettingsView x:Name="GeneralSettingsPageView"/>
+          </ScrollViewer>
+
+          <!-- Page 6: LLM Einstellungen -->
+          <ScrollViewer x:Name="PageLlmSettings"
+                        VerticalScrollBarVisibility="Auto"
+                        Visibility="Collapsed">
+            <views:LlmSettingsView x:Name="LlmSettingsPageView"/>
           </ScrollViewer>
         </Grid>
       </Grid>

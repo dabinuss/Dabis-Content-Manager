@@ -1,0 +1,268 @@
+<UserControl x:Class="DCM.App.Views.LlmSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid Margin="0,0,16,0">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="{StaticResource SpacingXL}"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0"
+          Margin="0,0,0,16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <TextBlock Grid.Column="0"
+                 Text="{DynamicResource Settings.LLM}"
+                 FontSize="{StaticResource FontSizeXL}"
+                 FontWeight="SemiBold"
+                 Foreground="{StaticResource TextPrimaryBrush}"/>
+
+      <Button x:Name="SettingsSaveButton"
+              Grid.Column="1"
+              Style="{StaticResource PrimaryButton}"
+              Click="SettingsSaveButton_Click"
+              VerticalAlignment="Center"
+              Margin="4">
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="{DynamicResource Settings.SaveAll}"/>
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <ScrollViewer Grid.Row="2"
+                  VerticalScrollBarVisibility="Auto">
+      <Grid HorizontalAlignment="Left"
+            MaxWidth="1040"
+            VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"
+                            MinWidth="350"/>
+          <ColumnDefinition Width="{StaticResource SpacingXL}"/>
+          <ColumnDefinition Width="*"
+                            MinWidth="350"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0"
+                    VerticalAlignment="Top">
+          <GroupBox Margin="0,0,0,12">
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Settings.LLM.Mode}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,8"/>
+              <ComboBox x:Name="LlmModeComboBox"
+                        MinWidth="200"
+                        SelectionChanged="LlmModeComboBox_SelectionChanged">
+                <ComboBoxItem Content="{DynamicResource Settings.LLM.Off}"
+                              Tag="Off"/>
+                <ComboBoxItem Content="{DynamicResource Settings.LLM.Local}"
+                              Tag="Local"/>
+              </ComboBox>
+
+              <TextBlock Text="{DynamicResource Settings.LLM.PathToModel}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"/>
+            <Grid Margin="0,0,0,4">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBox x:Name="LlmModelPathTextBox"
+                       Grid.Column="0"
+                       MinWidth="320"
+                       HorizontalAlignment="Stretch"
+                       ToolTip="Pfad zur GGUF-Modelldatei"/>
+              <Button x:Name="LlmModelPathBrowseButton"
+                      Grid.Column="1"
+                      Content="{DynamicResource Settings.ChoosePath}"
+                      Style="{StaticResource SecondaryButton}"
+                      Margin="8,0,0,0"
+                      Click="LlmModelPathBrowseButton_Click"/>
+            </Grid>
+
+              <TextBlock Text="{DynamicResource Settings.LLM.ModelType}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"/>
+              <ComboBox x:Name="LlmModelTypeComboBox"
+                        MinWidth="200">
+                <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Detect}"
+                              Tag="Auto"
+                              IsSelected="True"/>
+                <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Phi3}"
+                              Tag="Phi3"/>
+                <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Mistral3}"
+                              Tag="Mistral3"/>
+              </ComboBox>
+
+              <TextBlock Text="{DynamicResource Settings.LLM.ModelType.SystemPrompt}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"/>
+              <TextBox x:Name="LlmSystemPromptTextBox"
+                       AcceptsReturn="True"
+                       Height="80"
+                       TextWrapping="Wrap"
+                       VerticalScrollBarVisibility="Auto"/>
+
+              <StackPanel Orientation="Horizontal"
+                          VerticalAlignment="Center"
+                          Margin="0,8,0,0">
+                <TextBlock Text="{DynamicResource Common.Status}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           Margin="0,0,8,0"/>
+                <TextBlock x:Name="LlmStatusTextBlock"
+                           Text="{DynamicResource Settings.LLM.Status}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+              </StackPanel>
+            </StackPanel>
+          </GroupBox>
+
+          <GroupBox Margin="0,0,0,12">
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Settings.LLM.Parameters}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,8"/>
+              <StackPanel Orientation="Horizontal"
+                          VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.LLM.Parameters.MaxToken}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Width="200"/>
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                  <TextBox x:Name="LlmMaxTokensTextBox"
+                           Width="80"
+                           Text="256"/>
+                  <TextBlock Text="{DynamicResource Settings.LLM.MaxTokensHint}"
+                             FontSize="{StaticResource FontSizeS}"
+                             Foreground="{StaticResource TextMutedBrush}"
+                             Margin="8,0,0,0"/>
+                </StackPanel>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal"
+                          VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.LLM.Parameters.Temperature}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Width="200"/>
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                  <Slider x:Name="LlmTemperatureSlider"
+                          Width="160"
+                          Minimum="0"
+                          Maximum="1"
+                          Value="0.3"
+                          TickFrequency="0.1"
+                          IsSnapToTickEnabled="True"
+                          ValueChanged="LlmTemperatureSlider_ValueChanged"/>
+                  <TextBlock x:Name="LlmTemperatureValueText"
+                             Margin="8,0,0,0"
+                             Width="40"
+                             HorizontalAlignment="Left"
+                             Text="0.3"/>
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </GroupBox>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2"
+                    VerticalAlignment="Top">
+          <GroupBox Margin="0,0,0,12">
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Settings.LLM.Prompts}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,8"/>
+              <StackPanel>
+                <TextBlock Text="{DynamicResource Settings.LLM.Prompts.Title}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+                <TextBox x:Name="LlmTitleCustomPromptTextBox"
+                         Height="60"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <TextBlock Text="{DynamicResource Settings.LLM.Prompts.Description}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           Margin="0,12,0,0"/>
+                <TextBox x:Name="LlmDescriptionCustomPromptTextBox"
+                         Height="60"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <TextBlock Text="{DynamicResource Settings.LLM.Prompts.Tags}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           Margin="0,12,0,0"/>
+                <TextBox x:Name="LlmTagsCustomPromptTextBox"
+                         Height="60"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"/>
+              </StackPanel>
+            </StackPanel>
+          </GroupBox>
+
+          <GroupBox>
+            <StackPanel>
+              <TextBlock Text="{DynamicResource Settings.Suggestions.Count}"
+                         Style="{StaticResource TextLabel}"
+                         Margin="0,-6,0,8"/>
+
+              <StackPanel Orientation="Horizontal"
+                          Margin="0,0,0,8"
+                          VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.Suggestions.Title}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Width="200"/>
+                <ComboBox x:Name="TitleSuggestionCountComboBox"
+                          Width="120">
+                  <ComboBoxItem Content="1"/>
+                  <ComboBoxItem Content="2"/>
+                  <ComboBoxItem Content="3"/>
+                  <ComboBoxItem Content="4"/>
+                  <ComboBoxItem Content="5"/>
+                </ComboBox>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal"
+                          Margin="0,0,0,8"
+                          VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.Suggestions.Description}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Width="200"/>
+                <ComboBox x:Name="DescriptionSuggestionCountComboBox"
+                          Width="120">
+                  <ComboBoxItem Content="1"/>
+                  <ComboBoxItem Content="2"/>
+                  <ComboBoxItem Content="3"/>
+                  <ComboBoxItem Content="4"/>
+                  <ComboBoxItem Content="5"/>
+                </ComboBox>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal"
+                          VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.Suggestions.Tags}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Width="200"/>
+                <ComboBox x:Name="TagsSuggestionCountComboBox"
+                          Width="120">
+                  <ComboBoxItem Content="1"/>
+                  <ComboBoxItem Content="2"/>
+                  <ComboBoxItem Content="3"/>
+                  <ComboBoxItem Content="4"/>
+                  <ComboBoxItem Content="5"/>
+                </ComboBox>
+              </StackPanel>
+            </StackPanel>
+          </GroupBox>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

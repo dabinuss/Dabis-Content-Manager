@@ -90,16 +90,17 @@ public partial class MainWindow
 
     private void ApplySettingsToUi()
     {
-        SettingsPageView?.ApplyAppSettings(_settings);
+        GeneralSettingsPageView?.ApplyAppSettings(_settings);
+        LlmSettingsPageView?.ApplySuggestionSettings(_settings);
 
         var persona = _settings.Persona ?? new ChannelPersona();
         _settings.Persona = persona;
         ChannelPageView?.LoadPersona(persona);
 
         var llm = _settings.Llm ?? new LlmSettings();
-        SettingsPageView?.ApplyLlmSettings(llm);
+        LlmSettingsPageView?.ApplyLlmSettings(llm);
         UpdateLlmControlsEnabled();
-        SettingsPageView?.ApplyTranscriptionSettings(_settings.Transcription ?? new TranscriptionSettings());
+        GeneralSettingsPageView?.ApplyTranscriptionSettings(_settings.Transcription ?? new TranscriptionSettings());
     }
 
     #endregion
@@ -133,9 +134,9 @@ public partial class MainWindow
 
         if (dialog.ShowDialog(this) == true)
         {
-            SettingsPageView!.DefaultVideoFolder = dialog.FolderName;
+            GeneralSettingsPageView!.DefaultVideoFolder = dialog.FolderName;
             _settings.DefaultVideoFolder = dialog.FolderName;
-            SaveSettings();
+            ScheduleSettingsSave();
             StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.VideoFolderUpdated");
         }
     }
@@ -167,9 +168,9 @@ public partial class MainWindow
 
         if (dialog.ShowDialog(this) == true)
         {
-            SettingsPageView!.DefaultThumbnailFolder = dialog.FolderName;
+            GeneralSettingsPageView!.DefaultThumbnailFolder = dialog.FolderName;
             _settings.DefaultThumbnailFolder = dialog.FolderName;
-            SaveSettings();
+            ScheduleSettingsSave();
             StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.ThumbnailFolderUpdated");
         }
     }
@@ -217,14 +218,14 @@ public partial class MainWindow
 
         if (dlg.ShowDialog(this) == true)
         {
-            SettingsPageView!.LlmModelPath = dlg.FileName;
+            LlmSettingsPageView!.LlmModelPath = dlg.FileName;
         }
     }
 
     private void UpdateLlmControlsEnabled()
     {
-        var isLocalMode = SettingsPageView?.IsLocalLlmModeSelected() ?? false;
-        SettingsPageView?.SetLlmLocalModeControlsEnabled(isLocalMode);
+        var isLocalMode = LlmSettingsPageView?.IsLocalLlmModeSelected() ?? false;
+        LlmSettingsPageView?.SetLlmLocalModeControlsEnabled(isLocalMode);
     }
 
     private void UpdateLlmStatusText()
@@ -233,25 +234,25 @@ public partial class MainWindow
 
         if (llm.IsOff)
         {
-            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Deactivated"), System.Windows.Media.Brushes.Gray);
+            LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Deactivated"), System.Windows.Media.Brushes.Gray);
             return;
         }
 
         if (!llm.IsLocalMode)
         {
-            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.UnknownMode"), System.Windows.Media.Brushes.Orange);
+            LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.UnknownMode"), System.Windows.Media.Brushes.Orange);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(llm.LocalModelPath))
         {
-            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.NoPath"), System.Windows.Media.Brushes.Orange);
+            LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.NoPath"), System.Windows.Media.Brushes.Orange);
             return;
         }
 
         if (!File.Exists(llm.LocalModelPath))
         {
-            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.FileMissing"), System.Windows.Media.Brushes.Red);
+            LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.FileMissing"), System.Windows.Media.Brushes.Red);
             return;
         }
 
@@ -262,27 +263,27 @@ public partial class MainWindow
             if (!localClient.IsReady && string.IsNullOrEmpty(localClient.InitializationError))
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                SettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Configured", fileName, modelTypeInfo), System.Windows.Media.Brushes.DarkGreen);
+                LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Configured", fileName, modelTypeInfo), System.Windows.Media.Brushes.DarkGreen);
                 return;
             }
 
             if (localClient.IsReady)
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
-                SettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Ready", fileName, modelTypeInfo), System.Windows.Media.Brushes.Green);
+                LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Ready", fileName, modelTypeInfo), System.Windows.Media.Brushes.Green);
             }
             else if (!string.IsNullOrWhiteSpace(localClient.InitializationError))
             {
-                SettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Error", localClient.InitializationError), System.Windows.Media.Brushes.Red);
+                LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Error", localClient.InitializationError), System.Windows.Media.Brushes.Red);
             }
             else
             {
-                SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Unknown"), System.Windows.Media.Brushes.Orange);
+                LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Unknown"), System.Windows.Media.Brushes.Orange);
             }
         }
         else
         {
-            SettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.ClientMissing"), System.Windows.Media.Brushes.Gray);
+            LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.ClientMissing"), System.Windows.Media.Brushes.Gray);
         }
     }
 
@@ -300,9 +301,9 @@ public partial class MainWindow
     private void SettingsSaveButton_Click(object sender, RoutedEventArgs e)
     {
         // App-Einstellungen
-        SettingsPageView?.UpdateAppSettings(_settings);
+        GeneralSettingsPageView?.UpdateAppSettings(_settings);
 
-        var selectedLang = SettingsPageView?.GetSelectedLanguage();
+        var selectedLang = GeneralSettingsPageView?.GetSelectedLanguage();
         if (selectedLang is not null)
         {
             _settings.Language = selectedLang.Code;
@@ -310,7 +311,8 @@ public partial class MainWindow
 
         // LLM-Einstellungen
         _settings.Llm ??= new LlmSettings();
-        SettingsPageView?.UpdateLlmSettings(_settings.Llm);
+        LlmSettingsPageView?.UpdateLlmSettings(_settings.Llm);
+        LlmSettingsPageView?.UpdateSuggestionSettings(_settings);
 
         // Transkriptions-Einstellungen
         SaveTranscriptionSettings();
@@ -318,7 +320,7 @@ public partial class MainWindow
         ApplyDraftPreferenceSettings();
 
         // Alles speichern
-        SaveSettings();
+        ScheduleSettingsSave();
         RecreateLlmClient();
 
         StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.Saved");

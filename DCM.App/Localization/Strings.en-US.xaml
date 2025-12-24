@@ -356,6 +356,9 @@
   <sys:String x:Key="Dialog.ThumbnailFolder.Title">Select default thumbnail folder</sys:String>
   <sys:String x:Key="Settings.UploadSettings">Default Upload Settings</sys:String>
   <sys:String x:Key="Settings.StandardReleaseTime">Default Release Time</sys:String>
+  <sys:String x:Key="Settings.Drafts">Drafts</sys:String>
+  <sys:String x:Key="Settings.Drafts.Remember">Remember drafts between sessions</sys:String>
+  <sys:String x:Key="Settings.Drafts.AutoClean">Automatically remove completed drafts</sys:String>
   <sys:String x:Key="Settings.ConfirmUpload">Ask for Confirmation Before Upload</sys:String>
   <sys:String x:Key="Settings.AutomaticTemplateApply">Apply Template Automatically</sys:String>
   <sys:String x:Key="Settings.OpenBrowserAfterUpload">Open Browser After Upload</sys:String>

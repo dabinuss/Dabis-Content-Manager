@@ -329,20 +329,23 @@ public partial class MainWindow : Window
 
     private void AttachSettingsViewEvents()
     {
-        if (SettingsPageView is null)
+        if (GeneralSettingsPageView is not null)
         {
-            return;
+            GeneralSettingsPageView.SettingsSaveButtonClicked += SettingsSaveButton_Click;
+            GeneralSettingsPageView.DefaultVideoFolderBrowseButtonClicked += DefaultVideoFolderBrowseButton_Click;
+            GeneralSettingsPageView.DefaultThumbnailFolderBrowseButtonClicked += DefaultThumbnailFolderBrowseButton_Click;
+            GeneralSettingsPageView.LanguageComboBoxSelectionChanged += LanguageComboBox_SelectionChanged;
+            GeneralSettingsPageView.ThemeComboBoxSelectionChanged += ThemeComboBox_SelectionChanged;
+            GeneralSettingsPageView.TranscriptionDownloadButtonClicked += TranscriptionDownloadButton_Click;
+            GeneralSettingsPageView.TranscriptionModelSizeSelectionChanged += TranscriptionModelSizeComboBox_SelectionChanged;
         }
 
-        SettingsPageView.SettingsSaveButtonClicked += SettingsSaveButton_Click;
-        SettingsPageView.DefaultVideoFolderBrowseButtonClicked += DefaultVideoFolderBrowseButton_Click;
-        SettingsPageView.DefaultThumbnailFolderBrowseButtonClicked += DefaultThumbnailFolderBrowseButton_Click;
-        SettingsPageView.LanguageComboBoxSelectionChanged += LanguageComboBox_SelectionChanged;
-        SettingsPageView.ThemeComboBoxSelectionChanged += ThemeComboBox_SelectionChanged;
-        SettingsPageView.TranscriptionDownloadButtonClicked += TranscriptionDownloadButton_Click;
-        SettingsPageView.TranscriptionModelSizeSelectionChanged += TranscriptionModelSizeComboBox_SelectionChanged;
-        SettingsPageView.LlmModeComboBoxSelectionChanged += LlmModeComboBox_SelectionChanged;
-        SettingsPageView.LlmModelPathBrowseButtonClicked += LlmModelPathBrowseButton_Click;
+        if (LlmSettingsPageView is not null)
+        {
+            LlmSettingsPageView.SettingsSaveButtonClicked += SettingsSaveButton_Click;
+            LlmSettingsPageView.LlmModeComboBoxSelectionChanged += LlmModeComboBox_SelectionChanged;
+            LlmSettingsPageView.LlmModelPathBrowseButtonClicked += LlmModelPathBrowseButton_Click;
+        }
     }
 
     private void RegisterEventSubscriptions()
@@ -562,7 +565,7 @@ public partial class MainWindow : Window
 
         var languages = LocalizationManager.Instance.AvailableLanguages;
         var currentLang = _settings.Language ?? LocalizationManager.Instance.CurrentLanguage;
-        SettingsPageView?.SetLanguageOptions(languages, currentLang);
+        GeneralSettingsPageView?.SetLanguageOptions(languages, currentLang);
 
         _isLanguageInitializing = false;
     }
@@ -574,7 +577,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var selectedLang = SettingsPageView?.GetSelectedLanguage();
+        var selectedLang = GeneralSettingsPageView?.GetSelectedLanguage();
         if (selectedLang is null)
         {
             return;
@@ -585,7 +588,7 @@ public partial class MainWindow : Window
 
         // In Settings speichern
         _settings.Language = selectedLang.Code;
-        SaveSettings();
+        ScheduleSettingsSave();
 
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.LanguageChanged", selectedLang.DisplayName);
         _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
@@ -597,14 +600,14 @@ public partial class MainWindow : Window
 
     private void InitializeThemeComboBox()
     {
-        if (SettingsPageView is null)
+        if (GeneralSettingsPageView is null)
         {
             return;
         }
 
         _isThemeInitializing = true;
         var themeName = string.IsNullOrWhiteSpace(_settings.Theme) ? "Dark" : _settings.Theme.Trim();
-        SettingsPageView.SetSelectedTheme(themeName);
+        GeneralSettingsPageView.SetSelectedTheme(themeName);
         _isThemeInitializing = false;
     }
 
@@ -615,7 +618,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var selectedTheme = SettingsPageView?.GetSelectedTheme();
+        var selectedTheme = GeneralSettingsPageView?.GetSelectedTheme();
         if (string.IsNullOrWhiteSpace(selectedTheme))
         {
             return;
@@ -623,7 +626,7 @@ public partial class MainWindow : Window
 
         _settings.Theme = selectedTheme;
         ApplyTheme(selectedTheme);
-        SaveSettings();
+        ScheduleSettingsSave();
 
         StatusTextBlock.Text = $"Theme switched to {selectedTheme}.";
     }
@@ -806,7 +809,7 @@ public partial class MainWindow : Window
 
     private void InitializeLlmSettingsTab()
     {
-        SettingsPageView?.ApplyLlmSettings(_settings.Llm ?? new LlmSettings());
+        LlmSettingsPageView?.ApplyLlmSettings(_settings.Llm ?? new LlmSettings());
         UpdateLlmControlsEnabled();
     }
 
@@ -1531,7 +1534,8 @@ public partial class MainWindow : Window
         if (PageChannel is not null) PageChannel.Visibility = Visibility.Collapsed;
         if (PageTemplates is not null) PageTemplates.Visibility = Visibility.Collapsed;
         if (PageHistory is not null) PageHistory.Visibility = Visibility.Collapsed;
-        if (PageSettings is not null) PageSettings.Visibility = Visibility.Collapsed;
+        if (PageGeneralSettings is not null) PageGeneralSettings.Visibility = Visibility.Collapsed;
+        if (PageLlmSettings is not null) PageLlmSettings.Visibility = Visibility.Collapsed;
 
         // Gewählte Page anzeigen
         switch (pageIndex)
@@ -1552,7 +1556,10 @@ public partial class MainWindow : Window
                 if (PageHistory is not null) PageHistory.Visibility = Visibility.Visible;
                 break;
             case 5:
-                if (PageSettings is not null) PageSettings.Visibility = Visibility.Visible;
+                if (PageGeneralSettings is not null) PageGeneralSettings.Visibility = Visibility.Visible;
+                break;
+            case 6:
+                if (PageLlmSettings is not null) PageLlmSettings.Visibility = Visibility.Visible;
                 break;
         }
     }

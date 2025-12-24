@@ -709,16 +709,16 @@ public partial class MainWindow
     private void SaveTranscriptionSettings()
     {
         _settings.Transcription ??= new TranscriptionSettings();
-        SettingsPageView?.UpdateTranscriptionSettings(_settings.Transcription);
-        SaveSettings();
+        GeneralSettingsPageView?.UpdateTranscriptionSettings(_settings.Transcription);
+        ScheduleSettingsSave();
     }
 
     private void UpdateTranscriptionStatusDisplay()
     {
         if (_transcriptionService is null)
         {
-            SettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Get("Transcription.Status.ServiceUnavailable"), System.Windows.Media.Brushes.Red);
-            SettingsPageView?.SetTranscriptionDownloadAvailability(false);
+            GeneralSettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Get("Transcription.Status.ServiceUnavailable"), System.Windows.Media.Brushes.Red);
+            GeneralSettingsPageView?.SetTranscriptionDownloadAvailability(false);
             return;
         }
 
@@ -727,7 +727,7 @@ public partial class MainWindow
         if (status.AllAvailable)
         {
             var modelName = status.InstalledModelSize?.ToString() ?? LocalizationHelper.Get("Common.Unknown");
-            SettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Format("Transcription.Status.Ready", modelName), System.Windows.Media.Brushes.Green);
+            GeneralSettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Format("Transcription.Status.Ready", modelName), System.Windows.Media.Brushes.Green);
         }
         else
         {
@@ -735,7 +735,7 @@ public partial class MainWindow
             if (!status.FFmpegAvailable) missing.Add(LocalizationHelper.Get("Transcription.Dependency.Type.FFmpeg"));
             if (!status.WhisperModelAvailable) missing.Add(LocalizationHelper.Get("Transcription.Dependency.Type.Whisper"));
 
-            SettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Format("Transcription.Status.Missing", string.Join(", ", missing)), System.Windows.Media.Brushes.Orange);
+            GeneralSettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Format("Transcription.Status.Missing", string.Join(", ", missing)), System.Windows.Media.Brushes.Orange);
         }
 
         UpdateTranscriptionDownloadAvailability(status);
@@ -743,7 +743,7 @@ public partial class MainWindow
 
     private void UpdateTranscriptionDownloadAvailability()
     {
-        if (SettingsPageView is null)
+        if (GeneralSettingsPageView is null)
         {
             return;
         }
@@ -754,18 +754,18 @@ public partial class MainWindow
 
     private void UpdateTranscriptionDownloadAvailability(DependencyStatus status)
     {
-        if (SettingsPageView is null)
+        if (GeneralSettingsPageView is null)
         {
             return;
         }
 
-        var selectedSize = SettingsPageView.GetSelectedTranscriptionModelSize();
+        var selectedSize = GeneralSettingsPageView.GetSelectedTranscriptionModelSize();
         var ffmpegMissing = !status.FFmpegAvailable;
         var selectedModelInstalled = status.WhisperModelAvailable &&
                                      status.InstalledModelSize == selectedSize;
         var canDownload = ffmpegMissing || !selectedModelInstalled;
 
-        SettingsPageView.SetTranscriptionDownloadAvailability(canDownload);
+        GeneralSettingsPageView.SetTranscriptionDownloadAvailability(canDownload);
     }
 
     private void TranscriptionModelSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -781,7 +781,7 @@ public partial class MainWindow
             return;
         }
 
-        var modelSize = SettingsPageView?.GetSelectedTranscriptionModelSize()
+        var modelSize = GeneralSettingsPageView?.GetSelectedTranscriptionModelSize()
                         ?? _settings.Transcription?.ModelSize
                         ?? WhisperModelSize.Small;
         var status = _transcriptionService.GetDependencyStatus();
@@ -797,7 +797,7 @@ public partial class MainWindow
             return;
         }
 
-        SettingsPageView?.SetTranscriptionDownloadState(true);
+        GeneralSettingsPageView?.SetTranscriptionDownloadState(true);
 
         try
         {
@@ -805,7 +805,7 @@ public partial class MainWindow
             {
                 Dispatcher.BeginInvoke(() =>
                 {
-                    SettingsPageView?.UpdateTranscriptionDownloadProgress(p.Percent);
+                    GeneralSettingsPageView?.UpdateTranscriptionDownloadProgress(p.Percent);
 
                     var defaultType = p.Type == DependencyType.FFmpeg
                         ? LocalizationHelper.Get("Transcription.Dependency.Type.FFmpeg")
@@ -852,7 +852,7 @@ public partial class MainWindow
         }
         finally
         {
-            SettingsPageView?.SetTranscriptionDownloadState(false);
+            GeneralSettingsPageView?.SetTranscriptionDownloadState(false);
             UpdateTranscriptionStatusDisplay();
         }
     }
