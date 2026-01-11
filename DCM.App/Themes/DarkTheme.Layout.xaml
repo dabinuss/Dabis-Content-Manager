@@ -41,14 +41,14 @@
   <Thickness x:Key="SpacingVerticalXL">0,16</Thickness>
 
   <!-- Sidebar Spacing -->
-  <Thickness x:Key="SidebarPadding">12,16,12,16</Thickness>
+  <Thickness x:Key="SidebarPadding">16,20,16,20</Thickness>
   <Thickness x:Key="SidebarItemMargin">6,0</Thickness>
-  <Thickness x:Key="SidebarItemPadding">12,10</Thickness>
+  <Thickness x:Key="SidebarItemPadding">14,10</Thickness>
 
   <!-- Content Spacing -->
-  <Thickness x:Key="ContentPadding">16</Thickness>
-  <Thickness x:Key="HeaderPadding">16,10</Thickness>
-  <Thickness x:Key="GroupBoxPadding">12</Thickness>
+  <Thickness x:Key="ContentPadding">20</Thickness>
+  <Thickness x:Key="HeaderPadding">20,12</Thickness>
+  <Thickness x:Key="GroupBoxPadding">14</Thickness>
   <Thickness x:Key="GroupBoxMargin">0, -8</Thickness>
   <sys:Double x:Key="SettingsContentMaxWidth">1040</sys:Double>
   <sys:Double x:Key="SettingsColumnMinWidth">350</sys:Double>
@@ -59,11 +59,11 @@
   <!-- CORNER RADIUS SYSTEM - Einheitliche Eckenradien                       -->
   <!-- =================================================================== -->
 
-  <CornerRadius x:Key="RadiusS">4</CornerRadius>
-  <CornerRadius x:Key="RadiusM">6</CornerRadius>
-  <CornerRadius x:Key="RadiusL">8</CornerRadius>
-  <CornerRadius x:Key="RadiusXL">12</CornerRadius>
-  <CornerRadius x:Key="RadiusPill">16</CornerRadius>
+  <CornerRadius x:Key="RadiusS">6</CornerRadius>
+  <CornerRadius x:Key="RadiusM">10</CornerRadius>
+  <CornerRadius x:Key="RadiusL">12</CornerRadius>
+  <CornerRadius x:Key="RadiusXL">16</CornerRadius>
+  <CornerRadius x:Key="RadiusPill">20</CornerRadius>
   <CornerRadius x:Key="RadiusCircle">999</CornerRadius>
 
 </ResourceDictionary>

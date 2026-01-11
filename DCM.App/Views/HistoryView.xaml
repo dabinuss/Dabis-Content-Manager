@@ -21,10 +21,7 @@
     </StackPanel>
 
     <Border Grid.Row="1"
-            Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="{StaticResource RadiusL}"
+            Style="{StaticResource SurfaceCard}"
             Padding="10,8">
       <StackPanel Orientation="Horizontal">
         <Label Content="{DynamicResource Platform}"
@@ -61,10 +58,7 @@
     </Border>
 
     <Border Grid.Row="3"
-            Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="{StaticResource RadiusL}"
+            Style="{StaticResource SurfaceCard}"
             Padding="1">
       <DataGrid x:Name="HistoryDataGrid"
                 AutoGenerateColumns="False"

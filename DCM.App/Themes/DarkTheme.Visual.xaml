@@ -5,14 +5,14 @@
                     xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core">
 
 
-  <FontFamily x:Key="PrimaryFont">Segoe UI</FontFamily>
+  <FontFamily x:Key="PrimaryFont">Segoe UI Variable Text, Segoe UI</FontFamily>
   <FontFamily x:Key="LogFont">Consolas</FontFamily>
   <FontFamily x:Key="MaterialIconsFont">
     pack://application:,,,/DCM.App;component/Assets/Fonts/MaterialIcons-Regular.ttf#Material Icons
   </FontFamily>
 
   <!-- Font Sizes -->
-  <sys:Double x:Key="FontSizeXS">9</sys:Double>
+  <sys:Double x:Key="FontSizeXS">10</sys:Double>
   <sys:Double x:Key="FontSizeS">12</sys:Double>
   <sys:Double x:Key="FontSizeM">14</sys:Double>
   <sys:Double x:Key="FontSizeL">18</sys:Double>
@@ -34,47 +34,50 @@
   <!-- ZENTRALE FARBPALETTE                                            -->
 
   <!-- Hintergrund -->
-  <Color x:Key="BackgroundColor">#282828</Color>
-  <Color x:Key="SurfaceColor">#282828</Color>
-  <Color x:Key="SurfaceLightColor">#3F3F3F</Color>
-  <Color x:Key="SurfaceHoverColor">#1F1F1F</Color>
-  <Color x:Key="SurfacePressedColor">#3B3B3B</Color>
-  <Color x:Key="InputBackgroundColor">#282828</Color>
-  <Color x:Key="InputFocusColor">#282828</Color>
+  <Color x:Key="BackgroundColor">#0F1115</Color>
+  <Color x:Key="SurfaceColor">#151922</Color>
+  <Color x:Key="SurfaceLightColor">#1D2433</Color>
+  <Color x:Key="SurfaceHoverColor">#1B2130</Color>
+  <Color x:Key="SurfacePressedColor">#222A3B</Color>
+  <Color x:Key="SurfaceElevatedColor">#1A2130</Color>
+  <Color x:Key="SurfaceSunkenColor">#0C0F15</Color>
+  <Color x:Key="InputBackgroundColor">#121722</Color>
+  <Color x:Key="InputFocusColor">#161D2B</Color>
 
   <!-- Rahmen -->
-  <Color x:Key="BorderColor">#3F3F3F</Color>
-  <Color x:Key="BorderHoverColor">#4F4F4F</Color>
+  <Color x:Key="BorderColor">#2A3345</Color>
+  <Color x:Key="BorderHoverColor">#3A4761</Color>
+  <Color x:Key="BorderStrongColor">#445372</Color>
 
   <!-- Primary color (blue) -->
-  <Color x:Key="PrimaryColor">#3EA6FF</Color>
-  <Color x:Key="PrimaryHoverColor">#65B8FF</Color>
-  <Color x:Key="PrimaryPressedColor">#2F8AD4</Color>
-  <Color x:Key="PrimaryTextColor">#0F0F0F</Color>
+  <Color x:Key="PrimaryColor">#6AA9FF</Color>
+  <Color x:Key="PrimaryHoverColor">#86BCFF</Color>
+  <Color x:Key="PrimaryPressedColor">#4E93F0</Color>
+  <Color x:Key="PrimaryTextColor">#0C1118</Color>
 
   <!-- Akzentfarben -->
-  <Color x:Key="SuccessColor">#2BA640</Color>
-  <Color x:Key="DangerColor">#FF4E45</Color>
-  <Color x:Key="WarningColor">#FFA500</Color>
-  <Color x:Key="AccentRedColor">#FF4E45</Color>
-  <Color x:Key="AccentRedHoverColor">#FF6B64</Color>
-  <Color x:Key="MagicAIColor">#FFF18730</Color>
+  <Color x:Key="SuccessColor">#28C76F</Color>
+  <Color x:Key="DangerColor">#FF5C5C</Color>
+  <Color x:Key="WarningColor">#F5A524</Color>
+  <Color x:Key="AccentRedColor">#FF5C5C</Color>
+  <Color x:Key="AccentRedHoverColor">#FF7A72</Color>
+  <Color x:Key="MagicAIColor">#FFB34D</Color>
 
   <!-- Text -->
-  <Color x:Key="TextPrimaryColor">#F1F1F1</Color>
-  <Color x:Key="TextSecondaryColor">#AAAAAA</Color>
-  <Color x:Key="TextMutedColor">#717171</Color>
-  <Color x:Key="TextDisabledColor">#555555</Color>
+  <Color x:Key="TextPrimaryColor">#E9EEF5</Color>
+  <Color x:Key="TextSecondaryColor">#B3BDCC</Color>
+  <Color x:Key="TextMutedColor">#7E8796</Color>
+  <Color x:Key="TextDisabledColor">#545D6E</Color>
 
   <!-- Sidebar -->
-  <Color x:Key="SidebarColor">#282828</Color>
-  <Color x:Key="SidebarHoverColor">#1F1F1F</Color>
+  <Color x:Key="SidebarColor">#0D111A</Color>
+  <Color x:Key="SidebarHoverColor">#161B26</Color>
 
   <!-- Disabled -->
-  <Color x:Key="DisabledBackgroundColor">#1A1A1A</Color>
-  <Color x:Key="DisabledBorderColor">#2A2A2A</Color>
-  <Color x:Key="ScrollBarTrackColor">#1F1F1F</Color>
-  <Color x:Key="ScrollBarThumbColor">#3A3A3A</Color>
+  <Color x:Key="DisabledBackgroundColor">#11151F</Color>
+  <Color x:Key="DisabledBorderColor">#232C3C</Color>
+  <Color x:Key="ScrollBarTrackColor">#101622</Color>
+  <Color x:Key="ScrollBarThumbColor">#2A3345</Color>
   <Color x:Key="PlatformYouTubeColor">#FF4444</Color>
   <Color x:Key="PlatformInstagramColor">#C13584</Color>
   <Color x:Key="OverlayDimColor">#80000000</Color>
@@ -92,6 +95,10 @@
                    Color="{StaticResource SurfaceHoverColor}"/>
   <SolidColorBrush x:Key="SurfacePressedBrush"
                    Color="{StaticResource SurfacePressedColor}"/>
+  <SolidColorBrush x:Key="SurfaceElevatedBrush"
+                   Color="{StaticResource SurfaceElevatedColor}"/>
+  <SolidColorBrush x:Key="SurfaceSunkenBrush"
+                   Color="{StaticResource SurfaceSunkenColor}"/>
   <SolidColorBrush x:Key="InputBackgroundBrush"
                    Color="{StaticResource InputBackgroundColor}"/>
   <SolidColorBrush x:Key="InputFocusBrush"
@@ -101,6 +108,8 @@
                    Color="{StaticResource BorderColor}"/>
   <SolidColorBrush x:Key="BorderHoverBrush"
                    Color="{StaticResource BorderHoverColor}"/>
+  <SolidColorBrush x:Key="BorderStrongBrush"
+                   Color="{StaticResource BorderStrongColor}"/>
 
   <SolidColorBrush x:Key="PrimaryBrush"
                    Color="{StaticResource PrimaryColor}"/>
@@ -134,9 +143,9 @@
   <LinearGradientBrush x:Key="MagicAIGradientBrush"
                        StartPoint="0,0"
                        EndPoint="1,1">
-    <GradientStop Color="#FF00D4FF"
+    <GradientStop Color="#FF2EE6A6"
                   Offset="0.0"/>
-    <GradientStop Color="#FF9C27B0"
+    <GradientStop Color="#FF3B82F6"
                   Offset="0.7"/>
   </LinearGradientBrush>
 
@@ -261,46 +270,36 @@
             Value="{StaticResource MaterialIconsFont}"/>
     <!-- Value="Segoe Fluent Icons"/> -->
     <Setter Property="FontSize"
-            Value="14"/>
+            Value="16"/>
     <Setter Property="VerticalAlignment"
             Value="Center"/>
     <Setter Property="TextOptions.TextFormattingMode"
-            Value="Ideal"/>
+            Value="Display"/>
     <Setter Property="TextOptions.TextRenderingMode"
-            Value="Auto"/>
+            Value="ClearType"/>
     <Setter Property="Margin"
-            Value="0,0,8,0"/>
+            Value="0,0,10,0"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextSecondaryBrush}"/>
-    <Setter Property="Effect">
-      <Setter.Value>
-        <DropShadowEffect
-          Color="#66070707"
-          ShadowDepth="1"
-          BlurRadius="1.4"
-          Opacity="1"
-          RenderingBias="Quality"/>
-      </Setter.Value>
-    </Setter>
   </Style>
 
   <Style x:Key="IconS"
          TargetType="TextBlock"
          BasedOn="{StaticResource Icon}">
     <Setter Property="FontSize"
-            Value="8"/>
+            Value="10"/>
   </Style>
   <Style x:Key="IconM"
          TargetType="TextBlock"
          BasedOn="{StaticResource Icon}">
     <Setter Property="FontSize"
-            Value="12"/>
+            Value="14"/>
   </Style>
   <Style x:Key="IconL"
          TargetType="TextBlock"
          BasedOn="{StaticResource Icon}">
     <Setter Property="FontSize"
-            Value="16"/>
+            Value="18"/>
   </Style>
   <Style x:Key="IconXL"
          TargetType="TextBlock"

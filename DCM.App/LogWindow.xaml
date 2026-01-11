@@ -7,28 +7,7 @@
         MinHeight="300"
         MinWidth="500"
         WindowStartupLocation="CenterOwner"
-        Background="#0F0F0F">
-
-  <Window.Resources>
-    <SolidColorBrush x:Key="SurfaceBrush"
-        Color="#272727"/>
-    <SolidColorBrush x:Key="BorderBrush"
-        Color="#3F3F3F"/>
-    <SolidColorBrush x:Key="TextPrimaryBrush"
-        Color="#F1F1F1"/>
-    <SolidColorBrush x:Key="TextMutedBrush"
-        Color="#717171"/>
-    <SolidColorBrush x:Key="PrimaryBrush"
-        Color="#3EA6FF"/>
-    <SolidColorBrush x:Key="SuccessBrush"
-        Color="#2BA640"/>
-    <SolidColorBrush x:Key="WarningBrush"
-        Color="#FFA500"/>
-    <SolidColorBrush x:Key="ErrorBrush"
-        Color="#FF4E45"/>
-    <SolidColorBrush x:Key="SurfaceLightBrush"
-        Color="#3F3F3F"/>
-  </Window.Resources>
+        Background="{StaticResource BackgroundBrush}">
 
   <Grid Margin="12">
     <Grid.RowDefinitions>
@@ -41,10 +20,7 @@
 
     <!-- Header mit Filter -->
     <Border Grid.Row="0"
-            Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="6"
+            Style="{StaticResource SurfaceCard}"
             Padding="10,8">
       <DockPanel>
         <StackPanel Orientation="Horizontal"
@@ -76,7 +52,7 @@
                     Unchecked="Filter_Changed"/>
           <CheckBox x:Name="ShowErrorCheckBox"
                     Content="Error"
-                    Foreground="{StaticResource ErrorBrush}"
+                    Foreground="{StaticResource DangerBrush}"
                     IsChecked="True"
                     Checked="Filter_Changed"
                     Unchecked="Filter_Changed"/>
@@ -100,10 +76,8 @@
 
     <!-- Log-Liste -->
     <Border Grid.Row="2"
-            Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="6">
+            Style="{StaticResource SurfaceCard}"
+            Padding="0">
       <ListBox x:Name="LogListBox"
                Background="Transparent"
                BorderThickness="0"
@@ -113,7 +87,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <TextBlock Text="{Binding FormattedMessage}"
-                       FontFamily="{StaticResource PrimaryFont}"
+                       FontFamily="{StaticResource LogFont}"
                        FontSize="12"
                        Padding="4,2"
                        TextWrapping="NoWrap">
@@ -140,7 +114,7 @@
                     <DataTrigger Binding="{Binding Level}"
                         Value="Error">
                       <Setter Property="Foreground"
-                          Value="{StaticResource ErrorBrush}"/>
+                          Value="{StaticResource DangerBrush}"/>
                     </DataTrigger>
                   </Style.Triggers>
                 </Style>
@@ -169,7 +143,7 @@
                     <Trigger Property="IsMouseOver"
                         Value="True">
                       <Setter Property="Background"
-                          Value="#1A1A1A"/>
+                          Value="{StaticResource SurfaceHoverBrush}"/>
                     </Trigger>
                   </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -182,10 +156,7 @@
 
     <!-- Footer mit Buttons -->
     <Border Grid.Row="4"
-            Background="{StaticResource SurfaceBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="6"
+            Style="{StaticResource SurfaceCard}"
             Padding="10,8">
       <DockPanel>
         <StackPanel Orientation="Horizontal"
@@ -193,20 +164,12 @@
           <Button x:Name="ClearButton"
                   Content="Leeren"
                   Click="ClearButton_Click"
-                  Padding="10,5"
-                  Background="{StaticResource SurfaceLightBrush}"
-                  Foreground="{StaticResource TextPrimaryBrush}"
-                  BorderThickness="0"
-                  Cursor="Hand"
+                  Style="{StaticResource SecondaryButton}"
                   Margin="0,0,8,0"/>
           <Button x:Name="OpenLogFileButton"
                   Content="Log-Datei oeffnen"
                   Click="OpenLogFileButton_Click"
-                  Padding="10,5"
-                  Background="{StaticResource SurfaceLightBrush}"
-                  Foreground="{StaticResource TextPrimaryBrush}"
-                  BorderThickness="0"
-                  Cursor="Hand"/>
+                  Style="{StaticResource SecondaryButton}"/>
         </StackPanel>
 
         <Button x:Name="CloseButton"
@@ -214,12 +177,7 @@
                 Click="CloseButton_Click"
                 DockPanel.Dock="Right"
                 HorizontalAlignment="Right"
-                Padding="12,5"
-                Background="{StaticResource PrimaryBrush}"
-                Foreground="#0F0F0F"
-                BorderThickness="0"
-                FontWeight="SemiBold"
-                Cursor="Hand"/>
+                Style="{StaticResource PrimaryButton}"/>
       </DockPanel>
     </Border>
   </Grid>

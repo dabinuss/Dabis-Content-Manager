@@ -423,7 +423,7 @@
     <Setter Property="BorderThickness"
             Value="0"/>
     <Setter Property="Padding"
-            Value="12,6"/>
+            Value="14,8"/>
     <Setter Property="HorizontalContentAlignment"
             Value="Center"/>
     <Setter Property="VerticalContentAlignment"
@@ -462,7 +462,7 @@
     <Setter Property="BorderThickness"
             Value="0"/>
     <Setter Property="Padding"
-            Value="10,5"/>
+            Value="12,7"/>
     <Setter Property="HorizontalContentAlignment"
             Value="Center"/>
     <Setter Property="VerticalContentAlignment"
@@ -503,7 +503,7 @@
     <Setter Property="BorderThickness"
             Value="1"/>
     <Setter Property="Padding"
-            Value="10,5"/>
+            Value="12,7"/>
     <Setter Property="HorizontalContentAlignment"
             Value="Center"/>
     <Setter Property="VerticalContentAlignment"
@@ -547,7 +547,7 @@
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="2"/>
+            Value="1"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="Padding"
@@ -575,7 +575,7 @@
             <!-- Inhalt + Border -->
             <Border x:Name="PART_Border"
                     Grid.Row="1"
-                    Background="{StaticResource SurfaceBrush}"
+                    Background="{StaticResource SurfaceElevatedBrush}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}"
                     CornerRadius="{StaticResource RadiusM}"
@@ -591,7 +591,7 @@
                      Value="True">
               <Setter TargetName="PART_Border"
                       Property="BorderBrush"
-                      Value="{StaticResource AccentRedBrush}"/>
+                      Value="{StaticResource BorderStrongBrush}"/>
             </Trigger>
 
             <!-- 2) FOCUS IM INHALT (TextBox, ComboBox, etc.) -->
@@ -599,7 +599,7 @@
                      Value="True">
               <Setter TargetName="PART_Border"
                       Property="BorderBrush"
-                      Value="{StaticResource AccentRedBrush}"/>
+                      Value="{StaticResource PrimaryBrush}"/>
               <Setter TargetName="PART_Border"
                       Property="BorderThickness"
                       Value="1"/>
@@ -608,6 +608,20 @@
         </ControlTemplate>
       </Setter.Value>
     </Setter>
+  </Style>
+
+  <Style x:Key="SurfaceCard"
+         TargetType="Border">
+    <Setter Property="Background"
+            Value="{StaticResource SurfaceElevatedBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="1"/>
+    <Setter Property="CornerRadius"
+            Value="{StaticResource RadiusL}"/>
+    <Setter Property="Padding"
+            Value="{StaticResource SpacingAllL}"/>
   </Style>
 
   <!-- GroupBox (basiert auf ModernGroupBox) -->
@@ -687,9 +701,9 @@
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="0"/>
+            Value="1"/>
     <Setter Property="Padding"
-            Value="0"/>
+            Value="10,6"/>
     <Setter Property="CaretBrush"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="SelectionBrush"
@@ -701,7 +715,7 @@
     <Setter Property="VerticalScrollBarVisibility"
             Value="Disabled"/>
     <Setter Property="MinHeight"
-            Value="30"/>
+            Value="34"/>
     <Setter Property="Height"
             Value="Auto"/>
     <Setter Property="Validation.ErrorTemplate"
@@ -713,7 +727,7 @@
                   Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
                   BorderThickness="{TemplateBinding BorderThickness}"
-                  CornerRadius="{StaticResource RadiusS}">
+                  CornerRadius="{StaticResource RadiusM}">
             <ScrollViewer x:Name="PART_ContentHost"
                           Margin="{TemplateBinding Padding}"
                           VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"/>
@@ -783,9 +797,9 @@
     <Setter Property="BorderThickness"
             Value="1"/>
     <Setter Property="Padding"
-            Value="8,5"/>
+            Value="10,6"/>
     <Setter Property="MinHeight"
-            Value="32"/>
+            Value="34"/>
     <Setter Property="SnapsToDevicePixels"
             Value="True"/>
     <Setter Property="Validation.ErrorTemplate"
@@ -798,7 +812,7 @@
                     Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="{StaticResource RadiusS}">
+                    CornerRadius="{StaticResource RadiusM}">
               <Grid>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
@@ -826,9 +840,9 @@
                          VerticalAlignment="Center"/>
 
                 <TextBlock Grid.Column="1"
-                           Style="{StaticResource IconXL}"
+                           Style="{StaticResource IconL}"
                            Text="&#xe313;"
-                           Margin="0,0,4,0"
+                           Margin="0,0,6,0"
                            VerticalAlignment="Center"/>
               </Grid>
             </Border>
@@ -1538,7 +1552,7 @@
     <Setter Property="Background"
             Value="{StaticResource ScrollBarTrackBrush}"/>
     <Setter Property="Width"
-            Value="14"/>
+            Value="10"/>
     <Setter Property="Height"
             Value="Auto"/>
     <Setter Property="Template"
@@ -1567,7 +1581,7 @@
     <Setter Property="BorderThickness"
             Value="0"/>
     <Setter Property="Height"
-            Value="8"/>
+            Value="6"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ProgressBar">

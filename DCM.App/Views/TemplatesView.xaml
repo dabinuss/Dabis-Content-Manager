@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
-  <Grid>
+  <Grid Margin="0,0,16,0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>

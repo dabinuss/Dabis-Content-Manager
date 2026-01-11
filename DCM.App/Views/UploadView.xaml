@@ -29,7 +29,7 @@
               Margin="0,0,0,16">
       <StackPanel>
         <DockPanel LastChildFill="True">
-          <TextBlock Text="Batch-Uploads"
+          <TextBlock Text="Multiupload"
                      FontSize="{StaticResource FontSizeL}"
                      FontWeight="SemiBold"
                      Foreground="{StaticResource TextPrimaryBrush}"
@@ -79,11 +79,9 @@
           </ListBox.ItemContainerStyle>
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <Border BorderBrush="{StaticResource BorderBrush}"
-                      BorderThickness="1"
-                      CornerRadius="{StaticResource RadiusS}"
+              <Border Style="{StaticResource SurfaceCard}"
+                      CornerRadius="{StaticResource RadiusM}"
                       Padding="{StaticResource SpacingAllM}"
-                      Background="{StaticResource SurfaceBrush}"
                       Width="280">
                 <Grid>
                   <Grid.RowDefinitions>
@@ -927,10 +925,8 @@
       <Grid VerticalAlignment="Stretch"
             HorizontalAlignment="Center">
         <Border x:Name="SuggestionDialog"
-                Background="{StaticResource SurfaceBrush}"
-                BorderBrush="{StaticResource BorderHoverBrush}"
-                BorderThickness="1"
-                CornerRadius="{StaticResource RadiusM}"
+                Style="{StaticResource SurfaceCard}"
+                CornerRadius="{StaticResource RadiusL}"
                 Padding="0"
                 Width="{Binding ElementName=LeftColumnPanel, Path=ActualWidth}"
                 MaxHeight="{Binding ElementName=LeftColumnPanel, Path=ActualHeight}"
