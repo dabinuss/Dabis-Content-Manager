@@ -56,6 +56,16 @@ public static class Constants
     public const string FFmpegFolderName = "ffmpeg";
 
     /// <summary>
+    /// Ordnername fr gespeicherte Thumbnails.
+    /// </summary>
+    public const string ThumbnailsFolderName = "thumbnails";
+
+    /// <summary>
+    /// Ordnername fr Video-Vorschauen.
+    /// </summary>
+    public const string VideoPreviewFolderName = "video_previews";
+
+    /// <summary>
     /// Ordnername für temporäre Transkriptionsdateien (im System-Temp).
     /// </summary>
     public const string TranscriptionTempFolderName = "DCM_Transcription";
@@ -130,6 +140,44 @@ public static class Constants
         get
         {
             var folder = Path.Combine(AppDataFolder, FFmpegFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Thumbnail-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string ThumbnailsFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, ThumbnailsFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Video-Vorschau-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string VideoPreviewFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, VideoPreviewFolderName);
 
             if (!Directory.Exists(folder))
             {

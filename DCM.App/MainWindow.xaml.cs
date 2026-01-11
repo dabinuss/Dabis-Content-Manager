@@ -247,6 +247,14 @@ public partial class MainWindow : Window
         UploadPageView.FocusTargetOnContainerClicked += FocusTargetOnContainerClick;
         UploadPageView.SuggestionItemClicked += UploadView_SuggestionItemClicked;
         UploadPageView.SuggestionCloseButtonClicked += UploadView_SuggestionCloseButtonClicked;
+        UploadPageView.PlatformYouTubeToggleChecked += PlatformYouTubeToggle_Checked;
+        UploadPageView.PlatformYouTubeToggleUnchecked += PlatformYouTubeToggle_Unchecked;
+        UploadPageView.VisibilitySelectionChanged += VisibilityComboBox_SelectionChanged;
+        UploadPageView.PlaylistSelectionChanged += PlaylistComboBox_SelectionChanged;
+        UploadPageView.ScheduleCheckBoxChecked += ScheduleCheckBox_Checked;
+        UploadPageView.ScheduleCheckBoxUnchecked += ScheduleCheckBox_Unchecked;
+        UploadPageView.ScheduleDateChanged += ScheduleDatePicker_SelectedDateChanged;
+        UploadPageView.ScheduleTimeTextChanged += ScheduleTimeTextBox_TextChanged;
         UploadPageView.UploadItemsSelectionChanged += UploadItemsListBox_SelectionChanged;
         UploadPageView.AddVideosButtonClicked += AddVideosButton_Click;
         UploadPageView.UploadAllButtonClicked += UploadAllButton_Click;
@@ -496,6 +504,9 @@ public partial class MainWindow : Window
                 LoadTemplatesAsync(),
                 InitializeTranscriptionServiceAsync(),
                 LoadUploadHistoryAsync()).ConfigureAwait(true); // OPTIMIZATION: Keep UI context
+
+            await RefreshDraftVideoInfoAsync().ConfigureAwait(true);
+            await RefreshDraftVideoPreviewAsync().ConfigureAwait(true);
         }
         catch (Exception ex)
         {

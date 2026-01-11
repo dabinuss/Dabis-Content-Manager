@@ -844,7 +844,9 @@
               <!-- YouTube Button -->
               <ToggleButton x:Name="PlatformYouTubeToggle"
                             IsChecked="True"
-                            Style="{StaticResource PlatformToggleButton}">
+                            Style="{StaticResource PlatformToggleButton}"
+                            Checked="PlatformYouTubeToggle_Checked"
+                            Unchecked="PlatformYouTubeToggle_Unchecked">
                 <StackPanel VerticalAlignment="Center"
                             HorizontalAlignment="Center">
                   <TextBlock Style="{StaticResource IconXXL}"
@@ -991,7 +993,8 @@
             <TextBlock Text="{DynamicResource Upload.Fields.Visibility}"
                        Style="{StaticResource TextLabel}"
                        Margin="0,0,0,4"/>
-            <ComboBox x:Name="VisibilityComboBox">
+            <ComboBox x:Name="VisibilityComboBox"
+                      SelectionChanged="VisibilityComboBox_SelectionChanged">
               <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
                             Tag="{x:Static core:VideoVisibility.Public}"/>
               <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
@@ -1011,7 +1014,8 @@
                        Margin="0,0,0,4"/>
             <ComboBox x:Name="PlaylistComboBox"
                       DisplayMemberPath="Title"
-                      ToolTip="Playlist, in die das Video einsortiert wird"/>
+                      ToolTip="Playlist, in die das Video einsortiert wird"
+                      SelectionChanged="PlaylistComboBox_SelectionChanged"/>
           </StackPanel>
         </GroupBox>
 
@@ -1025,6 +1029,8 @@
             <CheckBox x:Name="ScheduleCheckBox"
                       Content="{DynamicResource Upload.Fields.Publication.Plan}"
                       Margin="0,0,0,10"
+                      Checked="ScheduleCheckBox_Checked"
+                      Unchecked="ScheduleCheckBox_Unchecked"
                       IsChecked="True"/>
             <Grid IsEnabled="{Binding IsChecked, ElementName=ScheduleCheckBox}">
               <Grid.ColumnDefinitions>
@@ -1043,6 +1049,7 @@
               <DatePicker x:Name="ScheduleDatePicker"
                           Grid.Column="2"
                           SelectedDateFormat="Short"
+                          SelectedDateChanged="ScheduleDatePicker_SelectedDateChanged"
                           FirstDayOfWeek="Monday"/>
               <TextBlock Grid.Column="4"
                          Text="{DynamicResource Upload.Fields.Publication.Time}"
@@ -1050,7 +1057,8 @@
                          Foreground="{StaticResource TextSecondaryBrush}"/>
               <TextBox x:Name="ScheduleTimeTextBox"
                        Grid.Column="6"
-                       Text="18:00"/>
+                       Text="18:00"
+                       TextChanged="ScheduleTimeTextBox_TextChanged"/>
             </Grid>
           </StackPanel>
         </GroupBox>

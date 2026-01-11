@@ -29,6 +29,8 @@ public partial class MainWindow
 {
     private const string UploadLogSource = "Upload";
     private const string TemplateLogSource = "Template";
+    private readonly SemaphoreSlim _videoInfoSemaphore = new(2, 2);
+    private readonly SemaphoreSlim _videoPreviewSemaphore = new(1, 1);
 
     #region Draft Persistence
 
@@ -50,6 +52,7 @@ public partial class MainWindow
 
         _isRestoringDrafts = true;
         var removedDuringRestore = false;
+        var migratedThumbnails = false;
         var autoRemoveCompleted = _settings.AutoRemoveCompletedDrafts == true;
 
         try
@@ -67,6 +70,38 @@ public partial class MainWindow
                 }
 
                 _uploadDrafts.Add(draft);
+            }
+
+            foreach (var draft in _uploadDrafts)
+            {
+                if (TryPersistDraftThumbnail(draft))
+                {
+                    migratedThumbnails = true;
+                }
+            }
+
+            foreach (var draft in _uploadDrafts)
+            {
+                if (TryResolveDraftThumbnailFromVideo(draft))
+                {
+                    migratedThumbnails = true;
+                }
+            }
+
+            foreach (var draft in _uploadDrafts)
+            {
+                if (draft.HasVideo && NeedsVideoInfo(draft))
+                {
+                    _ = LoadVideoFileInfoAsync(draft, triggerAutoTranscribe: false);
+                }
+            }
+
+            foreach (var draft in _uploadDrafts)
+            {
+                if (draft.HasVideo && NeedsVideoPreview(draft))
+                {
+                    _ = EnsureVideoPreviewAsync(draft, draft.VideoPath, null);
+                }
             }
 
             var storedQueue = _settings.PendingTranscriptionQueue ?? new List<Guid>();
@@ -99,7 +134,7 @@ public partial class MainWindow
                 SetActiveDraft(_uploadDrafts[0]);
             }
 
-            if (removedDuringRestore)
+            if (removedDuringRestore || migratedThumbnails)
             {
                 PersistDrafts();
             }
@@ -300,6 +335,7 @@ public partial class MainWindow
 
         UploadDraft? firstNewDraft = null;
         var addedAny = false;
+        var newDrafts = new List<UploadDraft>();
 
         foreach (var filePath in filePaths)
         {
@@ -319,16 +355,23 @@ public partial class MainWindow
                 TranscriptionStatus = string.Empty
             };
 
+            ApplyCurrentUploadSettingsToDraft(draft);
             SetVideoFile(draft, filePath, triggerAutoTranscribe: false);
             _uploadDrafts.Add(draft);
             firstNewDraft ??= draft;
+            newDrafts.Add(draft);
             addedAny = true;
         }
 
         if (firstNewDraft is not null)
         {
             SetActiveDraft(firstNewDraft);
-            _ = LoadVideoFileInfoAsync(firstNewDraft, triggerAutoTranscribe: true);
+        }
+
+        foreach (var draft in newDrafts)
+        {
+            var shouldAutoTranscribe = draft == firstNewDraft;
+            _ = LoadVideoFileInfoAsync(draft, triggerAutoTranscribe: shouldAutoTranscribe);
         }
 
         UpdateUploadButtonState();
@@ -546,6 +589,7 @@ public partial class MainWindow
         UploadView.TranscriptTextBox.Text = draft.Transcript;
 
         ApplyDraftThumbnailToUi(draft.ThumbnailPath);
+        ApplyDraftUploadSettingsToUi(draft);
 
         if (draft.HasVideo && string.IsNullOrWhiteSpace(draft.VideoResolution))
         {
@@ -553,10 +597,204 @@ public partial class MainWindow
         }
     }
 
+    private static bool NeedsVideoInfo(UploadDraft draft)
+    {
+        if (draft is null)
+        {
+            return false;
+        }
+
+        return string.IsNullOrWhiteSpace(draft.VideoResolution)
+               && string.IsNullOrWhiteSpace(draft.VideoDuration)
+               && string.IsNullOrWhiteSpace(draft.VideoCodec);
+    }
+
+    private static bool NeedsVideoPreview(UploadDraft draft)
+    {
+        if (draft is null || string.IsNullOrWhiteSpace(draft.VideoPath))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(draft.VideoPreviewPath))
+        {
+            return true;
+        }
+
+        return !File.Exists(draft.VideoPreviewPath);
+    }
+
+    private async Task RefreshDraftVideoInfoAsync()
+    {
+        if (_uploadDrafts.Count == 0)
+        {
+            return;
+        }
+
+        var tasks = new List<Task>();
+        foreach (var draft in _uploadDrafts)
+        {
+            if (!draft.HasVideo || !NeedsVideoInfo(draft))
+            {
+                continue;
+            }
+
+            if (!File.Exists(draft.VideoPath))
+            {
+                continue;
+            }
+
+            tasks.Add(LoadVideoFileInfoAsync(draft, triggerAutoTranscribe: false));
+        }
+
+        if (tasks.Count == 0)
+        {
+            return;
+        }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
+    private async Task RefreshDraftVideoPreviewAsync()
+    {
+        if (_uploadDrafts.Count == 0)
+        {
+            return;
+        }
+
+        var tasks = new List<Task>();
+        foreach (var draft in _uploadDrafts)
+        {
+            if (!draft.HasVideo || !NeedsVideoPreview(draft))
+            {
+                continue;
+            }
+
+            if (!File.Exists(draft.VideoPath))
+            {
+                continue;
+            }
+
+            tasks.Add(EnsureVideoPreviewAsync(draft, draft.VideoPath, null));
+        }
+
+        if (tasks.Count == 0)
+        {
+            return;
+        }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
     private void SetVideoDropState(bool hasVideo)
     {
         UploadView.VideoDropEmptyState.Visibility = hasVideo ? Visibility.Collapsed : Visibility.Visible;
         UploadView.VideoDropSelectedState.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ApplyCurrentUploadSettingsToDraft(UploadDraft draft)
+    {
+        if (draft is null || UploadView is null)
+        {
+            return;
+        }
+
+        draft.Platform = UploadView.PlatformYouTubeToggle.IsChecked == true
+            ? PlatformType.YouTube
+            : PlatformType.YouTube;
+
+        draft.Visibility = GetSelectedVisibilityFromUi();
+
+        if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo playlist)
+        {
+            draft.PlaylistId = playlist.Id;
+            draft.PlaylistTitle = playlist.Title;
+        }
+        else
+        {
+            draft.PlaylistId = null;
+            draft.PlaylistTitle = null;
+        }
+
+        draft.ScheduleEnabled = UploadView.ScheduleCheckBox.IsChecked == true;
+        draft.ScheduledDate = UploadView.ScheduleDatePicker.SelectedDate;
+        draft.ScheduledTimeText = UploadView.ScheduleTimeTextBox.Text;
+    }
+
+    private void ApplyDraftUploadSettingsToUi(UploadDraft draft)
+    {
+        if (draft is null || UploadView is null)
+        {
+            return;
+        }
+
+        UploadView.PlatformYouTubeToggle.IsChecked = draft.Platform == PlatformType.YouTube;
+        UploadView.SetDefaultVisibility(draft.Visibility);
+        ApplyDraftPlaylistSelection(draft.PlaylistId);
+
+        UploadView.ScheduleCheckBox.IsChecked = draft.ScheduleEnabled;
+
+        if (draft.ScheduledDate.HasValue)
+        {
+            UploadView.ScheduleDatePicker.SelectedDate = draft.ScheduledDate.Value;
+        }
+        else if (UploadView.ScheduleDatePicker.SelectedDate is null)
+        {
+            UploadView.ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+        }
+
+        if (!string.IsNullOrWhiteSpace(draft.ScheduledTimeText))
+        {
+            UploadView.ScheduleTimeTextBox.Text = draft.ScheduledTimeText;
+        }
+        else if (string.IsNullOrWhiteSpace(UploadView.ScheduleTimeTextBox.Text))
+        {
+            UploadView.ScheduleTimeTextBox.Text = GetDefaultSchedulingTime().ToString(@"hh\:mm");
+        }
+
+        UpdateScheduleControlsEnabled();
+    }
+
+    private void ApplyDraftPlaylistSelection(string? playlistId)
+    {
+        if (UploadView is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(playlistId))
+        {
+            playlistId = _settings.DefaultPlaylistId;
+        }
+
+        if (string.IsNullOrWhiteSpace(playlistId))
+        {
+            UploadView.PlaylistComboBox.SelectedItem = null;
+            return;
+        }
+
+        foreach (var item in UploadView.PlaylistComboBox.Items)
+        {
+            if (item is YouTubePlaylistInfo playlist &&
+                string.Equals(playlist.Id, playlistId, StringComparison.OrdinalIgnoreCase))
+            {
+                UploadView.PlaylistComboBox.SelectedItem = item;
+                return;
+            }
+        }
+
+        UploadView.PlaylistComboBox.SelectedItem = null;
+    }
+
+    private VideoVisibility GetSelectedVisibilityFromUi()
+    {
+        if (UploadView.VisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
+            visItem.Tag is VideoVisibility visEnum)
+        {
+            return visEnum;
+        }
+
+        return _settings.DefaultVisibility;
     }
 
     private void ClearThumbnailPreview()
@@ -571,6 +809,7 @@ public partial class MainWindow
     {
         if (!string.IsNullOrWhiteSpace(thumbnailPath) && File.Exists(thumbnailPath))
         {
+            UploadView.ThumbnailPathTextBox.Text = thumbnailPath;
             ApplyThumbnailToUi(thumbnailPath);
         }
         else
@@ -710,6 +949,22 @@ public partial class MainWindow
         }
 
         var filePath = draft.VideoPath;
+        if (!File.Exists(filePath))
+        {
+            await OnUiThreadAsync(() =>
+            {
+                ClearDraftVideoInfo(draft);
+                if (_activeDraft == draft)
+                {
+                    UploadView.VideoFileNameTextBlock.Text = Path.GetFileName(filePath);
+                    UploadView.VideoFileSizeTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
+                    UpdateVideoInfoDisplay(draft);
+                }
+            });
+            return;
+        }
+
+        await _videoInfoSemaphore.WaitAsync().ConfigureAwait(false);
         try
         {
             var (fileName, fileSize) = await Task.Run(() => GetFileDisplayInfo(filePath)).ConfigureAwait(false);
@@ -758,6 +1013,10 @@ public partial class MainWindow
                     UpdateVideoInfoDisplay(draft);
                 }
             });
+        }
+        finally
+        {
+            _videoInfoSemaphore.Release();
         }
     }
 
@@ -908,23 +1167,44 @@ public partial class MainWindow
             return;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(previewPath)!);
-
-        var seekSeconds = GetPreviewTimestamp(durationSeconds);
-        var success = await Task.Run(() => TryGeneratePreview(ffmpegPath, filePath, previewPath, seekSeconds)).ConfigureAwait(false);
-        if (!success || !File.Exists(previewPath))
+        await _videoPreviewSemaphore.WaitAsync().ConfigureAwait(false);
+        try
         {
-            return;
-        }
-
-        draft.VideoPreviewPath = previewPath;
-        await OnUiThreadAsync(() =>
-        {
-            if (_activeDraft == draft)
+            if (File.Exists(previewPath))
             {
-                UpdateVideoPreviewDisplay(draft);
+                draft.VideoPreviewPath = previewPath;
+                await OnUiThreadAsync(() =>
+                {
+                    if (_activeDraft == draft)
+                    {
+                        UpdateVideoPreviewDisplay(draft);
+                    }
+                });
+                return;
             }
-        });
+
+            Directory.CreateDirectory(Path.GetDirectoryName(previewPath)!);
+
+            var seekSeconds = GetPreviewTimestamp(durationSeconds);
+            var success = await Task.Run(() => TryGeneratePreview(ffmpegPath, filePath, previewPath, seekSeconds)).ConfigureAwait(false);
+            if (!success || !File.Exists(previewPath))
+            {
+                return;
+            }
+
+            draft.VideoPreviewPath = previewPath;
+            await OnUiThreadAsync(() =>
+            {
+                if (_activeDraft == draft)
+                {
+                    UpdateVideoPreviewDisplay(draft);
+                }
+            });
+        }
+        finally
+        {
+            _videoPreviewSemaphore.Release();
+        }
     }
 
     private string? GetFfmpegPath()
@@ -945,7 +1225,7 @@ public partial class MainWindow
         using var sha = SHA256.Create();
         var hashBytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(key));
         var hash = Convert.ToHexString(hashBytes).ToLowerInvariant();
-        var folder = Path.Combine(Path.GetTempPath(), "DCM_VideoPreview");
+        var folder = Constants.VideoPreviewFolder;
         return Path.Combine(folder, $"{hash}.jpg");
     }
 
@@ -974,7 +1254,7 @@ public partial class MainWindow
             var startInfo = new ProcessStartInfo
             {
                 FileName = ffmpegPath,
-                RedirectStandardOutput = true,
+                RedirectStandardOutput = false,
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
@@ -1003,7 +1283,23 @@ public partial class MainWindow
                 return false;
             }
 
-            process.WaitForExit(8000);
+            var stderrTask = process.StandardError.ReadToEndAsync();
+
+            if (!process.WaitForExit(8000))
+            {
+                try
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+                catch
+                {
+                    // Best effort.
+                }
+
+                return false;
+            }
+
+            _ = stderrTask.GetAwaiter().GetResult();
             return process.ExitCode == 0;
         }
         catch
@@ -1048,11 +1344,37 @@ public partial class MainWindow
 
             var outputTask = process.StandardOutput.ReadToEndAsync();
             var errorTask = process.StandardError.ReadToEndAsync();
+            var waitTask = process.WaitForExitAsync();
+            var completed = await Task.WhenAny(waitTask, Task.Delay(8000)).ConfigureAwait(false);
+            if (completed != waitTask)
+            {
+                try
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+                catch
+                {
+                    // Best effort.
+                }
+
+                var stderrTimeout = await errorTask.ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(stderrTimeout))
+                {
+                    _logger.Debug($"ffprobe timeout: {stderrTimeout}", UploadLogSource);
+                }
+
+                return null;
+            }
+
             await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
-            await process.WaitForExitAsync().ConfigureAwait(false);
 
             if (process.ExitCode != 0)
             {
+                var stderr = errorTask.Result;
+                if (!string.IsNullOrWhiteSpace(stderr))
+                {
+                    _logger.Debug($"ffprobe failed: {stderr}", UploadLogSource);
+                }
                 return null;
             }
 
@@ -1491,6 +1813,138 @@ public partial class MainWindow
         ScheduleDraftPersistence();
     }
 
+    private void PlatformYouTubeToggle_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.Platform = PlatformType.YouTube;
+            ScheduleDraftPersistence();
+        }
+    }
+
+    private void PlatformYouTubeToggle_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.Platform = PlatformType.YouTube;
+            ScheduleDraftPersistence();
+        }
+    }
+
+    private void VisibilityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.Visibility = GetSelectedVisibilityFromUi();
+            ScheduleDraftPersistence();
+        }
+    }
+
+    private void PlaylistComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is null)
+        {
+            return;
+        }
+
+        if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo playlist)
+        {
+            _activeDraft.PlaylistId = playlist.Id;
+            _activeDraft.PlaylistTitle = playlist.Title;
+        }
+        else
+        {
+            _activeDraft.PlaylistId = null;
+            _activeDraft.PlaylistTitle = null;
+        }
+
+        ScheduleDraftPersistence();
+    }
+
+    private void ScheduleCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        UpdateScheduleControlsEnabled();
+
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.ScheduleEnabled = UploadView.ScheduleCheckBox.IsChecked == true;
+            _activeDraft.ScheduledDate = UploadView.ScheduleDatePicker.SelectedDate;
+            _activeDraft.ScheduledTimeText = UploadView.ScheduleTimeTextBox.Text;
+            ScheduleDraftPersistence();
+        }
+    }
+
+    private void ScheduleCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        UpdateScheduleControlsEnabled();
+
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.ScheduleEnabled = UploadView.ScheduleCheckBox.IsChecked == true;
+            _activeDraft.ScheduledDate = UploadView.ScheduleDatePicker.SelectedDate;
+            _activeDraft.ScheduledTimeText = UploadView.ScheduleTimeTextBox.Text;
+            ScheduleDraftPersistence();
+        }
+    }
+
+    private void ScheduleDatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.ScheduledDate = UploadView.ScheduleDatePicker.SelectedDate;
+            ScheduleDraftPersistence();
+        }
+    }
+
+    private void ScheduleTimeTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.ScheduledTimeText = UploadView.ScheduleTimeTextBox.Text;
+            ScheduleDraftPersistence();
+        }
+    }
+
     private void FocusTargetOnContainerClick(object sender, MouseButtonEventArgs e)
     {
         if (e.OriginalSource is DependencyObject d)
@@ -1606,16 +2060,17 @@ public partial class MainWindow
 
     private void SetThumbnailFile(string filePath)
     {
-        UploadView.ThumbnailPathTextBox.Text = filePath;
+        var storedPath = PersistThumbnail(filePath, _activeDraft);
+        UploadView.ThumbnailPathTextBox.Text = storedPath;
         if (_activeDraft is not null)
         {
-            _activeDraft.ThumbnailPath = filePath;
+            _activeDraft.ThumbnailPath = storedPath;
         }
 
-        var (fileName, _) = GetFileDisplayInfo(filePath);
+        var (fileName, _) = GetFileDisplayInfo(storedPath);
         UploadView.ThumbnailFileNameTextBlock.Text = fileName;
 
-        if (ApplyThumbnailToUi(filePath))
+        if (ApplyThumbnailToUi(storedPath))
         {
             _logger.Info(
                 LocalizationHelper.Format("Log.Upload.ThumbnailSelected", fileName),
@@ -1623,6 +2078,135 @@ public partial class MainWindow
         }
 
         ScheduleDraftPersistence();
+    }
+
+    private string PersistThumbnail(string filePath, UploadDraft? targetDraft)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return filePath;
+        }
+
+        try
+        {
+            var fullPath = Path.GetFullPath(filePath);
+            var storageFolder = Constants.ThumbnailsFolder;
+
+            if (fullPath.StartsWith(storageFolder, StringComparison.OrdinalIgnoreCase))
+            {
+                return fullPath;
+            }
+
+            var extension = Path.GetExtension(fullPath);
+            var fileName = targetDraft is not null
+                ? $"{targetDraft.Id}{extension}"
+                : Path.GetFileName(fullPath);
+
+            var targetPath = Path.Combine(storageFolder, fileName);
+            File.Copy(fullPath, targetPath, overwrite: true);
+            return targetPath;
+        }
+        catch (Exception ex)
+        {
+            _logger.Debug($"Failed to persist thumbnail: {ex.Message}", UploadLogSource);
+            return filePath;
+        }
+    }
+
+    private bool TryPersistDraftThumbnail(UploadDraft draft)
+    {
+        if (draft is null || string.IsNullOrWhiteSpace(draft.ThumbnailPath))
+        {
+            return false;
+        }
+
+        if (!File.Exists(draft.ThumbnailPath))
+        {
+            return false;
+        }
+
+        var storageFolder = Constants.ThumbnailsFolder;
+        var fullPath = Path.GetFullPath(draft.ThumbnailPath);
+        if (fullPath.StartsWith(storageFolder, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var storedPath = PersistThumbnail(fullPath, draft);
+        if (string.Equals(storedPath, fullPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        draft.ThumbnailPath = storedPath;
+        return true;
+    }
+
+    private bool TryResolveDraftThumbnailFromVideo(UploadDraft draft)
+    {
+        if (draft is null || !string.IsNullOrWhiteSpace(draft.ThumbnailPath))
+        {
+            return false;
+        }
+
+        if (!draft.HasVideo || string.IsNullOrWhiteSpace(draft.VideoPath))
+        {
+            return false;
+        }
+
+        var videoPath = draft.VideoPath;
+        var baseName = Path.GetFileNameWithoutExtension(videoPath);
+        if (string.IsNullOrWhiteSpace(baseName))
+        {
+            return false;
+        }
+
+        var searchDirs = new List<string>();
+        var videoDir = Path.GetDirectoryName(videoPath);
+        if (!string.IsNullOrWhiteSpace(videoDir) && Directory.Exists(videoDir))
+        {
+            searchDirs.Add(videoDir);
+        }
+
+        if (!string.IsNullOrWhiteSpace(_settings.DefaultThumbnailFolder) &&
+            Directory.Exists(_settings.DefaultThumbnailFolder) &&
+            !searchDirs.Contains(_settings.DefaultThumbnailFolder, StringComparer.OrdinalIgnoreCase))
+        {
+            searchDirs.Add(_settings.DefaultThumbnailFolder);
+        }
+
+        if (searchDirs.Count == 0)
+        {
+            return false;
+        }
+
+        var suffixes = new[] { string.Empty, "_thumb", "-thumb", "_thumbnail", "-thumbnail" };
+        var extensions = new[] { ".png", ".jpg", ".jpeg", ".webp", ".bmp" };
+
+        foreach (var dir in searchDirs)
+        {
+            foreach (var suffix in suffixes)
+            {
+                foreach (var extension in extensions)
+                {
+                    var candidate = Path.Combine(dir, $"{baseName}{suffix}{extension}");
+                    if (!File.Exists(candidate))
+                    {
+                        continue;
+                    }
+
+                    var storedPath = PersistThumbnail(candidate, draft);
+                    draft.ThumbnailPath = storedPath;
+                    if (_activeDraft == draft)
+                    {
+                        ApplyDraftThumbnailToUi(storedPath);
+                    }
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private bool ApplyThumbnailToUi(string filePath)
@@ -2068,21 +2652,22 @@ public partial class MainWindow
 
     private UploadProject BuildUploadProjectFromUi(bool includeScheduling, UploadDraft? draftOverride = null)
     {
-        var platform = PlatformType.YouTube;
-        if (UploadView.PlatformYouTubeToggle.IsChecked == true)
+        var platform = draftOverride?.Platform ?? PlatformType.YouTube;
+        if (draftOverride is null && UploadView.PlatformYouTubeToggle.IsChecked == true)
         {
             platform = PlatformType.YouTube;
         }
 
-        var visibility = _settings.DefaultVisibility;
-        if (UploadView.VisibilityComboBox.SelectedItem is ComboBoxItem visItem && visItem.Tag is VideoVisibility visEnum)
-        {
-            visibility = visEnum;
-        }
+        var visibility = draftOverride?.Visibility ?? GetSelectedVisibilityFromUi();
 
         string? playlistId;
         string? playlistTitle = null;
-        if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
+        if (!string.IsNullOrWhiteSpace(draftOverride?.PlaylistId))
+        {
+            playlistId = draftOverride.PlaylistId;
+            playlistTitle = draftOverride.PlaylistTitle;
+        }
+        else if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
         {
             playlistId = plItem.Id;
             playlistTitle = plItem.Title;
@@ -2093,14 +2678,21 @@ public partial class MainWindow
         }
 
         DateTimeOffset? scheduledTime = null;
-        if (includeScheduling && UploadView.ScheduleCheckBox.IsChecked == true)
+        var scheduleEnabled = draftOverride?.ScheduleEnabled ?? (UploadView.ScheduleCheckBox.IsChecked == true);
+        if (includeScheduling && scheduleEnabled)
         {
-            if (UploadView.ScheduleDatePicker.SelectedDate is DateTime date)
+            var scheduledDate = draftOverride?.ScheduledDate ?? UploadView.ScheduleDatePicker.SelectedDate;
+            if (scheduledDate is DateTime date)
             {
-                var timeText = UploadView.ScheduleTimeTextBox.Text;
+                var timeText = draftOverride?.ScheduledTimeText;
+                if (string.IsNullOrWhiteSpace(timeText))
+                {
+                    timeText = UploadView.ScheduleTimeTextBox.Text;
+                }
+
                 if (!TimeSpan.TryParse(timeText, CultureInfo.CurrentCulture, out var timeOfDay))
                 {
-                    timeOfDay = TimeSpan.Parse(Constants.DefaultSchedulingTime);
+                    timeOfDay = GetDefaultSchedulingTime();
                 }
 
                 var localDateTime = date.Date + timeOfDay;
@@ -2132,6 +2724,17 @@ public partial class MainWindow
         var enabled = UploadView.ScheduleCheckBox.IsChecked == true;
         UploadView.ScheduleDatePicker.IsEnabled = enabled;
         UploadView.ScheduleTimeTextBox.IsEnabled = enabled;
+    }
+
+    private TimeSpan GetDefaultSchedulingTime()
+    {
+        if (!string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime) &&
+            TimeSpan.TryParse(_settings.DefaultSchedulingTime, CultureInfo.CurrentCulture, out var parsed))
+        {
+            return parsed;
+        }
+
+        return TimeSpan.Parse(Constants.DefaultSchedulingTime);
     }
 
     private void SetDescriptionText(string newText)

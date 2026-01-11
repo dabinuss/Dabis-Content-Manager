@@ -53,6 +53,14 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? ThumbnailClearButtonClicked;
 
     public event MouseButtonEventHandler? FocusTargetOnContainerClicked;
+    public event RoutedEventHandler? PlatformYouTubeToggleChecked;
+    public event RoutedEventHandler? PlatformYouTubeToggleUnchecked;
+    public event SelectionChangedEventHandler? VisibilitySelectionChanged;
+    public event SelectionChangedEventHandler? PlaylistSelectionChanged;
+    public event RoutedEventHandler? ScheduleCheckBoxChecked;
+    public event RoutedEventHandler? ScheduleCheckBoxUnchecked;
+    public event SelectionChangedEventHandler? ScheduleDateChanged;
+    public event TextChangedEventHandler? ScheduleTimeTextChanged;
 
     private void VideoDrop_DragOver(object sender, DragEventArgs e) =>
         VideoDropDragOver?.Invoke(sender, e);
@@ -146,6 +154,30 @@ public partial class UploadView : UserControl
 
     private void FocusTargetOnContainerClick(object sender, MouseButtonEventArgs e) =>
         FocusTargetOnContainerClicked?.Invoke(sender, e);
+
+    private void PlatformYouTubeToggle_Checked(object sender, RoutedEventArgs e) =>
+        PlatformYouTubeToggleChecked?.Invoke(sender, e);
+
+    private void PlatformYouTubeToggle_Unchecked(object sender, RoutedEventArgs e) =>
+        PlatformYouTubeToggleUnchecked?.Invoke(sender, e);
+
+    private void VisibilityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        VisibilitySelectionChanged?.Invoke(sender, e);
+
+    private void PlaylistComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        PlaylistSelectionChanged?.Invoke(sender, e);
+
+    private void ScheduleCheckBox_Checked(object sender, RoutedEventArgs e) =>
+        ScheduleCheckBoxChecked?.Invoke(sender, e);
+
+    private void ScheduleCheckBox_Unchecked(object sender, RoutedEventArgs e) =>
+        ScheduleCheckBoxUnchecked?.Invoke(sender, e);
+
+    private void ScheduleDatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e) =>
+        ScheduleDateChanged?.Invoke(sender, e);
+
+    private void ScheduleTimeTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+        ScheduleTimeTextChanged?.Invoke(sender, e);
 
     private void SuggestionItemButton_Click(object sender, RoutedEventArgs e)
     {

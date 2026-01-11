@@ -19,6 +19,13 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private string _transcript = string.Empty;
     private string _fileName = string.Empty;
     private long _fileSizeBytes;
+    private PlatformType _platform = PlatformType.YouTube;
+    private VideoVisibility _visibility = VideoVisibility.Unlisted;
+    private string? _playlistId;
+    private string? _playlistTitle;
+    private bool _scheduleEnabled;
+    private DateTime? _scheduledDate;
+    private string? _scheduledTimeText;
     private UploadDraftUploadState _uploadState = UploadDraftUploadState.Pending;
     private string? _uploadStatus;
     private UploadDraftTranscriptionState _transcriptionState = UploadDraftTranscriptionState.None;
@@ -77,6 +84,48 @@ public sealed class UploadDraft : INotifyPropertyChanged
     {
         get => _transcript;
         set => SetProperty(ref _transcript, value);
+    }
+
+    public PlatformType Platform
+    {
+        get => _platform;
+        set => SetProperty(ref _platform, value);
+    }
+
+    public VideoVisibility Visibility
+    {
+        get => _visibility;
+        set => SetProperty(ref _visibility, value);
+    }
+
+    public string? PlaylistId
+    {
+        get => _playlistId;
+        set => SetProperty(ref _playlistId, value);
+    }
+
+    public string? PlaylistTitle
+    {
+        get => _playlistTitle;
+        set => SetProperty(ref _playlistTitle, value);
+    }
+
+    public bool ScheduleEnabled
+    {
+        get => _scheduleEnabled;
+        set => SetProperty(ref _scheduleEnabled, value);
+    }
+
+    public DateTime? ScheduledDate
+    {
+        get => _scheduledDate;
+        set => SetProperty(ref _scheduledDate, value);
+    }
+
+    public string? ScheduledTimeText
+    {
+        get => _scheduledTimeText;
+        set => SetProperty(ref _scheduledTimeText, value);
     }
 
     public string FileName
@@ -272,6 +321,21 @@ public sealed class UploadDraft : INotifyPropertyChanged
             TagsCsv = TagsCsv,
             ThumbnailPath = ThumbnailPath,
             Transcript = Transcript,
+            VideoResolution = VideoResolution,
+            VideoFps = VideoFps,
+            VideoDuration = VideoDuration,
+            VideoCodec = VideoCodec,
+            VideoBitrate = VideoBitrate,
+            AudioInfo = AudioInfo,
+            AudioBitrate = AudioBitrate,
+            VideoPreviewPath = VideoPreviewPath,
+            Platform = Platform.ToString(),
+            Visibility = Visibility.ToString(),
+            PlaylistId = PlaylistId,
+            PlaylistTitle = PlaylistTitle,
+            ScheduleEnabled = ScheduleEnabled,
+            ScheduledDate = ScheduledDate,
+            ScheduledTimeText = ScheduledTimeText,
             UploadState = UploadState.ToString(),
             UploadStatus = UploadStatus,
             TranscriptionState = TranscriptionState.ToString(),
@@ -289,10 +353,33 @@ public sealed class UploadDraft : INotifyPropertyChanged
             Description = snapshot.Description ?? string.Empty,
             TagsCsv = snapshot.TagsCsv ?? string.Empty,
             ThumbnailPath = snapshot.ThumbnailPath ?? string.Empty,
-            Transcript = snapshot.Transcript ?? string.Empty
+            Transcript = snapshot.Transcript ?? string.Empty,
+            VideoResolution = snapshot.VideoResolution,
+            VideoFps = snapshot.VideoFps,
+            VideoDuration = snapshot.VideoDuration,
+            VideoCodec = snapshot.VideoCodec,
+            VideoBitrate = snapshot.VideoBitrate,
+            AudioInfo = snapshot.AudioInfo,
+            AudioBitrate = snapshot.AudioBitrate,
+            VideoPreviewPath = snapshot.VideoPreviewPath,
+            PlaylistId = snapshot.PlaylistId,
+            PlaylistTitle = snapshot.PlaylistTitle,
+            ScheduleEnabled = snapshot.ScheduleEnabled,
+            ScheduledDate = snapshot.ScheduledDate,
+            ScheduledTimeText = snapshot.ScheduledTimeText
         };
 
         draft.Id = snapshot.Id == Guid.Empty ? Guid.NewGuid() : snapshot.Id;
+
+        if (Enum.TryParse(snapshot.Platform, out PlatformType platform))
+        {
+            draft.Platform = platform;
+        }
+
+        if (Enum.TryParse(snapshot.Visibility, out VideoVisibility visibility))
+        {
+            draft.Visibility = visibility;
+        }
 
         if (Enum.TryParse(snapshot.UploadState, out UploadDraftUploadState uploadState))
         {
