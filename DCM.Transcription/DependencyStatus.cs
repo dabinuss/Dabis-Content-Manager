@@ -18,6 +18,11 @@ public sealed class DependencyStatus
     public string? FFmpegPath { get; init; }
 
     /// <summary>
+    /// Pfad zur FFprobe-Executable (falls verfügbar).
+    /// </summary>
+    public string? FFprobePath { get; init; }
+
+    /// <summary>
     /// Gibt an, ob ein Whisper-Modell verfügbar ist.
     /// </summary>
     public bool WhisperModelAvailable { get; init; }
@@ -51,11 +56,13 @@ public sealed class DependencyStatus
     /// </summary>
     public static DependencyStatus AllReady(
         string ffmpegPath,
+        string? ffprobePath,
         string whisperModelPath,
         WhisperModelSize modelSize) => new()
     {
         FFmpegAvailable = true,
         FFmpegPath = ffmpegPath,
+        FFprobePath = ffprobePath,
         WhisperModelAvailable = true,
         WhisperModelPath = whisperModelPath,
         InstalledModelSize = modelSize

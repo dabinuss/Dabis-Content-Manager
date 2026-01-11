@@ -3,7 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:DCM.App.Models"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
-             xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
+             xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
+             xmlns:conv="clr-namespace:DCM.App.Infrastructure.Converters">
+  <UserControl.Resources>
+    <conv:HeightToWidthConverter x:Key="HeightToWidth16x9"
+                                 Ratio="1.7777777777777777"/>
+  </UserControl.Resources>
   <Grid x:Name="RootGrid"
       Margin="0,0,16,0">
     <Grid.RowDefinitions>
@@ -24,9 +29,11 @@
                  Margin="0,0,0,16"/>
     </StackPanel>
 
-    <!-- BATCH LIST -->
-    <GroupBox Grid.Row="1"
-              Margin="0,0,0,16">
+    <!-- MULTIUPLOAD + DETAILS CONTAINER -->
+    <Border Grid.Row="1"
+            Style="{StaticResource SurfaceCard}"
+            Padding="16"
+            Margin="0,0,0,16">
       <StackPanel>
         <DockPanel LastChildFill="True">
           <TextBlock Text="Multiupload"
@@ -290,17 +297,20 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
-      </StackPanel>
-    </GroupBox>
 
-    <!-- VIDEO DROP-ZONE -->
-    <ContentControl x:Name="VideoDropZone"
-            Grid.Row="2"
-            Style="{StaticResource VideoDropZoneStyle}"
-            DragOver="VideoDrop_DragOver"
-            DragLeave="VideoDrop_DragLeave"
-            Drop="VideoDrop_Drop"
-            MouseLeftButtonDown="VideoDropZone_Click">
+        <Border Height="1"
+                Background="{StaticResource BorderBrush}"
+                Margin="0,14,0,10"/>
+        <TextBlock Text="{DynamicResource Upload.Section.Details}"
+                   Style="{StaticResource TextLabel}"
+                   Margin="0,0,0,6"/>
+
+        <ContentControl x:Name="VideoDropZone"
+                Style="{StaticResource VideoDropZoneStyle}"
+                DragOver="VideoDrop_DragOver"
+                DragLeave="VideoDrop_DragLeave"
+                Drop="VideoDrop_Drop"
+                MouseLeftButtonDown="VideoDropZone_Click">
 
       <Grid>
         <!-- Zustand 1: Kein Video ausgewählt -->
@@ -338,67 +348,201 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
 
-          <!-- Video Icon -->
+          <!-- Video Preview -->
           <Border Grid.Column="0"
-                  Width="48"
-                  Height="48"
+                  Width="{Binding ElementName=VideoInfoPanel, Path=ActualHeight, Converter={StaticResource HeightToWidth16x9}}"
+                  Height="{Binding ElementName=VideoInfoPanel, Path=ActualHeight}"
+                  MinWidth="160"
+                  MinHeight="90"
                   CornerRadius="{StaticResource RadiusM}"
                   Background="{StaticResource SurfaceLightBrush}"
-                  Margin="{StaticResource SpacingAllXL}">
-            <TextBlock Style="{StaticResource IconXXL}"
-                       Text="&#xe53f;"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Margin="0"/>
+                  BorderBrush="{StaticResource BorderStrongBrush}"
+                  BorderThickness="0.5"
+                  Margin="12,10,12,10"
+                  VerticalAlignment="Top"
+                  ClipToBounds="True">
+            <Grid>
+              <Grid x:Name="VideoPreviewEmptyState">
+                <TextBlock Style="{StaticResource IconXXL}"
+                           Text="&#xe53f;"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0"/>
+              </Grid>
+              <Image x:Name="VideoPreviewImage"
+                     Stretch="UniformToFill"
+                     Visibility="Collapsed"/>
+            </Grid>
           </Border>
 
           <!-- Video Info -->
-          <StackPanel Grid.Column="1"
-                      VerticalAlignment="Center"
-                      Margin="{StaticResource SpacingVerticalL}">
-            <TextBlock x:Name="VideoFileNameTextBlock"
-                       Text="video.mp4"
-                       FontSize="{StaticResource FontSizeM}"
-                       FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"
-                       TextTrimming="CharacterEllipsis"/>
-            <TextBlock x:Name="VideoFileSizeTextBlock"
-                       Text="0 MB"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       Margin="0,2,0,0"/>
+          <Grid x:Name="VideoInfoPanel"
+                Grid.Column="1"
+                VerticalAlignment="Top"
+                Margin="0,10,0,10">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingM}"/>
+              <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock x:Name="VideoFileNameTextBlock"
+                         Text="video.mp4"
+                         FontSize="{StaticResource FontSizeL}"
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         TextTrimming="CharacterEllipsis"/>
+              <TextBlock x:Name="VideoFileSizeTextBlock"
+                         Grid.Column="1"
+                         Text="0 MB"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         Margin="12,2,0,0"
+                         VerticalAlignment="Center"/>
+            </Grid>
+
+            <Border Grid.Row="2"
+                    Background="{StaticResource SurfaceSunkenBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RadiusS}"
+                    Padding="4">
+              <UniformGrid Columns="3"
+                           Rows="3">
+                <Border BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,1,1"
+                        Padding="10,6">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Upload.VideoInfo.Resolution}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="VideoResolutionTextBlock"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                  </StackPanel>
+                </Border>
+
+                <Border BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,1,1"
+                        Padding="10,6">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Upload.VideoInfo.Fps}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="VideoFpsTextBlock"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                  </StackPanel>
+                </Border>
+
+                <Border BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="10,6">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Upload.VideoInfo.Duration}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="VideoDurationTextBlock"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                  </StackPanel>
+                </Border>
+
+                <Border BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,1,1"
+                        Padding="10,6">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Upload.VideoInfo.VideoCodec}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="VideoCodecTextBlock"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                  </StackPanel>
+                </Border>
+
+                <Border BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,1,1"
+                        Padding="10,6">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Upload.VideoInfo.VideoBitrate}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="VideoBitrateTextBlock"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                  </StackPanel>
+                </Border>
+
+                <Border BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="10,6">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Upload.VideoInfo.Audio}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="VideoAudioTextBlock"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                  </StackPanel>
+                </Border>
+
+                <Border BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,1,0"
+                        Padding="10,6">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Upload.VideoInfo.AudioBitrate}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="VideoAudioBitrateTextBlock"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                  </StackPanel>
+                </Border>
+
+                <Border BorderThickness="0"
+                        Padding="10,6"/>
+                <Border BorderThickness="0"
+                        Padding="10,6"/>
+              </UniformGrid>
+            </Border>
+          </Grid>
+
+          <!-- Buttons -->
+          <StackPanel Grid.Column="2"
+                      VerticalAlignment="Top"
+                      Margin="12,10,16,10">
+            <Button x:Name="VideoChangeButton"
+                    Content="{DynamicResource Common.Change}"
+                    Style="{StaticResource SecondaryButton}"
+                    Click="VideoChangeButton_Click"
+                    MinWidth="140"
+                    Margin="0,8,0,8"/>
+            <Button x:Name="UploadButton"
+                    Style="{StaticResource PrimaryButton}"
+                    Click="UploadButton_Click"
+                    IsEnabled="False"
+                    MinWidth="140"
+                    Padding="16,10">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconXL}"
+                           Text="&#xeb9b;"/>
+                <TextBlock Text="{DynamicResource Upload.StartUpload}"/>
+              </StackPanel>
+            </Button>
           </StackPanel>
-
-          <!-- Ändern Button -->
-          <Button x:Name="VideoChangeButton"
-                  Grid.Column="2"
-                  Content="{DynamicResource Common.Change}"
-                  Style="{StaticResource SecondaryButton}"
-                  Click="VideoChangeButton_Click"
-                  VerticalAlignment="Center"
-                  Margin="{StaticResource SpacingAllM}"/>
-
-          <!-- Upload Button -->
-          <Button x:Name="UploadButton"
-                  Grid.Column="3"
-                  Style="{StaticResource PrimaryButton}"
-                  Click="UploadButton_Click"
-                  IsEnabled="False"
-                  VerticalAlignment="Center"
-                  Margin="4,12,16,12"
-                  Padding="16,10">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconXL}"
-                         Text="&#xeb9b;"/>
-              <TextBlock Text="{DynamicResource Upload.StartUpload}"/>
-            </StackPanel>
-          </Button>
         </Grid>
       </Grid>
-    </ContentControl>
+      </ContentControl>
+    </StackPanel>
+  </Border>
 
     <!-- Verstecktes TextBox für Pfad -->
     <TextBox x:Name="VideoPathTextBox"

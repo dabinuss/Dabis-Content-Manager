@@ -57,6 +57,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         {
             return DependencyStatus.AllReady(
                 _ffmpegManager.FFmpegPath!,
+                _ffmpegManager.FFprobePath,
                 _whisperModelManager.ModelPath!,
                 _whisperModelManager.ModelSize!.Value);
         }
@@ -65,6 +66,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         {
             FFmpegAvailable = _ffmpegManager.IsAvailable,
             FFmpegPath = _ffmpegManager.FFmpegPath,
+            FFprobePath = _ffmpegManager.FFprobePath,
             WhisperModelAvailable = _whisperModelManager.IsAvailable,
             WhisperModelPath = _whisperModelManager.ModelPath,
             InstalledModelSize = _whisperModelManager.ModelSize

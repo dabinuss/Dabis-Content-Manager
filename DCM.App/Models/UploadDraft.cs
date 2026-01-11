@@ -99,6 +99,22 @@ public sealed class UploadDraft : INotifyPropertyChanged
 
     public string FileSizeDisplay => FormatFileSize(_fileSizeBytes);
 
+    public string? VideoResolution { get; set; }
+
+    public string? VideoFps { get; set; }
+
+    public string? VideoDuration { get; set; }
+
+    public string? VideoCodec { get; set; }
+
+    public string? VideoBitrate { get; set; }
+
+    public string? AudioInfo { get; set; }
+
+    public string? AudioBitrate { get; set; }
+
+    public string? VideoPreviewPath { get; set; }
+
     public UploadDraftUploadState UploadState
     {
         get => _uploadState;
@@ -180,6 +196,14 @@ public sealed class UploadDraft : INotifyPropertyChanged
         {
             FileName = string.Empty;
             FileSizeBytes = 0;
+            VideoResolution = null;
+            VideoFps = null;
+            VideoDuration = null;
+            VideoCodec = null;
+            VideoBitrate = null;
+            AudioInfo = null;
+            AudioBitrate = null;
+            VideoPreviewPath = null;
             return;
         }
 
@@ -188,6 +212,14 @@ public sealed class UploadDraft : INotifyPropertyChanged
             var info = new FileInfo(videoPath);
             FileName = info.Name;
             FileSizeBytes = info.Exists ? info.Length : 0;
+            VideoResolution = null;
+            VideoFps = null;
+            VideoDuration = null;
+            VideoCodec = null;
+            VideoBitrate = null;
+            AudioInfo = null;
+            AudioBitrate = null;
+            VideoPreviewPath = null;
 
             if (string.IsNullOrWhiteSpace(Title))
             {
@@ -198,6 +230,14 @@ public sealed class UploadDraft : INotifyPropertyChanged
         {
             FileName = Path.GetFileName(videoPath) ?? videoPath;
             FileSizeBytes = 0;
+            VideoResolution = null;
+            VideoFps = null;
+            VideoDuration = null;
+            VideoCodec = null;
+            VideoBitrate = null;
+            AudioInfo = null;
+            AudioBitrate = null;
+            VideoPreviewPath = null;
         }
     }
 

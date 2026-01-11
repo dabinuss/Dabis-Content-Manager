@@ -14,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Security.Cryptography;
 using DCM.App.Models;
 using DCM.Core;
 using DCM.Core.Configuration;
@@ -516,6 +518,8 @@ public partial class MainWindow
         UploadView.VideoPathTextBox.Text = string.Empty;
         UploadView.VideoFileNameTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
         UploadView.VideoFileSizeTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
+        ClearVideoInfoDisplay();
+        ClearVideoPreviewDisplay();
         SetVideoDropState(false);
         UploadView.TitleTextBox.Text = string.Empty;
         UploadView.DescriptionTextBox.Text = string.Empty;
@@ -534,12 +538,19 @@ public partial class MainWindow
         UploadView.VideoFileSizeTextBlock.Text = string.IsNullOrWhiteSpace(draft.FileSizeDisplay)
             ? FormatFileSize(0)
             : draft.FileSizeDisplay;
+        UpdateVideoInfoDisplay(draft);
+        UpdateVideoPreviewDisplay(draft);
         UploadView.TitleTextBox.Text = draft.Title;
         UploadView.DescriptionTextBox.Text = draft.Description;
         UploadView.TagsTextBox.Text = draft.TagsCsv;
         UploadView.TranscriptTextBox.Text = draft.Transcript;
 
         ApplyDraftThumbnailToUi(draft.ThumbnailPath);
+
+        if (draft.HasVideo && string.IsNullOrWhiteSpace(draft.VideoResolution))
+        {
+            _ = LoadVideoFileInfoAsync(draft, triggerAutoTranscribe: false);
+        }
     }
 
     private void SetVideoDropState(bool hasVideo)
@@ -701,18 +712,23 @@ public partial class MainWindow
         var filePath = draft.VideoPath;
         try
         {
-            var (fileName, fileSize) = await Task.Run(() => GetFileDisplayInfo(filePath));
+            var (fileName, fileSize) = await Task.Run(() => GetFileDisplayInfo(filePath)).ConfigureAwait(false);
+            var mediaInfo = await TryGetVideoMediaInfoAsync(filePath).ConfigureAwait(false);
 
             draft.TranscriptionStatus ??= string.Empty;
 
             await OnUiThreadAsync(() =>
             {
+                UpdateDraftVideoInfo(draft, mediaInfo);
                 if (_activeDraft == draft)
                 {
                     UploadView.VideoFileNameTextBlock.Text = fileName;
                     UploadView.VideoFileSizeTextBlock.Text = FormatFileSize(fileSize);
+                    UpdateVideoInfoDisplay(draft);
                 }
             });
+
+            _ = EnsureVideoPreviewAsync(draft, filePath, mediaInfo?.DurationSeconds);
 
             _logger.Info(
                 LocalizationHelper.Format("Log.Upload.VideoSelected", fileName),
@@ -734,14 +750,622 @@ public partial class MainWindow
 
             await OnUiThreadAsync(() =>
             {
+                ClearDraftVideoInfo(draft);
                 if (_activeDraft == draft)
                 {
                     UploadView.VideoFileNameTextBlock.Text = Path.GetFileName(filePath);
                     UploadView.VideoFileSizeTextBlock.Text = LocalizationHelper.Get("Upload.VideoFileSize.Unknown");
+                    UpdateVideoInfoDisplay(draft);
                 }
             });
         }
     }
+
+    private void UpdateDraftVideoInfo(UploadDraft draft, VideoMediaInfo? info)
+    {
+        if (draft is null)
+        {
+            return;
+        }
+
+        if (info is null)
+        {
+            ClearDraftVideoInfo(draft);
+            return;
+        }
+
+        draft.VideoResolution = info.Resolution;
+        draft.VideoFps = info.Fps;
+        draft.VideoDuration = info.Duration;
+        draft.VideoCodec = info.VideoCodec;
+        draft.VideoBitrate = info.VideoBitrate;
+        draft.AudioInfo = info.AudioInfo;
+        draft.AudioBitrate = info.AudioBitrate;
+    }
+
+    private void ClearDraftVideoInfo(UploadDraft draft)
+    {
+        if (draft is null)
+        {
+            return;
+        }
+
+        draft.VideoResolution = null;
+        draft.VideoFps = null;
+        draft.VideoDuration = null;
+        draft.VideoCodec = null;
+        draft.VideoBitrate = null;
+        draft.AudioInfo = null;
+        draft.AudioBitrate = null;
+    }
+
+    private void ClearVideoInfoDisplay()
+    {
+        UpdateVideoInfoDisplay(null);
+    }
+
+    private void UpdateVideoInfoDisplay(UploadDraft? draft)
+    {
+        var unknown = LocalizationHelper.Get("Common.Unknown");
+
+        UploadView.VideoResolutionTextBlock.Text = GetInfoOrUnknown(draft?.VideoResolution, unknown);
+        UploadView.VideoFpsTextBlock.Text = GetInfoOrUnknown(draft?.VideoFps, unknown);
+        UploadView.VideoDurationTextBlock.Text = GetInfoOrUnknown(draft?.VideoDuration, unknown);
+        UploadView.VideoCodecTextBlock.Text = GetInfoOrUnknown(draft?.VideoCodec, unknown);
+        UploadView.VideoBitrateTextBlock.Text = GetInfoOrUnknown(draft?.VideoBitrate, unknown);
+        UploadView.VideoAudioTextBlock.Text = GetInfoOrUnknown(draft?.AudioInfo, unknown);
+        UploadView.VideoAudioBitrateTextBlock.Text = GetInfoOrUnknown(draft?.AudioBitrate, unknown);
+    }
+
+    private static string GetInfoOrUnknown(string? value, string unknown)
+    {
+        return string.IsNullOrWhiteSpace(value) ? unknown : value;
+    }
+
+    private void ClearVideoPreviewDisplay()
+    {
+        UploadView.VideoPreviewImage.Source = null;
+        UploadView.VideoPreviewImage.Visibility = Visibility.Collapsed;
+        UploadView.VideoPreviewEmptyState.Visibility = Visibility.Visible;
+    }
+
+    private void UpdateVideoPreviewDisplay(UploadDraft? draft)
+    {
+        var previewPath = draft?.VideoPreviewPath;
+        if (string.IsNullOrWhiteSpace(previewPath) || !File.Exists(previewPath))
+        {
+            ClearVideoPreviewDisplay();
+            return;
+        }
+
+        var image = LoadImageSource(previewPath);
+        if (image is null)
+        {
+            ClearVideoPreviewDisplay();
+            return;
+        }
+
+        UploadView.VideoPreviewImage.Source = image;
+        UploadView.VideoPreviewImage.Visibility = Visibility.Visible;
+        UploadView.VideoPreviewEmptyState.Visibility = Visibility.Collapsed;
+    }
+
+    private static ImageSource? LoadImageSource(string path)
+    {
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.StreamSource = stream;
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task EnsureVideoPreviewAsync(UploadDraft draft, string filePath, double? durationSeconds)
+    {
+        if (draft is null || string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(draft.VideoPreviewPath) && File.Exists(draft.VideoPreviewPath))
+        {
+            await OnUiThreadAsync(() =>
+            {
+                if (_activeDraft == draft)
+                {
+                    UpdateVideoPreviewDisplay(draft);
+                }
+            });
+            return;
+        }
+
+        var ffmpegPath = GetFfmpegPath();
+        if (string.IsNullOrWhiteSpace(ffmpegPath))
+        {
+            return;
+        }
+
+        var previewPath = BuildVideoPreviewPath(filePath);
+        if (File.Exists(previewPath))
+        {
+            draft.VideoPreviewPath = previewPath;
+            await OnUiThreadAsync(() =>
+            {
+                if (_activeDraft == draft)
+                {
+                    UpdateVideoPreviewDisplay(draft);
+                }
+            });
+            return;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(previewPath)!);
+
+        var seekSeconds = GetPreviewTimestamp(durationSeconds);
+        var success = await Task.Run(() => TryGeneratePreview(ffmpegPath, filePath, previewPath, seekSeconds)).ConfigureAwait(false);
+        if (!success || !File.Exists(previewPath))
+        {
+            return;
+        }
+
+        draft.VideoPreviewPath = previewPath;
+        await OnUiThreadAsync(() =>
+        {
+            if (_activeDraft == draft)
+            {
+                UpdateVideoPreviewDisplay(draft);
+            }
+        });
+    }
+
+    private string? GetFfmpegPath()
+    {
+        var status = _transcriptionService?.GetDependencyStatus();
+        if (!string.IsNullOrWhiteSpace(status?.FFmpegPath))
+        {
+            return status.FFmpegPath;
+        }
+
+        return OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg";
+    }
+
+    private static string BuildVideoPreviewPath(string filePath)
+    {
+        var info = new FileInfo(filePath);
+        var key = $"{info.FullName}|{info.Length}|{info.LastWriteTimeUtc.Ticks}";
+        using var sha = SHA256.Create();
+        var hashBytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(key));
+        var hash = Convert.ToHexString(hashBytes).ToLowerInvariant();
+        var folder = Path.Combine(Path.GetTempPath(), "DCM_VideoPreview");
+        return Path.Combine(folder, $"{hash}.jpg");
+    }
+
+    private static double GetPreviewTimestamp(double? durationSeconds)
+    {
+        if (!durationSeconds.HasValue || durationSeconds <= 0)
+        {
+            return 1;
+        }
+
+        var duration = durationSeconds.Value;
+        if (duration < 1)
+        {
+            return 0.1;
+        }
+
+        var target = duration * 0.1;
+        target = Math.Clamp(target, 1, Math.Min(duration - 0.1, 8));
+        return target;
+    }
+
+    private static bool TryGeneratePreview(string ffmpegPath, string filePath, string previewPath, double seekSeconds)
+    {
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = ffmpegPath,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            startInfo.ArgumentList.Add("-v");
+            startInfo.ArgumentList.Add("error");
+            startInfo.ArgumentList.Add("-ss");
+            startInfo.ArgumentList.Add(seekSeconds.ToString("0.###", CultureInfo.InvariantCulture));
+            startInfo.ArgumentList.Add("-i");
+            startInfo.ArgumentList.Add(filePath);
+            startInfo.ArgumentList.Add("-frames:v");
+            startInfo.ArgumentList.Add("1");
+            startInfo.ArgumentList.Add("-vf");
+            startInfo.ArgumentList.Add("scale=320:-1:force_original_aspect_ratio=decrease");
+            startInfo.ArgumentList.Add("-q:v");
+            startInfo.ArgumentList.Add("2");
+            startInfo.ArgumentList.Add("-an");
+            startInfo.ArgumentList.Add("-sn");
+            startInfo.ArgumentList.Add("-dn");
+            startInfo.ArgumentList.Add("-y");
+            startInfo.ArgumentList.Add(previewPath);
+
+            using var process = Process.Start(startInfo);
+            if (process is null)
+            {
+                return false;
+            }
+
+            process.WaitForExit(8000);
+            return process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task<VideoMediaInfo?> TryGetVideoMediaInfoAsync(string filePath)
+    {
+        var ffprobePath = GetFfprobePath();
+        if (string.IsNullOrWhiteSpace(ffprobePath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = ffprobePath,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            startInfo.ArgumentList.Add("-v");
+            startInfo.ArgumentList.Add("error");
+            startInfo.ArgumentList.Add("-print_format");
+            startInfo.ArgumentList.Add("json");
+            startInfo.ArgumentList.Add("-show_entries");
+            startInfo.ArgumentList.Add("format=duration,bit_rate:stream=codec_type,codec_name,width,height,avg_frame_rate,r_frame_rate,bit_rate,sample_rate,channels");
+            startInfo.ArgumentList.Add("-show_format");
+            startInfo.ArgumentList.Add("-show_streams");
+            startInfo.ArgumentList.Add(filePath);
+
+            using var process = Process.Start(startInfo);
+            if (process is null)
+            {
+                return null;
+            }
+
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
+            await process.WaitForExitAsync().ConfigureAwait(false);
+
+            if (process.ExitCode != 0)
+            {
+                return null;
+            }
+
+            var json = outputTask.Result;
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            return ParseFfprobeJson(json);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private string? GetFfprobePath()
+    {
+        var status = _transcriptionService?.GetDependencyStatus();
+        if (!string.IsNullOrWhiteSpace(status?.FFprobePath))
+        {
+            return status.FFprobePath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(status?.FFmpegPath))
+        {
+            var ffprobeName = GetFfprobeExecutableName();
+            var directory = Path.GetDirectoryName(status.FFmpegPath);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                var candidate = Path.Combine(directory, ffprobeName);
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+        }
+
+        return GetFfprobeExecutableName();
+    }
+
+    private static string GetFfprobeExecutableName()
+        => OperatingSystem.IsWindows() ? "ffprobe.exe" : "ffprobe";
+
+    private static VideoMediaInfo? ParseFfprobeJson(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("streams", out var streamsElement) ||
+            streamsElement.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        JsonElement? videoStream = null;
+        JsonElement? audioStream = null;
+
+        foreach (var stream in streamsElement.EnumerateArray())
+        {
+            var codecType = GetString(stream, "codec_type");
+            if (videoStream is null && string.Equals(codecType, "video", StringComparison.OrdinalIgnoreCase))
+            {
+                videoStream = stream;
+            }
+            else if (audioStream is null && string.Equals(codecType, "audio", StringComparison.OrdinalIgnoreCase))
+            {
+                audioStream = stream;
+            }
+        }
+
+        var formatElement = doc.RootElement.TryGetProperty("format", out var formatValue)
+            ? formatValue
+            : default;
+
+        var width = GetInt(videoStream, "width");
+        var height = GetInt(videoStream, "height");
+        var resolution = width.HasValue && height.HasValue ? $"{width}x{height}" : null;
+
+        var fps = ParseFps(GetString(videoStream, "avg_frame_rate"))
+                  ?? ParseFps(GetString(videoStream, "r_frame_rate"));
+        var fpsText = fps.HasValue ? fps.Value.ToString("0.##", CultureInfo.CurrentCulture) : null;
+
+        var durationSeconds = GetDouble(formatElement, "duration") ?? GetDouble(videoStream, "duration");
+        var durationText = durationSeconds.HasValue
+            ? FormatDuration(TimeSpan.FromSeconds(durationSeconds.Value))
+            : null;
+
+        var videoCodec = FormatCodecName(GetString(videoStream, "codec_name"));
+        var videoBitrate = FormatBitrate(GetBitRate(videoStream) ?? GetBitRate(formatElement));
+
+        var audioCodec = FormatCodecName(GetString(audioStream, "codec_name"));
+        var sampleRate = GetInt(audioStream, "sample_rate");
+        var channels = GetInt(audioStream, "channels");
+        var audioInfo = FormatAudioInfo(audioCodec, sampleRate, channels);
+        var audioBitrate = FormatBitrate(GetBitRate(audioStream));
+
+        return new VideoMediaInfo(
+            resolution,
+            fpsText,
+            durationText,
+            durationSeconds,
+            videoCodec,
+            videoBitrate,
+            audioInfo,
+            audioBitrate);
+    }
+
+    private static string? GetString(JsonElement? element, string propertyName)
+    {
+        return element.HasValue ? GetString(element.Value, propertyName) : null;
+    }
+
+    private static string? GetString(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return null;
+        }
+
+        return property.ValueKind == JsonValueKind.String ? property.GetString() : property.ToString();
+    }
+
+    private static int? GetInt(JsonElement? element, string propertyName)
+    {
+        return element.HasValue ? GetInt(element.Value, propertyName) : null;
+    }
+
+    private static int? GetInt(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return null;
+        }
+
+        if (property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var value))
+        {
+            return value;
+        }
+
+        if (property.ValueKind == JsonValueKind.String &&
+            int.TryParse(property.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private static double? GetDouble(JsonElement? element, string propertyName)
+    {
+        return element.HasValue ? GetDouble(element.Value, propertyName) : null;
+    }
+
+    private static double? GetDouble(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return null;
+        }
+
+        if (property.ValueKind == JsonValueKind.Number && property.TryGetDouble(out var value))
+        {
+            return value;
+        }
+
+        if (property.ValueKind == JsonValueKind.String &&
+            double.TryParse(property.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private static long? GetBitRate(JsonElement? element)
+    {
+        return element.HasValue ? GetBitRate(element.Value) : null;
+    }
+
+    private static long? GetBitRate(JsonElement element)
+    {
+        if (!element.TryGetProperty("bit_rate", out var property))
+        {
+            return null;
+        }
+
+        if (property.ValueKind == JsonValueKind.Number && property.TryGetInt64(out var value))
+        {
+            return value;
+        }
+
+        if (property.ValueKind == JsonValueKind.String &&
+            long.TryParse(property.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private static double? ParseFps(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value == "0/0")
+        {
+            return null;
+        }
+
+        var parts = value.Split('/');
+        if (parts.Length == 2 &&
+            double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var numerator) &&
+            double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var denominator) &&
+            denominator > 0)
+        {
+            return numerator / denominator;
+        }
+
+        if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var numeric))
+        {
+            return numeric;
+        }
+
+        return null;
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration.TotalHours >= 1)
+        {
+            return $"{(int)duration.TotalHours}:{duration.Minutes:00}:{duration.Seconds:00}";
+        }
+
+        return $"{duration.Minutes:00}:{duration.Seconds:00}";
+    }
+
+    private static string? FormatCodecName(string? codecName)
+    {
+        if (string.IsNullOrWhiteSpace(codecName))
+        {
+            return null;
+        }
+
+        return codecName.ToLowerInvariant() switch
+        {
+            "h264" => "H.264",
+            "h265" => "H.265",
+            "hevc" => "HEVC",
+            "av1" => "AV1",
+            _ => codecName.ToUpperInvariant()
+        };
+    }
+
+    private static string? FormatBitrate(long? bitsPerSecond)
+    {
+        if (!bitsPerSecond.HasValue || bitsPerSecond <= 0)
+        {
+            return null;
+        }
+
+        var bps = bitsPerSecond.Value;
+        if (bps >= 1_000_000)
+        {
+            return $"{bps / 1_000_000d:0.#} Mbps";
+        }
+
+        if (bps >= 1_000)
+        {
+            return $"{bps / 1_000d:0.#} Kbps";
+        }
+
+        return $"{bps} bps";
+    }
+
+    private static string? FormatAudioInfo(string? codec, int? sampleRate, int? channels)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(codec))
+        {
+            parts.Add(codec);
+        }
+
+        if (sampleRate.HasValue && sampleRate.Value > 0)
+        {
+            parts.Add($"{sampleRate.Value / 1000d:0.#} kHz");
+        }
+
+        if (channels.HasValue && channels.Value > 0)
+        {
+            parts.Add(GetChannelLabel(channels.Value));
+        }
+
+        return parts.Count == 0 ? null : string.Join(" / ", parts);
+    }
+
+    private static string GetChannelLabel(int channels)
+    {
+        return channels switch
+        {
+            1 => "Mono",
+            2 => "Stereo",
+            _ => $"{channels}ch"
+        };
+    }
+
+    private sealed record VideoMediaInfo(
+        string? Resolution,
+        string? Fps,
+        string? Duration,
+        double? DurationSeconds,
+        string? VideoCodec,
+        string? VideoBitrate,
+        string? AudioInfo,
+        string? AudioBitrate);
 
     private static string FormatFileSize(long bytes)
     {

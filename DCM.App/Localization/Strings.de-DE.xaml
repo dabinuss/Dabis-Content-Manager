@@ -213,6 +213,14 @@
   <sys:String x:Key="Upload.Fields.Publication.Plan">Geplante Veröffentlichung</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Date">Datum:</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Time">Zeit:</sys:String>
+  <sys:String x:Key="Upload.Section.Details">Upload-Details</sys:String>
+  <sys:String x:Key="Upload.VideoInfo.Resolution">Auflösung</sys:String>
+  <sys:String x:Key="Upload.VideoInfo.Fps">FPS</sys:String>
+  <sys:String x:Key="Upload.VideoInfo.Duration">Dauer</sys:String>
+  <sys:String x:Key="Upload.VideoInfo.VideoCodec">Video-Codec</sys:String>
+  <sys:String x:Key="Upload.VideoInfo.VideoBitrate">Video-Bitrate</sys:String>
+  <sys:String x:Key="Upload.VideoInfo.Audio">Audio</sys:String>
+  <sys:String x:Key="Upload.VideoInfo.AudioBitrate">Audio-Bitrate</sys:String>
   <sys:String x:Key="Dialog.Video.Open.Title">Video auswählen</sys:String>
   <sys:String x:Key="Dialog.Video.Open.Filter">Video-Dateien|*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm|Alle Dateien|*.*</sys:String>
   <sys:String x:Key="Dialog.Video.Replace.Title">Video ersetzen?</sys:String>
