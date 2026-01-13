@@ -190,6 +190,10 @@
   <sys:String x:Key="Page.Context.History">Vergangene Uploads und Status anzeigen.</sys:String>
   <sys:String x:Key="Page.Context.Settings">App-Optionen und Standardwerte konfigurieren.</sys:String>
   <sys:String x:Key="Page.Context.LlmSettings">LLM-Modus und Modelle konfigurieren.</sys:String>
+  <sys:String x:Key="Section.Filters">Filter</sys:String>
+  <sys:String x:Key="Section.HistoryList">Upload-Liste</sys:String>
+  <sys:String x:Key="Section.Metadata">Metadaten</sys:String>
+  <sys:String x:Key="Section.Publishing">Veröffentlichung</sys:String>
 
   <!-- Upload -->
   <sys:String x:Key="Upload">Neuer Upload</sys:String>
@@ -221,7 +225,7 @@
   <sys:String x:Key="Upload.Fields.Publication.Plan">Geplante Veröffentlichung</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Date">Datum:</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Time">Zeit:</sys:String>
-  <sys:String x:Key="Upload.Section.Details">Upload-Details</sys:String>
+  <sys:String x:Key="Upload.Section.Details">Datei-Infos</sys:String>
   <sys:String x:Key="Upload.VideoInfo.Resolution">Auflösung</sys:String>
   <sys:String x:Key="Upload.VideoInfo.Fps">FPS</sys:String>
   <sys:String x:Key="Upload.VideoInfo.Duration">Dauer</sys:String>

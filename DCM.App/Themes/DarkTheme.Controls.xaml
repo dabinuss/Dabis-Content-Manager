@@ -564,13 +564,10 @@
               <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <TextBlock Text="{TemplateBinding Header}"
-                       FontFamily="{StaticResource PrimaryFont}"
-                       FontSize="{StaticResource FontSizeS}"
-                       FontWeight="{StaticResource FontWeightSemiBold}"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       Margin="{StaticResource SpacingVerticalM}"/>
+              <!-- Header -->
+              <TextBlock Text="{TemplateBinding Header}"
+                         Style="{StaticResource SectionHeader}"
+                         Margin="{StaticResource SpacingVerticalM}"/>
 
             <!-- Inhalt + Border -->
             <Border x:Name="PART_Border"

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
-  <Grid Margin="0,0,16,0">
+  <Grid Margin="0,0,8,0">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <!-- Service Tabs -->
@@ -15,7 +15,7 @@
     <!-- SERVICE-TABS OBEN (YOUTUBE / TIKTOK / INSTAGRAM) -->
     <StackPanel Grid.Row="0"
                 Orientation="Horizontal"
-                Margin="0,16,0,0">
+                Margin="0,8,0,0">
       <!-- YouTube Tab -->
       <ToggleButton x:Name="AccountsYouTubeTab"
                     Style="{StaticResource PlatformToggleButton}"
@@ -27,7 +27,7 @@
                     HorizontalAlignment="Center">
           <TextBlock Style="{StaticResource IconL}"
                      Text="&#xe038;"
-                     Margin="0,0,0,4"/>
+                     Margin="0,0,0,8"/>
           <TextBlock Text="{DynamicResource Accounts.YouTube.Test}"
                      FontSize="{StaticResource FontSizeXS}"
                      Foreground="{StaticResource TextSecondaryBrush}"
@@ -49,7 +49,7 @@
                   Height="20"
                   CornerRadius="{StaticResource RadiusM}"
                   Background="Black"
-                  Margin="0,0,0,4">
+                  Margin="0,0,0,8">
             <TextBlock Text="♪"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -76,7 +76,7 @@
                   Height="20"
                   CornerRadius="{StaticResource RadiusM}"
                   Background="{StaticResource PlatformInstagramBrush}"
-                  Margin="0,0,0,4">
+                  Margin="0,0,0,8">
             <TextBlock Text="◎"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -100,7 +100,7 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="2*"
                             MinWidth="320"/>
-          <ColumnDefinition Width="{StaticResource SpacingXL}"/>
+          <ColumnDefinition Width="{StaticResource SpacingL}"/>
           <ColumnDefinition Width="*"
                             MinWidth="260"/>
         </Grid.ColumnDefinitions>
@@ -109,12 +109,8 @@
         <StackPanel Grid.Column="0">
 
           <!-- Verbindung -->
-          <GroupBox>
+          <GroupBox Header="{DynamicResource Accounts.YouTube}">
             <StackPanel>
-              <TextBlock Text="{DynamicResource Accounts.YouTube}"
-                         Style="{StaticResource TextLabel}"
-                         Margin="0,-6,0,4"/>
-
               <Grid>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
@@ -128,7 +124,7 @@
                         Height="40"
                         CornerRadius="{StaticResource RadiusCircle}"
                         Background="{StaticResource PlatformYouTubeBrush}"
-                        Margin="0,0,12,0">
+                        Margin="0,0,8,0">
                   <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
                              Foreground="White"
                              HorizontalAlignment="Center"
@@ -147,14 +143,15 @@
                              FontSize="{StaticResource FontSizeM}"/>
                   <TextBlock Text="{DynamicResource Accounts.YouTube.Msg.ClickToConnect}"
                              Foreground="{StaticResource TextMutedBrush}"
-                             FontSize="{StaticResource FontSizeS}"/>
+                             FontSize="{StaticResource FontSizeS}"
+                             Margin="0,8,0,0"/>
                 </StackPanel>
 
               </Grid>
 
               <!-- Kurzbeschreibung -->
               <TextBlock Text="{DynamicResource Accounts.YouTube.Description}"
-                         Margin="0,10,0,0"
+                         Margin="0,8,0,0"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"/>
@@ -162,21 +159,19 @@
           </GroupBox>
 
           <!-- Sicherheit / Speicherung -->
-          <GroupBox Margin="0,12,0,0">
+          <GroupBox Header="{DynamicResource Accounts.YouTube.SecurityTitle}"
+                    Margin="0,8,0,0">
             <StackPanel>
-              <TextBlock Text="{DynamicResource Accounts.YouTube.SecurityTitle}"
-                         Style="{StaticResource TextLabel}"
-                         Margin="0,-6,0,4"/>
               <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line1}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"
-                         Margin="0,0,0,2"/>
+                         Margin="0,0,0,8"/>
               <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line2}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"
-                         Margin="0,0,0,2"/>
+                         Margin="0,0,0,8"/>
               <TextBlock Text="{DynamicResource Accounts.YouTube.Security.Line3}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
@@ -190,16 +185,13 @@
         <StackPanel Grid.Column="2">
 
           <!-- Playlists / Standard-Playlist -->
-          <GroupBox>
+          <GroupBox Header="{DynamicResource Accounts.YouTube.Playlists}">
             <StackPanel>
-              <TextBlock Text="{DynamicResource Accounts.YouTube.Playlists}"
-                         Style="{StaticResource TextLabel}"
-                         Margin="0,-6,0,4"/>
               <TextBlock Text="{DynamicResource Accounts.YouTube.Playlists.Descr}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"
-                         Margin="0,0,0,6"/>
+                         Margin="0,0,0,8"/>
               <ListBox x:Name="YouTubePlaylistsListBox"
                        DisplayMemberPath="Title"
                        Height="200"
@@ -208,21 +200,19 @@
           </GroupBox>
 
           <!-- Wie DCM das Konto nutzt -->
-          <GroupBox Margin="0,12,0,0">
+          <GroupBox Header="{DynamicResource Accounts.YouTube.UsageTitle}"
+                    Margin="0,8,0,0">
             <StackPanel>
-              <TextBlock Text="{DynamicResource Accounts.YouTube.UsageTitle}"
-                         Style="{StaticResource TextLabel}"
-                         Margin="0,-6,0,4"/>
               <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line1}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"
-                         Margin="0,0,0,2"/>
+                         Margin="0,0,0,8"/>
               <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line2}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"
-                         Margin="0,0,0,2"/>
+                         Margin="0,0,0,8"/>
               <TextBlock Text="{DynamicResource Accounts.YouTube.Usage.Line3}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
@@ -241,7 +231,7 @@
                    Foreground="{StaticResource TextMutedBrush}"
                    TextWrapping="Wrap"
                    VerticalAlignment="Top"
-                   Margin="0,4,0,0"/>
+                   Margin="0,8,0,0"/>
       </Grid>
 
       <!-- INSTAGRAM CONTENT (PLATZHALTER) -->
@@ -252,9 +242,11 @@
                    Foreground="{StaticResource TextMutedBrush}"
                    TextWrapping="Wrap"
                    VerticalAlignment="Top"
-                   Margin="0,4,0,0"/>
+                   Margin="0,8,0,0"/>
       </Grid>
 
     </Grid>
   </Grid>
 </UserControl>
+
+

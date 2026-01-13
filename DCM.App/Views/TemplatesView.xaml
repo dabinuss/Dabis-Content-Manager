@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
-  <Grid Margin="0,0,16,0">
+  <Grid Margin="0,0,8,0">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
@@ -107,7 +107,7 @@
           <TextBlock Text="{DynamicResource Templates.Placeholders.Insert}"
                      FontSize="{StaticResource FontSizeS}"
                      Foreground="{StaticResource TextMutedBrush}"
-                     Margin="0,0,0,4"/>
+                     Margin="0,0,0,8"/>
           <ItemsControl x:Name="PlaceholderItemsControl">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
@@ -117,9 +117,9 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <Button Content="{Binding}"
-                        Margin="0,0,6,6"
+                        Margin="0,0,8,8"
                         Style="{StaticResource SecondaryButton}"
-                        Padding="10,4"
+                        Padding="8,8"
                         Click="PlaceholderButton_Click"/>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -129,3 +129,4 @@
     </GroupBox>
   </Grid>
 </UserControl>
+

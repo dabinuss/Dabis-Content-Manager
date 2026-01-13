@@ -10,12 +10,12 @@
                                  Ratio="1.7777777777777777"/>
   </UserControl.Resources>
   <Grid x:Name="RootGrid"
-      Margin="0,0,16,0">
+      Margin="0,0,8,0">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="{StaticResource SpacingXL}"/>
+      <RowDefinition Height="{StaticResource SpacingL}"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
@@ -27,14 +27,12 @@
     <!-- MULTIUPLOAD + DETAILS CONTAINER -->
     <Border Grid.Row="1"
             Style="{StaticResource SurfaceCard}"
-            Padding="12"
-            Margin="0,0,0,12">
+            Padding="{StaticResource SpacingAllM}"
+            Margin="0,0,0,8">
       <StackPanel>
         <DockPanel LastChildFill="True">
           <TextBlock Text="Multiupload"
-                     FontSize="{StaticResource FontSizeL}"
-                     FontWeight="SemiBold"
-                     Foreground="{StaticResource TextPrimaryBrush}"
+                     Style="{StaticResource SectionHeader}"
                      DockPanel.Dock="Left"/>
         </DockPanel>
 
@@ -54,7 +52,7 @@
           <ListBox.ItemContainerStyle>
             <Style TargetType="ListBoxItem">
               <Setter Property="Margin"
-                      Value="0,0,12,0"/>
+                      Value="0,0,8,0"/>
               <Setter Property="Padding"
                       Value="0"/>
               <Setter Property="HorizontalContentAlignment"
@@ -124,7 +122,7 @@
                   </Grid>
 
                   <Grid Grid.Row="1"
-                        Margin="0,6,0,0">
+                        Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="*"/>
                       <ColumnDefinition Width="*"/>
@@ -135,7 +133,7 @@
                                  FontSize="{StaticResource FontSizeS}"
                                  Foreground="{StaticResource TextMutedBrush}"/>
                       <StackPanel Orientation="Horizontal"
-                                  Margin="0,4,0,0">
+                                  Margin="0,8,0,0">
                         <TextBlock>
                           <TextBlock.Style>
                             <Style TargetType="TextBlock"
@@ -173,7 +171,7 @@
                         <TextBlock Text="{Binding UploadStatus}"
                                    FontSize="{StaticResource FontSizeS}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                   Margin="6,0,0,0"
+                                   Margin="8,0,0,0"
                                    TextWrapping="Wrap"
                                    MaxWidth="160"/>
                       </StackPanel>
@@ -184,7 +182,7 @@
                                  FontSize="{StaticResource FontSizeS}"
                                  Foreground="{StaticResource TextMutedBrush}"/>
                       <StackPanel Orientation="Horizontal"
-                                  Margin="0,4,0,0">
+                                  Margin="0,8,0,0">
                         <TextBlock>
                           <TextBlock.Style>
                             <Style TargetType="TextBlock"
@@ -222,12 +220,12 @@
                         <TextBlock Text="{Binding TranscriptionStatus}"
                                    FontSize="{StaticResource FontSizeS}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                   Margin="6,0,0,0"
+                                   Margin="8,0,0,0"
                                    TextWrapping="Wrap"
                                   MaxWidth="160"/>
                       </StackPanel>
                       <StackPanel Orientation="Horizontal"
-                                  Margin="0,4,0,0">
+                                  Margin="0,8,0,0">
                         <StackPanel.Style>
                           <Style TargetType="StackPanel">
                             <Setter Property="Visibility"
@@ -264,7 +262,7 @@
                                IsIndeterminate="{Binding IsUploadProgressIndeterminate}"/>
 
                   <ProgressBar Grid.Row="3"
-                               Margin="0,6,0,0"
+                               Margin="0,8,0,0"
                                Minimum="0"
                                Maximum="100"
                                Value="{Binding TranscriptionProgress}"
@@ -277,10 +275,10 @@
 
         <Border Height="1"
                 Background="{StaticResource BorderBrush}"
-                Margin="0,10,0,8"/>
+                Margin="0,8,0,8"/>
         <TextBlock Text="{DynamicResource Upload.Section.Details}"
-                   Style="{StaticResource TextLabel}"
-                   Margin="0,0,0,6"/>
+                   Style="{StaticResource SectionHeader}"
+                   Margin="0,0,0,8"/>
 
         <ContentControl x:Name="VideoDropZone"
                 Style="{StaticResource VideoDropZoneStyle}"
@@ -309,7 +307,7 @@
                        FontSize="{StaticResource FontSizeM}"
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Center"
-                       Margin="0,4,0,0"/>
+                       Margin="0,8,0,0"/>
             <TextBlock Text="{DynamicResource Upload.DropVideo.AllowedFiles}"
                        FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
@@ -337,7 +335,7 @@
                   Background="{StaticResource SurfaceLightBrush}"
                   BorderBrush="{StaticResource BorderStrongBrush}"
                   BorderThickness="0.5"
-                  Margin="12,10,12,10"
+                  Margin="8,8,8,8"
                   VerticalAlignment="Top"
                   ClipToBounds="True">
             <Grid>
@@ -358,7 +356,7 @@
           <Grid x:Name="VideoInfoPanel"
                 Grid.Column="1"
                 VerticalAlignment="Top"
-                Margin="0,10,0,10">
+                Margin="0,8,0,8">
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="{StaticResource SpacingM}"/>
@@ -381,7 +379,7 @@
                          Text="0 MB"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="12,2,0,0"
+                         Margin="8,0,0,0"
                          VerticalAlignment="Center"/>
             </Grid>
 
@@ -390,12 +388,12 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource RadiusS}"
-                    Padding="4">
+                    Padding="8">
               <UniformGrid Columns="3"
                            Rows="3">
                 <Border BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,1,1"
-                        Padding="10,6">
+                        Padding="8,8">
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Resolution}"
                                FontSize="{StaticResource FontSizeXS}"
@@ -408,7 +406,7 @@
 
                 <Border BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,1,1"
-                        Padding="10,6">
+                        Padding="8,8">
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Fps}"
                                FontSize="{StaticResource FontSizeXS}"
@@ -421,7 +419,7 @@
 
                 <Border BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Padding="10,6">
+                        Padding="8,8">
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Duration}"
                                FontSize="{StaticResource FontSizeXS}"
@@ -434,7 +432,7 @@
 
                 <Border BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,1,1"
-                        Padding="10,6">
+                        Padding="8,8">
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.VideoCodec}"
                                FontSize="{StaticResource FontSizeXS}"
@@ -447,7 +445,7 @@
 
                 <Border BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,1,1"
-                        Padding="10,6">
+                        Padding="8,8">
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.VideoBitrate}"
                                FontSize="{StaticResource FontSizeXS}"
@@ -460,7 +458,7 @@
 
                 <Border BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,0,1"
-                        Padding="10,6">
+                        Padding="8,8">
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Audio}"
                                FontSize="{StaticResource FontSizeXS}"
@@ -473,7 +471,7 @@
 
                 <Border BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,1,0"
-                        Padding="10,6">
+                        Padding="8,8">
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.AudioBitrate}"
                                FontSize="{StaticResource FontSizeXS}"
@@ -485,9 +483,9 @@
                 </Border>
 
                 <Border BorderThickness="0"
-                        Padding="10,6"/>
+                        Padding="8,8"/>
                 <Border BorderThickness="0"
-                        Padding="10,6"/>
+                        Padding="8,8"/>
               </UniformGrid>
             </Border>
           </Grid>
@@ -495,7 +493,7 @@
           <!-- Buttons -->
           <StackPanel Grid.Column="2"
                       VerticalAlignment="Top"
-                      Margin="12,10,16,10">
+                      Margin="8,8,8,8">
             <Button x:Name="VideoChangeButton"
                     Content="{DynamicResource Common.Change}"
                     Style="{StaticResource SecondaryButton}"
@@ -503,11 +501,11 @@
                     MinWidth="140"
                     Margin="0,8,0,8"/>
             <Button x:Name="UploadButton"
-                    Style="{StaticResource PrimaryButton}"
+                    Style="{StaticResource SecondaryButton}"
                     Click="UploadButton_Click"
                     IsEnabled="False"
                     MinWidth="140"
-                    Padding="16,10">
+                    Padding="8,8">
               <StackPanel Orientation="Horizontal">
                 <TextBlock Style="{StaticResource IconXL}"
                            Text="&#xeb9b;"/>
@@ -532,7 +530,7 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"
                           MinWidth="350"/>
-        <ColumnDefinition Width="{StaticResource SpacingXL}"/>
+        <ColumnDefinition Width="{StaticResource SpacingL}"/>
         <ColumnDefinition Width="*"
                           MinWidth="300"
                           MaxWidth="400"/>
@@ -542,13 +540,15 @@
       <StackPanel x:Name="LeftColumnPanel"
           Grid.Column="0">
 
+        <TextBlock Text="{DynamicResource Section.Metadata}"
+                   Style="{StaticResource SectionHeader}"
+                   Margin="0,0,0,8"/>
+
         <!-- Titel -->
         <GroupBox Tag="{Binding ElementName=TitleTextBox}"
+                  Header="{DynamicResource Upload.Fields.Title}"
                   PreviewMouseDown="FocusTargetOnContainerClick">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Title}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -571,7 +571,7 @@
               <Button x:Name="GenerateTitleButton"
                       Grid.Row="4"
                       Grid.Column="0"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource SecondaryButton}"
                       Click="GenerateTitleButton_Click"
                       ToolTip="KI-Vorschlag generieren"
                       BorderBrush="{StaticResource MagicAIGradientBrush}">
@@ -588,11 +588,9 @@
 
         <!-- Beschreibung -->
         <GroupBox Tag="{Binding ElementName=DescriptionTextBox}"
+                  Header="{DynamicResource Upload.Fields.Description}"
                   PreviewMouseDown="FocusTargetOnContainerClick">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Description}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -617,7 +615,7 @@
                 </Grid.ColumnDefinitions>
                 <Button x:Name="GenerateDescriptionButton"
                         Grid.Column="0"
-                        Style="{StaticResource AccentButton}"
+                        Style="{StaticResource SecondaryButton}"
                         Click="GenerateDescriptionButton_Click"
                         ToolTip="KI-Vorschlag generieren"
                         BorderBrush="{StaticResource MagicAIGradientBrush}">
@@ -633,13 +631,13 @@
                           DisplayMemberPath="Name"
                           ToolTip="Template fuer die Beschreibung"
                           SelectionChanged="TemplateComboBox_SelectionChanged"
-                          Margin="0,0,6,0"/>
+                          Margin="0,0,8,0"/>
                 <Button x:Name="ApplyTemplateButton"
                         Grid.Column="2"
                         Content="{DynamicResource Common.Apply}"
                         Style="{StaticResource SecondaryButton}"
                         Click="ApplyTemplateButton_Click"
-                        Margin="0,0,6,0"/>
+                        Margin="0,0,8,0"/>
               </Grid>
             </Grid>
           </StackPanel>
@@ -647,11 +645,9 @@
 
         <!-- Tags -->
         <GroupBox Tag="{Binding ElementName=TagsTextBox}"
+                  Header="{DynamicResource Upload.Fields.Tags}"
                   PreviewMouseDown="FocusTargetOnContainerClick">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Tags}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -673,7 +669,7 @@
               <Button x:Name="GenerateTagsButton"
                       Grid.Row="2"
                       Grid.Column="0"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource SecondaryButton}"
                       Click="GenerateTagsButton_Click"
                       ToolTip="KI-Vorschlag generieren"
                       BorderBrush="{StaticResource MagicAIGradientBrush}">
@@ -690,11 +686,9 @@
 
         <!-- Transkript -->
         <GroupBox Tag="{Binding ElementName=TranscriptTextBox}"
+                  Header="{DynamicResource Upload.Fields.Transcription}"
                   PreviewMouseDown="FocusTargetOnContainerClick">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Transcription}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,-6,0,4"/>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -742,7 +736,7 @@
                         ToolTip="Video automatisch transkribieren">
                   <Button.Style>
                     <Style TargetType="Button"
-                           BasedOn="{StaticResource AccentButton}">
+                           BasedOn="{StaticResource SecondaryButton}">
                       <!-- Default State -->
                       <Setter Property="Content">
                         <Setter.Value>
@@ -811,12 +805,13 @@
       <!-- RECHTE SPALTE -->
       <StackPanel Grid.Column="2">
 
+        <TextBlock Text="{DynamicResource Section.Publishing}"
+                   Style="{StaticResource SectionHeader}"
+                   Margin="0,0,0,8"/>
+
         <!-- Plattform -->
-        <GroupBox>
+        <GroupBox Header="{DynamicResource Upload.Fields.Platform}">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Platform}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,0,0,4"/>
             <WrapPanel>
               <!-- YouTube Button -->
               <ToggleButton x:Name="PlatformYouTubeToggle"
@@ -846,7 +841,7 @@
                           Height="26"
                           CornerRadius="{StaticResource RadiusM}"
                           Background="Black"
-                          Margin="0,0,0,4">
+                          Margin="0,0,0,8">
                     <TextBlock Text="♪"
                                Foreground="White"
                                FontSize="{StaticResource FontSizeM}"
@@ -864,11 +859,8 @@
         </GroupBox>
 
         <!-- Thumbnail -->
-        <GroupBox>
+        <GroupBox Header="{DynamicResource Upload.Fields.Thumbnail}">
           <StackPanel>
-            <TextBlock Text="Thumbnail"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,0,0,4"/>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -899,7 +891,7 @@
                         <TextBlock Style="{StaticResource IconXXL}"
                                    Text="&#xe40b;"
                                    HorizontalAlignment="Center"
-                                   Margin="0,0,0,6"/>
+                                   Margin="0,0,0,8"/>
                         <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail.DropZone}"
                                    FontSize="{StaticResource FontSizeM}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
@@ -954,7 +946,7 @@
                         Content="{DynamicResource Common.Remove}"
                         Style="{StaticResource SecondaryButton}"
                         Click="ThumbnailClearButton_Click"
-                        Padding="8,4"
+                        Padding="8,8"
                         FontSize="{StaticResource FontSizeS}"/>
               </StackPanel>
 
@@ -965,11 +957,8 @@
         </GroupBox>
 
         <!-- Sichtbarkeit -->
-        <GroupBox>
+        <GroupBox Header="{DynamicResource Upload.Fields.Visibility}">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Visibility}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,0,0,4"/>
             <ComboBox x:Name="VisibilityComboBox"
                       SelectionChanged="VisibilityComboBox_SelectionChanged">
               <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
@@ -984,11 +973,8 @@
         </GroupBox>
 
         <!-- Playlist -->
-        <GroupBox>
+        <GroupBox Header="{DynamicResource Upload.Fields.Paylists}">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Paylists}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,0,0,4"/>
             <ComboBox x:Name="PlaylistComboBox"
                       DisplayMemberPath="Title"
                       ToolTip="Playlist, in die das Video einsortiert wird"
@@ -997,15 +983,11 @@
         </GroupBox>
 
         <!-- Veröffentlichung -->
-        <GroupBox>
+        <GroupBox Header="{DynamicResource Upload.Fields.Publication}">
           <StackPanel>
-            <TextBlock Text="{DynamicResource Upload.Fields.Publication}"
-                       Style="{StaticResource TextLabel}"
-                       Margin="0,0,0,4"/>
-
             <CheckBox x:Name="ScheduleCheckBox"
                       Content="{DynamicResource Upload.Fields.Publication.Plan}"
-                      Margin="0,0,0,10"
+                      Margin="0,0,0,8"
                       Checked="ScheduleCheckBox_Checked"
                       Unchecked="ScheduleCheckBox_Unchecked"
                       IsChecked="True"/>
@@ -1074,9 +1056,9 @@
                     CornerRadius="{StaticResource RadiusM}"/>
 
             <StackPanel Grid.Row="1"
-                        Margin="{StaticResource SpacingAllL}">
+                        Margin="{StaticResource SpacingAllM}">
               <DockPanel LastChildFill="False"
-                         Margin="0,0,0,12">
+                         Margin="0,0,0,8">
                 <TextBlock x:Name="SuggestionTitleTextBlock"
                            DockPanel.Dock="Left"
                            FontSize="{StaticResource FontSizeL}"
@@ -1122,3 +1104,6 @@
     </Grid>
   </Grid>
 </UserControl>
+
+
+

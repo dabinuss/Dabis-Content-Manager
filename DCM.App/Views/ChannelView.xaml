@@ -4,7 +4,7 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
 <!-- wie PageUpload: Grid füllt die Breite, nur ein rechter Margin -->
-<Grid Margin="0,0,16,0">
+<Grid Margin="0,0,8,0">
 
   <Grid.RowDefinitions>
     <RowDefinition Height="Auto"/>
@@ -17,7 +17,7 @@
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"
                         MinWidth="350"/>
-      <ColumnDefinition Width="{StaticResource SpacingXL}"/>
+      <ColumnDefinition Width="{StaticResource SpacingL}"/>
       <ColumnDefinition Width="*"
                         MinWidth="300"
                         MaxWidth="400"/>
@@ -36,18 +36,18 @@
     <GroupBox Grid.Row="0"
               Grid.Column="0"
               Header="{DynamicResource Channel.Persona.Profile}">
-      <StackPanel Margin="12">
+      <StackPanel Margin="8">
         <!-- Name -->
         <TextBlock Text="{DynamicResource Channel.Fields.Name}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,-6,0,4"/>
+                   Margin="0,0,0,8"/>
         <TextBox x:Name="ChannelPersonaNameTextBox"
                  Margin="0,0,0,8"/>
 
         <!-- Kanalname -->
         <TextBlock Text="{DynamicResource Channel.Fields.ChannelName}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,4,0,4"/>
+                   Margin="0,0,0,8"/>
         <TextBox x:Name="ChannelPersonaChannelNameTextBox"/>
       </StackPanel>
     </GroupBox>
@@ -56,11 +56,11 @@
     <GroupBox Grid.Row="0"
               Grid.Column="2"
               Header="{DynamicResource Channel.Persona.Style}">
-      <StackPanel Margin="12">
+      <StackPanel Margin="8">
         <!-- Sprache -->
         <TextBlock Text="{DynamicResource Channel.Fields.Language}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,-6,0,4"/>
+                   Margin="0,0,0,8"/>
         <ComboBox x:Name="ChannelPersonaLanguageTextBox"
                   IsEditable="True"
                   IsTextSearchEnabled="True"
@@ -72,7 +72,7 @@
         <!-- Tonfall -->
         <TextBlock Text="{DynamicResource Channel.Fields.ToneOfWords}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,4,0,4"/>
+                   Margin="0,0,0,8"/>
         <TextBox x:Name="ChannelPersonaToneOfVoiceTextBox"
                  ToolTip="z. B. locker, sarkastisch, informativ"
                  Margin="0,0,0,8"/>
@@ -80,7 +80,7 @@
         <!-- Content-Typ -->
         <TextBlock Text="{DynamicResource Channel.Fields.ContentType}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,4,0,4"/>
+                   Margin="0,0,0,8"/>
         <TextBox x:Name="ChannelPersonaContentTypeTextBox"
                  ToolTip="z. B. Gaming Highlights, IRL, Tutorials"
                  Margin="0,0,0,8"/>
@@ -88,7 +88,7 @@
         <!-- Zielgruppe -->
         <TextBlock Text="{DynamicResource Channel.Fields.TargetAudience}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,4,0,4"/>
+                   Margin="0,0,0,8"/>
         <TextBox x:Name="ChannelPersonaTargetAudienceTextBox"
                  ToolTip="z. B. Casual Gamer 18-34"/>
       </StackPanel>
@@ -99,12 +99,12 @@
               Grid.Column="0"
               Grid.ColumnSpan="3"
               Header="{DynamicResource Channel.Persona.Additional}">
-      <StackPanel Margin="12">
+      <StackPanel Margin="8">
         <TextBlock Text="{DynamicResource Channel.Fields.AdditionalInstructions}"
                    Foreground="{StaticResource TextMutedBrush}"
                    FontSize="{StaticResource FontSizeM}"/>
         <TextBox x:Name="ChannelPersonaAdditionalInstructionsTextBox"
-                 Margin="0,4,0,0"
+                 Margin="0,8,0,0"
                  AcceptsReturn="True"
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Auto"
@@ -116,3 +116,4 @@
   </Grid>
 </Grid>
 </UserControl>
+

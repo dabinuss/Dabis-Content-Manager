@@ -6,16 +6,23 @@
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="{StaticResource SpacingM}"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="{StaticResource SpacingL}"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
-    <Border Grid.Row="0"
+    <TextBlock Grid.Row="0"
+               Text="{DynamicResource Section.Filters}"
+               Style="{StaticResource SectionHeader}"
+               Margin="0,0,0,8"/>
+
+    <Border Grid.Row="1"
             Style="{StaticResource SurfaceCard}"
-            Padding="10,8">
+            Padding="{StaticResource SpacingAllM}">
       <StackPanel Orientation="Horizontal">
         <Label Content="{DynamicResource Platform}"
-               Margin="0,0,4,0"/>
+               Margin="0,0,8,0"/>
         <ComboBox x:Name="HistoryPlatformFilterComboBox"
                   Width="120"
                   Margin="{StaticResource SpacingHorizontalL}"
@@ -27,7 +34,7 @@
         </ComboBox>
 
         <Label Content="{DynamicResource History.Filter.Status}"
-               Margin="0,0,4,0"/>
+               Margin="0,0,8,0"/>
         <ComboBox x:Name="HistoryStatusFilterComboBox"
                   Width="120"
                   Margin="{StaticResource SpacingHorizontalL}"
@@ -43,7 +50,12 @@
       </StackPanel>
     </Border>
 
-    <Border Grid.Row="2"
+    <TextBlock Grid.Row="3"
+               Text="{DynamicResource Section.HistoryList}"
+               Style="{StaticResource SectionHeader}"
+               Margin="0,0,0,8"/>
+
+    <Border Grid.Row="4"
             Style="{StaticResource SurfaceCard}"
             Padding="1">
       <DataGrid x:Name="HistoryDataGrid"

@@ -246,6 +246,18 @@
             Value="{StaticResource TextMutedBrush}"/>
   </Style>
 
+  <Style x:Key="SectionHeader"
+         TargetType="TextBlock">
+    <Setter Property="FontFamily"
+            Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeM}"/>
+    <Setter Property="FontWeight"
+            Value="{StaticResource FontWeightSemiBold}"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextPrimaryBrush}"/>
+  </Style>
+
   <!-- ICON STYLE                                                       -->
 
   <Style x:Key="NavIcon"
