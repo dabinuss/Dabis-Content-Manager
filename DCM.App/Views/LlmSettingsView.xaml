@@ -3,37 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Grid Margin="0,0,16,0">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="{StaticResource SpacingXL}"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
-    <Grid Grid.Row="0"
-          Margin="0,0,0,16">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition/>
-        <ColumnDefinition Width="Auto"/>
-      </Grid.ColumnDefinitions>
-
-      <TextBlock Grid.Column="0"
-                 Text="{DynamicResource Settings.LLM}"
-                 FontSize="{StaticResource FontSizeXL}"
-                 FontWeight="SemiBold"
-                 Foreground="{StaticResource TextPrimaryBrush}"/>
-
-      <Button x:Name="SettingsSaveButton"
-              Grid.Column="1"
-              Style="{StaticResource PrimaryButton}"
-              Click="SettingsSaveButton_Click"
-              VerticalAlignment="Center"
-              Margin="4">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="{DynamicResource Settings.SaveAll}"/>
-        </StackPanel>
-      </Button>
-    </Grid>
-
-    <ScrollViewer Grid.Row="2"
+    <ScrollViewer Grid.Row="0"
                   VerticalScrollBarVisibility="Auto">
       <Grid HorizontalAlignment="Left"
             MaxWidth="{StaticResource SettingsContentMaxWidth}"

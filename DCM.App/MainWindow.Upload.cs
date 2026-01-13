@@ -1986,7 +1986,10 @@ public partial class MainWindow
         var canUploadSingle = hasVideo && hasTitle && !_isUploading;
         UploadView.UploadButton.IsEnabled = canUploadSingle;
         var anyVideoDraft = _uploadDrafts.Any(d => d.HasVideo);
-        UploadView.UploadAllButton.IsEnabled = !_isUploading && anyVideoDraft;
+        if (UploadAllActionButton is not null)
+        {
+            UploadAllActionButton.IsEnabled = !_isUploading && anyVideoDraft;
+        }
     }
 
     #endregion

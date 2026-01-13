@@ -182,6 +182,14 @@
   <sys:String x:Key="Nav.Templates">Templates</sys:String>
   <sys:String x:Key="Nav.History">History</sys:String>
   <sys:String x:Key="Nav.Settings">Settings</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Home">Home</sys:String>
+  <sys:String x:Key="Page.Context.Upload">Upload, schedule, and manage videos.</sys:String>
+  <sys:String x:Key="Page.Context.Accounts">Connect accounts and manage playlists.</sys:String>
+  <sys:String x:Key="Page.Context.Channel">Maintain channel profile and style settings.</sys:String>
+  <sys:String x:Key="Page.Context.Templates">Create and edit templates.</sys:String>
+  <sys:String x:Key="Page.Context.History">Review past uploads and status.</sys:String>
+  <sys:String x:Key="Page.Context.Settings">Configure app options and defaults.</sys:String>
+  <sys:String x:Key="Page.Context.LlmSettings">Configure LLM mode and models.</sys:String>
 
   <!-- Upload -->
   <sys:String x:Key="Upload">New Upload</sys:String>

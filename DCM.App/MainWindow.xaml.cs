@@ -85,6 +85,7 @@ public partial class MainWindow : Window
     private bool _isUploading;
     private UploadDraft? _activeUploadDraft;
     private CancellationTokenSource? _activeUploadCts;
+    private int _currentPageIndex;
 
     // OPTIMIZATION: Cached theme dictionary for faster theme switching
     private ResourceDictionary? _currentThemeDictionary;
@@ -92,6 +93,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _currentPageIndex = 0;
+        UpdatePageHeader(_currentPageIndex);
+        UpdatePageActions(_currentPageIndex);
         UpdateMaximizeButtonIcon();
         AttachUploadViewEvents();
         AttachAccountsViewEvents();
@@ -256,9 +260,6 @@ public partial class MainWindow : Window
         UploadPageView.ScheduleDateChanged += ScheduleDatePicker_SelectedDateChanged;
         UploadPageView.ScheduleTimeTextChanged += ScheduleTimeTextBox_TextChanged;
         UploadPageView.UploadItemsSelectionChanged += UploadItemsListBox_SelectionChanged;
-        UploadPageView.AddVideosButtonClicked += AddVideosButton_Click;
-        UploadPageView.UploadAllButtonClicked += UploadAllButton_Click;
-        UploadPageView.TranscribeAllButtonClicked += TranscribeAllButton_Click;
         UploadPageView.RemoveDraftButtonClicked += RemoveDraftButton_Click;
         UploadPageView.CancelUploadButtonClicked += CancelUploadButton_Click;
         UploadPageView.TranscriptionPrioritizeButtonClicked += TranscriptionPrioritizeButton_Click;
@@ -602,6 +603,7 @@ public partial class MainWindow : Window
         ScheduleSettingsSave();
 
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.LanguageChanged", selectedLang.DisplayName);
+        UpdatePageHeader(_currentPageIndex);
         _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
     }
 
@@ -1539,6 +1541,8 @@ public partial class MainWindow : Window
 
     private void ShowPage(int pageIndex)
     {
+        _currentPageIndex = pageIndex;
+
         // Alle Pages verstecken
         if (PageUpload is not null) PageUpload.Visibility = Visibility.Collapsed;
         if (PageAccounts is not null) PageAccounts.Visibility = Visibility.Collapsed;
@@ -1573,7 +1577,121 @@ public partial class MainWindow : Window
                 if (PageLlmSettings is not null) PageLlmSettings.Visibility = Visibility.Visible;
                 break;
         }
+
+        UpdatePageHeader(pageIndex);
+        UpdatePageActions(pageIndex);
     }
+
+    private void UpdatePageHeader(int pageIndex)
+    {
+        if (PageTitleTextBlock is null || PageContextTextBlock is null || BreadcrumbTextBlock is null)
+        {
+            return;
+        }
+
+        var home = LocalizationHelper.Get("Page.Breadcrumb.Home");
+        string title;
+        string context;
+        string breadcrumb;
+
+        switch (pageIndex)
+        {
+            case 0:
+                title = LocalizationHelper.Get("Nav.Uploads");
+                context = LocalizationHelper.Get("Page.Context.Upload");
+                breadcrumb = BuildBreadcrumb(home, title);
+                break;
+            case 1:
+                title = LocalizationHelper.Get("Nav.Accounts");
+                context = LocalizationHelper.Get("Page.Context.Accounts");
+                breadcrumb = BuildBreadcrumb(home, title);
+                break;
+            case 2:
+                title = LocalizationHelper.Get("Nav.Channels");
+                context = LocalizationHelper.Get("Page.Context.Channel");
+                breadcrumb = BuildBreadcrumb(home, title);
+                break;
+            case 3:
+                title = LocalizationHelper.Get("Nav.Templates");
+                context = LocalizationHelper.Get("Page.Context.Templates");
+                breadcrumb = BuildBreadcrumb(home, title);
+                break;
+            case 4:
+                title = LocalizationHelper.Get("Nav.History");
+                context = LocalizationHelper.Get("Page.Context.History");
+                breadcrumb = BuildBreadcrumb(home, title);
+                break;
+            case 5:
+                title = LocalizationHelper.Get("Nav.Settings");
+                context = LocalizationHelper.Get("Page.Context.Settings");
+                breadcrumb = BuildBreadcrumb(home, title);
+                break;
+            case 6:
+                title = LocalizationHelper.Get("Settings.LLM");
+                context = LocalizationHelper.Get("Page.Context.LlmSettings");
+                breadcrumb = BuildBreadcrumb(home, LocalizationHelper.Get("Nav.Settings"), title);
+                break;
+            default:
+                title = LocalizationHelper.Get("App.Name");
+                context = string.Empty;
+                breadcrumb = home;
+                break;
+        }
+
+        PageTitleTextBlock.Text = title;
+        PageContextTextBlock.Text = context;
+        BreadcrumbTextBlock.Text = breadcrumb;
+    }
+
+    private void UpdatePageActions(int pageIndex)
+    {
+        if (PageActionsUpload is null ||
+            PageActionsAccounts is null ||
+            PageActionsChannel is null ||
+            PageActionsTemplates is null ||
+            PageActionsHistory is null ||
+            PageActionsGeneralSettings is null ||
+            PageActionsLlmSettings is null)
+        {
+            return;
+        }
+
+        PageActionsUpload.Visibility = Visibility.Collapsed;
+        PageActionsAccounts.Visibility = Visibility.Collapsed;
+        PageActionsChannel.Visibility = Visibility.Collapsed;
+        PageActionsTemplates.Visibility = Visibility.Collapsed;
+        PageActionsHistory.Visibility = Visibility.Collapsed;
+        PageActionsGeneralSettings.Visibility = Visibility.Collapsed;
+        PageActionsLlmSettings.Visibility = Visibility.Collapsed;
+
+        switch (pageIndex)
+        {
+            case 0:
+                PageActionsUpload.Visibility = Visibility.Visible;
+                break;
+            case 1:
+                PageActionsAccounts.Visibility = Visibility.Visible;
+                break;
+            case 2:
+                PageActionsChannel.Visibility = Visibility.Visible;
+                break;
+            case 3:
+                PageActionsTemplates.Visibility = Visibility.Visible;
+                break;
+            case 4:
+                PageActionsHistory.Visibility = Visibility.Visible;
+                break;
+            case 5:
+                PageActionsGeneralSettings.Visibility = Visibility.Visible;
+                break;
+            case 6:
+                PageActionsLlmSettings.Visibility = Visibility.Visible;
+                break;
+        }
+    }
+
+    private static string BuildBreadcrumb(params string[] segments) =>
+        string.Join(" / ", segments.Where(segment => !string.IsNullOrWhiteSpace(segment)));
 
     private void YouTubeServiceIcon_Click(object sender, MouseButtonEventArgs e)
     {

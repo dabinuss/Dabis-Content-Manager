@@ -6,21 +6,11 @@
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
       <RowDefinition Height="{StaticResource SpacingM}"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
-    <!-- HEADER -->
-    <StackPanel Grid.Row="0">
-      <TextBlock Text="{DynamicResource History}"
-                 FontSize="{StaticResource FontSizeXL}"
-                 FontWeight="SemiBold"
-                 Foreground="{StaticResource TextPrimaryBrush}"
-                 Margin="0,0,0,16"/>
-    </StackPanel>
-
-    <Border Grid.Row="1"
+    <Border Grid.Row="0"
             Style="{StaticResource SurfaceCard}"
             Padding="10,8">
       <StackPanel Orientation="Horizontal">
@@ -50,14 +40,10 @@
                         Tag="Error"/>
         </ComboBox>
 
-        <Button x:Name="HistoryClearButton"
-                Content="{DynamicResource History.ClearList}"
-                Style="{StaticResource SecondaryButton}"
-                Click="HistoryClearButton_Click"/>
       </StackPanel>
     </Border>
 
-    <Border Grid.Row="3"
+    <Border Grid.Row="2"
             Style="{StaticResource SurfaceCard}"
             Padding="1">
       <DataGrid x:Name="HistoryDataGrid"

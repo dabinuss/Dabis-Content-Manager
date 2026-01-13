@@ -6,24 +6,14 @@
   <Grid Margin="0,0,16,0">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <!-- Header -->
-      <RowDefinition Height="Auto"/>
       <!-- Service Tabs -->
       <RowDefinition Height="{StaticResource SpacingL}"/>
       <RowDefinition Height="*"/>
       <!-- Content -->
     </Grid.RowDefinitions>
 
-    <!-- HEADER -->
-    <StackPanel Grid.Row="0">
-      <TextBlock Text="{DynamicResource Accounts}"
-                 FontSize="{StaticResource FontSizeXL}"
-                 FontWeight="SemiBold"
-                 Foreground="{StaticResource TextPrimaryBrush}"/>
-    </StackPanel>
-
     <!-- SERVICE-TABS OBEN (YOUTUBE / TIKTOK / INSTAGRAM) -->
-    <StackPanel Grid.Row="1"
+    <StackPanel Grid.Row="0"
                 Orientation="Horizontal"
                 Margin="0,16,0,0">
       <!-- YouTube Tab -->
@@ -103,7 +93,7 @@
     </StackPanel>
 
     <!-- CONTENT-BEREICHE PRO SERVICE -->
-    <Grid Grid.Row="3">
+    <Grid Grid.Row="2">
 
       <!-- YOUTUBE CONTENT -->
       <Grid x:Name="AccountsYouTubeContent">
@@ -160,20 +150,6 @@
                              FontSize="{StaticResource FontSizeS}"/>
                 </StackPanel>
 
-                <!-- Buttons -->
-                <StackPanel Grid.Column="2"
-                            Orientation="Horizontal"
-                            VerticalAlignment="Center">
-                  <Button x:Name="YouTubeConnectButton"
-                          Content="{DynamicResource Accounts.YouTube.Connect}"
-                          Style="{StaticResource PrimaryButton}"
-                          Click="YouTubeConnectButton_Click"
-                          Margin="0,0,6,0"/>
-                  <Button x:Name="YouTubeDisconnectButton"
-                          Content="{DynamicResource Accounts.YouTube.Disconnect}"
-                          Style="{StaticResource SecondaryButton}"
-                          Click="YouTubeDisconnectButton_Click"/>
-                </StackPanel>
               </Grid>
 
               <!-- Kurzbeschreibung -->

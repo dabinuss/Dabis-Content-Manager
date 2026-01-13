@@ -8,22 +8,11 @@
 
   <Grid.RowDefinitions>
     <RowDefinition Height="Auto"/>
-    <!-- Header -->
-    <RowDefinition Height="Auto"/>
     <!-- Inhalt -->
   </Grid.RowDefinitions>
 
-  <!-- HEADER -->
-  <StackPanel Grid.Row="0">
-    <TextBlock Text="{DynamicResource Channel}"
-               FontSize="{StaticResource FontSizeXL}"
-               FontWeight="SemiBold"
-               Foreground="{StaticResource TextPrimaryBrush}"
-               Margin="0,0,0,16"/>
-  </StackPanel>
-
   <!-- ZWEI-SPALTEN-LAYOUT wie bei Upload -->
-  <Grid Grid.Row="1"
+  <Grid Grid.Row="0"
         VerticalAlignment="Top">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"
@@ -121,12 +110,6 @@
                  VerticalScrollBarVisibility="Auto"
                  Height="80"/>
 
-        <Button x:Name="ChannelProfileSaveButton"
-                Content="{DynamicResource Common.Save}"
-                Style="{StaticResource PrimaryButton}"
-                HorizontalAlignment="Right"
-                Margin="0,12,0,0"
-                Click="ChannelProfileSaveButton_Click"/>
       </StackPanel>
     </GroupBox>
 

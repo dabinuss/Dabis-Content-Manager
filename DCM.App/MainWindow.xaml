@@ -98,6 +98,36 @@
         </Trigger>
       </Style.Triggers>
     </Style>
+
+    <Style x:Key="PageBreadcrumbStyle"
+           TargetType="TextBlock">
+      <Setter Property="FontSize"
+              Value="{StaticResource FontSizeXS}"/>
+      <Setter Property="Foreground"
+              Value="{StaticResource TextMutedBrush}"/>
+      <Setter Property="TextTrimming"
+              Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style x:Key="PageTitleStyle"
+           TargetType="TextBlock">
+      <Setter Property="FontSize"
+              Value="{StaticResource FontSizeL}"/>
+      <Setter Property="FontWeight"
+              Value="SemiBold"/>
+      <Setter Property="Foreground"
+              Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style x:Key="PageContextStyle"
+           TargetType="TextBlock">
+      <Setter Property="FontSize"
+              Value="{StaticResource FontSizeXS}"/>
+      <Setter Property="Foreground"
+              Value="{StaticResource TextMutedBrush}"/>
+      <Setter Property="TextWrapping"
+              Value="Wrap"/>
+    </Style>
   </Window.Resources>
 
   <Border BorderBrush="{StaticResource BorderBrush}"
@@ -346,6 +376,8 @@
             Background="{StaticResource SurfaceSunkenBrush}">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -436,8 +468,146 @@
           </Grid>
         </Border>
 
+        <!-- Page Header -->
+        <Border Grid.Row="1"
+                Background="{StaticResource SurfaceElevatedBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="20,8">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock x:Name="BreadcrumbTextBlock"
+                       Style="{StaticResource PageBreadcrumbStyle}"
+                       Text="Home"/>
+
+            <StackPanel Grid.Row="1"
+                        Margin="0,4,0,0">
+              <TextBlock x:Name="PageTitleTextBlock"
+                         Style="{StaticResource PageTitleStyle}"
+                         Text="{DynamicResource Nav.Uploads}"/>
+              <TextBlock x:Name="PageContextTextBlock"
+                         Style="{StaticResource PageContextStyle}"
+                         Text=""/>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- Page Actions -->
+        <Border Grid.Row="2"
+                Background="{StaticResource SurfaceElevatedBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="20,8">
+          <Grid>
+            <StackPanel x:Name="PageActionsUpload"
+                        Orientation="Horizontal"
+                        Visibility="Visible">
+              <Button x:Name="AddVideosActionButton"
+                      Content="Videos hinzufuegen"
+                      Style="{StaticResource SecondaryButton}"
+                      Click="AddVideosButton_Click"
+                      MinWidth="120"
+                      Margin="0,0,6,0"/>
+              <Button x:Name="UploadAllActionButton"
+                      Content="Alle hochladen"
+                      Style="{StaticResource PrimaryButton}"
+                      Click="UploadAllButton_Click"
+                      MinWidth="120"
+                      Margin="0,0,6,0"/>
+              <Button x:Name="TranscribeAllActionButton"
+                      Content="Alle transkribieren"
+                      Style="{StaticResource AccentButton}"
+                      Click="TranscribeAllButton_Click"
+                      MinWidth="140"/>
+            </StackPanel>
+
+            <StackPanel x:Name="PageActionsAccounts"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Accounts.YouTube.Connect}"
+                      Style="{StaticResource PrimaryButton}"
+                      Click="YouTubeConnectButton_Click"
+                      MinWidth="140"
+                      Margin="0,0,6,0"/>
+              <Button Content="{DynamicResource Accounts.YouTube.Disconnect}"
+                      Style="{StaticResource SecondaryButton}"
+                      Click="YouTubeDisconnectButton_Click"
+                      MinWidth="140"/>
+            </StackPanel>
+
+            <StackPanel x:Name="PageActionsChannel"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Common.Save}"
+                      Style="{StaticResource PrimaryButton}"
+                      Click="ChannelProfileSaveButton_Click"
+                      MinWidth="120"/>
+            </StackPanel>
+
+            <StackPanel x:Name="PageActionsTemplates"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Common.Add}"
+                      Style="{StaticResource SecondaryButton}"
+                      Click="TemplateNewButton_Click"
+                      MinWidth="110"
+                      Margin="0,0,6,0"/>
+              <Button Content="{DynamicResource Common.Edit}"
+                      Style="{StaticResource SecondaryButton}"
+                      Click="TemplateEditButton_Click"
+                      MinWidth="110"
+                      Margin="0,0,6,0"/>
+              <Button Content="{DynamicResource Common.Delete}"
+                      Style="{StaticResource SecondaryButton}"
+                      Click="TemplateDeleteButton_Click"
+                      MinWidth="110"
+                      Margin="0,0,6,0"/>
+              <Button Content="{DynamicResource Common.Save}"
+                      Style="{StaticResource PrimaryButton}"
+                      Click="TemplateSaveButton_Click"
+                      MinWidth="120"/>
+            </StackPanel>
+
+            <StackPanel x:Name="PageActionsHistory"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource History.ClearList}"
+                      Style="{StaticResource SecondaryButton}"
+                      Click="HistoryClearAction_Click"
+                      MinWidth="140"
+                      Margin="0,0,6,0"/>
+              <Button Content="{DynamicResource Common.Open}"
+                      Style="{StaticResource PrimaryButton}"
+                      Click="HistoryOpenSelectedAction_Click"
+                      MinWidth="140"/>
+            </StackPanel>
+
+            <StackPanel x:Name="PageActionsGeneralSettings"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Settings.SaveAll}"
+                      Style="{StaticResource PrimaryButton}"
+                      Click="SettingsSaveButton_Click"
+                      MinWidth="140"/>
+            </StackPanel>
+
+            <StackPanel x:Name="PageActionsLlmSettings"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Settings.SaveAll}"
+                      Style="{StaticResource PrimaryButton}"
+                      Click="SettingsSaveButton_Click"
+                      MinWidth="140"/>
+            </StackPanel>
+          </Grid>
+        </Border>
+
         <!-- Content Pages -->
-        <Grid Grid.Row="1"
+        <Grid Grid.Row="3"
               Margin="{StaticResource ContentPadding}">
 
           <!-- Page 0: Neuer Upload -->

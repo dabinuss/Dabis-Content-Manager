@@ -5,37 +5,10 @@
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
   <Grid Margin="0,0,16,0">
     <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="{StaticResource SpacingXL}"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
     <Grid Grid.Row="0"
-          Margin="0,0,0,16">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition/>
-        <ColumnDefinition Width="Auto"/>
-      </Grid.ColumnDefinitions>
-
-      <TextBlock Grid.Column="0"
-                 Text="{DynamicResource Settings}"
-                 FontSize="{StaticResource FontSizeXL}"
-                 FontWeight="SemiBold"
-                 Foreground="{StaticResource TextPrimaryBrush}"/>
-
-      <Button x:Name="SettingsSaveButton"
-              Grid.Column="1"
-              Style="{StaticResource PrimaryButton}"
-              Click="SettingsSaveButton_Click"
-              VerticalAlignment="Center"
-              Margin="4">
-        <StackPanel Orientation="Horizontal">
-          <TextBlock Text="{DynamicResource Settings.SaveAll}"/>
-        </StackPanel>
-      </Button>
-    </Grid>
-
-    <Grid Grid.Row="2"
           HorizontalAlignment="Left"
           MaxWidth="{StaticResource SettingsContentMaxWidth}">
       <Grid.ColumnDefinitions>

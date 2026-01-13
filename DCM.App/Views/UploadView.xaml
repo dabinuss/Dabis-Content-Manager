@@ -21,13 +21,8 @@
 
     <!-- HEADER -->
     <StackPanel x:Name="HeaderPanel"
-        Grid.Row="0">
-      <TextBlock Text="{DynamicResource Upload}"
-                 FontSize="{StaticResource FontSizeXL}"
-                 FontWeight="SemiBold"
-                 Foreground="{StaticResource TextPrimaryBrush}"
-                 Margin="0,0,0,16"/>
-    </StackPanel>
+                Grid.Row="0"
+                Visibility="Collapsed"/>
 
     <!-- MULTIUPLOAD + DETAILS CONTAINER -->
     <Border Grid.Row="1"
@@ -41,24 +36,6 @@
                      FontWeight="SemiBold"
                      Foreground="{StaticResource TextPrimaryBrush}"
                      DockPanel.Dock="Left"/>
-          <StackPanel DockPanel.Dock="Right"
-                      Orientation="Horizontal"
-                      HorizontalAlignment="Right">
-            <Button x:Name="AddVideosButton"
-                    Style="{StaticResource SecondaryButton}"
-                    Click="AddVideosButton_Click"
-                    Content="Videos hinzufuegen"
-                    Margin="0,0,8,0"/>
-            <Button x:Name="UploadAllButton"
-                    Style="{StaticResource PrimaryButton}"
-                    Click="UploadAllButton_Click"
-                    Content="Alle hochladen"
-                    Margin="0,0,8,0"/>
-            <Button x:Name="TranscribeAllButton"
-                    Style="{StaticResource AccentButton}"
-                    Click="TranscribeAllButton_Click"
-                    Content="Alle transkribieren"/>
-          </StackPanel>
         </DockPanel>
 
         <ListBox x:Name="UploadItemsListBox"

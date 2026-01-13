@@ -182,6 +182,14 @@
   <sys:String x:Key="Nav.Templates">Vorlagen</sys:String>
   <sys:String x:Key="Nav.History">Verlauf</sys:String>
   <sys:String x:Key="Nav.Settings">Einstellungen</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Home">Start</sys:String>
+  <sys:String x:Key="Page.Context.Upload">Videos hochladen, planen und verwalten.</sys:String>
+  <sys:String x:Key="Page.Context.Accounts">Konten verbinden und Playlists verwalten.</sys:String>
+  <sys:String x:Key="Page.Context.Channel">Kanalprofil und Stilvorgaben pflegen.</sys:String>
+  <sys:String x:Key="Page.Context.Templates">Vorlagen erstellen und bearbeiten.</sys:String>
+  <sys:String x:Key="Page.Context.History">Vergangene Uploads und Status anzeigen.</sys:String>
+  <sys:String x:Key="Page.Context.Settings">App-Optionen und Standardwerte konfigurieren.</sys:String>
+  <sys:String x:Key="Page.Context.LlmSettings">LLM-Modus und Modelle konfigurieren.</sys:String>
 
   <!-- Upload -->
   <sys:String x:Key="Upload">Neuer Upload</sys:String>

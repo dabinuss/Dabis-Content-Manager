@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
+using DCM.App.Events;
 using DCM.Core.Models;
 
 namespace DCM.App;
@@ -132,6 +133,13 @@ public partial class MainWindow
         {
             // Fehler ignorieren
         }
+    }
+
+    private void HistoryClearAction_Click(object sender, RoutedEventArgs e) => OnHistoryClearRequested();
+
+    private void HistoryOpenSelectedAction_Click(object sender, RoutedEventArgs e)
+    {
+        _eventAggregator.Publish(new HistoryEntryOpenRequestedEvent(HistoryPageView?.SelectedEntry));
     }
 
     #endregion
