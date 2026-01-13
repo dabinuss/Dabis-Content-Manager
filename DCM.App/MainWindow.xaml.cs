@@ -1584,63 +1584,52 @@ public partial class MainWindow : Window
 
     private void UpdatePageHeader(int pageIndex)
     {
-        if (PageTitleTextBlock is null || PageContextTextBlock is null || BreadcrumbTextBlock is null)
+        if (PageTitleTextBlock is null || PageContextTextBlock is null)
         {
             return;
         }
 
-        var home = LocalizationHelper.Get("Page.Breadcrumb.Home");
         string title;
         string context;
-        string breadcrumb;
 
         switch (pageIndex)
         {
             case 0:
                 title = LocalizationHelper.Get("Nav.Uploads");
                 context = LocalizationHelper.Get("Page.Context.Upload");
-                breadcrumb = BuildBreadcrumb(home, title);
                 break;
             case 1:
                 title = LocalizationHelper.Get("Nav.Accounts");
                 context = LocalizationHelper.Get("Page.Context.Accounts");
-                breadcrumb = BuildBreadcrumb(home, title);
                 break;
             case 2:
                 title = LocalizationHelper.Get("Nav.Channels");
                 context = LocalizationHelper.Get("Page.Context.Channel");
-                breadcrumb = BuildBreadcrumb(home, title);
                 break;
             case 3:
                 title = LocalizationHelper.Get("Nav.Templates");
                 context = LocalizationHelper.Get("Page.Context.Templates");
-                breadcrumb = BuildBreadcrumb(home, title);
                 break;
             case 4:
                 title = LocalizationHelper.Get("Nav.History");
                 context = LocalizationHelper.Get("Page.Context.History");
-                breadcrumb = BuildBreadcrumb(home, title);
                 break;
             case 5:
                 title = LocalizationHelper.Get("Nav.Settings");
                 context = LocalizationHelper.Get("Page.Context.Settings");
-                breadcrumb = BuildBreadcrumb(home, title);
                 break;
             case 6:
                 title = LocalizationHelper.Get("Settings.LLM");
                 context = LocalizationHelper.Get("Page.Context.LlmSettings");
-                breadcrumb = BuildBreadcrumb(home, LocalizationHelper.Get("Nav.Settings"), title);
                 break;
             default:
                 title = LocalizationHelper.Get("App.Name");
                 context = string.Empty;
-                breadcrumb = home;
                 break;
         }
 
         PageTitleTextBlock.Text = title;
         PageContextTextBlock.Text = context;
-        BreadcrumbTextBlock.Text = breadcrumb;
     }
 
     private void UpdatePageActions(int pageIndex)
@@ -1689,9 +1678,6 @@ public partial class MainWindow : Window
                 break;
         }
     }
-
-    private static string BuildBreadcrumb(params string[] segments) =>
-        string.Join(" / ", segments.Where(segment => !string.IsNullOrWhiteSpace(segment)));
 
     private void YouTubeServiceIcon_Click(object sender, MouseButtonEventArgs e)
     {

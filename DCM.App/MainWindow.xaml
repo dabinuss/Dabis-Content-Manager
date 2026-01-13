@@ -1,9 +1,10 @@
-﻿<Window x:Class="DCM.App.MainWindow"
+<Window x:Class="DCM.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
         xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
         xmlns:views="clr-namespace:DCM.App.Views"
+        xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="{DynamicResource App.WindowTitle}"
         Height="900"
@@ -136,7 +137,7 @@
 
     <Grid>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="220"/>
+        <ColumnDefinition Width="120"/>
         <ColumnDefinition Width="1"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
@@ -165,20 +166,24 @@
           <StackPanel Grid.Row="0"
                       Margin="{StaticResource SidebarPadding}">
             <Image Source="/DCM.App;component/Assets/logo.png"
-                   Width="180"
-                   Height="59"
+                   Width="84"
+                   Height="44"
                    Stretch="Uniform"
                    Margin="{StaticResource SpacingVerticalM}"
                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
             <TextBlock Text="{DynamicResource App.Name}"
-                       FontSize="{StaticResource FontSizeL}"
+                       FontSize="{StaticResource FontSizeM}"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"/>
-            <TextBlock FontSize="{StaticResource FontSizeS}"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"/>
+            <TextBlock FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
-                       Margin="0,2,0,0">
+                       Margin="0,4,0,0"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap">
                         <Run Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}"/>
-                        <Run Text=" · "/>
+                        <LineBreak/>
                         <Hyperlink Click="CheckUpdatesHyperlink_Click">
                             <Run Text="{DynamicResource App.CheckUpdates}"/>
                         </Hyperlink>
@@ -206,14 +211,15 @@
                            IsChecked="True"
                            Checked="NavButton_Checked"
                            Tag="0">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Style="{StaticResource IconXXL}"
                              Text="&#xf09b;"
-                             Margin="0,0,16,0"/>
+                             HorizontalAlignment="Center"/>
                   <TextBlock Text="{DynamicResource Nav.Uploads}"
                              FontWeight="Medium"
-                             FontSize="{StaticResource FontSizeM}"
-                             VerticalAlignment="Center"/>
+                             FontSize="{StaticResource FontSizeXS}"
+                             Margin="0,6,0,0"
+                             HorizontalAlignment="Center"/>
                 </StackPanel>
               </RadioButton>
 
@@ -221,14 +227,15 @@
                            Style="{StaticResource SidebarNavSubButton}"
                            Checked="NavButton_Checked"
                            Tag="4">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Style="{StaticResource IconXXL}"
                              Text="&#xe889;"
-                             Margin="0,0,16,0"/>
+                             HorizontalAlignment="Center"/>
                   <TextBlock Text="{DynamicResource Nav.History}"
                              FontWeight="Medium"
-                             FontSize="{StaticResource FontSizeM}"
-                             VerticalAlignment="Center"/>
+                             FontSize="{StaticResource FontSizeXS}"
+                             Margin="0,6,0,0"
+                             HorizontalAlignment="Center"/>
                 </StackPanel>
               </RadioButton>
 
@@ -240,14 +247,15 @@
                            Style="{StaticResource SidebarNavSubButton}"
                            Checked="NavButton_Checked"
                            Tag="1">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Style="{StaticResource IconXXL}"
                              Text="&#xe1a0;"
-                             Margin="0,0,16,0"/>
+                             HorizontalAlignment="Center"/>
                   <TextBlock Text="{DynamicResource Nav.Accounts}"
                              FontWeight="Medium"
-                             FontSize="{StaticResource FontSizeM}"
-                             VerticalAlignment="Center"/>
+                             FontSize="{StaticResource FontSizeXS}"
+                             Margin="0,6,0,0"
+                             HorizontalAlignment="Center"/>
                 </StackPanel>
               </RadioButton>
 
@@ -255,14 +263,15 @@
                            Style="{StaticResource SidebarNavSubButton}"
                            Checked="NavButton_Checked"
                            Tag="2">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Style="{StaticResource IconXXL}"
                              Text="&#xf8d1;"
-                             Margin="0,0,16,0"/>
+                             HorizontalAlignment="Center"/>
                   <TextBlock Text="{DynamicResource Nav.Channels}"
                              FontWeight="Medium"
-                             FontSize="{StaticResource FontSizeM}"
-                             VerticalAlignment="Center"/>
+                             FontSize="{StaticResource FontSizeXS}"
+                             Margin="0,6,0,0"
+                             HorizontalAlignment="Center"/>
                 </StackPanel>
               </RadioButton>
 
@@ -270,14 +279,15 @@
                            Style="{StaticResource SidebarNavSubButton}"
                            Checked="NavButton_Checked"
                            Tag="3">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Style="{StaticResource IconXXL}"
                              Text="&#xe02f;"
-                             Margin="0,0,16,0"/>
+                             HorizontalAlignment="Center"/>
                   <TextBlock Text="{DynamicResource Nav.Templates}"
                              FontWeight="Medium"
-                             FontSize="{StaticResource FontSizeM}"
-                             VerticalAlignment="Center"/>
+                             FontSize="{StaticResource FontSizeXS}"
+                             Margin="0,6,0,0"
+                             HorizontalAlignment="Center"/>
                 </StackPanel>
               </RadioButton>
 
@@ -289,14 +299,15 @@
                            Style="{StaticResource SidebarNavSubButton}"
                            Checked="NavButton_Checked"
                            Tag="5">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Style="{StaticResource IconXXL}"
                              Text="&#xe8b8;"
-                             Margin="0,0,16,0"/>
+                             HorizontalAlignment="Center"/>
                   <TextBlock Text="{DynamicResource Nav.Settings}"
                              FontWeight="Medium"
-                             FontSize="{StaticResource FontSizeM}"
-                             VerticalAlignment="Center"/>
+                             FontSize="{StaticResource FontSizeXS}"
+                             Margin="0,6,0,0"
+                             HorizontalAlignment="Center"/>
                 </StackPanel>
               </RadioButton>
 
@@ -304,14 +315,15 @@
                            Style="{StaticResource SidebarNavSubButton}"
                            Checked="NavButton_Checked"
                            Tag="6">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Style="{StaticResource IconXXL}"
                              Text="&#xe86f;"
-                             Margin="0,0,16,0"/>
+                             HorizontalAlignment="Center"/>
                   <TextBlock Text="{DynamicResource Settings.LLM}"
                              FontWeight="Medium"
-                             FontSize="{StaticResource FontSizeM}"
-                             VerticalAlignment="Center"/>
+                             FontSize="{StaticResource FontSizeXS}"
+                             Margin="0,6,0,0"
+                             HorizontalAlignment="Center"/>
                 </StackPanel>
               </RadioButton>
 
@@ -474,26 +486,14 @@
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,0,0,1"
                 Padding="16,8">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <TextBlock x:Name="BreadcrumbTextBlock"
-                       Style="{StaticResource PageBreadcrumbStyle}"
-                       Text="Home"/>
-
-            <StackPanel Grid.Row="1"
-                        Margin="0,4,0,0">
-              <TextBlock x:Name="PageTitleTextBlock"
-                         Style="{StaticResource PageTitleStyle}"
-                         Text="{DynamicResource Nav.Uploads}"/>
-              <TextBlock x:Name="PageContextTextBlock"
-                         Style="{StaticResource PageContextStyle}"
-                         Text=""/>
-            </StackPanel>
-          </Grid>
+          <StackPanel>
+            <TextBlock x:Name="PageTitleTextBlock"
+                       Style="{StaticResource PageTitleStyle}"
+                       Text="{DynamicResource Nav.Uploads}"/>
+            <TextBlock x:Name="PageContextTextBlock"
+                       Style="{StaticResource PageContextStyle}"
+                       Text=""/>
+          </StackPanel>
         </Border>
 
         <!-- Page Actions -->
@@ -509,20 +509,21 @@
               <Button x:Name="AddVideosActionButton"
                       Content="Videos hinzufuegen"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe145;"
                       Click="AddVideosButton_Click"
-                      MinWidth="120"
                       Margin="0,0,8,0"/>
               <Button x:Name="UploadAllActionButton"
                       Content="Alle hochladen"
                       Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xeb9b;"
                       Click="UploadAllButton_Click"
-                      MinWidth="120"
                       Margin="0,0,8,0"/>
               <Button x:Name="TranscribeAllActionButton"
                       Content="Alle transkribieren"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe048;"
                       Click="TranscribeAllButton_Click"
-                      MinWidth="140"/>
+                      />
             </StackPanel>
 
             <StackPanel x:Name="PageActionsAccounts"
@@ -530,13 +531,14 @@
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Accounts.YouTube.Connect}"
                       Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe157;"
                       Click="YouTubeConnectButton_Click"
-                      MinWidth="140"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Accounts.YouTube.Disconnect}"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe16f;"
                       Click="YouTubeDisconnectButton_Click"
-                      MinWidth="140"/>
+                      />
             </StackPanel>
 
             <StackPanel x:Name="PageActionsChannel"
@@ -544,8 +546,9 @@
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Common.Save}"
                       Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
                       Click="ChannelProfileSaveButton_Click"
-                      MinWidth="120"/>
+                      />
             </StackPanel>
 
             <StackPanel x:Name="PageActionsTemplates"
@@ -553,23 +556,24 @@
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Common.Add}"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe145;"
                       Click="TemplateNewButton_Click"
-                      MinWidth="110"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Edit}"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe3c9;"
                       Click="TemplateEditButton_Click"
-                      MinWidth="110"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Delete}"
                       Style="{StaticResource DangerButton}"
+                      ap:ButtonIcon.Glyph="&#xe872;"
                       Click="TemplateDeleteButton_Click"
-                      MinWidth="110"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Save}"
                       Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
                       Click="TemplateSaveButton_Click"
-                      MinWidth="120"/>
+                      />
             </StackPanel>
 
             <StackPanel x:Name="PageActionsHistory"
@@ -577,13 +581,14 @@
                         Visibility="Collapsed">
               <Button Content="{DynamicResource History.ClearList}"
                       Style="{StaticResource DangerButton}"
+                      ap:ButtonIcon.Glyph="&#xe872;"
                       Click="HistoryClearAction_Click"
-                      MinWidth="140"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Open}"
                       Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe89e;"
                       Click="HistoryOpenSelectedAction_Click"
-                      MinWidth="140"/>
+                      />
             </StackPanel>
 
             <StackPanel x:Name="PageActionsGeneralSettings"
@@ -591,8 +596,9 @@
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Settings.SaveAll}"
                       Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
                       Click="SettingsSaveButton_Click"
-                      MinWidth="140"/>
+                      />
             </StackPanel>
 
             <StackPanel x:Name="PageActionsLlmSettings"
@@ -600,8 +606,9 @@
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Settings.SaveAll}"
                       Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
                       Click="SettingsSaveButton_Click"
-                      MinWidth="140"/>
+                      />
             </StackPanel>
           </Grid>
         </Border>
@@ -661,3 +668,5 @@
     </Grid>
   </Border>
 </Window>
+
+

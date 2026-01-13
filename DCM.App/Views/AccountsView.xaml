@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
-             xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
+             xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
+             xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <Grid Margin="0,0,8,0">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -169,6 +170,14 @@
                              Foreground="{StaticResource TextMutedBrush}"
                              FontSize="{StaticResource FontSizeS}"/>
                 </Grid>
+
+                <Button Grid.Column="2"
+                        Content="{DynamicResource Accounts.YouTube.Connect}"
+                        Style="{StaticResource PrimaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe157;"
+                        Click="YouTubeConnectButton_Click"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"/>
 
               </Grid>
 

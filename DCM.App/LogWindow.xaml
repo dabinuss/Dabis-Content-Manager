@@ -1,6 +1,7 @@
 <Window x:Class="DCM.App.LogWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties"
         Title="Anwendungs-Log"
         Height="500"
         Width="800"
@@ -163,17 +164,20 @@
             DockPanel.Dock="Left">
           <Button x:Name="ClearButton"
                   Content="Leeren"
+                  ap:ButtonIcon.Glyph="&#xe872;"
                   Click="ClearButton_Click"
                   Style="{StaticResource SecondaryButton}"
                   Margin="0,0,8,0"/>
           <Button x:Name="OpenLogFileButton"
                   Content="Log-Datei oeffnen"
+                  ap:ButtonIcon.Glyph="&#xe89e;"
                   Click="OpenLogFileButton_Click"
                   Style="{StaticResource SecondaryButton}"/>
         </StackPanel>
 
         <Button x:Name="CloseButton"
                 Content="Schliessen"
+                ap:ButtonIcon.Glyph="&#xe5cd;"
                 Click="CloseButton_Click"
                 DockPanel.Dock="Right"
                 HorizontalAlignment="Right"

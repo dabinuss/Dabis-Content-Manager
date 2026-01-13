@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using DCM.Core.Models;
@@ -64,4 +65,18 @@ public partial class HistoryView : UserControl
 
     private void OpenUrlInBrowser(object sender, RequestNavigateEventArgs e) =>
         OpenUrlInBrowserRequested?.Invoke(sender, e);
+
+    private void HistoryResetFilters_Click(object sender, RoutedEventArgs e)
+    {
+        if (HistoryPlatformFilterComboBox is null || HistoryStatusFilterComboBox is null)
+        {
+            return;
+        }
+
+        HistoryPlatformFilterComboBox.SelectedIndex = 0;
+        HistoryStatusFilterComboBox.SelectedIndex = 0;
+
+        HistoryFilterChanged?.Invoke(this,
+            new SelectionChangedEventArgs(Selector.SelectionChangedEvent, new List<object>(), new List<object>()));
+    }
 }

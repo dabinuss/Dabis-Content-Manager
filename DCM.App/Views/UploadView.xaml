@@ -4,7 +4,8 @@
              xmlns:models="clr-namespace:DCM.App.Models"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
-             xmlns:conv="clr-namespace:DCM.App.Infrastructure.Converters">
+             xmlns:conv="clr-namespace:DCM.App.Infrastructure.Converters"
+             xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <UserControl.Resources>
     <conv:HeightToWidthConverter x:Key="HeightToWidth16x9"
                                  Ratio="1.7777777777777777"/>
@@ -107,6 +108,7 @@
                                 HorizontalAlignment="Right">
                       <Button Content="{DynamicResource Common.Remove}"
                               Style="{StaticResource SecondaryButton}"
+                              ap:ButtonIcon.Glyph="&#xe872;"
                               Tag="{Binding}"
                               Click="RemoveDraftButton_Click"
                               Margin="8,0,0,0"
@@ -114,6 +116,7 @@
                       <Button Content="{DynamicResource Upload.Upload.Cancel}"
                               Tag="{Binding}"
                               Click="CancelDraftUploadButton_Click"
+                              ap:ButtonIcon.Glyph="&#xe5c9;"
                               Margin="8,0,0,0"
                               Padding="8,2">
                         <Button.Style>
@@ -254,11 +257,13 @@
                         </StackPanel.Style>
                         <Button Content="{DynamicResource Upload.Transcription.Queue.Prioritize}"
                                 Style="{StaticResource SecondaryButton}"
+                                ap:ButtonIcon.Glyph="&#xe5d8;"
                                 Tag="{Binding}"
                                 Click="TranscriptionQueuePrioritizeButton_Click"
                                 Padding="8,2"/>
                         <Button Content="{DynamicResource Upload.Transcription.Queue.Skip}"
                                 Style="{StaticResource SecondaryButton}"
+                                ap:ButtonIcon.Glyph="&#xe5cb;"
                                 Tag="{Binding}"
                                 Click="TranscriptionQueueSkipButton_Click"
                                 Padding="8,2"
@@ -322,11 +327,21 @@
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Center"
                        Margin="0,8,0,0"/>
+            <TextBlock Text="Datei auswaehlen oder hierher ziehen."
+                       FontSize="{StaticResource FontSizeS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,8,0,0"/>
+            <Button Content="Datei auswaehlen"
+                    Style="{StaticResource PrimaryButton}"
+                    ap:ButtonIcon.Glyph="&#xe2c6;"
+                    PreviewMouseLeftButtonDown="VideoDropZone_Click"
+                    Margin="0,12,0,0"/>
             <TextBlock Text="{DynamicResource Upload.DropVideo.AllowedFiles}"
                        FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Center"
-                       Margin="0,8,0,0"/>
+                       Margin="0,12,0,0"/>
           </StackPanel>
         </Grid>
 
@@ -511,21 +526,16 @@
             <Button x:Name="VideoChangeButton"
                     Content="{DynamicResource Common.Change}"
                     Style="{StaticResource SecondaryButton}"
+                    ap:ButtonIcon.Glyph="&#xe3c9;"
                     Click="VideoChangeButton_Click"
-                    MinWidth="140"
                     Margin="0,8,0,8"/>
             <Button x:Name="UploadButton"
                     Style="{StaticResource SecondaryButton}"
                     Click="UploadButton_Click"
                     IsEnabled="False"
-                    MinWidth="140"
-                    Padding="8,8">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconXL}"
-                           Text="&#xeb9b;"/>
-                <TextBlock Text="{DynamicResource Upload.StartUpload}"/>
-              </StackPanel>
-            </Button>
+                    Padding="8,8"
+                    ap:ButtonIcon.Glyph="&#xeb9b;"
+                    Content="{DynamicResource Upload.StartUpload}"/>
           </StackPanel>
         </Grid>
       </Grid>
@@ -598,16 +608,11 @@
                       Grid.Row="4"
                       Grid.Column="0"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe663;"
+                      Content="{DynamicResource Upload.Fields.Suggest}"
                       Click="GenerateTitleButton_Click"
                       ToolTip="KI-Vorschlag generieren"
-                      BorderBrush="{StaticResource MagicAIGradientBrush}">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
-                             Foreground="{StaticResource MagicAIGradientBrush}"
-                             Text="&#xe663;"/>
-                  <TextBlock Text="{DynamicResource Upload.Fields.Suggest}"/>
-                </StackPanel>
-              </Button>
+                      BorderBrush="{StaticResource MagicAIGradientBrush}"/>
           </Grid>
         </GroupBox>
 
@@ -641,28 +646,24 @@
                 <Button x:Name="GenerateDescriptionButton"
                         Grid.Column="0"
                         Style="{StaticResource SecondaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe663;"
+                        Content="{DynamicResource Upload.Fields.Suggest}"
                         Click="GenerateDescriptionButton_Click"
                         ToolTip="KI-Vorschlag generieren"
-                        BorderBrush="{StaticResource MagicAIGradientBrush}">
-                  <StackPanel Orientation="Horizontal">
-                    <TextBlock Style="{StaticResource IconL}"
-                               Foreground="{StaticResource MagicAIGradientBrush}"
-                               Text="&#xe663;"/>
-                    <TextBlock Text="{DynamicResource Upload.Fields.Suggest}"/>
-                  </StackPanel>
-                </Button>
+                        BorderBrush="{StaticResource MagicAIGradientBrush}"/>
                 <ComboBox x:Name="TemplateComboBox"
                           Grid.Column="1"
                           DisplayMemberPath="Name"
                           ToolTip="Template fuer die Beschreibung"
                           SelectionChanged="TemplateComboBox_SelectionChanged"
                           Margin="0,0,8,0"/>
-                <Button x:Name="ApplyTemplateButton"
-                        Grid.Column="2"
-                        Content="{DynamicResource Common.Apply}"
-                        Style="{StaticResource SecondaryButton}"
-                        Click="ApplyTemplateButton_Click"
-                        Margin="0,0,8,0"/>
+              <Button x:Name="ApplyTemplateButton"
+                      Grid.Column="2"
+                      Content="{DynamicResource Common.Apply}"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe5ca;"
+                      Click="ApplyTemplateButton_Click"
+                      Margin="0,0,8,0"/>
               </Grid>
           </Grid>
         </GroupBox>
@@ -694,16 +695,11 @@
                       Grid.Row="2"
                       Grid.Column="0"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe663;"
+                      Content="{DynamicResource Upload.Fields.Suggest}"
                       Click="GenerateTagsButton_Click"
                       ToolTip="KI-Vorschlag generieren"
-                      BorderBrush="{StaticResource MagicAIGradientBrush}">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Style="{StaticResource IconL}"
-                             Foreground="{StaticResource MagicAIGradientBrush}"
-                             Text="&#xe663;"/>
-                  <TextBlock Text="{DynamicResource Upload.Fields.Suggest}"/>
-                </StackPanel>
-              </Button>
+                      BorderBrush="{StaticResource MagicAIGradientBrush}"/>
           </Grid>
         </GroupBox>
 
@@ -761,28 +757,18 @@
                     <Style TargetType="Button"
                            BasedOn="{StaticResource SecondaryButton}">
                       <!-- Default State -->
-                      <Setter Property="Content">
-                        <Setter.Value>
-                          <StackPanel Orientation="Horizontal">
-                            <TextBlock Style="{StaticResource IconL}"
-                                       Text="&#xe048;"/>
-                            <TextBlock Text="{DynamicResource Upload.Fields.Transcripe}"/>
-                          </StackPanel>
-                        </Setter.Value>
-                      </Setter>
+                      <Setter Property="Content"
+                              Value="{DynamicResource Upload.Fields.Transcripe}"/>
+                      <Setter Property="ap:ButtonIcon.Glyph"
+                              Value="&#xe048;"/>
                       <!-- Active State -->
                       <Style.Triggers>
                         <Trigger Property="Tag"
                                  Value="active">
-                          <Setter Property="Content">
-                            <Setter.Value>
-                              <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource IconL}"
-                                           Text="&#xe5c9;"/>
-                                <TextBlock Text="{DynamicResource Common.Cancel}"/>
-                              </StackPanel>
-                            </Setter.Value>
-                          </Setter>
+                          <Setter Property="Content"
+                                  Value="{DynamicResource Common.Cancel}"/>
+                          <Setter Property="ap:ButtonIcon.Glyph"
+                                  Value="&#xe5c9;"/>
                         </Trigger>
                       </Style.Triggers>
                     </Style>
@@ -793,13 +779,11 @@
                         Grid.Row="0"
                         Grid.Column="1"
                         Style="{StaticResource SecondaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe2c4;"
                         Click="TranscriptionExportButton_Click"
                         ToolTip="Transkript als Textdatei exportieren"
-                        Margin="8,0,0,0">
-                  <TextBlock Style="{StaticResource IconXL}"
-                             Text="&#xe168;"
-                             Margin="0"/>
-                </Button>
+                        Margin="8,0,0,0"
+                        Content="{DynamicResource Common.Export}"/>
 
                 <ProgressBar x:Name="TranscriptionProgressBar"
                              Grid.Row="0"
@@ -982,6 +966,7 @@
               <Button x:Name="ThumbnailClearButton"
                       Content="{DynamicResource Common.Remove}"
                       Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe872;"
                       Click="ThumbnailClearButton_Click"
                       Padding="8,8"
                       FontSize="{StaticResource FontSizeS}"/>
@@ -1133,6 +1118,7 @@
                     <DataTemplate>
                       <Button Style="{StaticResource SuggestionItemButtonStyle}"
                               Margin="0,0,0,8"
+                              ap:ButtonIcon.Glyph="&#xe8f4;"
                               Click="SuggestionItemButton_Click"
                               HorizontalAlignment="Stretch">
                         <TextBlock Text="{Binding}"

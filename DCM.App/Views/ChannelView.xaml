@@ -42,6 +42,8 @@
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0"
                    Text="{DynamicResource Channel.Fields.Name}"
@@ -49,13 +51,23 @@
                    Margin="0,0,0,8"/>
         <TextBox Grid.Row="1"
                  x:Name="ChannelPersonaNameTextBox"
-                 Margin="0,0,0,8"/>
+                 Margin="0,0,0,4"/>
         <TextBlock Grid.Row="2"
+                   Text="z. B. Dabis"
+                   FontSize="{StaticResource FontSizeXS}"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="3"
                    Text="{DynamicResource Channel.Fields.ChannelName}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox Grid.Row="3"
-                 x:Name="ChannelPersonaChannelNameTextBox"/>
+        <TextBox Grid.Row="4"
+                 x:Name="ChannelPersonaChannelNameTextBox"
+                 Margin="0,0,0,4"/>
+        <TextBlock Grid.Row="5"
+                   Text="z. B. DabisContent"
+                   FontSize="{StaticResource FontSizeXS}"
+                   Foreground="{StaticResource TextMutedBrush}"/>
       </Grid>
     </GroupBox>
 
@@ -65,6 +77,10 @@
               Header="{DynamicResource Channel.Persona.Style}">
       <Grid Margin="8">
         <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
@@ -85,30 +101,50 @@
                   StaysOpenOnEdit="True"
                   MinWidth="200"
                   ToolTip="z. B. de-DE oder deutsch"
-                  Margin="0,0,0,8"/>
+                  Margin="0,0,0,4"/>
         <TextBlock Grid.Row="2"
+                   Text="z. B. de-DE oder deutsch"
+                   FontSize="{StaticResource FontSizeXS}"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="3"
                    Text="{DynamicResource Channel.Fields.ToneOfWords}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox Grid.Row="3"
+        <TextBox Grid.Row="4"
                  x:Name="ChannelPersonaToneOfVoiceTextBox"
                  ToolTip="z. B. locker, sarkastisch, informativ"
-                 Margin="0,0,0,8"/>
-        <TextBlock Grid.Row="4"
+                 Margin="0,0,0,4"/>
+        <TextBlock Grid.Row="5"
+                   Text="z. B. locker, sachlich, informativ"
+                   FontSize="{StaticResource FontSizeXS}"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="6"
                    Text="{DynamicResource Channel.Fields.ContentType}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox Grid.Row="5"
+        <TextBox Grid.Row="7"
                  x:Name="ChannelPersonaContentTypeTextBox"
                  ToolTip="z. B. Gaming Highlights, IRL, Tutorials"
-                 Margin="0,0,0,8"/>
-        <TextBlock Grid.Row="6"
+                 Margin="0,0,0,4"/>
+        <TextBlock Grid.Row="8"
+                   Text="z. B. Gaming Highlights, Tutorials"
+                   FontSize="{StaticResource FontSizeXS}"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="9"
                    Text="{DynamicResource Channel.Fields.TargetAudience}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox Grid.Row="7"
+        <TextBox Grid.Row="10"
                  x:Name="ChannelPersonaTargetAudienceTextBox"
-                 ToolTip="z. B. Casual Gamer 18-34"/>
+                 ToolTip="z. B. Casual Gamer 18-34"
+                 Margin="0,0,0,4"/>
+        <TextBlock Grid.Row="11"
+                   Text="z. B. Casual Gamer 18-34"
+                   FontSize="{StaticResource FontSizeXS}"
+                   Foreground="{StaticResource TextMutedBrush}"/>
       </Grid>
     </GroupBox>
 

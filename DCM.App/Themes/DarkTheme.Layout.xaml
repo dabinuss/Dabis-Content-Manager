@@ -41,9 +41,9 @@
   <Thickness x:Key="SpacingVerticalXL">0,16</Thickness>
 
   <!-- Sidebar Spacing -->
-  <Thickness x:Key="SidebarPadding">16,20,16,20</Thickness>
-  <Thickness x:Key="SidebarItemMargin">6,0</Thickness>
-  <Thickness x:Key="SidebarItemPadding">14,10</Thickness>
+  <Thickness x:Key="SidebarPadding">12,16,12,16</Thickness>
+  <Thickness x:Key="SidebarItemMargin">6,6</Thickness>
+  <Thickness x:Key="SidebarItemPadding">6,10</Thickness>
 
   <!-- Content Spacing -->
   <Thickness x:Key="ContentPadding">16</Thickness>

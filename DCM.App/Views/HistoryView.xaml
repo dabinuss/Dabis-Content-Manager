@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
-             xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
+             xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
+             xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -29,6 +30,8 @@
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="{StaticResource SpacingM}"/>
           <ColumnDefinition Width="120"/>
+          <ColumnDefinition Width="{StaticResource SpacingL}"/>
+          <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Column="0"
                Content="{DynamicResource Platform}"
@@ -55,6 +58,19 @@
           <ComboBoxItem Content="{DynamicResource History.Error}"
                         Tag="Error"/>
         </ComboBox>
+
+        <Button Grid.Column="8"
+                Content="Filter zuruecksetzen"
+                Click="HistoryResetFilters_Click"
+                ap:ButtonIcon.Glyph="&#xe5d5;"
+                Style="{StaticResource SecondaryButton}"
+                Background="Transparent"
+                BorderThickness="0"
+                Padding="0"
+                FontSize="{StaticResource FontSizeS}"
+                Foreground="{StaticResource PrimaryBrush}"
+                Cursor="Hand"
+                VerticalAlignment="Center"/>
 
       </Grid>
     </Border>
@@ -96,11 +112,12 @@
                                   Width="180">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <TextBlock TextTrimming="CharacterEllipsis">
-                                                <Hyperlink NavigateUri="{Binding VideoUrl}"
-                                                           RequestNavigate="OpenUrlInBrowser">
-                                                    <Run Text="{Binding VideoUrl}"/>
-                                                </Hyperlink>
+                <TextBlock TextTrimming="CharacterEllipsis"
+                           ToolTip="{Binding VideoUrl}">
+                  <Hyperlink NavigateUri="{Binding VideoUrl}"
+                             RequestNavigate="OpenUrlInBrowser">
+                    <Run Text="{DynamicResource Common.Open}"/>
+                  </Hyperlink>
                 </TextBlock>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>

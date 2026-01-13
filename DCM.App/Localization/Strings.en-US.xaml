@@ -171,6 +171,7 @@
   <sys:String x:Key="Common.Upload">Upload</sys:String>
   <sys:String x:Key="Common.Download">Download</sys:String>
   <sys:String x:Key="Common.Open">Open</sys:String>
+  <sys:String x:Key="Common.Export">Export</sys:String>
   <sys:String x:Key="Common.YesToAll">Yes to All</sys:String>
   <sys:String x:Key="Common.NoToAll">No to All</sys:String>
   <sys:String x:Key="Common.Unknown">Unknown</sys:String>

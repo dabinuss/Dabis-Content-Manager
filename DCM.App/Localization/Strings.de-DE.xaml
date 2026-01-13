@@ -171,6 +171,7 @@
   <sys:String x:Key="Common.Upload">Hochladen</sys:String>
   <sys:String x:Key="Common.Download">Herunterladen</sys:String>
   <sys:String x:Key="Common.Open">Öffnen</sys:String>
+  <sys:String x:Key="Common.Export">Exportieren</sys:String>
   <sys:String x:Key="Common.YesToAll">Ja, für alle</sys:String>
   <sys:String x:Key="Common.NoToAll">Nein, für alle</sys:String>
   <sys:String x:Key="Common.Unknown">Unbekannt</sys:String>
