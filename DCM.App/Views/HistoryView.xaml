@@ -20,12 +20,21 @@
     <Border Grid.Row="1"
             Style="{StaticResource SurfaceCard}"
             Padding="{StaticResource SpacingAllM}">
-      <StackPanel Orientation="Horizontal">
-        <Label Content="{DynamicResource Platform}"
-               Margin="0,0,8,0"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="{StaticResource SpacingM}"/>
+          <ColumnDefinition Width="120"/>
+          <ColumnDefinition Width="{StaticResource SpacingL}"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="{StaticResource SpacingM}"/>
+          <ColumnDefinition Width="120"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Column="0"
+               Content="{DynamicResource Platform}"
+               VerticalAlignment="Center"/>
         <ComboBox x:Name="HistoryPlatformFilterComboBox"
-                  Width="120"
-                  Margin="{StaticResource SpacingHorizontalL}"
+                  Grid.Column="2"
                   SelectionChanged="HistoryFilter_Changed">
           <ComboBoxItem Content="{DynamicResource Common.All}"
                         IsSelected="True"/>
@@ -33,11 +42,11 @@
                         Tag="{x:Static core:PlatformType.YouTube}"/>
         </ComboBox>
 
-        <Label Content="{DynamicResource History.Filter.Status}"
-               Margin="0,0,8,0"/>
+        <Label Grid.Column="4"
+               Content="{DynamicResource History.Filter.Status}"
+               VerticalAlignment="Center"/>
         <ComboBox x:Name="HistoryStatusFilterComboBox"
-                  Width="120"
-                  Margin="{StaticResource SpacingHorizontalL}"
+                  Grid.Column="6"
                   SelectionChanged="HistoryFilter_Changed">
           <ComboBoxItem Content="{DynamicResource History.Filter.All}"
                         IsSelected="True"/>
@@ -47,7 +56,7 @@
                         Tag="Error"/>
         </ComboBox>
 
-      </StackPanel>
+      </Grid>
     </Border>
 
     <TextBlock Grid.Row="3"

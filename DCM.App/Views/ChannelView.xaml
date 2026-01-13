@@ -36,62 +36,80 @@
     <GroupBox Grid.Row="0"
               Grid.Column="0"
               Header="{DynamicResource Channel.Persona.Profile}">
-      <StackPanel Margin="8">
-        <!-- Name -->
-        <TextBlock Text="{DynamicResource Channel.Fields.Name}"
+      <Grid Margin="8">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0"
+                   Text="{DynamicResource Channel.Fields.Name}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox x:Name="ChannelPersonaNameTextBox"
+        <TextBox Grid.Row="1"
+                 x:Name="ChannelPersonaNameTextBox"
                  Margin="0,0,0,8"/>
-
-        <!-- Kanalname -->
-        <TextBlock Text="{DynamicResource Channel.Fields.ChannelName}"
+        <TextBlock Grid.Row="2"
+                   Text="{DynamicResource Channel.Fields.ChannelName}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox x:Name="ChannelPersonaChannelNameTextBox"/>
-      </StackPanel>
+        <TextBox Grid.Row="3"
+                 x:Name="ChannelPersonaChannelNameTextBox"/>
+      </Grid>
     </GroupBox>
 
     <!-- BOX 2: Sprache & Stil (rechts) -->
     <GroupBox Grid.Row="0"
               Grid.Column="2"
               Header="{DynamicResource Channel.Persona.Style}">
-      <StackPanel Margin="8">
-        <!-- Sprache -->
-        <TextBlock Text="{DynamicResource Channel.Fields.Language}"
+      <Grid Margin="8">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0"
+                   Text="{DynamicResource Channel.Fields.Language}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <ComboBox x:Name="ChannelPersonaLanguageTextBox"
+        <ComboBox Grid.Row="1"
+                  x:Name="ChannelPersonaLanguageTextBox"
                   IsEditable="True"
                   IsTextSearchEnabled="True"
                   StaysOpenOnEdit="True"
                   MinWidth="200"
                   ToolTip="z. B. de-DE oder deutsch"
                   Margin="0,0,0,8"/>
-
-        <!-- Tonfall -->
-        <TextBlock Text="{DynamicResource Channel.Fields.ToneOfWords}"
+        <TextBlock Grid.Row="2"
+                   Text="{DynamicResource Channel.Fields.ToneOfWords}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox x:Name="ChannelPersonaToneOfVoiceTextBox"
+        <TextBox Grid.Row="3"
+                 x:Name="ChannelPersonaToneOfVoiceTextBox"
                  ToolTip="z. B. locker, sarkastisch, informativ"
                  Margin="0,0,0,8"/>
-
-        <!-- Content-Typ -->
-        <TextBlock Text="{DynamicResource Channel.Fields.ContentType}"
+        <TextBlock Grid.Row="4"
+                   Text="{DynamicResource Channel.Fields.ContentType}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox x:Name="ChannelPersonaContentTypeTextBox"
+        <TextBox Grid.Row="5"
+                 x:Name="ChannelPersonaContentTypeTextBox"
                  ToolTip="z. B. Gaming Highlights, IRL, Tutorials"
                  Margin="0,0,0,8"/>
-
-        <!-- Zielgruppe -->
-        <TextBlock Text="{DynamicResource Channel.Fields.TargetAudience}"
+        <TextBlock Grid.Row="6"
+                   Text="{DynamicResource Channel.Fields.TargetAudience}"
                    Style="{StaticResource TextLabel}"
                    Margin="0,0,0,8"/>
-        <TextBox x:Name="ChannelPersonaTargetAudienceTextBox"
+        <TextBox Grid.Row="7"
+                 x:Name="ChannelPersonaTargetAudienceTextBox"
                  ToolTip="z. B. Casual Gamer 18-34"/>
-      </StackPanel>
+      </Grid>
     </GroupBox>
 
     <!-- BOX 3: Zusätzliche Hinweise (unten, volle Breite) -->
@@ -99,18 +117,23 @@
               Grid.Column="0"
               Grid.ColumnSpan="3"
               Header="{DynamicResource Channel.Persona.Additional}">
-      <StackPanel Margin="8">
-        <TextBlock Text="{DynamicResource Channel.Fields.AdditionalInstructions}"
+      <Grid Margin="8">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0"
+                   Text="{DynamicResource Channel.Fields.AdditionalInstructions}"
                    Foreground="{StaticResource TextMutedBrush}"
                    FontSize="{StaticResource FontSizeM}"/>
-        <TextBox x:Name="ChannelPersonaAdditionalInstructionsTextBox"
+        <TextBox Grid.Row="1"
+                 x:Name="ChannelPersonaAdditionalInstructionsTextBox"
                  Margin="0,8,0,0"
                  AcceptsReturn="True"
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Auto"
                  Height="80"/>
-
-      </StackPanel>
+      </Grid>
     </GroupBox>
 
   </Grid>

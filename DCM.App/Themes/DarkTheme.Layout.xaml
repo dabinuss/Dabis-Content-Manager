@@ -16,29 +16,29 @@
   <GridLength x:Key="SpacingXS">2</GridLength>
   <GridLength x:Key="SpacingS">4</GridLength>
   <GridLength x:Key="SpacingM">8</GridLength>
-  <GridLength x:Key="SpacingL">16</GridLength>
-  <GridLength x:Key="SpacingXL">24</GridLength>
+  <GridLength x:Key="SpacingL">12</GridLength>
+  <GridLength x:Key="SpacingXL">16</GridLength>
   <GridLength x:Key="SpacingXXL">24</GridLength>
 
   <!-- Thickness presets for common margin/padding combinations -->
   <Thickness x:Key="SpacingAllXS">2</Thickness>
   <Thickness x:Key="SpacingAllS">4</Thickness>
   <Thickness x:Key="SpacingAllM">8</Thickness>
-  <Thickness x:Key="SpacingAllL">16</Thickness>
-  <Thickness x:Key="SpacingAllXL">24</Thickness>
+  <Thickness x:Key="SpacingAllL">12</Thickness>
+  <Thickness x:Key="SpacingAllXL">16</Thickness>
   <Thickness x:Key="SpacingAllXXL">24</Thickness>
 
   <!-- Horizontale Spacing -->
   <Thickness x:Key="SpacingHorizontalS">4,0</Thickness>
   <Thickness x:Key="SpacingHorizontalM">8,0</Thickness>
-  <Thickness x:Key="SpacingHorizontalL">16,0</Thickness>
-  <Thickness x:Key="SpacingHorizontalXL">24,0</Thickness>
+  <Thickness x:Key="SpacingHorizontalL">12,0</Thickness>
+  <Thickness x:Key="SpacingHorizontalXL">16,0</Thickness>
 
   <!-- Vertikale Spacing -->
   <Thickness x:Key="SpacingVerticalS">0,4</Thickness>
   <Thickness x:Key="SpacingVerticalM">0,8</Thickness>
-  <Thickness x:Key="SpacingVerticalL">0,16</Thickness>
-  <Thickness x:Key="SpacingVerticalXL">0,24</Thickness>
+  <Thickness x:Key="SpacingVerticalL">0,12</Thickness>
+  <Thickness x:Key="SpacingVerticalXL">0,16</Thickness>
 
   <!-- Sidebar Spacing -->
   <Thickness x:Key="SidebarPadding">16,20,16,20</Thickness>

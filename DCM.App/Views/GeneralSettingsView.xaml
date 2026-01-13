@@ -19,24 +19,38 @@
                           MinWidth="{StaticResource SettingsColumnMinWidth}"/>
       </Grid.ColumnDefinitions>
 
-      <StackPanel Grid.Column="0"
-                  Style="{StaticResource SettingsColumnStackStyle}">
-        <GroupBox Style="{StaticResource SettingsSectionGroupBox}"
+      <Grid Grid.Column="0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <GroupBox Grid.Row="0"
+                  Style="{StaticResource SettingsSectionGroupBox}"
                   Header="{DynamicResource Settings.Language}">
-          <StackPanel>
-            <ComboBox x:Name="LanguageComboBox"
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <ComboBox Grid.Row="0"
+                      x:Name="LanguageComboBox"
                       MinWidth="200"
                       SelectionChanged="LanguageComboBox_SelectionChanged"/>
-            <TextBlock Text="{DynamicResource Settings.Language.Restart.Hint}"
+            <TextBlock Grid.Row="1"
+                       Text="{DynamicResource Settings.Language.Restart.Hint}"
                        FontSize="{StaticResource FontSizeS}"
                        Foreground="{StaticResource TextMutedBrush}"
                        Margin="0,8,0,0"/>
-          </StackPanel>
+          </Grid>
         </GroupBox>
 
-        <GroupBox Style="{StaticResource SettingsSectionGroupBox}"
+        <GroupBox Grid.Row="2"
+                  Style="{StaticResource SettingsSectionGroupBox}"
                   Header="{DynamicResource Settings.Theme}">
-          <StackPanel>
+          <Grid>
             <ComboBox x:Name="ThemeComboBox"
                       MinWidth="200"
                       SelectionChanged="ThemeComboBox_SelectionChanged">
@@ -44,64 +58,107 @@
                             Tag="Dark"
                             IsSelected="True"/>
             </ComboBox>
-          </StackPanel>
+          </Grid>
         </GroupBox>
 
-        <GroupBox Style="{StaticResource SettingsSectionGroupBox}"
+        <GroupBox Grid.Row="4"
+                  Style="{StaticResource SettingsSectionGroupBox}"
                   Header="{DynamicResource Settings.StandardFolders}">
-          <StackPanel>
-            <StackPanel>
-              <TextBlock Text="{DynamicResource Settings.VideoFolder}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"/>
-              <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="DefaultVideoFolderTextBox"
-                         Width="260"/>
-                <Button x:Name="DefaultVideoFolderBrowseButton"
-                        Content="{DynamicResource Settings.ChoosePath}"
-                        Style="{StaticResource SecondaryButton}"
-                        Margin="8,0,0,0"
-                        Click="DefaultVideoFolderBrowseButton_Click"/>
-              </StackPanel>
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource Settings.VideoFolder}"
+                       FontSize="{StaticResource FontSizeS}"
+                       Foreground="{StaticResource TextMutedBrush}"/>
+            <Grid Grid.Row="1">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBox x:Name="DefaultVideoFolderTextBox"
+                       Grid.Column="0"
+                       Width="260"/>
+              <Button x:Name="DefaultVideoFolderBrowseButton"
+                      Grid.Column="1"
+                      Content="{DynamicResource Settings.ChoosePath}"
+                      Style="{StaticResource SecondaryButton}"
+                      Margin="8,0,0,0"
+                      Click="DefaultVideoFolderBrowseButton_Click"/>
+            </Grid>
 
-              <TextBlock Text="{DynamicResource Settings.ThumbnailFolder}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"/>
-              <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="DefaultThumbnailFolderTextBox"
-                         Width="260"/>
-                <Button x:Name="DefaultThumbnailFolderBrowseButton"
-                        Content="{DynamicResource Settings.ChoosePath}"
-                        Style="{StaticResource SecondaryButton}"
-                        Margin="8,0,0,0"
-                        Click="DefaultThumbnailFolderBrowseButton_Click"/>
-              </StackPanel>
-            </StackPanel>
-          </StackPanel>
+            <TextBlock Grid.Row="2"
+                       Text="{DynamicResource Settings.ThumbnailFolder}"
+                       FontSize="{StaticResource FontSizeS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       Margin="0,8,0,0"/>
+            <Grid Grid.Row="3">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBox x:Name="DefaultThumbnailFolderTextBox"
+                       Grid.Column="0"
+                       Width="260"/>
+              <Button x:Name="DefaultThumbnailFolderBrowseButton"
+                      Grid.Column="1"
+                      Content="{DynamicResource Settings.ChoosePath}"
+                      Style="{StaticResource SecondaryButton}"
+                      Margin="8,0,0,0"
+                      Click="DefaultThumbnailFolderBrowseButton_Click"/>
+            </Grid>
+          </Grid>
         </GroupBox>
 
-      </StackPanel>
+      </Grid>
 
-      <StackPanel Grid.Column="2"
-                  Style="{StaticResource SettingsColumnStackStyle}">
-        <GroupBox Style="{StaticResource SettingsSectionGroupBox}"
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <GroupBox Grid.Row="0"
+                  Style="{StaticResource SettingsSectionGroupBox}"
                   Header="{DynamicResource Settings.UploadSettings}">
-          <StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-              <TextBlock Text="{DynamicResource Settings.StandardReleaseTime}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         Width="200"/>
-              <TextBox x:Name="DefaultSchedulingTimeTextBox"
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Settings.StandardReleaseTime}"
+                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <TextBox Grid.Column="1"
+                       x:Name="DefaultSchedulingTimeTextBox"
                        Width="90"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-              <TextBlock Text="{DynamicResource Upload.Fields.Visibility}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         Width="200"/>
-              <ComboBox x:Name="DefaultVisibilityComboBox"
+            </Grid>
+            <Grid Grid.Row="1"
+                  Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Upload.Fields.Visibility}"
+                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <ComboBox Grid.Column="1"
+                        x:Name="DefaultVisibilityComboBox"
                         Width="160">
                 <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
                               Tag="{x:Static core:VideoVisibility.Public}"/>
@@ -110,48 +167,71 @@
                 <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
                               Tag="{x:Static core:VideoVisibility.Private}"/>
               </ComboBox>
-            </StackPanel>
-            <StackPanel>
-              <CheckBox x:Name="ConfirmBeforeUploadCheckBox"
-                        Content="{DynamicResource Settings.ConfirmUpload}"
-                        Margin="0,8,0,0"/>
-              <CheckBox x:Name="AutoApplyDefaultTemplateCheckBox"
-                        Content="{DynamicResource Settings.AutomaticTemplateApply}"
-                        Margin="0,8,0,0"/>
-              <CheckBox x:Name="OpenBrowserAfterUploadCheckBox"
-                        Content="{DynamicResource Settings.OpenBrowserAfterUpload}"
-                        Margin="0,8,0,0"/>
-              <CheckBox x:Name="AutoConnectYouTubeCheckBox"
-                        Content="{DynamicResource Settings.AutomaticConnect}"
-                        Margin="0,8,0,0"/>
-            </StackPanel>
-          </StackPanel>
+            </Grid>
+            <CheckBox Grid.Row="2"
+                      x:Name="ConfirmBeforeUploadCheckBox"
+                      Content="{DynamicResource Settings.ConfirmUpload}"
+                      Margin="0,8,0,0"/>
+            <CheckBox Grid.Row="3"
+                      x:Name="AutoApplyDefaultTemplateCheckBox"
+                      Content="{DynamicResource Settings.AutomaticTemplateApply}"
+                      Margin="0,8,0,0"/>
+            <CheckBox Grid.Row="4"
+                      x:Name="OpenBrowserAfterUploadCheckBox"
+                      Content="{DynamicResource Settings.OpenBrowserAfterUpload}"
+                      Margin="0,8,0,0"/>
+            <CheckBox Grid.Row="5"
+                      x:Name="AutoConnectYouTubeCheckBox"
+                      Content="{DynamicResource Settings.AutomaticConnect}"
+                      Margin="0,8,0,0"/>
+          </Grid>
         </GroupBox>
 
-        <GroupBox Style="{StaticResource SettingsSectionGroupBox}"
+        <GroupBox Grid.Row="2"
+                  Style="{StaticResource SettingsSectionGroupBox}"
                   Header="{DynamicResource Settings.Drafts}">
-          <StackPanel>
-            <CheckBox x:Name="RememberDraftsCheckBox"
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <CheckBox Grid.Row="0"
+                      x:Name="RememberDraftsCheckBox"
                       Content="{DynamicResource Settings.Drafts.Remember}"
                       Margin="0,8,0,0"/>
-            <CheckBox x:Name="AutoCleanDraftsCheckBox"
+            <CheckBox Grid.Row="1"
+                      x:Name="AutoCleanDraftsCheckBox"
                       Content="{DynamicResource Settings.Drafts.AutoClean}"
                       Margin="0,8,0,0"/>
-          </StackPanel>
+          </Grid>
         </GroupBox>
 
-        <GroupBox Style="{StaticResource SettingsSectionGroupBox}"
+        <GroupBox Grid.Row="4"
+                  Style="{StaticResource SettingsSectionGroupBox}"
                   Header="{DynamicResource Settings.Transcription}">
-          <StackPanel>
-            <CheckBox x:Name="TranscriptionAutoCheckBox"
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <CheckBox Grid.Row="0"
+                      x:Name="TranscriptionAutoCheckBox"
                       Content="{DynamicResource Settings.AutomaticTranscription}"
                       Margin="0,8,0,0"/>
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-              <TextBlock Text="{DynamicResource Settings.WhisperModelSize}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         Width="200"/>
-              <ComboBox x:Name="TranscriptionModelSizeComboBox"
+            <Grid Grid.Row="1"
+                  Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Settings.WhisperModelSize}"
+                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <ComboBox Grid.Column="1"
+                        x:Name="TranscriptionModelSizeComboBox"
                         Width="200"
                         SelectionChanged="TranscriptionModelSizeComboBox_SelectionChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.WhisperModelSize.Tiny}"
@@ -165,13 +245,18 @@
                 <ComboBoxItem Content="{DynamicResource Settings.WhisperModelSize.Large}"
                               Tag="{x:Static config:WhisperModelSize.Large}"/>
               </ComboBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-              <TextBlock Text="{DynamicResource Settings.WhisperLanguage}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         Width="200"/>
-              <ComboBox x:Name="TranscriptionLanguageComboBox"
+            </Grid>
+            <Grid Grid.Row="2"
+                  Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Settings.WhisperLanguage}"
+                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <ComboBox Grid.Column="1"
+                        x:Name="TranscriptionLanguageComboBox"
                         Width="200">
                 <ComboBoxItem Content="{DynamicResource Settings.WhisperLanguage.De}"
                               Tag="de"/>
@@ -180,33 +265,44 @@
                 <ComboBoxItem Content="{DynamicResource Settings.WhisperLanguage.Detect}"
                               Tag="auto"/>
               </ComboBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-              <TextBlock Text="{DynamicResource Common.Status}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         Width="200"/>
-              <TextBlock x:Name="TranscriptionStatusTextBlock"
+            </Grid>
+            <Grid Grid.Row="3"
+                  Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Common.Status}"
+                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <TextBlock Grid.Column="1"
+                         x:Name="TranscriptionStatusTextBlock"
                          Foreground="{StaticResource TextMutedBrush}"
                          Text="{DynamicResource Settings.Msg.NotChecked}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
-              <Button x:Name="TranscriptionDownloadButton"
+            </Grid>
+            <Grid Grid.Row="4"
+                  Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <Button Grid.Column="0"
+                      x:Name="TranscriptionDownloadButton"
                       Content="{DynamicResource Settings.Whisper.Download}"
                       Style="{StaticResource SecondaryButton}"
                       Click="TranscriptionDownloadButton_Click"/>
-              <ProgressBar x:Name="TranscriptionDownloadProgressBar"
+              <ProgressBar Grid.Column="1"
+                           x:Name="TranscriptionDownloadProgressBar"
                            Width="150"
                            Height="20"
                            Minimum="0"
                            Maximum="100"
                            Visibility="Collapsed"
                            Margin="8,0,0,0"/>
-            </StackPanel>
-          </StackPanel>
+            </Grid>
+          </Grid>
         </GroupBox>
-      </StackPanel>
+      </Grid>
     </Grid>
   </Grid>
 </UserControl>

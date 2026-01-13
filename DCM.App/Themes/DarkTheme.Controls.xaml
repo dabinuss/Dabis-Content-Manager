@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:win="clr-namespace:System.Windows;assembly=PresentationFramework"
@@ -149,7 +149,7 @@
          TargetType="RadioButton"
          BasedOn="{StaticResource SidebarNavButton}">
     <Setter Property="Padding"
-            Value="14,8"/>
+            Value="12,6"/>
     <Setter Property="Margin"
             Value="6,0"/>
     <Setter Property="Template">
@@ -423,7 +423,7 @@
     <Setter Property="BorderThickness"
             Value="0"/>
     <Setter Property="Padding"
-            Value="14,8"/>
+            Value="12,6"/>
     <Setter Property="HorizontalContentAlignment"
             Value="Center"/>
     <Setter Property="VerticalContentAlignment"
@@ -462,7 +462,7 @@
     <Setter Property="BorderThickness"
             Value="0"/>
     <Setter Property="Padding"
-            Value="12,7"/>
+            Value="10,6"/>
     <Setter Property="HorizontalContentAlignment"
             Value="Center"/>
     <Setter Property="VerticalContentAlignment"
@@ -490,6 +490,47 @@
     </Style.Triggers>
   </Style>
 
+  <!-- Danger Button -->
+  <Style x:Key="DangerButton"
+         TargetType="Button"
+         BasedOn="{StaticResource ButtonBaseCommon}">
+    <Setter Property="Background"
+            Value="{StaticResource DangerBrush}"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource PrimaryTextBrush}"/>
+    <Setter Property="FontWeight"
+            Value="{StaticResource FontWeightSemiBold}"/>
+    <Setter Property="BorderThickness"
+            Value="0"/>
+    <Setter Property="Padding"
+            Value="12,6"/>
+    <Setter Property="HorizontalContentAlignment"
+            Value="Center"/>
+    <Setter Property="VerticalContentAlignment"
+            Value="Center"/>
+    <Setter Property="Template"
+            Value="{StaticResource ButtonTemplateRadiusS}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource AccentRedHoverBrush}"/>
+      </Trigger>
+      <Trigger Property="IsPressed"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource AccentRedBrush}"/>
+      </Trigger>
+      <Trigger Property="IsEnabled"
+               Value="False">
+        <Setter Property="Background"
+                Value="{StaticResource DisabledBackgroundBrush}"/>
+        <Setter Property="Foreground"
+                Value="{StaticResource TextDisabledBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
   <!-- Accent Button (Pill-Style mit Rand) -->
   <Style x:Key="AccentButton"
          TargetType="Button"
@@ -503,7 +544,7 @@
     <Setter Property="BorderThickness"
             Value="1"/>
     <Setter Property="Padding"
-            Value="12,7"/>
+            Value="10,6"/>
     <Setter Property="HorizontalContentAlignment"
             Value="Center"/>
     <Setter Property="VerticalContentAlignment"
@@ -545,9 +586,9 @@
     <Setter Property="Background"
             Value="Transparent"/>
     <Setter Property="BorderBrush"
-            Value="{StaticResource BorderBrush}"/>
+            Value="Transparent"/>
     <Setter Property="BorderThickness"
-            Value="1"/>
+            Value="0"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="Padding"
@@ -1603,7 +1644,7 @@
     Alle bisherigen Keys bleiben erhalten:
     SidebarNavButton, VideoDropZoneStyle, ThumbnailDropZoneStyle,
     SuggestionCloseButtonStyle, SuggestionItemButtonStyle,
-    PlatformToggleButton, PrimaryButton, SecondaryButton, AccentButton,
+    PlatformToggleButton, PrimaryButton, SecondaryButton, DangerButton,
     ModernGroupBox etc.
 
     Falls du später weitere "alte" Keys findest, die irgendwo referenziert werden,
@@ -1611,3 +1652,4 @@
   -->
 
 </ResourceDictionary>
+

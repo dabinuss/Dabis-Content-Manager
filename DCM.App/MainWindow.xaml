@@ -514,7 +514,7 @@
                       Margin="0,0,8,0"/>
               <Button x:Name="UploadAllActionButton"
                       Content="Alle hochladen"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource PrimaryButton}"
                       Click="UploadAllButton_Click"
                       MinWidth="120"
                       Margin="0,0,8,0"/>
@@ -529,7 +529,7 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Accounts.YouTube.Connect}"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource PrimaryButton}"
                       Click="YouTubeConnectButton_Click"
                       MinWidth="140"
                       Margin="0,0,8,0"/>
@@ -543,7 +543,7 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Common.Save}"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource PrimaryButton}"
                       Click="ChannelProfileSaveButton_Click"
                       MinWidth="120"/>
             </StackPanel>
@@ -562,12 +562,12 @@
                       MinWidth="110"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Delete}"
-                      Style="{StaticResource SecondaryButton}"
+                      Style="{StaticResource DangerButton}"
                       Click="TemplateDeleteButton_Click"
                       MinWidth="110"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Save}"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource PrimaryButton}"
                       Click="TemplateSaveButton_Click"
                       MinWidth="120"/>
             </StackPanel>
@@ -576,12 +576,12 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource History.ClearList}"
-                      Style="{StaticResource SecondaryButton}"
+                      Style="{StaticResource DangerButton}"
                       Click="HistoryClearAction_Click"
                       MinWidth="140"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Open}"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource PrimaryButton}"
                       Click="HistoryOpenSelectedAction_Click"
                       MinWidth="140"/>
             </StackPanel>
@@ -590,7 +590,7 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Settings.SaveAll}"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource PrimaryButton}"
                       Click="SettingsSaveButton_Click"
                       MinWidth="140"/>
             </StackPanel>
@@ -599,7 +599,7 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Settings.SaveAll}"
-                      Style="{StaticResource AccentButton}"
+                      Style="{StaticResource PrimaryButton}"
                       Click="SettingsSaveButton_Click"
                       MinWidth="140"/>
             </StackPanel>
