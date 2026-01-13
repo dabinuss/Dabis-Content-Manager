@@ -31,6 +31,7 @@ public partial class MainWindow
     private const string TemplateLogSource = "Template";
     private readonly SemaphoreSlim _videoInfoSemaphore = new(2, 2);
     private readonly SemaphoreSlim _videoPreviewSemaphore = new(1, 1);
+    private bool _isFastFillRunning;
 
     #region Draft Persistence
 
@@ -486,6 +487,50 @@ public partial class MainWindow
         }
     }
 
+    private async void UploadDraftButton_Click(object sender, RoutedEventArgs e)
+    {
+        var draft = (sender as FrameworkElement)?.Tag as UploadDraft
+                    ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
+        if (draft is null)
+        {
+            return;
+        }
+
+        if (_settings.ConfirmBeforeUpload)
+        {
+            if (!ConfirmUpload(LocalizationHelper.Get("Dialog.Upload.Confirm.Text")))
+            {
+                return;
+            }
+        }
+
+        await UploadDraftAsync(draft);
+    }
+
+    private async void TranscribeDraftButton_Click(object sender, RoutedEventArgs e)
+    {
+        var draft = (sender as FrameworkElement)?.Tag as UploadDraft
+                    ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
+        if (draft is null)
+        {
+            return;
+        }
+
+        if (_isTranscribing && _activeTranscriptionDraft == draft)
+        {
+            CancelTranscription();
+            return;
+        }
+
+        if (_isTranscribing && _activeTranscriptionDraft != draft)
+        {
+            StatusTextBlock.Text = "Transkription laeuft bereits.";
+            return;
+        }
+
+        await StartTranscriptionAsync(draft);
+    }
+
     private async void TranscriptionPrioritizeButton_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not UploadDraft draft)
@@ -514,6 +559,154 @@ public partial class MainWindow
         draft.TranscriptionProgress = 0;
         draft.IsTranscriptionProgressIndeterminate = true;
         ScheduleDraftPersistence();
+    }
+
+    private async void FastFillSuggestionsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isFastFillRunning)
+        {
+            StatusTextBlock.Text = "Fast Fill laeuft bereits.";
+            return;
+        }
+
+        var draft = (sender as FrameworkElement)?.Tag as UploadDraft
+                    ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
+        if (draft is null)
+        {
+            return;
+        }
+
+        if (_activeDraft != draft)
+        {
+            SetActiveDraft(draft);
+        }
+
+        var button = sender as Button;
+        _isFastFillRunning = true;
+        if (button is not null)
+        {
+            button.IsEnabled = false;
+        }
+
+        try
+        {
+            await FastFillSuggestionsAsync(draft);
+        }
+        finally
+        {
+            _isFastFillRunning = false;
+            if (button is not null)
+            {
+                button.IsEnabled = true;
+            }
+        }
+    }
+
+    private async Task FastFillSuggestionsAsync(UploadDraft draft)
+    {
+        if (!_uploadDrafts.Contains(draft))
+        {
+            return;
+        }
+
+        CloseSuggestionPopup();
+        _settings.Persona ??= new ChannelPersona();
+
+        if (string.IsNullOrWhiteSpace(draft.Transcript))
+        {
+            StatusTextBlock.Text = "Fast Fill: Transkription starten...";
+            await TryTranscribeForFastFillAsync(draft);
+        }
+
+        var project = BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft);
+        if (!string.IsNullOrWhiteSpace(draft.Transcript))
+        {
+            project.TranscriptText = draft.Transcript;
+        }
+
+        var cancellationToken = GetNewLlmCancellationToken();
+        StatusTextBlock.Text = "Fast Fill: Generiere Titel...";
+
+        try
+        {
+            var titles = await CollectSuggestionsAsync(
+                () => _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona, cancellationToken),
+                desiredCount: 1,
+                maxRetries: 2,
+                cancellationToken);
+
+            if (titles.Count > 0)
+            {
+                UploadView.TitleTextBox.Text = titles[0];
+                project.Title = titles[0];
+            }
+
+            StatusTextBlock.Text = "Fast Fill: Generiere Beschreibung...";
+            var descriptions = await CollectSuggestionsAsync(
+                () => _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona, cancellationToken),
+                desiredCount: 1,
+                maxRetries: 2,
+                cancellationToken);
+
+            if (descriptions.Count > 0)
+            {
+                ApplyGeneratedDescription(descriptions[0]);
+            }
+
+            project = BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft);
+            StatusTextBlock.Text = "Fast Fill: Generiere Tags...";
+            var tags = await _contentSuggestionService.SuggestTagsAsync(
+                project,
+                _settings.Persona,
+                cancellationToken);
+
+            if (tags is not null && tags.Count > 0)
+            {
+                var suggestions = BuildTagSuggestionSets(tags, 1);
+                if (suggestions.Count > 0)
+                {
+                    UploadView.TagsTextBox.Text = suggestions[0];
+                }
+            }
+
+            StatusTextBlock.Text = "Fast Fill: Fertig.";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = "Fast Fill: Abgebrochen.";
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = $"Fast Fill: Fehler - {ex.Message}";
+            _logger.Error($"Fast Fill failed: {ex.Message}", LlmLogSource, ex);
+        }
+        finally
+        {
+            UpdateLogLinkIndicator();
+        }
+    }
+
+    private async Task TryTranscribeForFastFillAsync(UploadDraft draft)
+    {
+        if (string.IsNullOrWhiteSpace(draft.VideoPath) || !File.Exists(draft.VideoPath))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
+            return;
+        }
+
+        if (_isTranscribing && _activeTranscriptionDraft != draft)
+        {
+            StatusTextBlock.Text = "Fast Fill: Transkription laeuft bereits.";
+            return;
+        }
+
+        if (_transcriptionService is null)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.ServiceUnavailable");
+            return;
+        }
+
+        await StartTranscriptionAsync(draft);
     }
 
     private void SetActiveDraft(UploadDraft? draft)

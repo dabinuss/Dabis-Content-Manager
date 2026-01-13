@@ -78,12 +78,15 @@
               <Border Style="{StaticResource SurfaceCard}"
                       CornerRadius="{StaticResource RadiusM}"
                       Padding="{StaticResource SpacingAllM}"
-                      Width="260">
+                      Width="360">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
 
@@ -91,54 +94,33 @@
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="*"/>
                       <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel>
-                      <TextBlock Text="{Binding DisplayName}"
-                                 FontWeight="SemiBold"
-                                 FontSize="{StaticResource FontSizeM}"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 TextTrimming="CharacterEllipsis"/>
-                      <TextBlock Text="{Binding FileSizeDisplay}"
-                                 FontSize="{StaticResource FontSizeXS}"
-                                 Foreground="{StaticResource TextMutedBrush}"
-                                 Margin="0,2,0,0"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Right">
-                      <Button Content="{DynamicResource Common.Remove}"
-                              Style="{StaticResource SecondaryButton}"
-                              ap:ButtonIcon.Glyph="&#xe872;"
-                              Tag="{Binding}"
-                              Click="RemoveDraftButton_Click"
-                              Margin="8,0,0,0"
-                              Padding="8,2"/>
-                      <Button Content="{DynamicResource Upload.Upload.Cancel}"
-                              Tag="{Binding}"
-                              Click="CancelDraftUploadButton_Click"
-                              ap:ButtonIcon.Glyph="&#xe5c9;"
-                              Margin="8,0,0,0"
-                              Padding="8,2">
-                        <Button.Style>
-                          <Style TargetType="Button"
-                                 BasedOn="{StaticResource SecondaryButton}">
-                            <Setter Property="Visibility"
-                                    Value="Collapsed"/>
-                            <Style.Triggers>
-                              <DataTrigger Binding="{Binding UploadState}"
-                                           Value="{x:Static models:UploadDraftUploadState.Uploading}">
-                                <Setter Property="Visibility"
-                                        Value="Visible"/>
-                              </DataTrigger>
-                            </Style.Triggers>
-                          </Style>
-                        </Button.Style>
-                      </Button>
-                    </StackPanel>
+                    <TextBlock Text="{Binding DisplayName}"
+                               FontWeight="SemiBold"
+                               FontSize="{StaticResource FontSizeM}"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding FileSizeDisplay}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"/>
+                    <Button Grid.Column="2"
+                            Style="{StaticResource SuggestionCloseButtonStyle}"
+                            Click="RemoveDraftButton_Click"
+                            Tag="{Binding}"
+                            Margin="6,0,0,0"
+                            ToolTip="{DynamicResource Common.Remove}">
+                      <TextBlock Style="{StaticResource IconL}"
+                                 Text="&#xe5cd;"
+                                 Margin="0"
+                                 Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
                   </Grid>
 
-                  <Grid Grid.Row="1"
-                        Margin="0,8,0,0">
+                  <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="*"/>
                       <ColumnDefinition Width="*"/>
@@ -146,10 +128,10 @@
 
                     <StackPanel Grid.Column="0">
                       <TextBlock Text="Upload"
-                                 FontSize="{StaticResource FontSizeS}"
+                                 FontSize="{StaticResource FontSizeXS}"
                                  Foreground="{StaticResource TextMutedBrush}"/>
                       <StackPanel Orientation="Horizontal"
-                                  Margin="0,8,0,0">
+                                  Margin="0,4,0,0">
                         <TextBlock>
                           <TextBlock.Style>
                             <Style TargetType="TextBlock"
@@ -185,20 +167,20 @@
                           </TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="{Binding UploadStatus}"
-                                   FontSize="{StaticResource FontSizeS}"
+                                   FontSize="{StaticResource FontSizeXS}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                   Margin="8,0,0,0"
+                                   Margin="6,0,0,0"
                                    TextWrapping="Wrap"
-                                   MaxWidth="160"/>
+                                   MaxWidth="140"/>
                       </StackPanel>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1">
                       <TextBlock Text="Transkript"
-                                 FontSize="{StaticResource FontSizeS}"
+                                 FontSize="{StaticResource FontSizeXS}"
                                  Foreground="{StaticResource TextMutedBrush}"/>
                       <StackPanel Orientation="Horizontal"
-                                  Margin="0,8,0,0">
+                                  Margin="0,4,0,0">
                         <TextBlock>
                           <TextBlock.Style>
                             <Style TargetType="TextBlock"
@@ -234,14 +216,14 @@
                           </TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="{Binding TranscriptionStatus}"
-                                   FontSize="{StaticResource FontSizeS}"
+                                   FontSize="{StaticResource FontSizeXS}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                   Margin="8,0,0,0"
+                                   Margin="6,0,0,0"
                                    TextWrapping="Wrap"
-                                  MaxWidth="160"/>
+                                   MaxWidth="140"/>
                       </StackPanel>
                       <StackPanel Orientation="Horizontal"
-                                  Margin="0,8,0,0">
+                                  Margin="0,4,0,0">
                         <StackPanel.Style>
                           <Style TargetType="StackPanel">
                             <Setter Property="Visibility"
@@ -260,31 +242,108 @@
                                 ap:ButtonIcon.Glyph="&#xe5d8;"
                                 Tag="{Binding}"
                                 Click="TranscriptionQueuePrioritizeButton_Click"
-                                Padding="8,2"/>
+                                Padding="6,2"/>
                         <Button Content="{DynamicResource Upload.Transcription.Queue.Skip}"
                                 Style="{StaticResource SecondaryButton}"
                                 ap:ButtonIcon.Glyph="&#xe5cb;"
                                 Tag="{Binding}"
                                 Click="TranscriptionQueueSkipButton_Click"
-                                Padding="8,2"
-                                Margin="8,0,0,0"/>
+                                Padding="6,2"
+                                Margin="6,0,0,0"/>
                       </StackPanel>
                     </StackPanel>
                   </Grid>
 
-                  <ProgressBar Grid.Row="2"
-                               Margin="0,8,0,0"
-                               Minimum="0"
-                               Maximum="100"
-                               Value="{Binding UploadProgress}"
-                               IsIndeterminate="{Binding IsUploadProgressIndeterminate}"/>
+                  <StackPanel Grid.Row="4">
+                    <ProgressBar Height="6"
+                                 Margin="0,0,0,6"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding UploadProgress}"
+                                 IsIndeterminate="{Binding IsUploadProgressIndeterminate}">
+                      <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                          <Setter Property="Visibility"
+                                  Value="Collapsed"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding UploadState}"
+                                         Value="{x:Static models:UploadDraftUploadState.Uploading}">
+                              <Setter Property="Visibility"
+                                      Value="Visible"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </ProgressBar.Style>
+                    </ProgressBar>
+                    <ProgressBar Height="6"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding TranscriptionProgress}"
+                                 IsIndeterminate="{Binding IsTranscriptionProgressIndeterminate}">
+                      <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                          <Setter Property="Visibility"
+                                  Value="Collapsed"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding TranscriptionState}"
+                                         Value="{x:Static models:UploadDraftTranscriptionState.Running}">
+                              <Setter Property="Visibility"
+                                      Value="Visible"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </ProgressBar.Style>
+                    </ProgressBar>
+                  </StackPanel>
 
-                  <ProgressBar Grid.Row="3"
-                               Margin="0,8,0,0"
-                               Minimum="0"
-                               Maximum="100"
-                               Value="{Binding TranscriptionProgress}"
-                               IsIndeterminate="{Binding IsTranscriptionProgressIndeterminate}"/>
+                  <Border Grid.Row="6"
+                          BorderBrush="{StaticResource BorderBrush}"
+                          BorderThickness="0,1,0,0"
+                          Padding="0,8,0,0">
+                    <StackPanel Orientation="Horizontal">
+                      <Button Content="Fast Fill"
+                              Style="{StaticResource SecondaryButton}"
+                              ap:ButtonIcon.Glyph="&#xe663;"
+                              Tag="{Binding}"
+                              Click="FastFillSuggestionsButton_Click"
+                              Padding="8,2"
+                              Margin="0,0,6,0"/>
+                      <Button Content="{DynamicResource Upload.StartUpload}"
+                              Style="{StaticResource PrimaryButton}"
+                              ap:ButtonIcon.Glyph="&#xeb9b;"
+                              Tag="{Binding}"
+                              Click="UploadDraftButton_Click"
+                              Padding="8,2"
+                              Margin="0,0,6,0"/>
+                      <Button Content="{DynamicResource Upload.Fields.Transcripe}"
+                              Style="{StaticResource SecondaryButton}"
+                              ap:ButtonIcon.Glyph="&#xe048;"
+                              Tag="{Binding}"
+                              Click="TranscribeDraftButton_Click"
+                              Padding="8,2"/>
+                      <Button Content="{DynamicResource Upload.Upload.Cancel}"
+                              Tag="{Binding}"
+                              Click="CancelDraftUploadButton_Click"
+                              ap:ButtonIcon.Glyph="&#xe5c9;"
+                              Margin="6,0,0,0"
+                              Padding="8,2">
+                        <Button.Style>
+                          <Style TargetType="Button"
+                                 BasedOn="{StaticResource SecondaryButton}">
+                            <Setter Property="Visibility"
+                                    Value="Collapsed"/>
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding UploadState}"
+                                           Value="{x:Static models:UploadDraftUploadState.Uploading}">
+                                <Setter Property="Visibility"
+                                        Value="Visible"/>
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </Button.Style>
+                      </Button>
+                    </StackPanel>
+                  </Border>
                 </Grid>
               </Border>
             </DataTemplate>
@@ -592,6 +651,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="{StaticResource SpacingM}"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
 
               <Grid.ColumnDefinitions>
@@ -613,6 +673,99 @@
                       Click="GenerateTitleButton_Click"
                       ToolTip="KI-Vorschlag generieren"
                       BorderBrush="{StaticResource MagicAIGradientBrush}"/>
+
+              <Border x:Name="TitleSuggestionsPanel"
+                      Grid.Row="5"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2"
+                      Margin="0,8,0,0"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      BorderThickness="0,1,0,0"
+                      Padding="0,8,0,0"
+                      Visibility="Collapsed">
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
+                  <DockPanel Grid.Row="0"
+                             LastChildFill="False">
+                    <TextBlock Text="Vorschlaege"
+                               FontSize="{StaticResource FontSizeS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TitleSuggestionsTargetTextBlock"
+                               Text=""
+                               FontSize="{StaticResource FontSizeS}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="6,0,0,0"
+                               VerticalAlignment="Center"/>
+                    <Button x:Name="TitleSuggestionsCloseButton"
+                            DockPanel.Dock="Right"
+                            Style="{StaticResource SuggestionCloseButtonStyle}"
+                            Click="SuggestionCloseButton_Click"
+                            Margin="8,0,0,0">
+                      <TextBlock Style="{StaticResource IconL}"
+                                 Text="&#xe5cd;"
+                                 Margin="0"
+                                 Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                  </DockPanel>
+                  <Grid Grid.Row="2">
+                    <StackPanel x:Name="TitleSuggestionsLoadingPanel"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed">
+                      <TextBlock Style="{StaticResource IconXL}"
+                                 Text="&#xe863;"
+                                 Margin="0,0,6,0"
+                                 RenderTransformOrigin="0.5,0.5">
+                        <TextBlock.RenderTransform>
+                          <RotateTransform Angle="0"/>
+                        </TextBlock.RenderTransform>
+                        <TextBlock.Triggers>
+                          <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                              <Storyboard RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Angle"
+                                                 From="0"
+                                                 To="360"
+                                                 Duration="0:0:1.2"/>
+                              </Storyboard>
+                            </BeginStoryboard>
+                          </EventTrigger>
+                        </TextBlock.Triggers>
+                      </TextBlock>
+                      <TextBlock Text="Wird generiert..."
+                                 FontSize="{StaticResource FontSizeS}"
+                                 Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="TitleSuggestionItemsControl"
+                                  Visibility="Collapsed">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel/>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Button Style="{StaticResource SuggestionItemButtonStyle}"
+                                  Margin="0,0,0,8"
+                                  ap:ButtonIcon.Glyph="&#xe8f4;"
+                                  Click="SuggestionItemButton_Click"
+                                  HorizontalAlignment="Stretch">
+                            <TextBlock Text="{Binding}"
+                                       TextWrapping="Wrap"
+                                       TextTrimming="CharacterEllipsis"/>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Grid>
+                </Grid>
+              </Border>
           </Grid>
         </GroupBox>
 
@@ -625,6 +778,7 @@
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="{StaticResource SpacingM}"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
 
@@ -665,6 +819,97 @@
                       Click="ApplyTemplateButton_Click"
                       Margin="0,0,8,0"/>
               </Grid>
+
+              <Border x:Name="DescriptionSuggestionsPanel"
+                      Grid.Row="3"
+                      Margin="0,8,0,0"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      BorderThickness="0,1,0,0"
+                      Padding="0,8,0,0"
+                      Visibility="Collapsed">
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
+                  <DockPanel Grid.Row="0"
+                             LastChildFill="False">
+                    <TextBlock Text="Vorschlaege"
+                               FontSize="{StaticResource FontSizeS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DescriptionSuggestionsTargetTextBlock"
+                               Text=""
+                               FontSize="{StaticResource FontSizeS}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="6,0,0,0"
+                               VerticalAlignment="Center"/>
+                    <Button x:Name="DescriptionSuggestionsCloseButton"
+                            DockPanel.Dock="Right"
+                            Style="{StaticResource SuggestionCloseButtonStyle}"
+                            Click="SuggestionCloseButton_Click"
+                            Margin="8,0,0,0">
+                      <TextBlock Style="{StaticResource IconL}"
+                                 Text="&#xe5cd;"
+                                 Margin="0"
+                                 Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                  </DockPanel>
+                  <Grid Grid.Row="2">
+                    <StackPanel x:Name="DescriptionSuggestionsLoadingPanel"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed">
+                      <TextBlock Style="{StaticResource IconXL}"
+                                 Text="&#xe863;"
+                                 Margin="0,0,6,0"
+                                 RenderTransformOrigin="0.5,0.5">
+                        <TextBlock.RenderTransform>
+                          <RotateTransform Angle="0"/>
+                        </TextBlock.RenderTransform>
+                        <TextBlock.Triggers>
+                          <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                              <Storyboard RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Angle"
+                                                 From="0"
+                                                 To="360"
+                                                 Duration="0:0:1.2"/>
+                              </Storyboard>
+                            </BeginStoryboard>
+                          </EventTrigger>
+                        </TextBlock.Triggers>
+                      </TextBlock>
+                      <TextBlock Text="Wird generiert..."
+                                 FontSize="{StaticResource FontSizeS}"
+                                 Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="DescriptionSuggestionItemsControl"
+                                  Visibility="Collapsed">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel/>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Button Style="{StaticResource SuggestionItemButtonStyle}"
+                                  Margin="0,0,0,8"
+                                  ap:ButtonIcon.Glyph="&#xe8f4;"
+                                  Click="SuggestionItemButton_Click"
+                                  HorizontalAlignment="Stretch">
+                            <TextBlock Text="{Binding}"
+                                       TextWrapping="Wrap"
+                                       TextTrimming="CharacterEllipsis"/>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Grid>
+                </Grid>
+              </Border>
           </Grid>
         </GroupBox>
 
@@ -677,6 +922,7 @@
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="{StaticResource SpacingM}"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
 
@@ -700,6 +946,99 @@
                       Click="GenerateTagsButton_Click"
                       ToolTip="KI-Vorschlag generieren"
                       BorderBrush="{StaticResource MagicAIGradientBrush}"/>
+
+              <Border x:Name="TagsSuggestionsPanel"
+                      Grid.Row="3"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2"
+                      Margin="0,8,0,0"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      BorderThickness="0,1,0,0"
+                      Padding="0,8,0,0"
+                      Visibility="Collapsed">
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
+                  <DockPanel Grid.Row="0"
+                             LastChildFill="False">
+                    <TextBlock Text="Vorschlaege"
+                               FontSize="{StaticResource FontSizeS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TagsSuggestionsTargetTextBlock"
+                               Text=""
+                               FontSize="{StaticResource FontSizeS}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="6,0,0,0"
+                               VerticalAlignment="Center"/>
+                    <Button x:Name="TagsSuggestionsCloseButton"
+                            DockPanel.Dock="Right"
+                            Style="{StaticResource SuggestionCloseButtonStyle}"
+                            Click="SuggestionCloseButton_Click"
+                            Margin="8,0,0,0">
+                      <TextBlock Style="{StaticResource IconL}"
+                                 Text="&#xe5cd;"
+                                 Margin="0"
+                                 Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                  </DockPanel>
+                  <Grid Grid.Row="2">
+                    <StackPanel x:Name="TagsSuggestionsLoadingPanel"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed">
+                      <TextBlock Style="{StaticResource IconXL}"
+                                 Text="&#xe863;"
+                                 Margin="0,0,6,0"
+                                 RenderTransformOrigin="0.5,0.5">
+                        <TextBlock.RenderTransform>
+                          <RotateTransform Angle="0"/>
+                        </TextBlock.RenderTransform>
+                        <TextBlock.Triggers>
+                          <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                              <Storyboard RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Angle"
+                                                 From="0"
+                                                 To="360"
+                                                 Duration="0:0:1.2"/>
+                              </Storyboard>
+                            </BeginStoryboard>
+                          </EventTrigger>
+                        </TextBlock.Triggers>
+                      </TextBlock>
+                      <TextBlock Text="Wird generiert..."
+                                 FontSize="{StaticResource FontSizeS}"
+                                 Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+                    <ItemsControl x:Name="TagsSuggestionItemsControl"
+                                  Visibility="Collapsed">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel/>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Button Style="{StaticResource SuggestionItemButtonStyle}"
+                                  Margin="0,0,0,8"
+                                  ap:ButtonIcon.Glyph="&#xe8f4;"
+                                  Click="SuggestionItemButton_Click"
+                                  HorizontalAlignment="Stretch">
+                            <TextBlock Text="{Binding}"
+                                       TextWrapping="Wrap"
+                                       TextTrimming="CharacterEllipsis"/>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Grid>
+                </Grid>
+              </Border>
           </Grid>
         </GroupBox>
 
@@ -1056,84 +1395,6 @@
 
     </Grid>
 
-    <!-- Vorschlags-Popup -->
-    <Grid x:Name="SuggestionOverlay"
-          Grid.Row="0"
-          Grid.RowSpan="4"
-          Background="{StaticResource OverlayMediumBrush}"
-          Visibility="Collapsed"
-          Panel.ZIndex="10">
-
-      <Grid VerticalAlignment="Stretch"
-            HorizontalAlignment="Center">
-        <Border x:Name="SuggestionDialog"
-                Style="{StaticResource SurfaceCard}"
-                CornerRadius="{StaticResource RadiusL}"
-                Padding="0"
-                Width="{Binding ElementName=LeftColumnPanel, Path=ActualWidth}"
-                MaxHeight="{Binding ElementName=LeftColumnPanel, Path=ActualHeight}"
-                MinWidth="360"
-                MaxWidth="780"
-                VerticalAlignment="Top"
-                Margin="0,120,0,0">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="2"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <Border Grid.Row="0"
-                    Background="{StaticResource MagicAIGradientBrush}"
-                    CornerRadius="{StaticResource RadiusM}"/>
-
-            <StackPanel Grid.Row="1"
-                        Margin="{StaticResource SpacingAllM}">
-              <DockPanel LastChildFill="False"
-                         Margin="0,0,0,8">
-                <TextBlock x:Name="SuggestionTitleTextBlock"
-                           DockPanel.Dock="Left"
-                           FontSize="{StaticResource FontSizeL}"
-                           FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}"
-                           VerticalAlignment="Center"/>
-                <Button x:Name="SuggestionCloseButton"
-                        DockPanel.Dock="Right"
-                        Style="{StaticResource SuggestionCloseButtonStyle}"
-                        Click="SuggestionCloseButton_Click">
-                  <TextBlock Style="{StaticResource IconL}"
-                             Text="&#xe5cd;"
-                             Margin="0"
-                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                </Button>
-              </DockPanel>
-
-              <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl x:Name="SuggestionItemsControl">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <StackPanel/>
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Button Style="{StaticResource SuggestionItemButtonStyle}"
-                              Margin="0,0,0,8"
-                              ap:ButtonIcon.Glyph="&#xe8f4;"
-                              Click="SuggestionItemButton_Click"
-                              HorizontalAlignment="Stretch">
-                        <TextBlock Text="{Binding}"
-                                   TextWrapping="Wrap"
-                                   TextTrimming="CharacterEllipsis"/>
-                      </Button>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </ScrollViewer>
-            </StackPanel>
-          </Grid>
-        </Border>
-      </Grid>
-    </Grid>
   </Grid>
 </UserControl>
 

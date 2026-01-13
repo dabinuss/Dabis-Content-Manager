@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media.Effects;
 using DCM.Core.Models;
 
 namespace DCM.App.Views;
@@ -41,6 +40,9 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? TranscribeAllButtonClicked;
     public event RoutedEventHandler? RemoveDraftButtonClicked;
     public event RoutedEventHandler? CancelUploadButtonClicked;
+    public event RoutedEventHandler? FastFillSuggestionsButtonClicked;
+    public event RoutedEventHandler? UploadDraftButtonClicked;
+    public event RoutedEventHandler? TranscribeDraftButtonClicked;
     public event RoutedEventHandler? TranscriptionPrioritizeButtonClicked;
     public event RoutedEventHandler? TranscriptionSkipButtonClicked;
     public event EventHandler<string>? SuggestionItemClicked;
@@ -128,6 +130,15 @@ public partial class UploadView : UserControl
     private void RemoveDraftButton_Click(object sender, RoutedEventArgs e) =>
         RemoveDraftButtonClicked?.Invoke(sender, e);
 
+    private void FastFillSuggestionsButton_Click(object sender, RoutedEventArgs e) =>
+        FastFillSuggestionsButtonClicked?.Invoke(sender, e);
+
+    private void UploadDraftButton_Click(object sender, RoutedEventArgs e) =>
+        UploadDraftButtonClicked?.Invoke(sender, e);
+
+    private void TranscribeDraftButton_Click(object sender, RoutedEventArgs e) =>
+        TranscribeDraftButtonClicked?.Invoke(sender, e);
+
     private void CancelDraftUploadButton_Click(object sender, RoutedEventArgs e) =>
         CancelUploadButtonClicked?.Invoke(sender, e);
 
@@ -190,21 +201,86 @@ public partial class UploadView : UserControl
     private void SuggestionCloseButton_Click(object sender, RoutedEventArgs e) =>
         SuggestionCloseButtonClicked?.Invoke(this, e);
 
-    public void ShowSuggestionOverlay(string title, IEnumerable<string> suggestions)
+    public void ShowTitleSuggestionsLoading(string title, int expectedCount)
     {
-        SuggestionTitleTextBlock.Text = title;
-        SuggestionItemsControl.ItemsSource = suggestions?.ToList() ?? new List<string>();
-        SuggestionOverlay.Visibility = Visibility.Visible;
-        SetContentBlur(isEnabled: true);
+        PrepareSuggestionPanel(
+            TitleSuggestionsPanel,
+            TitleSuggestionsLoadingPanel,
+            TitleSuggestionItemsControl,
+            TitleSuggestionsTargetTextBlock,
+            title,
+            expectedCount);
     }
 
-    public void HideSuggestionOverlay()
+    public void ShowTitleSuggestions(string title, IEnumerable<string> suggestions)
     {
-        SuggestionOverlay.Visibility = Visibility.Collapsed;
-        SuggestionItemsControl.ItemsSource = null;
-        SuggestionTitleTextBlock.Text = string.Empty;
-        SetContentBlur(isEnabled: false);
+        HideSuggestionPanels(except: TitleSuggestionsPanel);
+        SetSuggestionItems(
+            TitleSuggestionsPanel,
+            TitleSuggestionsLoadingPanel,
+            TitleSuggestionItemsControl,
+            TitleSuggestionsTargetTextBlock,
+            title,
+            suggestions);
     }
+
+    public void ShowDescriptionSuggestionsLoading(string title, int expectedCount)
+    {
+        PrepareSuggestionPanel(
+            DescriptionSuggestionsPanel,
+            DescriptionSuggestionsLoadingPanel,
+            DescriptionSuggestionItemsControl,
+            DescriptionSuggestionsTargetTextBlock,
+            title,
+            expectedCount);
+    }
+
+    public void ShowDescriptionSuggestions(string title, IEnumerable<string> suggestions)
+    {
+        HideSuggestionPanels(except: DescriptionSuggestionsPanel);
+        SetSuggestionItems(
+            DescriptionSuggestionsPanel,
+            DescriptionSuggestionsLoadingPanel,
+            DescriptionSuggestionItemsControl,
+            DescriptionSuggestionsTargetTextBlock,
+            title,
+            suggestions);
+    }
+
+    public void ShowTagsSuggestionsLoading(string title, int expectedCount)
+    {
+        PrepareSuggestionPanel(
+            TagsSuggestionsPanel,
+            TagsSuggestionsLoadingPanel,
+            TagsSuggestionItemsControl,
+            TagsSuggestionsTargetTextBlock,
+            title,
+            expectedCount);
+    }
+
+    public void ShowTagsSuggestions(string title, IEnumerable<string> suggestions)
+    {
+        HideSuggestionPanels(except: TagsSuggestionsPanel);
+        SetSuggestionItems(
+            TagsSuggestionsPanel,
+            TagsSuggestionsLoadingPanel,
+            TagsSuggestionItemsControl,
+            TagsSuggestionsTargetTextBlock,
+            title,
+            suggestions);
+    }
+
+    public void HideSuggestions()
+    {
+        HideSuggestionPanels(except: null);
+        ClearSuggestionItems();
+    }
+
+    public FrameworkElement? GetTitleSuggestionAnchor() => TitleTextBox;
+
+    public FrameworkElement? GetDescriptionSuggestionAnchor() => DescriptionTextBox;
+
+    public FrameworkElement? GetTagsSuggestionAnchor() => TagsTextBox;
 
     public void SetUploadItemsSource(IEnumerable? source)
     {
@@ -237,11 +313,82 @@ public partial class UploadView : UserControl
         }
     }
 
-    private void SetContentBlur(bool isEnabled)
+    private void HideSuggestionPanels(Border? except)
     {
-        var effect = isEnabled ? new BlurEffect { Radius = 3 } : null;
-        HeaderPanel.Effect = effect;
-        VideoDropZone.Effect = effect;
-        MainContentGrid.Effect = effect;
+        if (TitleSuggestionsPanel != except)
+        {
+            TitleSuggestionsPanel.Visibility = Visibility.Collapsed;
+            TitleSuggestionsTargetTextBlock.Text = string.Empty;
+            TitleSuggestionsPanel.MinHeight = 0;
+            TitleSuggestionsLoadingPanel.Visibility = Visibility.Collapsed;
+            TitleSuggestionItemsControl.Visibility = Visibility.Collapsed;
+        }
+
+        if (DescriptionSuggestionsPanel != except)
+        {
+            DescriptionSuggestionsPanel.Visibility = Visibility.Collapsed;
+            DescriptionSuggestionsTargetTextBlock.Text = string.Empty;
+            DescriptionSuggestionsPanel.MinHeight = 0;
+            DescriptionSuggestionsLoadingPanel.Visibility = Visibility.Collapsed;
+            DescriptionSuggestionItemsControl.Visibility = Visibility.Collapsed;
+        }
+
+        if (TagsSuggestionsPanel != except)
+        {
+            TagsSuggestionsPanel.Visibility = Visibility.Collapsed;
+            TagsSuggestionsTargetTextBlock.Text = string.Empty;
+            TagsSuggestionsPanel.MinHeight = 0;
+            TagsSuggestionsLoadingPanel.Visibility = Visibility.Collapsed;
+            TagsSuggestionItemsControl.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void ClearSuggestionItems()
+    {
+        TitleSuggestionItemsControl.ItemsSource = null;
+        DescriptionSuggestionItemsControl.ItemsSource = null;
+        TagsSuggestionItemsControl.ItemsSource = null;
+    }
+
+    private void PrepareSuggestionPanel(
+        Border panel,
+        FrameworkElement loadingPanel,
+        ItemsControl itemsControl,
+        TextBlock targetLabel,
+        string title,
+        int expectedCount)
+    {
+        HideSuggestionPanels(except: panel);
+        panel.MinHeight = CalculateSuggestionPanelMinHeight(expectedCount);
+        targetLabel.Text = title;
+        loadingPanel.Visibility = Visibility.Visible;
+        itemsControl.Visibility = Visibility.Collapsed;
+        panel.Visibility = Visibility.Visible;
+    }
+
+    private void SetSuggestionItems(
+        Border panel,
+        FrameworkElement loadingPanel,
+        ItemsControl itemsControl,
+        TextBlock targetLabel,
+        string title,
+        IEnumerable<string> suggestions)
+    {
+        var list = suggestions?.ToList() ?? new List<string>();
+        panel.MinHeight = Math.Max(panel.MinHeight, CalculateSuggestionPanelMinHeight(list.Count));
+        targetLabel.Text = title;
+        loadingPanel.Visibility = Visibility.Collapsed;
+        itemsControl.ItemsSource = list;
+        itemsControl.Visibility = Visibility.Visible;
+        panel.Visibility = Visibility.Visible;
+    }
+
+    private static double CalculateSuggestionPanelMinHeight(int expectedCount)
+    {
+        var count = Math.Max(1, expectedCount);
+        const double headerHeight = 22;
+        const double spacing = 8;
+        const double itemHeight = 40;
+        return headerHeight + spacing + (itemHeight * count);
     }
 }
