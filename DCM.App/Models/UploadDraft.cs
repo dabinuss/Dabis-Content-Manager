@@ -17,12 +17,17 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private string _tagsCsv = string.Empty;
     private string _thumbnailPath = string.Empty;
     private string _transcript = string.Empty;
+    private string? _presetId;
     private string _fileName = string.Empty;
     private long _fileSizeBytes;
     private PlatformType _platform = PlatformType.YouTube;
     private VideoVisibility _visibility = VideoVisibility.Unlisted;
     private string? _playlistId;
     private string? _playlistTitle;
+    private string? _categoryId;
+    private string? _language;
+    private MadeForKidsSetting _madeForKids = MadeForKidsSetting.Default;
+    private CommentStatusSetting _commentStatus = CommentStatusSetting.Default;
     private bool _scheduleEnabled;
     private DateTime? _scheduledDate;
     private string? _scheduledTimeText;
@@ -74,6 +79,12 @@ public sealed class UploadDraft : INotifyPropertyChanged
         set => SetProperty(ref _tagsCsv, value);
     }
 
+    public string? PresetId
+    {
+        get => _presetId;
+        set => SetProperty(ref _presetId, value);
+    }
+
     public string ThumbnailPath
     {
         get => _thumbnailPath;
@@ -108,6 +119,30 @@ public sealed class UploadDraft : INotifyPropertyChanged
     {
         get => _playlistTitle;
         set => SetProperty(ref _playlistTitle, value);
+    }
+
+    public string? CategoryId
+    {
+        get => _categoryId;
+        set => SetProperty(ref _categoryId, value);
+    }
+
+    public string? Language
+    {
+        get => _language;
+        set => SetProperty(ref _language, value);
+    }
+
+    public MadeForKidsSetting MadeForKids
+    {
+        get => _madeForKids;
+        set => SetProperty(ref _madeForKids, value);
+    }
+
+    public CommentStatusSetting CommentStatus
+    {
+        get => _commentStatus;
+        set => SetProperty(ref _commentStatus, value);
     }
 
     public bool ScheduleEnabled
@@ -321,6 +356,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
             TagsCsv = TagsCsv,
             ThumbnailPath = ThumbnailPath,
             Transcript = Transcript,
+            PresetId = PresetId,
             VideoResolution = VideoResolution,
             VideoFps = VideoFps,
             VideoDuration = VideoDuration,
@@ -333,6 +369,10 @@ public sealed class UploadDraft : INotifyPropertyChanged
             Visibility = Visibility.ToString(),
             PlaylistId = PlaylistId,
             PlaylistTitle = PlaylistTitle,
+            CategoryId = CategoryId,
+            Language = Language,
+            MadeForKids = MadeForKids.ToString(),
+            CommentStatus = CommentStatus.ToString(),
             ScheduleEnabled = ScheduleEnabled,
             ScheduledDate = ScheduledDate,
             ScheduledTimeText = ScheduledTimeText,
@@ -354,6 +394,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
             TagsCsv = snapshot.TagsCsv ?? string.Empty,
             ThumbnailPath = snapshot.ThumbnailPath ?? string.Empty,
             Transcript = snapshot.Transcript ?? string.Empty,
+            PresetId = snapshot.PresetId,
             VideoResolution = snapshot.VideoResolution,
             VideoFps = snapshot.VideoFps,
             VideoDuration = snapshot.VideoDuration,
@@ -364,6 +405,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
             VideoPreviewPath = snapshot.VideoPreviewPath,
             PlaylistId = snapshot.PlaylistId,
             PlaylistTitle = snapshot.PlaylistTitle,
+            CategoryId = snapshot.CategoryId,
+            Language = snapshot.Language,
             ScheduleEnabled = snapshot.ScheduleEnabled,
             ScheduledDate = snapshot.ScheduledDate,
             ScheduledTimeText = snapshot.ScheduledTimeText
@@ -379,6 +422,16 @@ public sealed class UploadDraft : INotifyPropertyChanged
         if (Enum.TryParse(snapshot.Visibility, out VideoVisibility visibility))
         {
             draft.Visibility = visibility;
+        }
+
+        if (Enum.TryParse(snapshot.MadeForKids, out MadeForKidsSetting madeForKids))
+        {
+            draft.MadeForKids = madeForKids;
+        }
+
+        if (Enum.TryParse(snapshot.CommentStatus, out CommentStatusSetting commentStatus))
+        {
+            draft.CommentStatus = commentStatus;
         }
 
         if (Enum.TryParse(snapshot.UploadState, out UploadDraftUploadState uploadState))

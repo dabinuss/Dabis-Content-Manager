@@ -790,12 +790,11 @@
                        TextChanged="DescriptionTextBox_TextChanged"
                        MinHeight="140"/>
 
-              <!-- Template & Buttons -->
+              <!-- Buttons -->
               <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Button x:Name="GenerateDescriptionButton"
                         Grid.Column="0"
@@ -805,19 +804,6 @@
                         Click="GenerateDescriptionButton_Click"
                         ToolTip="KI-Vorschlag generieren"
                         BorderBrush="{StaticResource MagicAIGradientBrush}"/>
-                <ComboBox x:Name="TemplateComboBox"
-                          Grid.Column="1"
-                          DisplayMemberPath="Name"
-                          ToolTip="Template fuer die Beschreibung"
-                          SelectionChanged="TemplateComboBox_SelectionChanged"
-                          Margin="0,0,8,0"/>
-              <Button x:Name="ApplyTemplateButton"
-                      Grid.Column="2"
-                      Content="{DynamicResource Common.Apply}"
-                      Style="{StaticResource SecondaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe5ca;"
-                      Click="ApplyTemplateButton_Click"
-                      Margin="0,0,8,0"/>
               </Grid>
 
               <Border x:Name="DescriptionSuggestionsPanel"
@@ -1161,6 +1147,10 @@
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="{StaticResource SpacingS}"/>
           <RowDefinition Height="Auto"/>
+          <RowDefinition Height="{StaticResource SpacingS}"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="{StaticResource SpacingS}"/>
+          <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -1316,8 +1306,31 @@
           </Grid>
         </GroupBox>
 
-        <!-- Sichtbarkeit -->
+        <!-- Preset -->
         <GroupBox Grid.Row="6"
+                  Header="{DynamicResource Upload.Fields.Preset}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="{StaticResource SpacingS}"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox x:Name="PresetComboBox"
+                      Grid.Column="0"
+                      DisplayMemberPath="Name"
+                      ToolTip="Preset fuer Upload-Metadaten"
+                      SelectionChanged="PresetComboBox_SelectionChanged"/>
+            <Button x:Name="ApplyPresetButton"
+                    Grid.Column="2"
+                    Content="{DynamicResource Common.Apply}"
+                    Style="{StaticResource SecondaryButton}"
+                    ap:ButtonIcon.Glyph="&#xe5ca;"
+                    Click="ApplyPresetButton_Click"/>
+          </Grid>
+        </GroupBox>
+
+        <!-- Sichtbarkeit -->
+        <GroupBox Grid.Row="8"
                   Header="{DynamicResource Upload.Fields.Visibility}">
           <Grid>
             <ComboBox x:Name="VisibilityComboBox"
@@ -1334,7 +1347,7 @@
         </GroupBox>
 
         <!-- Playlist -->
-        <GroupBox Grid.Row="8"
+        <GroupBox Grid.Row="10"
                   Header="{DynamicResource Upload.Fields.Paylists}">
           <Grid>
             <ComboBox x:Name="PlaylistComboBox"
@@ -1344,8 +1357,85 @@
           </Grid>
         </GroupBox>
 
-        <!-- Ver”ffentlichung -->
-        <GroupBox Grid.Row="10"
+        <!-- Metadaten -->
+        <GroupBox Grid.Row="12"
+                  Header="{DynamicResource Upload.Fields.Metadata}">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="{StaticResource SpacingM}"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Grid.Column="0"
+                       Text="{DynamicResource Upload.Fields.Category}"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+            <TextBox x:Name="CategoryIdTextBox"
+                     Grid.Row="0"
+                     Grid.Column="2"
+                     TextChanged="CategoryIdTextBox_TextChanged"/>
+
+            <TextBlock Grid.Row="2"
+                       Grid.Column="0"
+                       Text="{DynamicResource Upload.Fields.Language}"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+            <TextBox x:Name="LanguageTextBox"
+                     Grid.Row="2"
+                     Grid.Column="2"
+                     TextChanged="LanguageTextBox_TextChanged"/>
+
+            <TextBlock Grid.Row="4"
+                       Grid.Column="0"
+                       Text="{DynamicResource Upload.Fields.MadeForKids}"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+            <ComboBox x:Name="MadeForKidsComboBox"
+                      Grid.Row="4"
+                      Grid.Column="2"
+                      SelectionChanged="MadeForKidsComboBox_SelectionChanged">
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.MadeForKids.Default}"
+                            Tag="{x:Static core:MadeForKidsSetting.Default}"
+                            IsSelected="True"/>
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.MadeForKids.Yes}"
+                            Tag="{x:Static core:MadeForKidsSetting.Yes}"/>
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.MadeForKids.No}"
+                            Tag="{x:Static core:MadeForKidsSetting.No}"/>
+            </ComboBox>
+
+            <TextBlock Grid.Row="6"
+                       Grid.Column="0"
+                       Text="{DynamicResource Upload.Fields.CommentStatus}"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+            <ComboBox x:Name="CommentStatusComboBox"
+                      Grid.Row="6"
+                      Grid.Column="2"
+                      SelectionChanged="CommentStatusComboBox_SelectionChanged">
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.CommentStatus.Default}"
+                            Tag="{x:Static core:CommentStatusSetting.Default}"
+                            IsSelected="True"/>
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.CommentStatus.Enabled}"
+                            Tag="{x:Static core:CommentStatusSetting.Enabled}"/>
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.CommentStatus.Disabled}"
+                            Tag="{x:Static core:CommentStatusSetting.Disabled}"/>
+            </ComboBox>
+          </Grid>
+        </GroupBox>
+
+        <!-- Ver"ffentlichung -->
+        <GroupBox Grid.Row="14"
                   Header="{DynamicResource Upload.Fields.Publication}">
           <Grid>
             <Grid.RowDefinitions>

@@ -107,6 +107,7 @@
   <sys:String x:Key="Log.Upload.Failed">Upload failed: {0}</sys:String>
   <sys:String x:Key="Log.Upload.UnexpectedError">Unexpected upload error: {0}</sys:String>
   <sys:String x:Key="Log.Template.Applied">Template applied: {0}</sys:String>
+  <sys:String x:Key="Log.Preset.Applied">Preset applied: {0}</sys:String>
   <sys:String x:Key="Log.MainWindow.Started">Application started</sys:String>
   <sys:String x:Key="Log.MainWindow.Closing">Application shutting down</sys:String>
   <sys:String x:Key="Log.MainWindow.InitializationFailed">Initialization failed: {0}</sys:String>
@@ -181,6 +182,7 @@
   <sys:String x:Key="Nav.Accounts">Accounts</sys:String>
   <sys:String x:Key="Nav.Channels">Channels</sys:String>
   <sys:String x:Key="Nav.Templates">Templates</sys:String>
+  <sys:String x:Key="Nav.Presets">Presets</sys:String>
   <sys:String x:Key="Nav.History">History</sys:String>
   <sys:String x:Key="Nav.Settings">Settings</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Home">Home</sys:String>
@@ -188,6 +190,7 @@
   <sys:String x:Key="Page.Context.Accounts">Connect accounts and manage playlists.</sys:String>
   <sys:String x:Key="Page.Context.Channel">Maintain channel profile and style settings.</sys:String>
   <sys:String x:Key="Page.Context.Templates">Create and edit templates.</sys:String>
+  <sys:String x:Key="Page.Context.Presets">Create and edit upload presets.</sys:String>
   <sys:String x:Key="Page.Context.History">Review past uploads and status.</sys:String>
   <sys:String x:Key="Page.Context.Settings">Configure app options and defaults.</sys:String>
   <sys:String x:Key="Page.Context.LlmSettings">Configure LLM mode and models.</sys:String>
@@ -217,7 +220,19 @@
   <sys:String x:Key="Upload.Fields.Thumbnail.DropZone.Descr">or click to select</sys:String>
   <sys:String x:Key="Upload.Fields.Thumbnail.DropZone.AllowedFiles">PNG, JPG, JPEG</sys:String>
   <sys:String x:Key="Upload.Fields.Thumbnail.Change">Click to change</sys:String>
+  <sys:String x:Key="Upload.Fields.Preset">Preset</sys:String>
   <sys:String x:Key="Upload.Fields.Visibility">Visibility</sys:String>
+  <sys:String x:Key="Upload.Fields.Metadata">Metadata</sys:String>
+  <sys:String x:Key="Upload.Fields.Category">Category</sys:String>
+  <sys:String x:Key="Upload.Fields.Language">Language</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids">Made for kids</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids.Default">Default</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids.Yes">Yes</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids.No">No</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus">Comments</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus.Default">Default</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus.Enabled">Enabled</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus.Disabled">Disabled</sys:String>
   <sys:String x:Key="Upload.Fields.Visibility.Public">🌐 Public</sys:String>
   <sys:String x:Key="Upload.Fields.Visibility.Unlisted">🔗 Unlisted</sys:String>
   <sys:String x:Key="Upload.Fields.Visibility.Private">🔒 Private</sys:String>
@@ -267,6 +282,8 @@
 
   <!-- Accounts -->
   <sys:String x:Key="Accounts">Accounts</sys:String>
+  <sys:String x:Key="Accounts.Tab.Connections">Connections</sys:String>
+  <sys:String x:Key="Accounts.Tab.ChannelProfile">Channel Profile</sys:String>
   <sys:String x:Key="Accounts.YouTube.Description">
     Connect your YouTube account to upload videos directly from the app and choose a default playlist for new uploads.
   </sys:String>
@@ -346,6 +363,48 @@
   <sys:String x:Key="Status.Template.Saved">Template "{0}" saved.</sys:String>
   <sys:String x:Key="Status.Template.SaveFailed">Failed to save template: {0}</sys:String>
 
+  <!-- Presets -->
+  <sys:String x:Key="Presets">Presets</sys:String>
+  <sys:String x:Key="Presets.Placeholders.Insert">Insert placeholders</sys:String>
+  <sys:String x:Key="Presets.Header">Available Presets</sys:String>
+  <sys:String x:Key="Presets.Edit">Edit Preset</sys:String>
+  <sys:String x:Key="Presets.Fields.Name">Name</sys:String>
+  <sys:String x:Key="Presets.Fields.Platform">Platform</sys:String>
+  <sys:String x:Key="Presets.Fields.UseAsStandard">Use as Default Preset</sys:String>
+  <sys:String x:Key="Presets.Fields.Notes">Preset Notes</sys:String>
+  <sys:String x:Key="Presets.Fields.TitlePrefix">Title Prefix</sys:String>
+  <sys:String x:Key="Presets.Fields.Tags">Tags (CSV)</sys:String>
+  <sys:String x:Key="Presets.Fields.Visibility">Visibility</sys:String>
+  <sys:String x:Key="Presets.Fields.PlaylistId">Playlist ID</sys:String>
+  <sys:String x:Key="Presets.Fields.PlaylistTitle">Playlist Title</sys:String>
+  <sys:String x:Key="Presets.Fields.CategoryId">Category ID</sys:String>
+  <sys:String x:Key="Presets.Fields.Language">Language</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids">Made for kids</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids.Default">Default</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids.Yes">Yes</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids.No">No</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus">Comments</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus.Default">Default</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus.Enabled">Enabled</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus.Disabled">Disabled</sys:String>
+  <sys:String x:Key="Presets.Fields.TemplateBody">Description Template</sys:String>
+  <sys:String x:Key="Presets.DefaultName">New Preset</sys:String>
+  <sys:String x:Key="Status.Presets.LoadFailed">Presets could not be loaded: {0}</sys:String>
+  <sys:String x:Key="Status.Presets.SaveFailed">Presets could not be saved: {0}</sys:String>
+  <sys:String x:Key="Status.Preset.NoneSelected">No preset selected.</sys:String>
+  <sys:String x:Key="Status.Preset.Applied">Preset "{0}" applied.</sys:String>
+  <sys:String x:Key="Status.Preset.Created">New preset created. Please edit and save.</sys:String>
+  <sys:String x:Key="Status.Preset.Editing">Editing preset "{0}".</sys:String>
+  <sys:String x:Key="Status.Preset.EditNone">No preset selected for editing.</sys:String>
+  <sys:String x:Key="Status.Preset.DeleteNone">No preset selected for deletion.</sys:String>
+  <sys:String x:Key="Status.Preset.Deleted">Preset "{0}" deleted.</sys:String>
+  <sys:String x:Key="Status.Preset.NoneToSave">No preset in the editor to save.</sys:String>
+  <sys:String x:Key="Status.Preset.EditorNotReady">Preset editor is not fully initialized.</sys:String>
+  <sys:String x:Key="Status.Preset.NameRequired">Preset name must not be empty.</sys:String>
+  <sys:String x:Key="Status.Preset.Duplicate">Note: A preset with this name already exists for platform {0}.</sys:String>
+  <sys:String x:Key="Status.Preset.Saved">Preset "{0}" saved.</sys:String>
+  <sys:String x:Key="Status.Preset.SaveFailed">Failed to save preset: {0}</sys:String>
+
   <!-- History -->
   <sys:String x:Key="History">History</sys:String>
   <sys:String x:Key="History.Filter.Status">Status:</sys:String>
@@ -381,7 +440,7 @@
   <sys:String x:Key="Settings.Drafts.Remember">Remember drafts between sessions</sys:String>
   <sys:String x:Key="Settings.Drafts.AutoClean">Automatically remove completed drafts</sys:String>
   <sys:String x:Key="Settings.ConfirmUpload">Ask for Confirmation Before Upload</sys:String>
-  <sys:String x:Key="Settings.AutomaticTemplateApply">Apply Template Automatically</sys:String>
+  <sys:String x:Key="Settings.AutomaticTemplateApply">Apply Default Preset Automatically</sys:String>
   <sys:String x:Key="Settings.OpenBrowserAfterUpload">Open Browser After Upload</sys:String>
   <sys:String x:Key="Settings.AutomaticConnect">Connect to YouTube on Startup</sys:String>
   <sys:String x:Key="Settings.AutomaticTranscription">Transcribe Automatically on Video Selection</sys:String>

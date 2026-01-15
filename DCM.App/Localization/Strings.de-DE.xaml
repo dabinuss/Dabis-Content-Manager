@@ -107,6 +107,7 @@
   <sys:String x:Key="Log.Upload.Failed">Upload fehlgeschlagen: {0}</sys:String>
   <sys:String x:Key="Log.Upload.UnexpectedError">Unerwarteter Fehler beim Upload: {0}</sys:String>
   <sys:String x:Key="Log.Template.Applied">Template angewendet: {0}</sys:String>
+  <sys:String x:Key="Log.Preset.Applied">Preset angewendet: {0}</sys:String>
   <sys:String x:Key="Log.MainWindow.Started">Anwendung gestartet</sys:String>
   <sys:String x:Key="Log.MainWindow.Closing">Anwendung wird beendet</sys:String>
   <sys:String x:Key="Log.MainWindow.InitializationFailed">Initialisierung fehlgeschlagen: {0}</sys:String>
@@ -181,6 +182,7 @@
   <sys:String x:Key="Nav.Accounts">Konten</sys:String>
   <sys:String x:Key="Nav.Channels">Kanäle</sys:String>
   <sys:String x:Key="Nav.Templates">Vorlagen</sys:String>
+  <sys:String x:Key="Nav.Presets">Presets</sys:String>
   <sys:String x:Key="Nav.History">Verlauf</sys:String>
   <sys:String x:Key="Nav.Settings">Einstellungen</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Home">Start</sys:String>
@@ -188,6 +190,7 @@
   <sys:String x:Key="Page.Context.Accounts">Konten verbinden und Playlists verwalten.</sys:String>
   <sys:String x:Key="Page.Context.Channel">Kanalprofil und Stilvorgaben pflegen.</sys:String>
   <sys:String x:Key="Page.Context.Templates">Vorlagen erstellen und bearbeiten.</sys:String>
+  <sys:String x:Key="Page.Context.Presets">Upload-Presets erstellen und bearbeiten.</sys:String>
   <sys:String x:Key="Page.Context.History">Vergangene Uploads und Status anzeigen.</sys:String>
   <sys:String x:Key="Page.Context.Settings">App-Optionen und Standardwerte konfigurieren.</sys:String>
   <sys:String x:Key="Page.Context.LlmSettings">LLM-Modus und Modelle konfigurieren.</sys:String>
@@ -217,6 +220,18 @@
   <sys:String x:Key="Upload.Fields.Thumbnail.DropZone.Descr">oder klicken zum Auswählen</sys:String>
   <sys:String x:Key="Upload.Fields.Thumbnail.DropZone.AllowedFiles">PNG, JPG, JPEG</sys:String>
   <sys:String x:Key="Upload.Fields.Thumbnail.Change">Klicken zum Ändern</sys:String>
+  <sys:String x:Key="Upload.Fields.Preset">Preset</sys:String>
+  <sys:String x:Key="Upload.Fields.Metadata">Metadaten</sys:String>
+  <sys:String x:Key="Upload.Fields.Category">Kategorie</sys:String>
+  <sys:String x:Key="Upload.Fields.Language">Sprache</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids">Made for Kids</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids.Default">Standard</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids.Yes">Ja</sys:String>
+  <sys:String x:Key="Upload.Fields.MadeForKids.No">Nein</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus">Kommentare</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus.Default">Standard</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus.Enabled">Aktiviert</sys:String>
+  <sys:String x:Key="Upload.Fields.CommentStatus.Disabled">Deaktiviert</sys:String>
   <sys:String x:Key="Upload.Fields.Visibility">Sichtbarkeit</sys:String>
   <sys:String x:Key="Upload.Fields.Visibility.Public">🌐 Öffentlich</sys:String>
   <sys:String x:Key="Upload.Fields.Visibility.Unlisted">🔗 Nicht gelistet</sys:String>
@@ -267,6 +282,8 @@
 
   <!-- Accounts -->
   <sys:String x:Key="Accounts">Accounts</sys:String>
+  <sys:String x:Key="Accounts.Tab.Connections">Verbindungen</sys:String>
+  <sys:String x:Key="Accounts.Tab.ChannelProfile">Kanalprofil</sys:String>
   <sys:String x:Key="Accounts.YouTube.Description">
     Verbinde dein YouTube-Konto, um Videos direkt aus der App hochzuladen und eine Standard-Playlist für neue Uploads auszuwählen.
   </sys:String>
@@ -346,6 +363,48 @@
   <sys:String x:Key="Status.Template.Saved">Vorlage "{0}" gespeichert.</sys:String>
   <sys:String x:Key="Status.Template.SaveFailed">Fehler beim Speichern der Vorlage: {0}</sys:String>
 
+  <!-- Presets -->
+  <sys:String x:Key="Presets">Presets</sys:String>
+  <sys:String x:Key="Presets.Placeholders.Insert">Platzhalter einfuegen</sys:String>
+  <sys:String x:Key="Presets.Header">Verfuegbare Presets</sys:String>
+  <sys:String x:Key="Presets.Edit">Preset bearbeiten</sys:String>
+  <sys:String x:Key="Presets.Fields.Name">Name</sys:String>
+  <sys:String x:Key="Presets.Fields.Platform">Platform</sys:String>
+  <sys:String x:Key="Presets.Fields.UseAsStandard">Als Standard-Preset verwenden</sys:String>
+  <sys:String x:Key="Presets.Fields.Notes">Notiz zum Preset</sys:String>
+  <sys:String x:Key="Presets.Fields.TitlePrefix">Titel-Prefix</sys:String>
+  <sys:String x:Key="Presets.Fields.Tags">Tags (CSV)</sys:String>
+  <sys:String x:Key="Presets.Fields.Visibility">Sichtbarkeit</sys:String>
+  <sys:String x:Key="Presets.Fields.PlaylistId">Playlist-ID</sys:String>
+  <sys:String x:Key="Presets.Fields.PlaylistTitle">Playlist-Titel</sys:String>
+  <sys:String x:Key="Presets.Fields.CategoryId">Kategorie-ID</sys:String>
+  <sys:String x:Key="Presets.Fields.Language">Sprache</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids">Made for Kids</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids.Default">Standard</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids.Yes">Ja</sys:String>
+  <sys:String x:Key="Presets.Fields.MadeForKids.No">Nein</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus">Kommentare</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus.Default">Standard</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus.Enabled">Aktiviert</sys:String>
+  <sys:String x:Key="Presets.Fields.CommentStatus.Disabled">Deaktiviert</sys:String>
+  <sys:String x:Key="Presets.Fields.TemplateBody">Beschreibungsvorlage</sys:String>
+  <sys:String x:Key="Presets.DefaultName">Neues Preset</sys:String>
+  <sys:String x:Key="Status.Presets.LoadFailed">Presets konnten nicht geladen werden: {0}</sys:String>
+  <sys:String x:Key="Status.Presets.SaveFailed">Presets konnten nicht gespeichert werden: {0}</sys:String>
+  <sys:String x:Key="Status.Preset.NoneSelected">Kein Preset ausgewählt.</sys:String>
+  <sys:String x:Key="Status.Preset.Applied">Preset "{0}" angewendet.</sys:String>
+  <sys:String x:Key="Status.Preset.Created">Neues Preset erstellt. Bitte bearbeiten und speichern.</sys:String>
+  <sys:String x:Key="Status.Preset.Editing">Preset "{0}" wird bearbeitet.</sys:String>
+  <sys:String x:Key="Status.Preset.EditNone">Kein Preset zum Bearbeiten ausgewählt.</sys:String>
+  <sys:String x:Key="Status.Preset.DeleteNone">Kein Preset zum Löschen ausgewählt.</sys:String>
+  <sys:String x:Key="Status.Preset.Deleted">Preset "{0}" gelöscht.</sys:String>
+  <sys:String x:Key="Status.Preset.NoneToSave">Kein Preset im Editor zum Speichern.</sys:String>
+  <sys:String x:Key="Status.Preset.EditorNotReady">Preset-Editor ist noch nicht vollständig initialisiert.</sys:String>
+  <sys:String x:Key="Status.Preset.NameRequired">Preset-Name darf nicht leer sein.</sys:String>
+  <sys:String x:Key="Status.Preset.Duplicate">Hinweis: Es existiert bereits ein Preset mit diesem Namen für Plattform {0}.</sys:String>
+  <sys:String x:Key="Status.Preset.Saved">Preset "{0}" gespeichert.</sys:String>
+  <sys:String x:Key="Status.Preset.SaveFailed">Fehler beim Speichern des Presets: {0}</sys:String>
+
   <!-- History -->
   <sys:String x:Key="History">Verlauf</sys:String>
   <sys:String x:Key="History.Success">Erfolg</sys:String>
@@ -381,7 +440,7 @@
   <sys:String x:Key="Settings.Drafts.Remember">Entwürfe zwischen Sitzungen merken</sys:String>
   <sys:String x:Key="Settings.Drafts.AutoClean">Abgeschlossene Entwürfe automatisch entfernen</sys:String>
   <sys:String x:Key="Settings.ConfirmUpload">Vor Upload um Bestätigung fragen</sys:String>
-  <sys:String x:Key="Settings.AutomaticTemplateApply">Vorlage automatisch anwenden</sys:String>
+  <sys:String x:Key="Settings.AutomaticTemplateApply">Standard-Preset automatisch anwenden</sys:String>
   <sys:String x:Key="Settings.OpenBrowserAfterUpload">Nach Upload Browser öffnen</sys:String>
   <sys:String x:Key="Settings.AutomaticConnect">Beim Start mit YouTube verbinden</sys:String>
   <sys:String x:Key="Settings.AutomaticTranscription">Automatisch transkribieren bei Video-Auswahl</sys:String>

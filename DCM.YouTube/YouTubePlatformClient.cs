@@ -252,7 +252,9 @@ public sealed class YouTubePlatformClient : IPlatformClient
                     ? Path.GetFileNameWithoutExtension(project.VideoFilePath)
                     : project.Title,
                 Description = project.Description,
-                Tags = project.Tags.Count > 0 ? project.Tags : null
+                Tags = project.Tags.Count > 0 ? project.Tags : null,
+                CategoryId = project.CategoryId,
+                DefaultLanguage = project.Language
             },
             Status = new VideoStatus
             {
@@ -260,6 +262,17 @@ public sealed class YouTubePlatformClient : IPlatformClient
                 PublishAtDateTimeOffset = publishAtUtc
             }
         };
+
+        if (project.MadeForKids.HasValue && video.Status is not null)
+        {
+            TrySetBooleanProperty(video.Status, "SelfDeclaredMadeForKids", project.MadeForKids.Value);
+            TrySetBooleanProperty(video.Status, "MadeForKids", project.MadeForKids.Value);
+        }
+
+        if (project.CommentStatus != CommentStatusSetting.Default)
+        {
+            _logger.Warning("Comment status preset is not supported by the YouTube API and will be ignored.", "YouTube");
+        }
 
         using var fileStream = OpenVideoReadStream(project.VideoFilePath);
         var totalBytes = fileStream.Length;
@@ -529,6 +542,20 @@ public sealed class YouTubePlatformClient : IPlatformClient
             ".png" => "image/png",
             _ => "image/jpeg"
         };
+    }
+
+    private static void TrySetBooleanProperty(object target, string propertyName, bool value)
+    {
+        var property = target.GetType().GetProperty(propertyName);
+        if (property is null || !property.CanWrite)
+        {
+            return;
+        }
+
+        if (property.PropertyType == typeof(bool?) || property.PropertyType == typeof(bool))
+        {
+            property.SetValue(target, value);
+        }
     }
 
     private static FileStream OpenVideoReadStream(string path)

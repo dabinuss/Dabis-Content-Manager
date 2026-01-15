@@ -213,6 +213,149 @@
     </Setter>
   </Style>
 
+  <!-- Top Navigation: Main Menu Button -->
+  <Style x:Key="TopNavMainButton"
+         TargetType="RadioButton">
+    <Setter Property="Background"
+            Value="Transparent"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextMutedBrush}"/>
+    <Setter Property="FontFamily"
+            Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="0,0,1,0"/>
+    <Setter Property="Padding"
+            Value="18,0"/>
+    <Setter Property="Margin"
+            Value="0"/>
+    <Setter Property="MinWidth"
+            Value="160"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="HorizontalContentAlignment"
+            Value="Center"/>
+    <Setter Property="VerticalContentAlignment"
+            Value="Center"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Border x:Name="border"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}">
+            <Grid>
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+              <Border x:Name="activeMarker"
+                      Height="2"
+                      Background="{StaticResource PrimaryBrush}"
+                      VerticalAlignment="Bottom"
+                      Opacity="0"/>
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextSecondaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SurfaceHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsChecked"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextPrimaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SurfacePressedBrush}"/>
+              <Setter TargetName="activeMarker"
+                      Property="Opacity"
+                      Value="1"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Top Navigation: Sub Menu Button -->
+  <Style x:Key="TopNavSubButton"
+         TargetType="RadioButton">
+    <Setter Property="Background"
+            Value="Transparent"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextMutedBrush}"/>
+    <Setter Property="FontFamily"
+            Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeXS}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="0,0,1,0"/>
+    <Setter Property="Padding"
+            Value="14,0"/>
+    <Setter Property="MinHeight"
+            Value="28"/>
+    <Setter Property="MinWidth"
+            Value="96"/>
+    <Setter Property="Margin"
+            Value="0"/>
+    <Setter Property="VerticalAlignment"
+            Value="Stretch"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="HorizontalContentAlignment"
+            Value="Center"/>
+    <Setter Property="VerticalContentAlignment"
+            Value="Center"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Border x:Name="border"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}">
+            <Grid>
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Margin="{TemplateBinding Padding}"/>
+              <Border x:Name="activeMarker"
+                      Height="2"
+                      Background="{StaticResource PrimaryBrush}"
+                      VerticalAlignment="Bottom"
+                      Opacity="0"/>
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextSecondaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SurfaceHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsChecked"
+                     Value="True">
+              <Setter Property="Foreground"
+                      Value="{StaticResource TextPrimaryBrush}"/>
+              <Setter TargetName="border"
+                      Property="Background"
+                      Value="{StaticResource SurfacePressedBrush}"/>
+              <Setter TargetName="activeMarker"
+                      Property="Opacity"
+                      Value="1"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <!-- DROP ZONE STYLES -->
 
   <!-- Video Drop Zone Style (mit echtem dashed Rahmen, nicht skaliert) -->

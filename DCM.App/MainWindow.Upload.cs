@@ -28,7 +28,7 @@ namespace DCM.App;
 public partial class MainWindow
 {
     private const string UploadLogSource = "Upload";
-    private const string TemplateLogSource = "Template";
+    private const string PresetLogSource = "Preset";
     private readonly SemaphoreSlim _videoInfoSemaphore = new(2, 2);
     private readonly SemaphoreSlim _videoPreviewSemaphore = new(1, 1);
     private bool _isFastFillRunning;
@@ -255,6 +255,11 @@ public partial class MainWindow
         draft.Title = string.Empty;
         draft.Description = string.Empty;
         draft.TagsCsv = string.Empty;
+        draft.PresetId = null;
+        draft.CategoryId = null;
+        draft.Language = null;
+        draft.MadeForKids = MadeForKidsSetting.Default;
+        draft.CommentStatus = CommentStatusSetting.Default;
         draft.Transcript = string.Empty;
         draft.ThumbnailPath = string.Empty;
         draft.UploadState = UploadDraftUploadState.Pending;
@@ -357,6 +362,7 @@ public partial class MainWindow
             };
 
             ApplyCurrentUploadSettingsToDraft(draft);
+            TryApplyDefaultPresetToDraft(draft);
             SetVideoFile(draft, filePath, triggerAutoTranscribe: false);
             _uploadDrafts.Add(draft);
             firstNewDraft ??= draft;
@@ -717,6 +723,7 @@ public partial class MainWindow
         }
 
         _activeDraft = draft;
+        _presetState.Reset();
 
         if (UploadView is null)
         {
@@ -760,6 +767,11 @@ public partial class MainWindow
         UploadView.TitleTextBox.Text = string.Empty;
         UploadView.DescriptionTextBox.Text = string.Empty;
         UploadView.TagsTextBox.Text = string.Empty;
+        UploadView.CategoryIdTextBox.Text = string.Empty;
+        UploadView.LanguageTextBox.Text = string.Empty;
+        UploadView.SetMadeForKids(MadeForKidsSetting.Default);
+        UploadView.SetCommentStatus(CommentStatusSetting.Default);
+        UploadView.PresetComboBox.SelectedItem = null;
         UploadView.TranscriptTextBox.Text = string.Empty;
         ClearThumbnailPreview();
     }
@@ -896,6 +908,15 @@ public partial class MainWindow
             ? PlatformType.YouTube
             : PlatformType.YouTube;
 
+        if (UploadView.PresetComboBox.SelectedItem is UploadPreset preset)
+        {
+            draft.PresetId = preset.Id;
+        }
+        else
+        {
+            draft.PresetId = null;
+        }
+
         draft.Visibility = GetSelectedVisibilityFromUi();
 
         if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo playlist)
@@ -909,9 +930,34 @@ public partial class MainWindow
             draft.PlaylistTitle = null;
         }
 
+        draft.CategoryId = string.IsNullOrWhiteSpace(UploadView.CategoryIdTextBox.Text)
+            ? null
+            : UploadView.CategoryIdTextBox.Text.Trim();
+        draft.Language = string.IsNullOrWhiteSpace(UploadView.LanguageTextBox.Text)
+            ? null
+            : UploadView.LanguageTextBox.Text.Trim();
+        draft.MadeForKids = GetSelectedMadeForKidsFromUi();
+        draft.CommentStatus = GetSelectedCommentStatusFromUi();
+
         draft.ScheduleEnabled = UploadView.ScheduleCheckBox.IsChecked == true;
         draft.ScheduledDate = UploadView.ScheduleDatePicker.SelectedDate;
         draft.ScheduledTimeText = UploadView.ScheduleTimeTextBox.Text;
+    }
+
+    private void TryApplyDefaultPresetToDraft(UploadDraft draft)
+    {
+        if (draft is null || _settings.AutoApplyDefaultTemplate != true)
+        {
+            return;
+        }
+
+        var preset = GetDefaultPreset(draft.Platform);
+        if (preset is null)
+        {
+            return;
+        }
+
+        ApplyPresetToDraft(draft, preset, overwriteExisting: true, applyDescriptionTemplate: true);
     }
 
     private void ApplyDraftUploadSettingsToUi(UploadDraft draft)
@@ -922,8 +968,13 @@ public partial class MainWindow
         }
 
         UploadView.PlatformYouTubeToggle.IsChecked = draft.Platform == PlatformType.YouTube;
+        ApplyDraftPresetSelection(draft.PresetId);
         UploadView.SetDefaultVisibility(draft.Visibility);
         ApplyDraftPlaylistSelection(draft.PlaylistId);
+        UploadView.CategoryIdTextBox.Text = draft.CategoryId ?? string.Empty;
+        UploadView.LanguageTextBox.Text = draft.Language ?? string.Empty;
+        UploadView.SetMadeForKids(draft.MadeForKids);
+        UploadView.SetCommentStatus(draft.CommentStatus);
 
         UploadView.ScheduleCheckBox.IsChecked = draft.ScheduleEnabled;
 
@@ -946,6 +997,19 @@ public partial class MainWindow
         }
 
         UpdateScheduleControlsEnabled();
+    }
+
+    private void ApplyDraftPresetSelection(string? presetId)
+    {
+        if (UploadView is null)
+        {
+            return;
+        }
+
+        var preset = FindPresetById(presetId) ?? GetDefaultPreset(PlatformType.YouTube);
+        _isPresetBinding = true;
+        UploadView.PresetComboBox.SelectedItem = preset;
+        _isPresetBinding = false;
     }
 
     private void ApplyDraftPlaylistSelection(string? playlistId)
@@ -988,6 +1052,28 @@ public partial class MainWindow
         }
 
         return _settings.DefaultVisibility;
+    }
+
+    private MadeForKidsSetting GetSelectedMadeForKidsFromUi()
+    {
+        if (UploadView.MadeForKidsComboBox.SelectedItem is ComboBoxItem item &&
+            item.Tag is MadeForKidsSetting setting)
+        {
+            return setting;
+        }
+
+        return MadeForKidsSetting.Default;
+    }
+
+    private CommentStatusSetting GetSelectedCommentStatusFromUi()
+    {
+        if (UploadView.CommentStatusComboBox.SelectedItem is ComboBoxItem item &&
+            item.Tag is CommentStatusSetting setting)
+        {
+            return setting;
+        }
+
+        return CommentStatusSetting.Default;
     }
 
     private void ClearThumbnailPreview()
@@ -1957,11 +2043,11 @@ public partial class MainWindow
 
         if (string.IsNullOrWhiteSpace(current))
         {
-            _templateState.Reset();
+            _presetState.Reset();
             return;
         }
 
-        _templateState.UpdateBaseDescriptionIfChanged(current);
+        _presetState.UpdateBaseDescriptionIfChanged(current);
 
         if (_isLoadingDraft)
         {
@@ -2069,6 +2155,70 @@ public partial class MainWindow
         {
             _activeDraft.PlaylistId = null;
             _activeDraft.PlaylistTitle = null;
+        }
+
+        ScheduleDraftPersistence();
+    }
+
+    private void CategoryIdTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.CategoryId = string.IsNullOrWhiteSpace(UploadView.CategoryIdTextBox.Text)
+                ? null
+                : UploadView.CategoryIdTextBox.Text.Trim();
+        }
+
+        ScheduleDraftPersistence();
+    }
+
+    private void LanguageTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.Language = string.IsNullOrWhiteSpace(UploadView.LanguageTextBox.Text)
+                ? null
+                : UploadView.LanguageTextBox.Text.Trim();
+        }
+
+        ScheduleDraftPersistence();
+    }
+
+    private void MadeForKidsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.MadeForKids = GetSelectedMadeForKidsFromUi();
+        }
+
+        ScheduleDraftPersistence();
+    }
+
+    private void CommentStatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.CommentStatus = GetSelectedCommentStatusFromUi();
         }
 
         ScheduleDraftPersistence();
@@ -2474,48 +2624,28 @@ public partial class MainWindow
 
     #region Upload Actions
 
-    private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e)
+    private void ApplyPresetButton_Click(object sender, RoutedEventArgs e)
     {
-        Template? tmpl = UploadView.TemplateComboBox.SelectedItem as Template;
+        UploadPreset? preset = UploadView.PresetComboBox.SelectedItem as UploadPreset;
 
-        if (tmpl is null && TemplatesPageView?.SelectedTemplate is Template tabTemplate)
+        if (preset is null && PresetsPageView?.SelectedPreset is UploadPreset tabPreset)
         {
-            tmpl = tabTemplate;
+            preset = tabPreset;
         }
 
-        if (tmpl is null)
+        if (preset is null)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Template.NoneSelected");
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Preset.NoneSelected");
             return;
         }
 
-        var project = BuildUploadProjectFromUi(includeScheduling: true);
+        ApplyPresetToActiveDraft(preset, overwriteExisting: true, applyDescriptionTemplate: true);
 
-        string baseDescription;
-        if (_templateState.TryGetBaseDescription(tmpl, out var storedBase))
-        {
-            baseDescription = storedBase;
-            project.Description = storedBase;
-        }
-        else
-        {
-            baseDescription = UploadView.DescriptionTextBox.Text ?? string.Empty;
-        }
-
-        var result = _templateService.ApplyTemplate(tmpl.Body, project);
-
-        _templateState.Record(
-            tmpl,
-            baseDescription,
-            result,
-            TemplateHasDescriptionPlaceholder(tmpl));
-
-        SetDescriptionText(result);
-        StatusTextBlock.Text = LocalizationHelper.Format("Status.Template.Applied", tmpl.Name);
+        StatusTextBlock.Text = LocalizationHelper.Format("Status.Preset.Applied", preset.Name);
 
         _logger.Info(
-            LocalizationHelper.Format("Log.Template.Applied", tmpl.Name),
-            TemplateLogSource);
+            LocalizationHelper.Format("Log.Preset.Applied", preset.Name),
+            PresetLogSource);
     }
 
     private async void UploadButton_Click(object sender, RoutedEventArgs e)
@@ -2654,12 +2784,12 @@ public partial class MainWindow
 
         try
         {
-            Template? selectedTemplate = UploadView.TemplateComboBox.SelectedItem as Template;
+            UploadPreset? selectedPreset = UploadView.PresetComboBox.SelectedItem as UploadPreset;
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = await _uploadService.UploadAsync(
                 project,
-                selectedTemplate,
+                selectedPreset,
                 progressReporter,
                 cancellationToken);
 
@@ -2846,6 +2976,132 @@ public partial class MainWindow
 
     #region Upload Helpers
 
+    private void ApplyPresetToActiveDraft(UploadPreset preset, bool overwriteExisting, bool applyDescriptionTemplate)
+    {
+        if (_activeDraft is null || UploadView is null)
+        {
+            return;
+        }
+
+        ApplyPresetToDraft(_activeDraft, preset, overwriteExisting, applyDescriptionTemplate);
+        ApplyPresetToUi(_activeDraft, preset);
+        ScheduleDraftPersistence();
+    }
+
+    private void ApplyPresetToDraft(UploadDraft draft, UploadPreset preset, bool overwriteExisting, bool applyDescriptionTemplate)
+    {
+        if (draft is null || preset is null)
+        {
+            return;
+        }
+
+        draft.PresetId = preset.Id;
+
+        if (!string.IsNullOrWhiteSpace(preset.TitlePrefix))
+        {
+            if (!draft.Title.StartsWith(preset.TitlePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                draft.Title = string.IsNullOrWhiteSpace(draft.Title)
+                    ? preset.TitlePrefix
+                    : $"{preset.TitlePrefix}{draft.Title}";
+            }
+        }
+
+        if (overwriteExisting || string.IsNullOrWhiteSpace(draft.TagsCsv))
+        {
+            draft.TagsCsv = preset.TagsCsv ?? string.Empty;
+        }
+
+        if (overwriteExisting || draft.Visibility == _settings.DefaultVisibility)
+        {
+            draft.Visibility = preset.Visibility;
+        }
+
+        if (overwriteExisting || string.IsNullOrWhiteSpace(draft.PlaylistId))
+        {
+            draft.PlaylistId = preset.PlaylistId;
+            draft.PlaylistTitle = preset.PlaylistTitle;
+        }
+
+        if (overwriteExisting || string.IsNullOrWhiteSpace(draft.CategoryId))
+        {
+            draft.CategoryId = preset.CategoryId;
+        }
+
+        if (overwriteExisting || string.IsNullOrWhiteSpace(draft.Language))
+        {
+            draft.Language = preset.Language;
+        }
+
+        if (overwriteExisting || draft.MadeForKids == MadeForKidsSetting.Default)
+        {
+            draft.MadeForKids = preset.MadeForKids;
+        }
+
+        if (overwriteExisting || draft.CommentStatus == CommentStatusSetting.Default)
+        {
+            draft.CommentStatus = preset.CommentStatus;
+        }
+
+        if (applyDescriptionTemplate && !string.IsNullOrWhiteSpace(preset.DescriptionTemplate))
+        {
+            if (overwriteExisting || string.IsNullOrWhiteSpace(draft.Description))
+            {
+                var project = BuildUploadProjectFromUi(includeScheduling: true, draftOverride: draft);
+
+                string baseDescription;
+                if (_presetState.TryGetBaseDescription(preset, out var storedBase))
+                {
+                    baseDescription = storedBase;
+                    project.Description = storedBase;
+                }
+                else
+                {
+                    baseDescription = draft.Description ?? string.Empty;
+                }
+
+                var result = _templateService.ApplyTemplate(preset.DescriptionTemplate, project);
+
+                _presetState.Record(
+                    preset,
+                    baseDescription,
+                    result,
+                    PresetHasDescriptionPlaceholder(preset));
+
+                draft.Description = result;
+            }
+        }
+    }
+
+    private void ApplyPresetToUi(UploadDraft draft, UploadPreset preset)
+    {
+        if (UploadView is null)
+        {
+            return;
+        }
+
+        UploadView.TitleTextBox.Text = draft.Title;
+        UploadView.TagsTextBox.Text = draft.TagsCsv;
+        UploadView.SetDefaultVisibility(draft.Visibility);
+        UploadView.CategoryIdTextBox.Text = draft.CategoryId ?? string.Empty;
+        UploadView.LanguageTextBox.Text = draft.Language ?? string.Empty;
+        UploadView.SetMadeForKids(draft.MadeForKids);
+        UploadView.SetCommentStatus(draft.CommentStatus);
+        ApplyDraftPlaylistSelection(draft.PlaylistId);
+
+        if (preset is not null && UploadView.PresetComboBox.SelectedItem != preset)
+        {
+            _isPresetBinding = true;
+            UploadView.PresetComboBox.SelectedItem = preset;
+            _isPresetBinding = false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(draft.Description))
+        {
+            SetDescriptionText(draft.Description);
+        }
+    }
+
     private UploadProject BuildUploadProjectFromUi(bool includeScheduling, UploadDraft? draftOverride = null)
     {
         var platform = draftOverride?.Platform ?? PlatformType.YouTube;
@@ -2896,6 +3152,11 @@ public partial class MainWindow
             }
         }
 
+        var categoryId = draftOverride?.CategoryId ?? UploadView.CategoryIdTextBox.Text;
+        var language = draftOverride?.Language ?? UploadView.LanguageTextBox.Text;
+        var madeForKidsSetting = draftOverride?.MadeForKids ?? GetSelectedMadeForKidsFromUi();
+        var commentStatusSetting = draftOverride?.CommentStatus ?? GetSelectedCommentStatusFromUi();
+
         var project = new UploadProject
         {
             VideoFilePath = draftOverride?.VideoPath ?? UploadView.VideoPathTextBox.Text ?? string.Empty,
@@ -2907,7 +3168,11 @@ public partial class MainWindow
             PlaylistTitle = playlistTitle,
             ScheduledTime = scheduledTime,
             ThumbnailPath = draftOverride?.ThumbnailPath ?? UploadView.ThumbnailPathTextBox.Text,
-            TranscriptText = draftOverride?.Transcript ?? UploadView.TranscriptTextBox.Text
+            TranscriptText = draftOverride?.Transcript ?? UploadView.TranscriptTextBox.Text,
+            CategoryId = string.IsNullOrWhiteSpace(categoryId) ? null : categoryId.Trim(),
+            Language = string.IsNullOrWhiteSpace(language) ? null : language.Trim(),
+            MadeForKids = ToNullableBool(madeForKidsSetting),
+            CommentStatus = commentStatusSetting
         };
 
         project.SetTagsFromCsv(draftOverride?.TagsCsv ?? (UploadView.TagsTextBox.Text ?? string.Empty));
@@ -2932,6 +3197,14 @@ public partial class MainWindow
 
         return TimeSpan.Parse(Constants.DefaultSchedulingTime);
     }
+
+    private static bool? ToNullableBool(MadeForKidsSetting setting) =>
+        setting switch
+        {
+            MadeForKidsSetting.Yes => true,
+            MadeForKidsSetting.No => false,
+            _ => null
+        };
 
     private void SetDescriptionText(string newText)
     {
@@ -2972,24 +3245,24 @@ public partial class MainWindow
         }
     }
 
-    private static bool TemplateHasDescriptionPlaceholder(Template tmpl)
+    private static bool PresetHasDescriptionPlaceholder(UploadPreset preset)
     {
-        if (tmpl is null || string.IsNullOrWhiteSpace(tmpl.Body))
+        if (preset is null || string.IsNullOrWhiteSpace(preset.DescriptionTemplate))
         {
             return false;
         }
 
-        return Regex.IsMatch(tmpl.Body, @"\{+\s*description\s*\}+", RegexOptions.IgnoreCase);
+        return Regex.IsMatch(preset.DescriptionTemplate, @"\{+\s*description\s*\}+", RegexOptions.IgnoreCase);
     }
 
     private void ApplyGeneratedDescription(string newDescription)
     {
-        if (_templateState.Template is not null && _templateState.HasDescriptionPlaceholder)
+        if (_presetState.Preset is not null && _presetState.HasDescriptionPlaceholder)
         {
             var project = BuildUploadProjectFromUi(includeScheduling: true);
             project.Description = newDescription ?? string.Empty;
-            var applied = _templateService.ApplyTemplate(_templateState.Template.Body, project);
-            _templateState.UpdateLastResult(applied);
+            var applied = _templateService.ApplyTemplate(_presetState.Preset.DescriptionTemplate, project);
+            _presetState.UpdateLastResult(applied);
             SetDescriptionText(applied);
         }
         else

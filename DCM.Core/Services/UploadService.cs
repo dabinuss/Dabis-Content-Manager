@@ -6,7 +6,7 @@ namespace DCM.Core.Services;
 
 /// <summary>
 /// Orchestriert den Upload-Flow:
-/// - optional Template anwenden
+/// - optional Preset-Template anwenden
 /// - Projekt validieren
 /// - passenden IPlatformClient auswählen und Upload ausführen
 /// </summary>
@@ -31,7 +31,7 @@ public sealed class UploadService
 
     public async Task<UploadResult> UploadAsync(
         UploadProject project,
-        Template? template,
+        UploadPreset? preset,
         IProgress<UploadProgressInfo>? progress = null,
         CancellationToken cancellationToken = default)
     {
@@ -40,18 +40,18 @@ public sealed class UploadService
         _logger.Info($"Upload gestartet für: {project.Title}", "UploadService");
         _logger.Debug($"Plattform: {project.Platform}, Video: {project.VideoFilePath}", "UploadService");
 
-        // Template anwenden (falls angegeben)
-        if (template is not null && !string.IsNullOrWhiteSpace(template.Body))
+        // Preset-Template anwenden (falls angegeben)
+        if (preset is not null && !string.IsNullOrWhiteSpace(preset.DescriptionTemplate))
         {
             if (string.IsNullOrWhiteSpace(project.Description))
             {
-                _logger.Debug($"Template '{template.Name}' wird angewendet", "UploadService");
-                var text = _templateService.ApplyTemplate(template.Body, project);
+                _logger.Debug($"Preset-Template '{preset.Name}' wird angewendet", "UploadService");
+                var text = _templateService.ApplyTemplate(preset.DescriptionTemplate, project);
                 project.Description = text;
             }
             else
             {
-                _logger.Debug("Template übersprungen - Beschreibung bereits vorhanden", "UploadService");
+                _logger.Debug("Preset-Template uebersprungen - Beschreibung bereits vorhanden", "UploadService");
             }
         }
 

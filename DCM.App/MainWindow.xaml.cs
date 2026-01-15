@@ -37,7 +37,7 @@ public partial class MainWindow : Window
 {
     public string AppVersion { get; set; }
     private readonly TemplateService _templateService;
-    private readonly ITemplateRepository _templateRepository;
+    private readonly IPresetRepository _presetRepository;
     private readonly ISettingsProvider _settingsProvider;
     private readonly YouTubePlatformClient _youTubeClient;
     private readonly UploadHistoryService _uploadHistoryService;
@@ -54,10 +54,10 @@ public partial class MainWindow : Window
     private readonly UploadService _uploadService;
     private AppSettings _settings = new();
 
-    private readonly List<Template> _loadedTemplates = new();
-    private Template? _currentEditingTemplate;
-    private readonly TemplateApplicationState _templateState = new();
-    private bool _isTemplateBinding;
+    private readonly List<UploadPreset> _loadedPresets = new();
+    private UploadPreset? _currentEditingPreset;
+    private readonly PresetApplicationState _presetState = new();
+    private bool _isPresetBinding;
     private bool _isSettingDescriptionText;
 
     private readonly List<YouTubePlaylistInfo> _youTubePlaylists = new();
@@ -99,12 +99,11 @@ public partial class MainWindow : Window
         UpdateMaximizeButtonIcon();
         AttachUploadViewEvents();
         AttachAccountsViewEvents();
-        AttachChannelViewEvents();
-        AttachTemplatesViewEvents();
+        AttachPresetsViewEvents();
         AttachHistoryViewEvents();
         AttachSettingsViewEvents();
         RegisterEventSubscriptions();
-        InitializeTemplatePlaceholders();
+        InitializePresetPlaceholders();
         InitializeUploadDrafts();
 
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
@@ -117,7 +116,7 @@ public partial class MainWindow : Window
 
         _templateService = new TemplateService(_logger);
         _settingsProvider = new JsonSettingsProvider(_logger);
-        _templateRepository = new JsonTemplateRepository(_logger);
+        _presetRepository = new JsonPresetRepository(_logger);
         _youTubeClient = new YouTubePlatformClient(_logger);
         _uploadHistoryService = new UploadHistoryService(null, _logger);
         _fallbackSuggestionService = new SimpleFallbackSuggestionService(_logger);
@@ -236,8 +235,8 @@ public partial class MainWindow : Window
         UploadPageView.TranscriptTextBoxTextChanged += TranscriptTextBox_TextChanged;
         UploadPageView.GenerateTitleButtonClicked += GenerateTitleButton_Click;
         UploadPageView.GenerateDescriptionButtonClicked += GenerateDescriptionButton_Click;
-        UploadPageView.TemplateComboBoxSelectionChanged += TemplateComboBox_SelectionChanged;
-        UploadPageView.ApplyTemplateButtonClicked += ApplyTemplateButton_Click;
+        UploadPageView.PresetComboBoxSelectionChanged += PresetComboBox_SelectionChanged;
+        UploadPageView.ApplyPresetButtonClicked += ApplyPresetButton_Click;
         UploadPageView.GenerateTagsButtonClicked += GenerateTagsButton_Click;
         UploadPageView.TranscribeButtonClicked += TranscribeButton_Click;
         UploadPageView.TranscriptionExportButtonClicked += TranscriptionExportButton_Click;
@@ -255,6 +254,10 @@ public partial class MainWindow : Window
         UploadPageView.PlatformYouTubeToggleUnchecked += PlatformYouTubeToggle_Unchecked;
         UploadPageView.VisibilitySelectionChanged += VisibilityComboBox_SelectionChanged;
         UploadPageView.PlaylistSelectionChanged += PlaylistComboBox_SelectionChanged;
+        UploadPageView.CategoryIdTextBoxTextChanged += CategoryIdTextBox_TextChanged;
+        UploadPageView.LanguageTextBoxTextChanged += LanguageTextBox_TextChanged;
+        UploadPageView.MadeForKidsSelectionChanged += MadeForKidsComboBox_SelectionChanged;
+        UploadPageView.CommentStatusSelectionChanged += CommentStatusComboBox_SelectionChanged;
         UploadPageView.ScheduleCheckBoxChecked += ScheduleCheckBox_Checked;
         UploadPageView.ScheduleCheckBoxUnchecked += ScheduleCheckBox_Unchecked;
         UploadPageView.ScheduleDateChanged += ScheduleDatePicker_SelectedDateChanged;
@@ -290,30 +293,21 @@ public partial class MainWindow : Window
         AccountsPageView.YouTubeConnectButtonClicked += YouTubeConnectButton_Click;
         AccountsPageView.YouTubeDisconnectButtonClicked += YouTubeDisconnectButton_Click;
         AccountsPageView.YouTubePlaylistsSelectionChanged += YouTubePlaylistsListBox_SelectionChanged;
+        AccountsPageView.ChannelProfileSaveButtonClicked += ChannelProfileSaveButton_Click;
     }
 
-    private void AttachChannelViewEvents()
+    private void AttachPresetsViewEvents()
     {
-        if (ChannelPageView is null)
+        if (PresetsPageView is null)
         {
             return;
         }
 
-        ChannelPageView.ChannelProfileSaveButtonClicked += ChannelProfileSaveButton_Click;
-    }
-
-    private void AttachTemplatesViewEvents()
-    {
-        if (TemplatesPageView is null)
-        {
-            return;
-        }
-
-        TemplatesPageView.TemplateNewButtonClicked += TemplateNewButton_Click;
-        TemplatesPageView.TemplateEditButtonClicked += TemplateEditButton_Click;
-        TemplatesPageView.TemplateDeleteButtonClicked += TemplateDeleteButton_Click;
-        TemplatesPageView.TemplateSaveButtonClicked += TemplateSaveButton_Click;
-        TemplatesPageView.TemplateListBoxSelectionChanged += TemplateListBox_SelectionChanged;
+        PresetsPageView.PresetNewButtonClicked += PresetNewButton_Click;
+        PresetsPageView.PresetEditButtonClicked += PresetEditButton_Click;
+        PresetsPageView.PresetDeleteButtonClicked += PresetDeleteButton_Click;
+        PresetsPageView.PresetSaveButtonClicked += PresetSaveButton_Click;
+        PresetsPageView.PresetListBoxSelectionChanged += PresetListBox_SelectionChanged;
     }
 
     private void AttachHistoryViewEvents()
@@ -505,7 +499,7 @@ public partial class MainWindow : Window
         try
         {
             await Task.WhenAll(
-                LoadTemplatesAsync(),
+                LoadPresetsAsync(),
                 InitializeTranscriptionServiceAsync(),
                 LoadUploadHistoryAsync()).ConfigureAwait(true); // OPTIMIZATION: Keep UI context
 
@@ -761,13 +755,13 @@ public partial class MainWindow : Window
     private void InitializePlatformComboBox()
     {
         // PlatformComboBox wurde durch Checkboxen ersetzt
-        // Nur noch TemplatePlatformComboBox initialisieren
-        TemplatesPageView?.SetPlatformOptions(Enum.GetValues(typeof(PlatformType)));
+        // Nur noch PresetPlatformComboBox initialisieren
+        PresetsPageView?.SetPlatformOptions(Enum.GetValues(typeof(PlatformType)));
 
         UploadPageView?.SetDefaultVisibility(_settings.DefaultVisibility);
     }
 
-    private void InitializeTemplatePlaceholders()
+    private void InitializePresetPlaceholders()
     {
         var placeholders = new[]
         {
@@ -779,6 +773,10 @@ public partial class MainWindow : Window
             "{Playlist_Id}",
             "{Visibility}",
             "{Platform}",
+            "{Category}",
+            "{Language}",
+            "{MadeForKids}",
+            "{CommentStatus}",
             "{ScheduledDate}",
             "{ScheduledTime}",
             "{Date}",
@@ -787,7 +785,7 @@ public partial class MainWindow : Window
             "{Transcript}"
         };
 
-        TemplatesPageView?.SetPlaceholders(placeholders);
+        PresetsPageView?.SetPlaceholders(placeholders);
     }
 
     private void InitializeChannelLanguageComboBox()
@@ -801,7 +799,7 @@ public partial class MainWindow : Window
             .Select(c => $"{c.DisplayName} ({c.Name})")
             .ToList();
 
-        ChannelPageView?.SetLanguageOptions(cultures);
+        AccountsPageView?.SetChannelLanguageOptions(cultures);
     }
 
     private void InitializeSchedulingDefaults()
@@ -1670,8 +1668,7 @@ public partial class MainWindow : Window
         // Alle Pages verstecken
         if (PageUpload is not null) PageUpload.Visibility = Visibility.Collapsed;
         if (PageAccounts is not null) PageAccounts.Visibility = Visibility.Collapsed;
-        if (PageChannel is not null) PageChannel.Visibility = Visibility.Collapsed;
-        if (PageTemplates is not null) PageTemplates.Visibility = Visibility.Collapsed;
+        if (PagePresets is not null) PagePresets.Visibility = Visibility.Collapsed;
         if (PageHistory is not null) PageHistory.Visibility = Visibility.Collapsed;
         if (PageGeneralSettings is not null) PageGeneralSettings.Visibility = Visibility.Collapsed;
         if (PageLlmSettings is not null) PageLlmSettings.Visibility = Visibility.Collapsed;
@@ -1686,22 +1683,20 @@ public partial class MainWindow : Window
                 if (PageAccounts is not null) PageAccounts.Visibility = Visibility.Visible;
                 break;
             case 2:
-                if (PageChannel is not null) PageChannel.Visibility = Visibility.Visible;
+                if (PagePresets is not null) PagePresets.Visibility = Visibility.Visible;
                 break;
             case 3:
-                if (PageTemplates is not null) PageTemplates.Visibility = Visibility.Visible;
-                break;
-            case 4:
                 if (PageHistory is not null) PageHistory.Visibility = Visibility.Visible;
                 break;
-            case 5:
+            case 4:
                 if (PageGeneralSettings is not null) PageGeneralSettings.Visibility = Visibility.Visible;
                 break;
-            case 6:
+            case 5:
                 if (PageLlmSettings is not null) PageLlmSettings.Visibility = Visibility.Visible;
                 break;
         }
 
+        UpdateMainMenuSelection(pageIndex);
         UpdatePageHeader(pageIndex);
         UpdatePageActions(pageIndex);
     }
@@ -1715,53 +1710,61 @@ public partial class MainWindow : Window
 
         string title;
         string context;
+        string breadcrumb;
 
         switch (pageIndex)
         {
             case 0:
                 title = LocalizationHelper.Get("Nav.Uploads");
                 context = LocalizationHelper.Get("Page.Context.Upload");
+                breadcrumb = "Home >> Uploads";
                 break;
             case 1:
                 title = LocalizationHelper.Get("Nav.Accounts");
                 context = LocalizationHelper.Get("Page.Context.Accounts");
+                breadcrumb = "Home >> Connections";
                 break;
             case 2:
-                title = LocalizationHelper.Get("Nav.Channels");
-                context = LocalizationHelper.Get("Page.Context.Channel");
+                title = LocalizationHelper.Get("Nav.Presets");
+                context = LocalizationHelper.Get("Page.Context.Presets");
+                breadcrumb = "Home >> Connections";
                 break;
             case 3:
-                title = LocalizationHelper.Get("Nav.Templates");
-                context = LocalizationHelper.Get("Page.Context.Templates");
-                break;
-            case 4:
                 title = LocalizationHelper.Get("Nav.History");
                 context = LocalizationHelper.Get("Page.Context.History");
+                breadcrumb = "Home >> Uploads";
                 break;
-            case 5:
+            case 4:
                 title = LocalizationHelper.Get("Nav.Settings");
                 context = LocalizationHelper.Get("Page.Context.Settings");
+                breadcrumb = "Home >> Settings";
                 break;
-            case 6:
+            case 5:
                 title = LocalizationHelper.Get("Settings.LLM");
                 context = LocalizationHelper.Get("Page.Context.LlmSettings");
+                breadcrumb = "Home >> Settings";
                 break;
             default:
                 title = LocalizationHelper.Get("App.Name");
                 context = string.Empty;
+                breadcrumb = "Home";
                 break;
         }
 
         PageTitleTextBlock.Text = title;
         PageContextTextBlock.Text = context;
+
+        if (PageBreadcrumbTextBlock is not null)
+        {
+            PageBreadcrumbTextBlock.Text = breadcrumb;
+        }
     }
 
     private void UpdatePageActions(int pageIndex)
     {
         if (PageActionsUpload is null ||
             PageActionsAccounts is null ||
-            PageActionsChannel is null ||
-            PageActionsTemplates is null ||
+            PageActionsPresets is null ||
             PageActionsHistory is null ||
             PageActionsGeneralSettings is null ||
             PageActionsLlmSettings is null)
@@ -1771,8 +1774,7 @@ public partial class MainWindow : Window
 
         PageActionsUpload.Visibility = Visibility.Collapsed;
         PageActionsAccounts.Visibility = Visibility.Collapsed;
-        PageActionsChannel.Visibility = Visibility.Collapsed;
-        PageActionsTemplates.Visibility = Visibility.Collapsed;
+        PageActionsPresets.Visibility = Visibility.Collapsed;
         PageActionsHistory.Visibility = Visibility.Collapsed;
         PageActionsGeneralSettings.Visibility = Visibility.Collapsed;
         PageActionsLlmSettings.Visibility = Visibility.Collapsed;
@@ -1786,18 +1788,15 @@ public partial class MainWindow : Window
                 PageActionsAccounts.Visibility = Visibility.Visible;
                 break;
             case 2:
-                PageActionsChannel.Visibility = Visibility.Visible;
+                PageActionsPresets.Visibility = Visibility.Visible;
                 break;
             case 3:
-                PageActionsTemplates.Visibility = Visibility.Visible;
-                break;
-            case 4:
                 PageActionsHistory.Visibility = Visibility.Visible;
                 break;
-            case 5:
+            case 4:
                 PageActionsGeneralSettings.Visibility = Visibility.Visible;
                 break;
-            case 6:
+            case 5:
                 PageActionsLlmSettings.Visibility = Visibility.Visible;
                 break;
         }
@@ -1830,6 +1829,91 @@ public partial class MainWindow : Window
 
     #endregion
 
+    #region Top Navigation
+
+    private void MainMenu_Checked(object sender, RoutedEventArgs e)
+    {
+        if (UploadsSubMenuPanel is null ||
+            ConnectionsSubMenuPanel is null ||
+            SettingsSubMenuPanel is null)
+        {
+            return;
+        }
+
+        if (sender == MainNavUploads)
+        {
+            SetSubMenuVisibility(UploadsSubMenuPanel);
+            EnsureSubMenuChecked(UploadsSubMenuPanel, NavUpload);
+        }
+        else if (sender == MainNavConnections)
+        {
+            SetSubMenuVisibility(ConnectionsSubMenuPanel);
+            EnsureSubMenuChecked(ConnectionsSubMenuPanel, NavAccounts);
+        }
+        else if (sender == MainNavSettings)
+        {
+            SetSubMenuVisibility(SettingsSubMenuPanel);
+            EnsureSubMenuChecked(SettingsSubMenuPanel, NavSettingsGeneral);
+        }
+    }
+
+    private void SetSubMenuVisibility(UIElement activePanel)
+    {
+        UploadsSubMenuPanel.Visibility = activePanel == UploadsSubMenuPanel
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        ConnectionsSubMenuPanel.Visibility = activePanel == ConnectionsSubMenuPanel
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        SettingsSubMenuPanel.Visibility = activePanel == SettingsSubMenuPanel
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void EnsureSubMenuChecked(Panel panel, RadioButton? defaultButton)
+    {
+        if (defaultButton is null)
+        {
+            return;
+        }
+
+        foreach (var child in panel.Children)
+        {
+            if (child is RadioButton radioButton && radioButton.IsChecked == true)
+            {
+                return;
+            }
+        }
+
+        defaultButton.IsChecked = true;
+    }
+
+    private void UpdateMainMenuSelection(int pageIndex)
+    {
+        if (MainNavUploads is null || MainNavConnections is null || MainNavSettings is null)
+        {
+            return;
+        }
+
+        switch (pageIndex)
+        {
+            case 0:
+            case 3:
+                MainNavUploads.IsChecked = true;
+                break;
+            case 1:
+            case 2:
+                MainNavConnections.IsChecked = true;
+                break;
+            case 4:
+            case 5:
+                MainNavSettings.IsChecked = true;
+                break;
+        }
+    }
+
+    #endregion
+
     private enum SuggestionTarget
     {
         None,
@@ -1838,16 +1922,16 @@ public partial class MainWindow : Window
         Tags
     }
 
-    private sealed class TemplateApplicationState
+    private sealed class PresetApplicationState
     {
-        public Template? Template { get; private set; }
+        public UploadPreset? Preset { get; private set; }
         public bool HasDescriptionPlaceholder { get; private set; }
         public string? BaseDescription { get; private set; }
         public string? LastResult { get; private set; }
 
-        public void Record(Template template, string baseDescription, string result, bool hasPlaceholder)
+        public void Record(UploadPreset preset, string baseDescription, string result, bool hasPlaceholder)
         {
-            Template = template;
+            Preset = preset;
             BaseDescription = baseDescription;
             LastResult = result ?? string.Empty;
             HasDescriptionPlaceholder = hasPlaceholder;
@@ -1855,20 +1939,20 @@ public partial class MainWindow : Window
 
         public void Reset()
         {
-            Template = null;
+            Preset = null;
             BaseDescription = null;
             LastResult = null;
             HasDescriptionPlaceholder = false;
         }
 
-        public bool Matches(Template? template) =>
-            Template is not null &&
-            template is not null &&
-            string.Equals(Template.Id, template.Id, StringComparison.OrdinalIgnoreCase);
+        public bool Matches(UploadPreset? preset) =>
+            Preset is not null &&
+            preset is not null &&
+            string.Equals(Preset.Id, preset.Id, StringComparison.OrdinalIgnoreCase);
 
-        public bool TryGetBaseDescription(Template template, out string baseDescription)
+        public bool TryGetBaseDescription(UploadPreset preset, out string baseDescription)
         {
-            if (Matches(template) && BaseDescription is not null)
+            if (Matches(preset) && BaseDescription is not null)
             {
                 baseDescription = BaseDescription;
                 return true;
@@ -1880,7 +1964,7 @@ public partial class MainWindow : Window
 
         public void UpdateBaseDescriptionIfChanged(string? currentDescription)
         {
-            if (Template is null)
+            if (Preset is null)
             {
                 return;
             }
@@ -1895,7 +1979,7 @@ public partial class MainWindow : Window
 
         public void UpdateLastResult(string result)
         {
-            if (Template is null)
+            if (Preset is null)
             {
                 return;
             }

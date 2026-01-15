@@ -25,6 +25,8 @@ public static class Constants
     /// </summary>
     public const string TemplatesFileName = "templates.json";
 
+    public const string PresetsFileName = "presets.json";
+
     /// <summary>
     /// Dateiname für die Upload-Historie.
     /// </summary>

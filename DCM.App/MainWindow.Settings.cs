@@ -95,7 +95,7 @@ public partial class MainWindow
 
         var persona = _settings.Persona ?? new ChannelPersona();
         _settings.Persona = persona;
-        ChannelPageView?.LoadPersona(persona);
+        AccountsPageView?.LoadChannelPersona(persona);
 
         var llm = _settings.Llm ?? new LlmSettings();
         LlmSettingsPageView?.ApplyLlmSettings(llm);
@@ -184,7 +184,7 @@ public partial class MainWindow
         _settings.Persona ??= new ChannelPersona();
         var persona = _settings.Persona;
 
-        ChannelPageView?.UpdatePersona(persona);
+        AccountsPageView?.UpdateChannelPersona(persona);
 
         SaveSettings();
         StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.ChannelProfileSaved");

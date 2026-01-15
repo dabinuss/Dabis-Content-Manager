@@ -27,8 +27,8 @@ public partial class UploadView : UserControl
     public event TextChangedEventHandler? DescriptionTextBoxTextChanged;
     public event RoutedEventHandler? GenerateTitleButtonClicked;
     public event RoutedEventHandler? GenerateDescriptionButtonClicked;
-    public event SelectionChangedEventHandler? TemplateComboBoxSelectionChanged;
-    public event RoutedEventHandler? ApplyTemplateButtonClicked;
+    public event SelectionChangedEventHandler? PresetComboBoxSelectionChanged;
+    public event RoutedEventHandler? ApplyPresetButtonClicked;
     public event RoutedEventHandler? GenerateTagsButtonClicked;
     public event RoutedEventHandler? TranscribeButtonClicked;
     public event RoutedEventHandler? TranscriptionExportButtonClicked;
@@ -59,6 +59,10 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? PlatformYouTubeToggleUnchecked;
     public event SelectionChangedEventHandler? VisibilitySelectionChanged;
     public event SelectionChangedEventHandler? PlaylistSelectionChanged;
+    public event TextChangedEventHandler? CategoryIdTextBoxTextChanged;
+    public event TextChangedEventHandler? LanguageTextBoxTextChanged;
+    public event SelectionChangedEventHandler? MadeForKidsSelectionChanged;
+    public event SelectionChangedEventHandler? CommentStatusSelectionChanged;
     public event RoutedEventHandler? ScheduleCheckBoxChecked;
     public event RoutedEventHandler? ScheduleCheckBoxUnchecked;
     public event SelectionChangedEventHandler? ScheduleDateChanged;
@@ -94,11 +98,11 @@ public partial class UploadView : UserControl
     private void GenerateDescriptionButton_Click(object sender, RoutedEventArgs e) =>
         GenerateDescriptionButtonClicked?.Invoke(sender, e);
 
-    private void TemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
-        TemplateComboBoxSelectionChanged?.Invoke(sender, e);
+    private void PresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        PresetComboBoxSelectionChanged?.Invoke(sender, e);
 
-    private void ApplyTemplateButton_Click(object sender, RoutedEventArgs e) =>
-        ApplyTemplateButtonClicked?.Invoke(sender, e);
+    private void ApplyPresetButton_Click(object sender, RoutedEventArgs e) =>
+        ApplyPresetButtonClicked?.Invoke(sender, e);
 
     private void GenerateTagsButton_Click(object sender, RoutedEventArgs e) =>
         GenerateTagsButtonClicked?.Invoke(sender, e);
@@ -177,6 +181,18 @@ public partial class UploadView : UserControl
 
     private void PlaylistComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         PlaylistSelectionChanged?.Invoke(sender, e);
+
+    private void CategoryIdTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+        CategoryIdTextBoxTextChanged?.Invoke(sender, e);
+
+    private void LanguageTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+        LanguageTextBoxTextChanged?.Invoke(sender, e);
+
+    private void MadeForKidsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        MadeForKidsSelectionChanged?.Invoke(sender, e);
+
+    private void CommentStatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        CommentStatusSelectionChanged?.Invoke(sender, e);
 
     private void ScheduleCheckBox_Checked(object sender, RoutedEventArgs e) =>
         ScheduleCheckBoxChecked?.Invoke(sender, e);
@@ -341,6 +357,33 @@ public partial class UploadView : UserControl
             TagsSuggestionsLoadingPanel.Visibility = Visibility.Collapsed;
             TagsSuggestionItemsControl.Visibility = Visibility.Collapsed;
         }
+    }
+
+    public void SetMadeForKids(MadeForKidsSetting setting) =>
+        SelectComboBoxItemByTag(MadeForKidsComboBox, setting);
+
+    public void SetCommentStatus(CommentStatusSetting setting) =>
+        SelectComboBoxItemByTag(CommentStatusComboBox, setting);
+
+    private static void SelectComboBoxItemByTag(ComboBox comboBox, object? tag)
+    {
+        if (comboBox is null)
+        {
+            return;
+        }
+
+        foreach (var item in comboBox.Items)
+        {
+            if (item is ComboBoxItem comboItem &&
+                comboItem.Tag is not null &&
+                comboItem.Tag.Equals(tag))
+            {
+                comboBox.SelectedItem = comboItem;
+                return;
+            }
+        }
+
+        comboBox.SelectedItem = null;
     }
 
     private void ClearSuggestionItems()

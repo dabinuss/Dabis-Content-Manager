@@ -71,6 +71,14 @@ public sealed partial class TemplateService
             ["PLAYLIST_ID"] = project.PlaylistId,
             ["VISIBILITY"] = project.Visibility.ToString(),
             ["PLATFORM"] = project.Platform.ToString(),
+            ["CATEGORY"] = project.CategoryId ?? string.Empty,
+            ["LANGUAGE"] = project.Language ?? string.Empty,
+            ["MADEFORKIDS"] = project.MadeForKids.HasValue
+                ? (project.MadeForKids.Value ? "Yes" : "No")
+                : string.Empty,
+            ["COMMENTSTATUS"] = project.CommentStatus == CommentStatusSetting.Default
+                ? string.Empty
+                : project.CommentStatus.ToString(),
             ["SCHEDULEDDATE"] = project.ScheduledTime?.ToString("yyyy-MM-dd") ?? string.Empty,
             ["SCHEDULEDTIME"] = project.ScheduledTime?.ToString("HH:mm") ?? string.Empty,
             ["DATE"] = DateTime.Now.ToString("yyyy-MM-dd"),

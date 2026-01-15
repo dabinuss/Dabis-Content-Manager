@@ -32,6 +32,14 @@ public sealed class UploadProject
 
     public List<string> Tags { get; } = new();
 
+    public string? CategoryId { get; set; }
+
+    public string? Language { get; set; }
+
+    public bool? MadeForKids { get; set; }
+
+    public CommentStatusSetting CommentStatus { get; set; } = CommentStatusSetting.Default;
+
     public VideoVisibility Visibility { get; set; } = VideoVisibility.Unlisted;
 
     public string? PlaylistId { get; set; }

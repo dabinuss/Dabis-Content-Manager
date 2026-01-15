@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using DCM.Core.Models;
 using DCM.YouTube;
 
 namespace DCM.App.Views;
@@ -18,6 +19,7 @@ public partial class AccountsView : UserControl
     public event RoutedEventHandler? YouTubeConnectButtonClicked;
     public event RoutedEventHandler? YouTubeDisconnectButtonClicked;
     public event SelectionChangedEventHandler? YouTubePlaylistsSelectionChanged;
+    public event RoutedEventHandler? ChannelProfileSaveButtonClicked;
 
     public YouTubePlaylistInfo? SelectedYouTubePlaylist => YouTubePlaylistsListBox.SelectedItem as YouTubePlaylistInfo;
 
@@ -58,6 +60,21 @@ public partial class AccountsView : UserControl
         YouTubePlaylistsListBox.ItemsSource = null;
     }
 
+    public void SetChannelLanguageOptions(IEnumerable<string> languages)
+    {
+        ChannelProfileView?.SetLanguageOptions(languages);
+    }
+
+    public void LoadChannelPersona(ChannelPersona persona)
+    {
+        ChannelProfileView?.LoadPersona(persona);
+    }
+
+    public void UpdateChannelPersona(ChannelPersona persona)
+    {
+        ChannelProfileView?.UpdatePersona(persona);
+    }
+
     private void AccountsServiceTab_Checked(object sender, RoutedEventArgs e) =>
         AccountsServiceTabChecked?.Invoke(sender, e);
 
@@ -69,4 +86,7 @@ public partial class AccountsView : UserControl
 
     private void YouTubePlaylistsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         YouTubePlaylistsSelectionChanged?.Invoke(sender, e);
+
+    private void ChannelProfileSaveButton_Click(object sender, RoutedEventArgs e) =>
+        ChannelProfileSaveButtonClicked?.Invoke(sender, e);
 }
