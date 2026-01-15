@@ -291,7 +291,7 @@
     <Setter Property="FontFamily"
             Value="{StaticResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeXS}"/>
+            Value="{StaticResource FontSizeS}"/>
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"

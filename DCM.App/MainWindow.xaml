@@ -139,13 +139,12 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <Border Grid.Row="0"
-              Grid.RowSpan="5"
+              Grid.RowSpan="4"
               Height="3"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Top"
@@ -442,129 +441,131 @@
 
       <!-- Page Header -->
       <Border Grid.Row="1"
-              Background="{StaticResource SurfaceElevatedBrush}"
+              Background="{StaticResource SurfaceSunkenBrush}"
               BorderBrush="{StaticResource BorderBrush}"
-              BorderThickness="0,0,0,1"
-              Padding="16,8">
-        <StackPanel>
-          <TextBlock x:Name="PageTitleTextBlock"
-                     Style="{StaticResource PageTitleStyle}"
-                     Text="{DynamicResource Nav.Uploads}"/>
-          <TextBlock x:Name="PageContextTextBlock"
-                     Style="{StaticResource PageContextStyle}"
-                     Text=""/>
-        </StackPanel>
-      </Border>
-
-      <!-- Page Actions -->
-      <Border Grid.Row="2"
-              Background="{StaticResource SurfaceElevatedBrush}"
-              BorderBrush="{StaticResource BorderBrush}"
-              BorderThickness="0,0,0,1"
-              Padding="16,8">
+              BorderThickness="0"
+              Padding="16,14">
         <Grid>
-          <StackPanel x:Name="PageActionsUpload"
-                      Orientation="Horizontal"
-                      Visibility="Visible">
-            <Button x:Name="AddVideosActionButton"
-                    Content="Videos hinzufuegen"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe145;"
-                    Click="AddVideosButton_Click"
-                    Margin="0,0,8,0"/>
-            <Button x:Name="UploadAllActionButton"
-                    Content="Alle hochladen"
-                    Style="{StaticResource PrimaryButton}"
-                    ap:ButtonIcon.Glyph="&#xeb9b;"
-                    Click="UploadAllButton_Click"
-                    Margin="0,0,8,0"/>
-            <Button x:Name="TranscribeAllActionButton"
-                    Content="Alle transkribieren"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe048;"
-                    Click="TranscribeAllButton_Click"
-                    />
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0">
+            <TextBlock x:Name="PageTitleTextBlock"
+                       Style="{StaticResource PageTitleStyle}"
+                       Text="{DynamicResource Nav.Uploads}"/>
+            <TextBlock x:Name="PageContextTextBlock"
+                       Style="{StaticResource PageContextStyle}"
+                       Text=""/>
           </StackPanel>
 
-          <StackPanel x:Name="PageActionsAccounts"
-                      Orientation="Horizontal"
-                      Visibility="Collapsed">
-            <Button Content="{DynamicResource Accounts.YouTube.Connect}"
-                    Style="{StaticResource PrimaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe157;"
-                    Click="YouTubeConnectButton_Click"
-                    Margin="0,0,8,0"/>
-            <Button Content="{DynamicResource Accounts.YouTube.Disconnect}"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe16f;"
-                    Click="YouTubeDisconnectButton_Click"
-                    />
-          </StackPanel>
+          <Grid Grid.Column="1"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center">
+            <StackPanel x:Name="PageActionsUpload"
+                        Orientation="Horizontal"
+                        Visibility="Visible">
+              <Button x:Name="AddVideosActionButton"
+                      Content="Videos hinzufuegen"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe145;"
+                      Click="AddVideosButton_Click"
+                      Margin="0,0,8,0"/>
+              <Button x:Name="UploadAllActionButton"
+                      Content="Alle hochladen"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xeb9b;"
+                      Click="UploadAllButton_Click"
+                      Margin="0,0,8,0"/>
+              <Button x:Name="TranscribeAllActionButton"
+                      Content="Alle transkribieren"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe048;"
+                      Click="TranscribeAllButton_Click"
+                      />
+            </StackPanel>
 
-          <StackPanel x:Name="PageActionsPresets"
-                      Orientation="Horizontal"
-                      Visibility="Collapsed">
-            <Button Content="{DynamicResource Common.Add}"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe145;"
-                    Click="PresetNewButton_Click"
-                    Margin="0,0,8,0"/>
-            <Button Content="{DynamicResource Common.Edit}"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe3c9;"
-                    Click="PresetEditButton_Click"
-                    Margin="0,0,8,0"/>
-            <Button Content="{DynamicResource Common.Delete}"
-                    Style="{StaticResource DangerButton}"
-                    ap:ButtonIcon.Glyph="&#xe872;"
-                    Click="PresetDeleteButton_Click"
-                    Margin="0,0,8,0"/>
-            <Button Content="{DynamicResource Common.Save}"
-                    Style="{StaticResource PrimaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe161;"
-                    Click="PresetSaveButton_Click"
-                    />
-          </StackPanel>
+            <StackPanel x:Name="PageActionsAccounts"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Accounts.YouTube.Connect}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe157;"
+                      Click="YouTubeConnectButton_Click"
+                      Margin="0,0,8,0"/>
+              <Button Content="{DynamicResource Accounts.YouTube.Disconnect}"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe16f;"
+                      Click="YouTubeDisconnectButton_Click"
+                      />
+            </StackPanel>
 
-          <StackPanel x:Name="PageActionsHistory"
-                      Orientation="Horizontal"
-                      Visibility="Collapsed">
-            <Button Content="{DynamicResource History.ClearList}"
-                    Style="{StaticResource DangerButton}"
-                    ap:ButtonIcon.Glyph="&#xe872;"
-                    Click="HistoryClearAction_Click"
-                    Margin="0,0,8,0"/>
-            <Button Content="{DynamicResource Common.Open}"
-                    Style="{StaticResource PrimaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe89e;"
-                    Click="HistoryOpenSelectedAction_Click"
-                    />
-          </StackPanel>
+            <StackPanel x:Name="PageActionsPresets"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Common.Add}"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe145;"
+                      Click="PresetNewButton_Click"
+                      Margin="0,0,8,0"/>
+              <Button Content="{DynamicResource Common.Edit}"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe3c9;"
+                      Click="PresetEditButton_Click"
+                      Margin="0,0,8,0"/>
+              <Button Content="{DynamicResource Common.Delete}"
+                      Style="{StaticResource DangerButton}"
+                      ap:ButtonIcon.Glyph="&#xe872;"
+                      Click="PresetDeleteButton_Click"
+                      Margin="0,0,8,0"/>
+              <Button Content="{DynamicResource Common.Save}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
+                      Click="PresetSaveButton_Click"
+                      />
+            </StackPanel>
 
-          <StackPanel x:Name="PageActionsGeneralSettings"
-                      Orientation="Horizontal"
-                      Visibility="Collapsed">
-            <Button Content="{DynamicResource Settings.SaveAll}"
-                    Style="{StaticResource PrimaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe161;"
-                    Click="SettingsSaveButton_Click"
-                    />
-          </StackPanel>
+            <StackPanel x:Name="PageActionsHistory"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource History.ClearList}"
+                      Style="{StaticResource DangerButton}"
+                      ap:ButtonIcon.Glyph="&#xe872;"
+                      Click="HistoryClearAction_Click"
+                      Margin="0,0,8,0"/>
+              <Button Content="{DynamicResource Common.Open}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe89e;"
+                      Click="HistoryOpenSelectedAction_Click"
+                      />
+            </StackPanel>
 
-          <StackPanel x:Name="PageActionsLlmSettings"
-                      Orientation="Horizontal"
-                      Visibility="Collapsed">
-            <Button Content="{DynamicResource Settings.SaveAll}"
-                    Style="{StaticResource PrimaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe161;"
-                    Click="SettingsSaveButton_Click"
-                    />
-          </StackPanel>
+            <StackPanel x:Name="PageActionsGeneralSettings"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Settings.SaveAll}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
+                      Click="SettingsSaveButton_Click"
+                      />
+            </StackPanel>
+
+            <StackPanel x:Name="PageActionsLlmSettings"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Settings.SaveAll}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
+                      Click="SettingsSaveButton_Click"
+                      />
+            </StackPanel>
+          </Grid>
         </Grid>
       </Border>
 
       <!-- Content Pages -->
-      <Grid Grid.Row="3"
+      <Grid Grid.Row="2"
             Margin="{StaticResource ContentPadding}">
 
         <!-- Page 0: Neuer Upload -->
@@ -609,7 +610,7 @@
       </Grid>
 
       <!-- Footer Bar -->
-      <Border Grid.Row="4"
+      <Border Grid.Row="3"
               Background="{StaticResource SurfaceElevatedBrush}"
               BorderBrush="{StaticResource BorderBrush}"
               BorderThickness="0,1,0,0"
