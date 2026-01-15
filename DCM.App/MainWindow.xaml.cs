@@ -1145,7 +1145,12 @@ public partial class MainWindow : Window
     {
         _activeSuggestionTarget = target;
 
-        var scrollViewer = PageUpload;
+        if (UploadView is null)
+        {
+            return;
+        }
+
+        var scrollViewer = UploadView.GetUploadContentScrollViewer();
         var anchor = GetSuggestionAnchor(target);
         var previousOffset = scrollViewer?.VerticalOffset ?? 0;
         var previousTop = anchor is not null && scrollViewer is not null
@@ -1185,7 +1190,12 @@ public partial class MainWindow : Window
     {
         _activeSuggestionTarget = target;
 
-        var scrollViewer = PageUpload;
+        if (UploadView is null)
+        {
+            return;
+        }
+
+        var scrollViewer = UploadView.GetUploadContentScrollViewer();
         var anchor = GetSuggestionAnchor(target);
         var previousOffset = scrollViewer?.VerticalOffset ?? 0;
         var previousTop = anchor is not null && scrollViewer is not null

@@ -5,12 +5,15 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using DCM.Core.Models;
 
 namespace DCM.App.Views;
 
 public partial class UploadView : UserControl
 {
+    private bool _suppressBringIntoView;
+
     public UploadView()
     {
         InitializeComponent();
@@ -308,6 +311,64 @@ public partial class UploadView : UserControl
     public void SetSelectedUploadItem(object? item)
     {
         UploadItemsListBox.SelectedItem = item;
+    }
+
+    public ScrollViewer? GetUploadContentScrollViewer() => UploadContentScrollViewer;
+
+    public void SuppressUploadItemsBringIntoView(bool suppress)
+    {
+        _suppressBringIntoView = suppress;
+    }
+
+    public double GetUploadItemsVerticalOffset()
+    {
+        var viewer = FindDescendant<ScrollViewer>(UploadItemsListBox);
+        return viewer?.VerticalOffset ?? 0;
+    }
+
+    public void RestoreUploadItemsVerticalOffset(double offset)
+    {
+        if (offset < 0)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(() =>
+        {
+            var viewer = FindDescendant<ScrollViewer>(UploadItemsListBox);
+            viewer?.ScrollToVerticalOffset(offset);
+        }, System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void UploadItemsListBox_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
+    {
+        if (_suppressBringIntoView)
+        {
+            e.Handled = true;
+        }
+    }
+
+    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    {
+        var queue = new Queue<DependencyObject>();
+        queue.Enqueue(root);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (current is T match)
+            {
+                return match;
+            }
+
+            var count = VisualTreeHelper.GetChildrenCount(current);
+            for (var i = 0; i < count; i++)
+            {
+                queue.Enqueue(VisualTreeHelper.GetChild(current, i));
+            }
+        }
+
+        return null;
     }
 
     public void SetDefaultVisibility(VideoVisibility visibility)

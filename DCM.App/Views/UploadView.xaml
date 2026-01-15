@@ -10,8 +10,55 @@
     <conv:HeightToWidthConverter x:Key="HeightToWidth16x9"
                                  Ratio="1.7777777777777777"/>
     <conv:IsStringToVisibilityConverter x:Key="IsStringToVisibilityConverter"/>
+    <conv:AnyStringToVisibilityConverter x:Key="AnyStringToVisibilityConverter"/>
+    <conv:ExtractDurationFromStatusConverter x:Key="ExtractDurationFromStatusConverter"/>
     <SolidColorBrush x:Key="UploadItemSelectedBrush"
                      Color="#2A3448"/>
+    <CornerRadius x:Key="UploadItemCardCornerRadius">6,0,0,6</CornerRadius>
+    <SolidColorBrush x:Key="UploadListDividerBrush"
+                     Color="#4D596F"/>
+    <Style x:Key="LeftScrollbarScrollViewerStyle"
+           TargetType="ScrollViewer">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollViewer">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <ScrollContentPresenter Grid.Column="1"
+                                      Grid.Row="0"
+                                      Margin="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      CanContentScroll="{TemplateBinding CanContentScroll}"/>
+              <ScrollBar x:Name="PART_VerticalScrollBar"
+                         Grid.Column="0"
+                         Grid.Row="0"
+                         Orientation="Vertical"
+                         Maximum="{TemplateBinding ScrollableHeight}"
+                         ViewportSize="{TemplateBinding ViewportHeight}"
+                         Value="{TemplateBinding VerticalOffset}"
+                         Margin="0,0,8,0"
+                         Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+              <ScrollBar x:Name="PART_HorizontalScrollBar"
+                         Grid.Column="1"
+                         Grid.Row="1"
+                         Orientation="Horizontal"
+                         Maximum="{TemplateBinding ScrollableWidth}"
+                         ViewportSize="{TemplateBinding ViewportWidth}"
+                         Value="{TemplateBinding HorizontalOffset}"
+                         Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </UserControl.Resources>
   <Grid x:Name="RootGrid"
       Margin="0,0,8,0">
@@ -34,7 +81,7 @@
             BorderThickness="0"
             Margin="0"
             VerticalAlignment="Stretch">
-      <Grid>
+        <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="320"/>
           <ColumnDefinition Width="1"/>
@@ -42,72 +89,166 @@
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="1"
-                Background="{StaticResource BorderStrongBrush}"
-                Opacity="0.5"
+                Background="{StaticResource UploadListDividerBrush}"
                 VerticalAlignment="Stretch"
-                HorizontalAlignment="Center"/>
+                HorizontalAlignment="Stretch"
+                SnapsToDevicePixels="True"/>
 
         <Grid Grid.Column="0"
-              Margin="8,8,8,0">
+              Margin="8,8,0,0">
           <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
 
-          <StackPanel Grid.Row="0">
-          <Grid>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*"/>
-              <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Files"
-                       Style="{StaticResource SectionHeader}"/>
-            <Button Grid.Column="1"
-                    Content="Videos auswaehlen"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe2c6;"
-                    Click="AddVideosButton_Click"
-                    Padding="8,2"/>
-          </Grid>
+          <Button Grid.Row="0"
+                  Style="{StaticResource SecondaryButton}"
+                  Click="AddVideosButton_Click"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center"
+                  VerticalContentAlignment="Center"
+                  Margin="0,0,8,10"
+                  Padding="20,26"
+                  MinHeight="96">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <StackPanel Grid.Row="0"
+                          Orientation="Horizontal"
+                          HorizontalAlignment="Center">
+                <TextBlock Style="{StaticResource IconXL}"
+                           Text="&#xe145;"
+                           Margin="0,0,10,0"/>
+                <TextBlock Text="Videos auswaehlen"
+                           FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSizeM}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+              <TextBlock Grid.Row="1"
+                         Text="MP4, MOV, MKV, AVI"
+                         FontSize="{StaticResource FontSizeXS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         Margin="0,8,0,0"/>
+            </Grid>
+          </Button>
+
+          <StackPanel Grid.Row="1"
+                      Orientation="Horizontal"
+                      Margin="0,0,8,6"
+                      HorizontalAlignment="Left">
+            <Border x:Name="TranscribeActionBorder"
+                    Padding="6,4"
+                    Margin="0,0,16,0"
+                    CornerRadius="{StaticResource RadiusS}"
+                    Background="Transparent"
+                    Cursor="Hand"
+                    MouseLeftButtonDown="TranscribeAllButton_Click"
+                    ToolTip="Alle transkribieren">
+              <Border.Style>
+                <Style TargetType="Border">
+                  <Style.Triggers>
+                    <Trigger Property="IsMouseOver"
+                             Value="True">
+                      <Setter Property="Background"
+                              Value="{StaticResource SurfacePressedBrush}"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </Border.Style>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe048;"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           Margin="0,0,6,0"/>
+                <TextBlock Text="Alle transkribieren"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           VerticalAlignment="Center">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=TranscribeActionBorder, Path=IsMouseOver}"
+                                     Value="True">
+                          <Setter Property="TextDecorations"
+                                  Value="Underline"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
+              </StackPanel>
+            </Border>
+            <Border x:Name="FastFillActionBorder"
+                    Padding="6,4"
+                    CornerRadius="{StaticResource RadiusS}"
+                    Background="Transparent"
+                    Cursor="Hand"
+                    MouseLeftButtonDown="FastFillSuggestionsButton_Click"
+                    ToolTip="Automatisch fuellen (LLM)">
+              <Border.Style>
+                <Style TargetType="Border">
+                  <Style.Triggers>
+                    <Trigger Property="IsMouseOver"
+                             Value="True">
+                      <Setter Property="Background"
+                              Value="{StaticResource SurfacePressedBrush}"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </Border.Style>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource IconL}"
+                           Text="&#xe663;"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           Margin="0,0,6,0"/>
+                <TextBlock Text="Automatisch fuellen"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           VerticalAlignment="Center">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=FastFillActionBorder, Path=IsMouseOver}"
+                                     Value="True">
+                          <Setter Property="TextDecorations"
+                                  Value="Underline"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
+              </StackPanel>
+            </Border>
           </StackPanel>
 
-          <Border Grid.Row="1"
+          <Border Grid.Row="2"
                   Height="1"
-                  Background="{StaticResource BorderBrush}"
-                  Margin="0,6,0,6"/>
-
-          <StackPanel Grid.Row="2"
-                      Orientation="Horizontal">
-            <Button Content="Alle transkribieren"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe048;"
-                    Click="TranscribeAllButton_Click"
-                    Padding="8,2"
-                    Margin="0,0,6,0"/>
-            <Button Content="Automatisch fuellen (LLM)"
-                    Style="{StaticResource SecondaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe663;"
-                    Click="FastFillSuggestionsButton_Click"
-                    Padding="8,2"/>
-          </StackPanel>
+                  Background="#6A768C"
+                  Margin="0,8,8,10"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Center"
+                  SnapsToDevicePixels="True"/>
 
           <Border Grid.Row="3"
-                  Height="1"
-                  Background="{StaticResource BorderBrush}"
-                  Margin="0,6,0,6"/>
-
-          <ListBox x:Name="UploadItemsListBox"
-                   Grid.Row="4"
-                   BorderThickness="0"
-                   Background="{x:Null}"
-                   SelectionMode="Single"
-                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                   ScrollViewer.VerticalScrollBarVisibility="Auto"
-                   VerticalAlignment="Stretch"
-                   SelectionChanged="UploadItemsListBox_SelectionChanged">
+                  Padding="0">
+            <ListBox x:Name="UploadItemsListBox"
+                     BorderThickness="0"
+                     Background="{x:Null}"
+                     SelectionMode="Single"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     VerticalAlignment="Stretch"
+                     SelectionChanged="UploadItemsListBox_SelectionChanged"
+                     RequestBringIntoView="UploadItemsListBox_RequestBringIntoView">
+          <ListBox.Resources>
+            <Style TargetType="ScrollViewer"
+                   BasedOn="{StaticResource LeftScrollbarScrollViewerStyle}"/>
+          </ListBox.Resources>
           <ListBox.ItemContainerStyle>
             <Style TargetType="ListBoxItem">
               <Setter Property="Margin"
@@ -143,14 +284,17 @@
           <ListBox.ItemTemplate>
             <DataTemplate>
               <Border x:Name="UploadItemCard"
-                      CornerRadius="{StaticResource RadiusS}"
-                      Padding="8">
+                      Padding="8,8,4,8">
                 <Border.Style>
                   <Style TargetType="Border">
                     <Setter Property="Background"
                             Value="{StaticResource SurfaceElevatedBrush}"/>
                     <Setter Property="BorderBrush"
                             Value="{StaticResource BorderBrush}"/>
+                    <Setter Property="CornerRadius"
+                            Value="{StaticResource RadiusS}"/>
+                    <Setter Property="Margin"
+                            Value="0,0,8,0"/>
                     <Style.Triggers>
                       <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}"
                                    Value="True">
@@ -165,6 +309,10 @@
                                 Value="{StaticResource UploadItemSelectedBrush}"/>
                         <Setter Property="BorderBrush"
                                 Value="{StaticResource BorderStrongBrush}"/>
+                        <Setter Property="CornerRadius"
+                                Value="{StaticResource UploadItemCardCornerRadius}"/>
+                        <Setter Property="Margin"
+                                Value="0"/>
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
@@ -174,9 +322,11 @@
                     <ColumnDefinition Width="72"/>
                     <ColumnDefinition Width="{StaticResource SpacingM}"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1"/>
+                    <ColumnDefinition Width="32"/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -184,7 +334,7 @@
 
                   <Border Grid.Row="0"
                           Grid.Column="0"
-                          Grid.RowSpan="3"
+                          Grid.RowSpan="4"
                           Width="72"
                           Height="72"
                           Background="{StaticResource SurfaceSunkenBrush}"
@@ -215,12 +365,23 @@
                              TextTrimming="CharacterEllipsis"
                              Margin="0,0,8,0"/>
 
-                  <Button Grid.Row="0"
+                  <Border Grid.Row="0"
                           Grid.Column="3"
+                          Grid.RowSpan="4"
+                          Background="{StaticResource BorderBrush}"
+                          Margin="0"
+                          VerticalAlignment="Stretch"
+                          HorizontalAlignment="Stretch"/>
+
+                  <Button Grid.Row="0"
+                          Grid.Column="4"
+                          Grid.RowSpan="4"
                           Style="{StaticResource SuggestionCloseButtonStyle}"
                           Click="RemoveDraftButton_Click"
                           Tag="{Binding}"
-                          Margin="0,0,0,0"
+                          Margin="0"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Center"
                           ToolTip="{DynamicResource Common.Remove}">
                     <TextBlock Text="X"
                                FontSize="{StaticResource FontSizeS}"
@@ -228,37 +389,288 @@
                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                   </Button>
 
-                  <TextBlock Grid.Row="1"
-                             Grid.Column="2"
-                             Foreground="{StaticResource TextMutedBrush}"
-                             FontSize="{StaticResource FontSizeXS}"
-                             Margin="0,2,0,0">
-                    <Run Text="{Binding VideoResolution, TargetNullValue='-', Mode=OneWay}"/>
-                    <Run Text=" | "/>
-                    <Run Text="{Binding VideoFps, TargetNullValue='-', Mode=OneWay}"/>
-                    <Run Text=" | "/>
-                    <Run Text="{Binding FileSizeDisplay, TargetNullValue='-', Mode=OneWay}"/>
-                  </TextBlock>
+                  <StackPanel Grid.Row="1"
+                              Grid.Column="2"
+                              Orientation="Horizontal"
+                              Margin="0,4,0,0">
+                    <TextBlock Text="{Binding VideoResolution, TargetNullValue='-', Mode=OneWay}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+                    <TextBlock Text=" | "
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+                    <TextBlock Text="{Binding VideoFps, TargetNullValue='-', Mode=OneWay}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+                    <TextBlock Text=" FPS"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Visibility="{Binding VideoFps, Converter={StaticResource IsStringToVisibilityConverter}}"/>
+                    <TextBlock Text=" | "
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+                    <TextBlock Text="{Binding FileSizeDisplay, TargetNullValue='-', Mode=OneWay}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+                  </StackPanel>
 
-                  <TextBlock Grid.Row="2"
+                  <StackPanel Grid.Row="2"
+                              Grid.Column="2"
+                              Orientation="Horizontal"
+                              Margin="0,2,0,0">
+                    <StackPanel.Visibility>
+                      <MultiBinding Converter="{StaticResource AnyStringToVisibilityConverter}">
+                        <Binding Path="VideoDuration"/>
+                        <Binding Path="VideoCodec"/>
+                      </MultiBinding>
+                    </StackPanel.Visibility>
+                    <TextBlock Text="{Binding VideoDuration}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Visibility="{Binding VideoDuration, Converter={StaticResource IsStringToVisibilityConverter}}"/>
+                    <TextBlock Text=" | "
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Visibility="{Binding VideoDuration, Converter={StaticResource IsStringToVisibilityConverter}}"/>
+                    <TextBlock Text="{Binding VideoCodec}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Visibility="{Binding VideoCodec, Converter={StaticResource IsStringToVisibilityConverter}}"/>
+                  </StackPanel>
+
+                  <WrapPanel Grid.Row="3"
                              Grid.Column="2"
-                             Foreground="{StaticResource TextSecondaryBrush}"
-                             FontSize="{StaticResource FontSizeXS}"
-                             Margin="0,2,0,0">
-                    <Run Text="{Binding UploadStatus, TargetNullValue='-', Mode=OneWay}"/>
-                    <Run Text=" | "/>
-                    <Run Text="{Binding TranscriptionStatus, TargetNullValue='-', Mode=OneWay}"/>
-                  </TextBlock>
+                             Margin="0,4,0,0">
+                    <Border Padding="6,2"
+                            CornerRadius="{StaticResource RadiusS}"
+                            Background="{StaticResource SurfaceSunkenBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            Margin="0,0,6,4">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="UploadStateIcon"
+                                   FontFamily="{StaticResource MaterialIconsFont}"
+                                   FontSize="{StaticResource FontSizeS}"
+                                   Text="&#xe86c;"
+                                   Foreground="{StaticResource SuccessBrush}"
+                                   Margin="0,0,4,0"
+                                   RenderTransformOrigin="0.5,0.5">
+                          <TextBlock.RenderTransform>
+                            <RotateTransform Angle="0"/>
+                          </TextBlock.RenderTransform>
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding UploadState}"
+                                             Value="{x:Static models:UploadDraftUploadState.Uploading}">
+                                  <Setter Property="Text"
+                                          Value="&#xe863;"/>
+                                  <Setter Property="Foreground"
+                                          Value="{StaticResource PrimaryBrush}"/>
+                                  <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="UploadSpin">
+                                      <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Angle"
+                                                         From="0"
+                                                         To="360"
+                                                         Duration="0:0:1"/>
+                                      </Storyboard>
+                                    </BeginStoryboard>
+                                  </DataTrigger.EnterActions>
+                                  <DataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="UploadSpin"/>
+                                  </DataTrigger.ExitActions>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding UploadState}"
+                                             Value="{x:Static models:UploadDraftUploadState.Failed}">
+                                  <Setter Property="Text"
+                                          Value="&#xe000;"/>
+                                  <Setter Property="Foreground"
+                                          Value="{StaticResource DangerBrush}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding UploadState}"
+                                             Value="{x:Static models:UploadDraftUploadState.Pending}">
+                                  <Setter Property="Text"
+                                          Value="&#xe8b5;"/>
+                                  <Setter Property="Foreground"
+                                          Value="{StaticResource TextMutedBrush}"/>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock x:Name="UploadStateLabel"
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center">
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Setter Property="Text"
+                                      Value="BEREIT"/>
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding UploadState}"
+                                             Value="{x:Static models:UploadDraftUploadState.Uploading}">
+                                  <Setter Property="Text"
+                                          Value="HOCHLADEN"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding UploadState}"
+                                             Value="{x:Static models:UploadDraftUploadState.Failed}">
+                                  <Setter Property="Text"
+                                          Value="FEHLER"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding UploadState}"
+                                             Value="{x:Static models:UploadDraftUploadState.Pending}">
+                                  <Setter Property="Text"
+                                          Value="WARTET"/>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                      </StackPanel>
+                    </Border>
+
+                    <Border Padding="6,2"
+                            CornerRadius="{StaticResource RadiusS}"
+                            Background="{StaticResource SurfaceSunkenBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Setter Property="Visibility"
+                                  Value="Visible"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding TranscriptionState}"
+                                         Value="{x:Static models:UploadDraftTranscriptionState.None}">
+                              <Setter Property="Visibility"
+                                      Value="Collapsed"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="TranscriptionStateIcon"
+                                   FontFamily="{StaticResource MaterialIconsFont}"
+                                   FontSize="{StaticResource FontSizeS}"
+                                   Text="&#xe86c;"
+                                   Foreground="{StaticResource SuccessBrush}"
+                                   Margin="0,0,4,0"
+                                   RenderTransformOrigin="0.5,0.5">
+                          <TextBlock.RenderTransform>
+                            <RotateTransform Angle="0"/>
+                          </TextBlock.RenderTransform>
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Running}">
+                                  <Setter Property="Text"
+                                          Value="&#xe863;"/>
+                                  <Setter Property="Foreground"
+                                          Value="{StaticResource PrimaryBrush}"/>
+                                  <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="TranscribeSpin">
+                                      <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Angle"
+                                                         From="0"
+                                                         To="360"
+                                                         Duration="0:0:1"/>
+                                      </Storyboard>
+                                    </BeginStoryboard>
+                                  </DataTrigger.EnterActions>
+                                  <DataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="TranscribeSpin"/>
+                                  </DataTrigger.ExitActions>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Failed}">
+                                  <Setter Property="Text"
+                                          Value="&#xe000;"/>
+                                  <Setter Property="Foreground"
+                                          Value="{StaticResource DangerBrush}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Pending}">
+                                  <Setter Property="Text"
+                                          Value="&#xe8b5;"/>
+                                  <Setter Property="Foreground"
+                                          Value="{StaticResource TextMutedBrush}"/>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock x:Name="TranscriptionStateLabel"
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center">
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Setter Property="Text"
+                                      Value="TRANSKRIBIERT"/>
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Running}">
+                                  <Setter Property="Text"
+                                          Value="TRANSKRIBIERE"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Failed}">
+                                  <Setter Property="Text"
+                                          Value="FEHLER"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Pending}">
+                                  <Setter Property="Text"
+                                          Value="WARTET"/>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="{Binding TranscriptionStatus, Converter={StaticResource ExtractDurationFromStatusConverter}}"
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   Margin="6,0,0,0"
+                                   VerticalAlignment="Center">
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Setter Property="Visibility"
+                                      Value="Visible"/>
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding TranscriptionStatus, Converter={StaticResource ExtractDurationFromStatusConverter}}"
+                                             Value="{x:Null}">
+                                  <Setter Property="Visibility"
+                                          Value="Collapsed"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TranscriptionStatus, Converter={StaticResource ExtractDurationFromStatusConverter}}"
+                                             Value="">
+                                  <Setter Property="Visibility"
+                                          Value="Collapsed"/>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                      </StackPanel>
+                    </Border>
+                  </WrapPanel>
                 </Grid>
               </Border>
             </DataTemplate>
           </ListBox.ItemTemplate>
           </ListBox>
+          </Border>
         </Grid>
 
-        <Grid Grid.Column="2"
-              Margin="8,8,8,0"
-              VerticalAlignment="Stretch">
+        <ScrollViewer x:Name="UploadContentScrollViewer"
+                      Grid.Column="2"
+                      Margin="12,8,8,0"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalAlignment="Stretch"
+                      Padding="0,0,12,0">
+          <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="{StaticResource SpacingM}"/>
@@ -1386,6 +1798,7 @@
 
         </Grid>
         </Grid>
+        </ScrollViewer>
       </Grid>
     </Border>
 

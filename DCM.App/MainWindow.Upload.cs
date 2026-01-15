@@ -212,14 +212,28 @@ public partial class MainWindow
         }
 
         RemoveDraftFromTranscriptionQueue(draft.Id);
+        var previousIndex = _uploadDrafts.IndexOf(draft);
         var wasActive = draft == _activeDraft;
+        var scrollOffset = UploadView?.GetUploadItemsVerticalOffset() ?? 0;
+        UploadView?.SuppressUploadItemsBringIntoView(true);
         _uploadDrafts.Remove(draft);
         ResetDraftState(draft);
 
         if (wasActive)
         {
-            SetActiveDraft(_uploadDrafts.LastOrDefault());
+            if (_uploadDrafts.Count == 0)
+            {
+                SetActiveDraft(null);
+            }
+            else
+            {
+                var nextIndex = Math.Min(Math.Max(previousIndex, 0), _uploadDrafts.Count - 1);
+                SetActiveDraft(_uploadDrafts[nextIndex]);
+            }
         }
+
+        UploadView?.RestoreUploadItemsVerticalOffset(scrollOffset);
+        UploadView?.SuppressUploadItemsBringIntoView(false);
 
         UpdateUploadButtonState();
         UpdateTranscriptionButtonState();
