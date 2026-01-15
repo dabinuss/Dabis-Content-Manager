@@ -20,6 +20,14 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private string? _presetId;
     private string _fileName = string.Empty;
     private long _fileSizeBytes;
+    private string? _videoResolution;
+    private string? _videoFps;
+    private string? _videoDuration;
+    private string? _videoCodec;
+    private string? _videoBitrate;
+    private string? _audioInfo;
+    private string? _audioBitrate;
+    private string? _videoPreviewPath;
     private PlatformType _platform = PlatformType.YouTube;
     private VideoVisibility _visibility = VideoVisibility.Unlisted;
     private string? _playlistId;
@@ -183,21 +191,53 @@ public sealed class UploadDraft : INotifyPropertyChanged
 
     public string FileSizeDisplay => FormatFileSize(_fileSizeBytes);
 
-    public string? VideoResolution { get; set; }
+    public string? VideoResolution
+    {
+        get => _videoResolution;
+        set => SetProperty(ref _videoResolution, value);
+    }
 
-    public string? VideoFps { get; set; }
+    public string? VideoFps
+    {
+        get => _videoFps;
+        set => SetProperty(ref _videoFps, value);
+    }
 
-    public string? VideoDuration { get; set; }
+    public string? VideoDuration
+    {
+        get => _videoDuration;
+        set => SetProperty(ref _videoDuration, value);
+    }
 
-    public string? VideoCodec { get; set; }
+    public string? VideoCodec
+    {
+        get => _videoCodec;
+        set => SetProperty(ref _videoCodec, value);
+    }
 
-    public string? VideoBitrate { get; set; }
+    public string? VideoBitrate
+    {
+        get => _videoBitrate;
+        set => SetProperty(ref _videoBitrate, value);
+    }
 
-    public string? AudioInfo { get; set; }
+    public string? AudioInfo
+    {
+        get => _audioInfo;
+        set => SetProperty(ref _audioInfo, value);
+    }
 
-    public string? AudioBitrate { get; set; }
+    public string? AudioBitrate
+    {
+        get => _audioBitrate;
+        set => SetProperty(ref _audioBitrate, value);
+    }
 
-    public string? VideoPreviewPath { get; set; }
+    public string? VideoPreviewPath
+    {
+        get => _videoPreviewPath;
+        set => SetProperty(ref _videoPreviewPath, value);
+    }
 
     public UploadDraftUploadState UploadState
     {

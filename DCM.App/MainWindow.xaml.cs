@@ -226,6 +226,8 @@ public partial class MainWindow : Window
         UploadPageView.VideoDropDragLeave += VideoDrop_DragLeave;
         UploadPageView.VideoDropDrop += VideoDrop_Drop;
         UploadPageView.VideoDropZoneClicked += VideoDropZone_Click;
+        UploadPageView.AddVideosButtonClicked += AddVideosButton_Click;
+        UploadPageView.TranscribeAllButtonClicked += TranscribeAllButton_Click;
 
         UploadPageView.VideoChangeButtonClicked += VideoChangeButton_Click;
         UploadPageView.UploadButtonClicked += UploadButton_Click;
