@@ -601,10 +601,12 @@
         </ScrollViewer>
 
         <!-- Page 2: Presets -->
-        <Grid x:Name="PagePresets"
-              Visibility="Collapsed">
+        <ScrollViewer x:Name="PagePresets"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Visibility="Collapsed">
           <views:PresetsView x:Name="PresetsPageView"/>
-        </Grid>
+        </ScrollViewer>
 
         <!-- Page 3: Historie -->
         <Grid x:Name="PageHistory"

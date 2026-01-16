@@ -30,8 +30,10 @@
     <GroupBox Header="{DynamicResource Presets.Edit}"
               Grid.Row="0"
               Grid.Column="2">
-      <Grid>
-        <Grid x:Name="PresetEditorGrid">
+      <ScrollViewer VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+        <Grid>
+          <Grid x:Name="PresetEditorGrid">
           <Grid.Style>
             <Style TargetType="Grid">
               <Setter Property="IsEnabled"
@@ -80,44 +82,45 @@
           <RowDefinition Height="{StaticResource SpacingM}"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="{StaticResource SpacingS}"/>
+          <RowDefinition Height="Auto"/>
           <RowDefinition Height="*"
                          MinHeight="140"/>
           <RowDefinition Height="{StaticResource SpacingL}"/>
           <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+          </Grid.RowDefinitions>
 
-        <Label Content="{DynamicResource Presets.Fields.Name}"
-               Grid.Row="0"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetNameTextBox"
+          <Label Content="{DynamicResource Presets.Fields.Name}"
                  Grid.Row="0"
-                 Grid.Column="1"/>
+                 Grid.Column="0"/>
+          <TextBox x:Name="PresetNameTextBox"
+                   Grid.Row="0"
+                   Grid.Column="1"/>
 
-        <Label Content="{DynamicResource Presets.Fields.Platform}"
-               Grid.Row="2"
-               Grid.Column="0"/>
-        <ComboBox x:Name="PresetPlatformComboBox"
-                  Grid.Row="2"
-                  Grid.Column="1"
-                  HorizontalAlignment="Left"
-                  MinWidth="150"/>
+          <Label Content="{DynamicResource Presets.Fields.Platform}"
+                 Grid.Row="2"
+                 Grid.Column="0"/>
+          <ComboBox x:Name="PresetPlatformComboBox"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    HorizontalAlignment="Left"
+                    MinWidth="150"/>
 
-        <CheckBox x:Name="PresetIsDefaultCheckBox"
-                  Grid.Row="4"
-                  Grid.Column="0"
-                  Grid.ColumnSpan="2"
-                  Content="{DynamicResource Presets.Fields.UseAsStandard}"/>
+          <CheckBox x:Name="PresetIsDefaultCheckBox"
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Content="{DynamicResource Presets.Fields.UseAsStandard}"/>
 
-        <Label Content="{DynamicResource Presets.Fields.Notes}"
-               Grid.Row="6"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetDescriptionTextBox"
+          <Label Content="{DynamicResource Presets.Fields.Notes}"
                  Grid.Row="6"
-                 Grid.Column="1"
-                 AcceptsReturn="True"
-                 TextWrapping="Wrap"
-                 Height="40"
-                 VerticalScrollBarVisibility="Auto"/>
+                 Grid.Column="0"/>
+          <TextBox x:Name="PresetDescriptionTextBox"
+                   Grid.Row="6"
+                   Grid.Column="1"
+                   AcceptsReturn="True"
+                   TextWrapping="Wrap"
+                   Height="40"
+                   VerticalScrollBarVisibility="Auto"/>
 
         <Label Content="{DynamicResource Presets.Fields.TitlePrefix}"
                Grid.Row="8"
@@ -295,6 +298,7 @@
           </StackPanel>
         </Border>
       </Grid>
+      </ScrollViewer>
     </GroupBox>
   </Grid>
 </UserControl>

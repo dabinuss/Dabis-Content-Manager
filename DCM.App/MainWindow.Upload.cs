@@ -1043,6 +1043,11 @@ public partial class MainWindow
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(draft.PresetId))
+        {
+            return;
+        }
+
         var preset = GetDefaultPreset(draft.Platform);
         if (preset is null)
         {
@@ -1098,7 +1103,7 @@ public partial class MainWindow
             return;
         }
 
-        var preset = FindPresetById(presetId) ?? GetDefaultPreset(PlatformType.YouTube);
+        var preset = FindPresetById(presetId);
         _isPresetBinding = true;
         UploadView.PresetComboBox.SelectedItem = preset;
         _isPresetBinding = false;
@@ -2136,6 +2141,11 @@ public partial class MainWindow
             return;
         }
 
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
         var current = UploadView.DescriptionTextBox.Text ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(current))
@@ -2145,11 +2155,6 @@ public partial class MainWindow
         }
 
         _presetState.UpdateBaseDescriptionIfChanged(current);
-
-        if (_isLoadingDraft)
-        {
-            return;
-        }
 
         if (_activeDraft is not null)
         {
@@ -2881,7 +2886,12 @@ public partial class MainWindow
 
         try
         {
-            UploadPreset? selectedPreset = UploadView.PresetComboBox.SelectedItem as UploadPreset;
+            UploadPreset? selectedPreset = null;
+            if (!string.IsNullOrWhiteSpace(draft.PresetId))
+            {
+                selectedPreset = _loadedPresets.FirstOrDefault(p =>
+                    string.Equals(p.Id, draft.PresetId, StringComparison.OrdinalIgnoreCase));
+            }
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = await _uploadService.UploadAsync(
@@ -3104,9 +3114,16 @@ public partial class MainWindow
             }
         }
 
-        if (overwriteExisting || string.IsNullOrWhiteSpace(draft.TagsCsv))
+        if (!string.IsNullOrWhiteSpace(preset.TagsCsv))
         {
-            draft.TagsCsv = preset.TagsCsv ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(draft.TagsCsv))
+            {
+                draft.TagsCsv = preset.TagsCsv;
+            }
+            else if (overwriteExisting || !string.IsNullOrWhiteSpace(draft.TagsCsv))
+            {
+                draft.TagsCsv = MergeTagsCsv(draft.TagsCsv, preset.TagsCsv);
+            }
         }
 
         if (overwriteExisting || draft.Visibility == _settings.DefaultVisibility)
@@ -3147,23 +3164,28 @@ public partial class MainWindow
                 var project = BuildUploadProjectFromUi(includeScheduling: true, draftOverride: draft);
 
                 string baseDescription;
-                if (_presetState.TryGetBaseDescription(preset, out var storedBase))
+                var hasPlaceholder = PresetHasDescriptionPlaceholder(preset);
+                if (hasPlaceholder && _presetState.TryGetBaseDescription(preset, out var storedBase))
                 {
                     baseDescription = storedBase;
-                    project.Description = storedBase;
+                }
+                else if (hasPlaceholder && _presetState.TryGetBaseDescription(out var fallbackBase))
+                {
+                    baseDescription = fallbackBase;
                 }
                 else
                 {
-                    baseDescription = draft.Description ?? string.Empty;
+                    baseDescription = string.Empty;
                 }
 
+                project.Description = baseDescription;
                 var result = _templateService.ApplyTemplate(preset.DescriptionTemplate, project);
 
                 _presetState.Record(
                     preset,
                     baseDescription,
                     result,
-                    PresetHasDescriptionPlaceholder(preset));
+                    hasPlaceholder);
 
                 draft.Description = result;
             }
@@ -3199,6 +3221,34 @@ public partial class MainWindow
         }
     }
 
+    private static string MergeTagsCsv(string existingTags, string presetTags)
+    {
+        var combined = new List<string>();
+        AddTags(combined, existingTags);
+        AddTags(combined, presetTags);
+        return string.Join(", ", combined);
+    }
+
+    private static void AddTags(List<string> target, string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv))
+        {
+            return;
+        }
+
+        var tags = csv.Split(',')
+            .Select(t => t.Trim())
+            .Where(t => !string.IsNullOrWhiteSpace(t));
+
+        foreach (var tag in tags)
+        {
+            if (!target.Any(existing => string.Equals(existing, tag, StringComparison.OrdinalIgnoreCase)))
+            {
+                target.Add(tag);
+            }
+        }
+    }
+
     private UploadProject BuildUploadProjectFromUi(bool includeScheduling, UploadDraft? draftOverride = null)
     {
         var platform = draftOverride?.Platform ?? PlatformType.YouTube;
@@ -3207,13 +3257,17 @@ public partial class MainWindow
             platform = PlatformType.YouTube;
         }
 
-        var visibility = draftOverride?.Visibility ?? GetSelectedVisibilityFromUi();
+        var visibility = draftOverride is not null
+            ? draftOverride.Visibility
+            : GetSelectedVisibilityFromUi();
 
         string? playlistId;
         string? playlistTitle = null;
-        if (!string.IsNullOrWhiteSpace(draftOverride?.PlaylistId))
+        if (draftOverride is not null)
         {
-            playlistId = draftOverride.PlaylistId;
+            playlistId = string.IsNullOrWhiteSpace(draftOverride.PlaylistId)
+                ? _settings.DefaultPlaylistId
+                : draftOverride.PlaylistId;
             playlistTitle = draftOverride.PlaylistTitle;
         }
         else if (UploadView.PlaylistComboBox.SelectedItem is YouTubePlaylistInfo plItem)
@@ -3230,13 +3284,24 @@ public partial class MainWindow
         var scheduleEnabled = draftOverride?.ScheduleEnabled ?? (UploadView.ScheduleCheckBox.IsChecked == true);
         if (includeScheduling && scheduleEnabled)
         {
-            var scheduledDate = draftOverride?.ScheduledDate ?? UploadView.ScheduleDatePicker.SelectedDate;
+            DateTime? scheduledDate;
+            string? timeText;
+            if (draftOverride is not null)
+            {
+                scheduledDate = draftOverride.ScheduledDate ?? DateTime.Today.AddDays(1);
+                timeText = draftOverride.ScheduledTimeText;
+            }
+            else
+            {
+                scheduledDate = UploadView.ScheduleDatePicker.SelectedDate;
+                timeText = UploadView.ScheduleTimeTextBox.Text;
+            }
+
             if (scheduledDate is DateTime date)
             {
-                var timeText = draftOverride?.ScheduledTimeText;
                 if (string.IsNullOrWhiteSpace(timeText))
                 {
-                    timeText = UploadView.ScheduleTimeTextBox.Text;
+                    timeText = GetDefaultSchedulingTime().ToString(@"hh\:mm");
                 }
 
                 if (!TimeSpan.TryParse(timeText, CultureInfo.CurrentCulture, out var timeOfDay))
@@ -3249,10 +3314,24 @@ public partial class MainWindow
             }
         }
 
-        var categoryId = draftOverride?.CategoryId ?? UploadView.CategoryIdTextBox.Text;
-        var language = draftOverride?.Language ?? UploadView.LanguageTextBox.Text;
-        var madeForKidsSetting = draftOverride?.MadeForKids ?? GetSelectedMadeForKidsFromUi();
-        var commentStatusSetting = draftOverride?.CommentStatus ?? GetSelectedCommentStatusFromUi();
+        string? categoryId;
+        string? language;
+        MadeForKidsSetting madeForKidsSetting;
+        CommentStatusSetting commentStatusSetting;
+        if (draftOverride is not null)
+        {
+            categoryId = draftOverride.CategoryId;
+            language = draftOverride.Language;
+            madeForKidsSetting = draftOverride.MadeForKids;
+            commentStatusSetting = draftOverride.CommentStatus;
+        }
+        else
+        {
+            categoryId = UploadView.CategoryIdTextBox.Text;
+            language = UploadView.LanguageTextBox.Text;
+            madeForKidsSetting = GetSelectedMadeForKidsFromUi();
+            commentStatusSetting = GetSelectedCommentStatusFromUi();
+        }
 
         var project = new UploadProject
         {

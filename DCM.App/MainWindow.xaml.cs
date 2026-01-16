@@ -2031,6 +2031,12 @@ public partial class MainWindow : Window
             HasDescriptionPlaceholder = false;
         }
 
+        public void ClearPreset()
+        {
+            Preset = null;
+            HasDescriptionPlaceholder = false;
+        }
+
         public bool Matches(UploadPreset? preset) =>
             Preset is not null &&
             preset is not null &&
@@ -2048,16 +2054,35 @@ public partial class MainWindow : Window
             return false;
         }
 
-        public void UpdateBaseDescriptionIfChanged(string? currentDescription)
+        public bool TryGetBaseDescription(out string baseDescription)
         {
-            if (Preset is null)
+            if (!string.IsNullOrWhiteSpace(BaseDescription))
             {
-                return;
+                baseDescription = BaseDescription;
+                return true;
+            }
+
+            baseDescription = string.Empty;
+            return false;
+        }
+
+        public bool IsLastResult(string? currentDescription)
+        {
+            if (string.IsNullOrWhiteSpace(LastResult))
+            {
+                return false;
             }
 
             var trimmedCurrent = (currentDescription ?? string.Empty).Trim();
             var trimmedResult = (LastResult ?? string.Empty).Trim();
-            if (!string.Equals(trimmedCurrent, trimmedResult, StringComparison.Ordinal))
+            return string.Equals(trimmedCurrent, trimmedResult, StringComparison.Ordinal);
+        }
+
+        public void UpdateBaseDescriptionIfChanged(string? currentDescription)
+        {
+            var trimmedCurrent = (currentDescription ?? string.Empty).Trim();
+            var trimmedResult = (LastResult ?? string.Empty).Trim();
+            if (Preset is null || !string.Equals(trimmedCurrent, trimmedResult, StringComparison.Ordinal))
             {
                 BaseDescription = currentDescription;
             }

@@ -70,7 +70,7 @@ public partial class MainWindow
             return;
         }
 
-        _presetState.Reset();
+        _presetState.ClearPreset();
 
         if (_activeDraft is null)
         {
