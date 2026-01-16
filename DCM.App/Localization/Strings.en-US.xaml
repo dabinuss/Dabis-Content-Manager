@@ -179,13 +179,21 @@
 
   <!-- Navigation -->
   <sys:String x:Key="Nav.Uploads">Uploads</sys:String>
+  <sys:String x:Key="Nav.Files">Files</sys:String>
+  <sys:String x:Key="Nav.Connections">Connections</sys:String>
   <sys:String x:Key="Nav.Accounts">Accounts</sys:String>
   <sys:String x:Key="Nav.Channels">Channels</sys:String>
   <sys:String x:Key="Nav.Templates">Templates</sys:String>
   <sys:String x:Key="Nav.Presets">Presets</sys:String>
   <sys:String x:Key="Nav.History">History</sys:String>
   <sys:String x:Key="Nav.Settings">Settings</sys:String>
+  <sys:String x:Key="Nav.Settings.General">General</sys:String>
+  <sys:String x:Key="Nav.Settings.Llm">AI</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Home">Home</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Default">Home</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Uploads">Home >> Uploads</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Connections">Home >> Connections</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Settings">Home >> Settings</sys:String>
   <sys:String x:Key="Page.Context.Upload">Upload, schedule, and manage videos.</sys:String>
   <sys:String x:Key="Page.Context.Accounts">Connect accounts and manage playlists.</sys:String>
   <sys:String x:Key="Page.Context.Channel">Maintain channel profile and style settings.</sys:String>
@@ -532,3 +540,5 @@ Error: {1}</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Title">Information</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Text">Log file does not exist yet.</sys:String>
 </ResourceDictionary>
+
+

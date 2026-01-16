@@ -179,13 +179,21 @@
 
   <!-- Navigation -->
   <sys:String x:Key="Nav.Uploads">Uploads</sys:String>
+  <sys:String x:Key="Nav.Files">Dateien</sys:String>
+  <sys:String x:Key="Nav.Connections">Verbindungen</sys:String>
   <sys:String x:Key="Nav.Accounts">Konten</sys:String>
   <sys:String x:Key="Nav.Channels">Kanäle</sys:String>
   <sys:String x:Key="Nav.Templates">Vorlagen</sys:String>
   <sys:String x:Key="Nav.Presets">Presets</sys:String>
   <sys:String x:Key="Nav.History">Verlauf</sys:String>
   <sys:String x:Key="Nav.Settings">Einstellungen</sys:String>
+  <sys:String x:Key="Nav.Settings.General">Allgemein</sys:String>
+  <sys:String x:Key="Nav.Settings.Llm">KI</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Home">Start</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Default">Start</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Uploads">Start >> Uploads</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Connections">Start >> Verbindungen</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Settings">Start >> Einstellungen</sys:String>
   <sys:String x:Key="Page.Context.Upload">Videos hochladen, planen und verwalten.</sys:String>
   <sys:String x:Key="Page.Context.Accounts">Konten verbinden und Playlists verwalten.</sys:String>
   <sys:String x:Key="Page.Context.Channel">Kanalprofil und Stilvorgaben pflegen.</sys:String>
@@ -532,3 +540,5 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Title">Information</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Text">Log-Datei existiert noch nicht.</sys:String>
 </ResourceDictionary>
+
+

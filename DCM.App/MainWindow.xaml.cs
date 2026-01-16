@@ -86,6 +86,9 @@ public partial class MainWindow : Window
     private UploadDraft? _activeUploadDraft;
     private CancellationTokenSource? _activeUploadCts;
     private int _currentPageIndex;
+    private int _lastUploadsPageIndex = 0;
+    private int _lastConnectionsPageIndex = 1;
+    private int _lastSettingsPageIndex = 4;
 
     // OPTIMIZATION: Cached theme dictionary for faster theme switching
     private ResourceDictionary? _currentThemeDictionary;
@@ -1675,7 +1678,13 @@ public partial class MainWindow : Window
 
     private void ShowPage(int pageIndex)
     {
+        if (pageIndex == _currentPageIndex)
+        {
+            return;
+        }
+
         _currentPageIndex = pageIndex;
+        UpdateLastSubMenuSelection(pageIndex);
 
         // Alle Pages verstecken
         if (PageUpload is not null) PageUpload.Visibility = Visibility.Collapsed;
@@ -1729,37 +1738,37 @@ public partial class MainWindow : Window
             case 0:
                 title = LocalizationHelper.Get("Nav.Uploads");
                 context = LocalizationHelper.Get("Page.Context.Upload");
-                breadcrumb = "Home >> Uploads";
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Uploads");
                 break;
             case 1:
                 title = LocalizationHelper.Get("Nav.Accounts");
                 context = LocalizationHelper.Get("Page.Context.Accounts");
-                breadcrumb = "Home >> Connections";
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Connections");
                 break;
             case 2:
                 title = LocalizationHelper.Get("Nav.Presets");
                 context = LocalizationHelper.Get("Page.Context.Presets");
-                breadcrumb = "Home >> Uploads";
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Uploads");
                 break;
             case 3:
                 title = LocalizationHelper.Get("Nav.History");
                 context = LocalizationHelper.Get("Page.Context.History");
-                breadcrumb = "Home >> Uploads";
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Uploads");
                 break;
             case 4:
                 title = LocalizationHelper.Get("Nav.Settings");
                 context = LocalizationHelper.Get("Page.Context.Settings");
-                breadcrumb = "Home >> Settings";
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Settings");
                 break;
             case 5:
                 title = LocalizationHelper.Get("Settings.LLM");
                 context = LocalizationHelper.Get("Page.Context.LlmSettings");
-                breadcrumb = "Home >> Settings";
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Settings");
                 break;
             default:
                 title = LocalizationHelper.Get("App.Name");
                 context = string.Empty;
-                breadcrumb = "Home";
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Default");
                 break;
         }
 
@@ -1855,17 +1864,40 @@ public partial class MainWindow : Window
         if (sender == MainNavUploads)
         {
             SetSubMenuVisibility(UploadsSubMenuPanel);
-            EnsureSubMenuChecked(UploadsSubMenuPanel, NavUpload);
+            var target = NavUpload;
+            if (target is not null && target.IsChecked != true)
+            {
+                target.IsChecked = true;
+            }
+            if (target?.Tag is string tagString && int.TryParse(tagString, out var pageIndex))
+            {
+                ShowPage(pageIndex);
+            }
         }
         else if (sender == MainNavConnections)
         {
             SetSubMenuVisibility(ConnectionsSubMenuPanel);
-            EnsureSubMenuChecked(ConnectionsSubMenuPanel, NavAccounts);
+            if (NavAccounts is not null && NavAccounts.IsChecked != true)
+            {
+                NavAccounts.IsChecked = true;
+            }
+            if (NavAccounts?.Tag is string tagString && int.TryParse(tagString, out var pageIndex))
+            {
+                ShowPage(pageIndex);
+            }
         }
         else if (sender == MainNavSettings)
         {
             SetSubMenuVisibility(SettingsSubMenuPanel);
-            EnsureSubMenuChecked(SettingsSubMenuPanel, NavSettingsGeneral);
+            var target = NavSettingsGeneral;
+            if (target is not null && target.IsChecked != true)
+            {
+                target.IsChecked = true;
+            }
+            if (target?.Tag is string tagString && int.TryParse(tagString, out var pageIndex))
+            {
+                ShowPage(pageIndex);
+            }
         }
     }
 
@@ -1912,17 +1944,59 @@ public partial class MainWindow : Window
             case 0:
             case 3:
             case 2:
-                MainNavUploads.IsChecked = true;
+                if (MainNavUploads.IsChecked != true)
+                {
+                    MainNavUploads.IsChecked = true;
+                }
                 break;
             case 1:
-                MainNavConnections.IsChecked = true;
+                if (MainNavConnections.IsChecked != true)
+                {
+                    MainNavConnections.IsChecked = true;
+                }
                 break;
             case 4:
             case 5:
-                MainNavSettings.IsChecked = true;
+                if (MainNavSettings.IsChecked != true)
+                {
+                    MainNavSettings.IsChecked = true;
+                }
                 break;
         }
     }
+
+    private void UpdateLastSubMenuSelection(int pageIndex)
+    {
+        switch (pageIndex)
+        {
+            case 0:
+            case 2:
+            case 3:
+                _lastUploadsPageIndex = pageIndex;
+                break;
+            case 1:
+                _lastConnectionsPageIndex = pageIndex;
+                break;
+            case 4:
+            case 5:
+                _lastSettingsPageIndex = pageIndex;
+                break;
+        }
+    }
+
+    private RadioButton? GetUploadsSubMenuButton(int pageIndex) => pageIndex switch
+    {
+        0 => NavUpload,
+        2 => NavPresets,
+        3 => NavHistory,
+        _ => NavUpload
+    };
+
+    private RadioButton? GetSettingsSubMenuButton(int pageIndex) => pageIndex switch
+    {
+        5 => NavSettingsLlm,
+        _ => NavSettingsGeneral
+    };
 
     #endregion
 

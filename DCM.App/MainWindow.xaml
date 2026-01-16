@@ -180,6 +180,7 @@
                        Width="150"
                        Height="52"
                        Stretch="Uniform"
+                       HorizontalAlignment="Left"
                        Margin="0,0,0,10"/>
                 <TextBlock Text="{DynamicResource App.Name}"
                            FontSize="{StaticResource FontSizeM}"
@@ -210,7 +211,7 @@
                          Grid.Row="2"
                          Style="{StaticResource PageBreadcrumbStyle}"
                          Margin="12,6,12,10"
-                         Text="Home >> Uploads"/>
+                         Text="{DynamicResource Page.Breadcrumb.Default}"/>
             </Grid>
           </Border>
 
@@ -257,7 +258,7 @@
                     <TextBlock Style="{StaticResource IconXXL}"
                                Text="&#xe1a0;"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="Connections"
+                    <TextBlock Text="{DynamicResource Nav.Connections}"
                                FontWeight="SemiBold"
                                FontSize="{StaticResource FontSizeM}"
                                Margin="0,6,0,0"
@@ -338,16 +339,16 @@
                             VerticalAlignment="Stretch">
                   <RadioButton x:Name="NavUpload"
                                Style="{StaticResource TopNavSubButton}"
-                               GroupName="SubMenu"
+                               GroupName="UploadsSubMenu"
                                IsChecked="True"
                                Checked="NavButton_Checked"
                                Tag="0">
-                    <TextBlock Text="Files"
+                    <TextBlock Text="{DynamicResource Nav.Files}"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                   <RadioButton x:Name="NavPresets"
                                Style="{StaticResource TopNavSubButton}"
-                               GroupName="SubMenu"
+                               GroupName="UploadsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="2">
                     <TextBlock Text="{DynamicResource Nav.Presets}"
@@ -355,10 +356,10 @@
                   </RadioButton>
                   <RadioButton x:Name="NavHistory"
                                Style="{StaticResource TopNavSubButton}"
-                               GroupName="SubMenu"
+                               GroupName="UploadsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="3">
-                    <TextBlock Text="History"
+                    <TextBlock Text="{DynamicResource Nav.History}"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                 </StackPanel>
@@ -372,7 +373,7 @@
                             Visibility="Collapsed">
                   <RadioButton x:Name="NavAccounts"
                                Style="{StaticResource TopNavSubButton}"
-                               GroupName="SubMenu"
+                               GroupName="ConnectionsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="1">
                     <TextBlock Text="{DynamicResource Nav.Accounts}"
@@ -389,18 +390,18 @@
                             Visibility="Collapsed">
                   <RadioButton x:Name="NavSettingsGeneral"
                                Style="{StaticResource TopNavSubButton}"
-                               GroupName="SubMenu"
+                               GroupName="SettingsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="4">
-                    <TextBlock Text="General"
+                    <TextBlock Text="{DynamicResource Nav.Settings.General}"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                   <RadioButton x:Name="NavSettingsLlm"
                                Style="{StaticResource TopNavSubButton}"
-                               GroupName="SubMenu"
+                               GroupName="SettingsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="5">
-                    <TextBlock Text="AI"
+                    <TextBlock Text="{DynamicResource Nav.Settings.Llm}"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                 </StackPanel>
