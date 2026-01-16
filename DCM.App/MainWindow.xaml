@@ -433,6 +433,28 @@
                              FontSize="{StaticResource FontSizeXS}"
                              Text=""
                              Visibility="Collapsed"/>
+                  <TextBlock x:Name="LogLinkTextBlock"
+                             FontSize="{StaticResource FontSizeM}"
+                             Cursor="Hand"
+                             MouseLeftButtonDown="LogLink_Click"
+                             ToolTip="Anwendungs-Log anzeigen"
+                             Margin="14,0,0,0">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock">
+                        <Setter Property="Foreground"
+                                Value="{StaticResource TextMutedBrush}"/>
+                        <Setter Property="Text"
+                                Value="?? Log"/>
+                        <Style.Triggers>
+                          <Trigger Property="IsMouseOver"
+                                   Value="True">
+                            <Setter Property="Foreground"
+                                    Value="{StaticResource PrimaryBrush}"/>
+                          </Trigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                  </TextBlock>
                 </StackPanel>
               </Grid>
             </Border>
@@ -479,12 +501,6 @@
                       ap:ButtonIcon.Glyph="&#xeb9b;"
                       Click="UploadAllButton_Click"
                       Margin="0,0,8,0"/>
-              <Button x:Name="TranscribeAllActionButton"
-                      Content="Alle transkribieren"
-                      Style="{StaticResource SecondaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe048;"
-                      Click="TranscribeAllButton_Click"
-                      />
             </StackPanel>
 
             <StackPanel x:Name="PageActionsAccounts"
@@ -621,45 +637,25 @@
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
 
-          <TextBlock x:Name="LogLinkTextBlock"
-                     FontSize="{StaticResource FontSizeM}"
-                     Cursor="Hand"
-                     MouseLeftButtonDown="LogLink_Click"
-                     ToolTip="Anwendungs-Log anzeigen">
-            <TextBlock.Style>
-              <Style TargetType="TextBlock">
-                <Setter Property="Foreground"
-                        Value="{StaticResource TextMutedBrush}"/>
-                <Setter Property="Text"
-                        Value="?? Log"/>
-                <Style.Triggers>
-                  <Trigger Property="IsMouseOver"
-                           Value="True">
-                    <Setter Property="Foreground"
-                            Value="{StaticResource PrimaryBrush}"/>
-                  </Trigger>
-                </Style.Triggers>
-              </Style>
-            </TextBlock.Style>
-          </TextBlock>
-
-          <TextBlock Grid.Column="1"
-                     FontSize="{StaticResource FontSizeS}"
-                     HorizontalAlignment="Center">
-            <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
-                       RequestNavigate="OpenUrlInBrowser">
-              <Run Text="{DynamicResource App.Github}"/>
-            </Hyperlink>
-          </TextBlock>
-
-          <TextBlock Grid.Column="2"
-                     Text="{DynamicResource App.Copyright}"
-                     FontSize="{StaticResource FontSizeXS}"
-                     Foreground="{StaticResource TextMutedBrush}"
-                     HorizontalAlignment="Right"/>
+          <StackPanel Grid.Column="0"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Left">
+            <TextBlock Text="{DynamicResource App.Copyright}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       VerticalAlignment="Center"/>
+            <TextBlock FontSize="{StaticResource FontSizeXS}"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center">
+              <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
+                         RequestNavigate="OpenUrlInBrowser"
+                         Foreground="{StaticResource PrimaryBrush}">
+                <Run Text="{DynamicResource App.Github}"/>
+              </Hyperlink>
+            </TextBlock>
+          </StackPanel>
         </Grid>
       </Border>
     </Grid>

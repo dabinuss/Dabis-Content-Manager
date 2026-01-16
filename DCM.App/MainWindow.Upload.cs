@@ -43,6 +43,7 @@ public partial class MainWindow
         {
             _settings.SavedDrafts?.Clear();
             SetActiveDraft(null);
+            UpdateUploadListVisibility();
             return;
         }
 
@@ -50,6 +51,7 @@ public partial class MainWindow
         if (snapshots.Count == 0)
         {
             SetActiveDraft(null);
+            UpdateUploadListVisibility();
             return;
         }
 
@@ -136,6 +138,7 @@ public partial class MainWindow
             {
                 SetActiveDraft(_uploadDrafts[0]);
             }
+            UpdateUploadListVisibility();
 
             if (removedDuringRestore || migratedThumbnails)
             {
@@ -219,6 +222,7 @@ public partial class MainWindow
         var scrollOffset = UploadView?.GetUploadItemsVerticalOffset() ?? 0;
         UploadView?.SuppressUploadItemsBringIntoView(true);
         _uploadDrafts.Remove(draft);
+        UpdateUploadListVisibility();
         ResetDraftState(draft);
 
         if (wasActive)
@@ -452,6 +456,7 @@ public partial class MainWindow
 
         if (addedAny)
         {
+            UpdateUploadListVisibility();
             ScheduleDraftPersistence();
         }
     }
@@ -963,6 +968,25 @@ public partial class MainWindow
         UploadView.VideoDropZone.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
         UploadView.VideoDropSelectedState.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
         UploadView.MainContentGrid.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
+
+        if (hasVideo)
+        {
+            UploadView.GetUploadContentScrollViewer()?.ScrollToTop();
+        }
+    }
+
+    private void UpdateUploadListVisibility()
+    {
+        if (UploadView is null)
+        {
+            return;
+        }
+
+        var hasDrafts = _uploadDrafts.Count > 0;
+        UploadView.UploadListPanel.Visibility = hasDrafts ? Visibility.Visible : Visibility.Collapsed;
+        UploadView.UploadListDivider.Visibility = hasDrafts ? Visibility.Visible : Visibility.Collapsed;
+        UploadView.UploadListColumn.Width = hasDrafts ? new GridLength(320) : new GridLength(0);
+        UploadView.UploadListDividerColumn.Width = hasDrafts ? new GridLength(1) : new GridLength(0);
     }
 
     private void ApplyCurrentUploadSettingsToDraft(UploadDraft draft)
@@ -1285,10 +1309,6 @@ public partial class MainWindow
         UpdateTranscriptionButtonState();
 
         var (fileName, _) = GetFileDisplayInfo(filePath);
-        _logger.Info(
-            LocalizationHelper.Format("Log.Upload.VideoSelected", fileName),
-            UploadLogSource);
-
         if (triggerAutoTranscribe && draft == _activeDraft)
         {
             _ = LoadVideoFileInfoAsync(draft, triggerAutoTranscribe: true);

@@ -83,18 +83,22 @@
             VerticalAlignment="Stretch">
         <Grid>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="320"/>
-          <ColumnDefinition Width="1"/>
+          <ColumnDefinition x:Name="UploadListColumn"
+                            Width="320"/>
+          <ColumnDefinition x:Name="UploadListDividerColumn"
+                            Width="1"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="1"
+        <Border x:Name="UploadListDivider"
+                Grid.Column="1"
                 Background="{StaticResource UploadListDividerBrush}"
                 VerticalAlignment="Stretch"
                 HorizontalAlignment="Stretch"
                 SnapsToDevicePixels="True"/>
 
-        <Grid Grid.Column="0"
+        <Grid x:Name="UploadListPanel"
+              Grid.Column="0"
               Margin="8,8,0,0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -681,7 +685,7 @@
                 Grid.Row="0"
                 Grid.RowSpan="3"
                 Background="Transparent"
-                Height="{Binding ElementName=UploadContentScrollViewer, Path=ViewportHeight}"
+                Height="{Binding ElementName=UploadContentScrollViewer, Path=ActualHeight}"
                 MinHeight="360"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
@@ -690,26 +694,33 @@
                 DragLeave="VideoDrop_DragLeave"
                 Drop="VideoDrop_Drop"
                 MouseLeftButtonDown="VideoDropZone_Click">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Margin="32">
-              <TextBlock Style="{StaticResource Icon}"
-                         Text="&#xe070;"
-                         FontSize="140"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         HorizontalAlignment="Center"
-                         Margin="0,0,0,24"/>
-              <TextBlock Text="{DynamicResource Upload.Empty.Title}"
-                         FontSize="{StaticResource FontSizeXXL}"
-                         FontWeight="SemiBold"
-                         Foreground="{StaticResource TextPrimaryBrush}"
-                         HorizontalAlignment="Center"/>
-              <TextBlock Text="{DynamicResource Upload.Empty.Formats}"
-                         FontSize="{StaticResource FontSizeM}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         HorizontalAlignment="Center"
-                         Margin="0,12,0,0"/>
-            </StackPanel>
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="2*"/>
+              </Grid.RowDefinitions>
+              <StackPanel Grid.Row="1"
+                          HorizontalAlignment="Center"
+                          Margin="32">
+                <TextBlock Style="{StaticResource Icon}"
+                           Text="&#xe070;"
+                           FontSize="{StaticResource FontSizeXXXXL}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,24"/>
+                <TextBlock Text="{DynamicResource Upload.Empty.Title}"
+                           FontSize="{StaticResource FontSizeXXL}"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{DynamicResource Upload.Empty.Formats}"
+                           FontSize="{StaticResource FontSizeM}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,12,0,0"/>
+              </StackPanel>
+            </Grid>
           </Grid>
 
           <ContentControl x:Name="VideoDropZone"
