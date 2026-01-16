@@ -677,54 +677,52 @@
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
 
-          <ContentControl x:Name="VideoDropZone"
-                          Grid.Row="0"
-                          Style="{StaticResource VideoDropZoneStyle}"
-                          DragOver="VideoDrop_DragOver"
-                          DragLeave="VideoDrop_DragLeave"
-                          Drop="VideoDrop_Drop"
-                          MouseLeftButtonDown="VideoDropZone_Click">
-
-      <Grid>
-          <!-- Zustand 1: Kein Video ausgewählt -->
-          <Grid x:Name="VideoDropEmptyState"
-                Visibility="Visible">
+          <Grid x:Name="EmptyContentPanel"
+                Grid.Row="0"
+                Grid.RowSpan="3"
+                Background="Transparent"
+                Height="{Binding ElementName=UploadContentScrollViewer, Path=ViewportHeight}"
+                MinHeight="360"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                AllowDrop="True"
+                DragOver="VideoDrop_DragOver"
+                DragLeave="VideoDrop_DragLeave"
+                Drop="VideoDrop_Drop"
+                MouseLeftButtonDown="VideoDropZone_Click">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Margin="20">
-              <TextBlock Style="{StaticResource Icon64}"
+                        Margin="32">
+              <TextBlock Style="{StaticResource Icon}"
                          Text="&#xe070;"
+                         FontSize="140"
+                         Foreground="{StaticResource TextMutedBrush}"
                          HorizontalAlignment="Center"
-                         Margin="{StaticResource SpacingVerticalS}"/>
-              <TextBlock Text="{DynamicResource Upload.DropVideo}"
-                         FontSize="{StaticResource FontSizeXL}"
+                         Margin="0,0,0,24"/>
+              <TextBlock Text="{DynamicResource Upload.Empty.Title}"
+                         FontSize="{StaticResource FontSizeXXL}"
                          FontWeight="SemiBold"
                          Foreground="{StaticResource TextPrimaryBrush}"
                          HorizontalAlignment="Center"/>
-              <TextBlock Text="{DynamicResource Upload.DropVideo.Descr}"
+              <TextBlock Text="{DynamicResource Upload.Empty.Formats}"
                          FontSize="{StaticResource FontSizeM}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         HorizontalAlignment="Center"
-                         Margin="0,8,0,0"/>
-              <TextBlock Text="Datei auswaehlen oder hierher ziehen."
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         HorizontalAlignment="Center"
-                         Margin="0,8,0,0"/>
-              <Button Content="Datei auswaehlen"
-                      Style="{StaticResource PrimaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe2c6;"
-                      PreviewMouseLeftButtonDown="VideoDropZone_Click"
-                      Margin="0,12,0,0"/>
-              <TextBlock Text="{DynamicResource Upload.DropVideo.AllowedFiles}"
-                         FontSize="{StaticResource FontSizeXS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          HorizontalAlignment="Center"
                          Margin="0,12,0,0"/>
             </StackPanel>
           </Grid>
 
-          <!-- Zustand 2: Video ausgewählt -->
+          <ContentControl x:Name="VideoDropZone"
+                          Grid.Row="0"
+                          Style="{StaticResource VideoDropZoneStyle}"
+                          Visibility="Collapsed"
+                          DragOver="VideoDrop_DragOver"
+                          DragLeave="VideoDrop_DragLeave"
+                          Drop="VideoDrop_Drop"
+                          MouseLeftButtonDown="VideoDropZone_Click">
+
+      <Grid>
+          <!-- Video ausgewaehlt -->
           <Grid x:Name="VideoDropSelectedState"
                 Visibility="Collapsed">
             <Grid.ColumnDefinitions>
@@ -922,7 +920,8 @@
 
     <!-- ZWEI-SPALTEN-LAYOUT -->
         <Grid x:Name="MainContentGrid"
-              Grid.Row="2">
+              Grid.Row="2"
+              Visibility="Collapsed">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"
                               MinWidth="350"/>
@@ -1808,3 +1807,5 @@
              Visibility="Collapsed"/>
   </Grid>
 </UserControl>
+
+

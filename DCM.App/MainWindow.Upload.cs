@@ -42,12 +42,14 @@ public partial class MainWindow
         if (_settings.RememberDraftsBetweenSessions != true)
         {
             _settings.SavedDrafts?.Clear();
+            SetActiveDraft(null);
             return;
         }
 
         var snapshots = _settings.SavedDrafts ?? new List<UploadDraftSnapshot>();
         if (snapshots.Count == 0)
         {
+            SetActiveDraft(null);
             return;
         }
 
@@ -346,6 +348,37 @@ public partial class MainWindow
         return _allowedVideoExtensions.Contains(ext);
     }
 
+    private static string NormalizeVideoPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return Path.GetFullPath(path);
+        }
+        catch
+        {
+            return path;
+        }
+    }
+
+    private bool IsVideoAlreadyInDrafts(string filePath, UploadDraft? ignoreDraft = null)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return false;
+        }
+
+        var normalizedPath = NormalizeVideoPath(filePath);
+        return _uploadDrafts.Any(d =>
+            d != ignoreDraft &&
+            d.HasVideo &&
+            string.Equals(NormalizeVideoPath(d.VideoPath), normalizedPath, StringComparison.OrdinalIgnoreCase));
+    }
+
     private void AddVideoDrafts(IEnumerable<string> filePaths)
     {
         if (filePaths is null)
@@ -356,6 +389,8 @@ public partial class MainWindow
         UploadDraft? firstNewDraft = null;
         var addedAny = false;
         var newDrafts = new List<UploadDraft>();
+        var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        string? firstDuplicateName = null;
 
         foreach (var filePath in filePaths)
         {
@@ -369,6 +404,18 @@ public partial class MainWindow
                 continue;
             }
 
+            var normalizedPath = NormalizeVideoPath(filePath);
+            if (!seenPaths.Add(normalizedPath))
+            {
+                continue;
+            }
+
+            if (IsVideoAlreadyInDrafts(normalizedPath))
+            {
+                firstDuplicateName ??= Path.GetFileName(filePath);
+                continue;
+            }
+
             var draft = new UploadDraft
             {
                 UploadStatus = "Bereit",
@@ -377,7 +424,7 @@ public partial class MainWindow
 
             ApplyCurrentUploadSettingsToDraft(draft);
             TryApplyDefaultPresetToDraft(draft);
-            SetVideoFile(draft, filePath, triggerAutoTranscribe: false);
+            SetVideoFile(draft, normalizedPath, triggerAutoTranscribe: false);
             _uploadDrafts.Add(draft);
             firstNewDraft ??= draft;
             newDrafts.Add(draft);
@@ -397,6 +444,11 @@ public partial class MainWindow
 
         UpdateUploadButtonState();
         UpdateTranscriptionButtonState();
+
+        if (firstDuplicateName is not null)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Upload.VideoAlreadyInDraft", firstDuplicateName);
+        }
 
         if (addedAny)
         {
@@ -907,8 +959,10 @@ public partial class MainWindow
 
     private void SetVideoDropState(bool hasVideo)
     {
-        UploadView.VideoDropEmptyState.Visibility = hasVideo ? Visibility.Collapsed : Visibility.Visible;
+        UploadView.EmptyContentPanel.Visibility = hasVideo ? Visibility.Collapsed : Visibility.Visible;
+        UploadView.VideoDropZone.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
         UploadView.VideoDropSelectedState.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
+        UploadView.MainContentGrid.Visibility = hasVideo ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void ApplyCurrentUploadSettingsToDraft(UploadDraft draft)
@@ -1208,15 +1262,24 @@ public partial class MainWindow
             return;
         }
 
-        draft.VideoPath = filePath;
+        var normalizedPath = NormalizeVideoPath(filePath);
+        if (IsVideoAlreadyInDrafts(normalizedPath, ignoreDraft: draft))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Format(
+                "Status.Upload.VideoAlreadyInDraft",
+                Path.GetFileName(filePath));
+            return;
+        }
+
+        draft.VideoPath = normalizedPath;
 
         if (_activeDraft == draft)
         {
-            UploadView.VideoPathTextBox.Text = filePath;
+            UploadView.VideoPathTextBox.Text = normalizedPath;
             SetVideoDropState(true);
         }
 
-        RememberLastVideoFolder(Path.GetDirectoryName(filePath));
+        RememberLastVideoFolder(Path.GetDirectoryName(normalizedPath));
 
         UpdateUploadButtonState();
         UpdateTranscriptionButtonState();

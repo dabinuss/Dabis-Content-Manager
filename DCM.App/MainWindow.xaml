@@ -345,6 +345,14 @@
                     <TextBlock Text="Files"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
+                  <RadioButton x:Name="NavPresets"
+                               Style="{StaticResource TopNavSubButton}"
+                               GroupName="SubMenu"
+                               Checked="NavButton_Checked"
+                               Tag="2">
+                    <TextBlock Text="{DynamicResource Nav.Presets}"
+                               HorizontalAlignment="Center"/>
+                  </RadioButton>
                   <RadioButton x:Name="NavHistory"
                                Style="{StaticResource TopNavSubButton}"
                                GroupName="SubMenu"
@@ -368,14 +376,6 @@
                                Checked="NavButton_Checked"
                                Tag="1">
                     <TextBlock Text="{DynamicResource Nav.Accounts}"
-                               HorizontalAlignment="Center"/>
-                  </RadioButton>
-                  <RadioButton x:Name="NavPresets"
-                               Style="{StaticResource TopNavSubButton}"
-                               GroupName="SubMenu"
-                               Checked="NavButton_Checked"
-                               Tag="2">
-                    <TextBlock Text="{DynamicResource Nav.Presets}"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                 </StackPanel>

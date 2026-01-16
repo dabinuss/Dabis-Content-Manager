@@ -204,6 +204,8 @@
   <sys:String x:Key="Upload.DropVideo">Drag video here</sys:String>
   <sys:String x:Key="Upload.DropVideo.Descr">or click to select</sys:String>
   <sys:String x:Key="Upload.DropVideo.AllowedFiles">MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
+  <sys:String x:Key="Upload.Empty.Title">No video selected</sys:String>
+  <sys:String x:Key="Upload.Empty.Formats">Supported formats: MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
   <sys:String x:Key="Upload.StartUpload">Start Upload</sys:String>
   <sys:String x:Key="Upload.Fields.Title">Title (required)</sys:String>
   <sys:String x:Key="Upload.Fields.Suggest">Suggest</sys:String>
@@ -265,6 +267,7 @@
   <sys:String x:Key="Status.Upload.ValidationFailed">Invalid input: {0}</sys:String>
   <sys:String x:Key="Status.Upload.ConnectYouTube">Please connect to YouTube in the "Accounts" tab first.</sys:String>
   <sys:String x:Key="Status.Upload.Preparing">Preparing upload...</sys:String>
+  <sys:String x:Key="Status.Upload.VideoAlreadyInDraft">Video is already in a draft: {0}</sys:String>
   <sys:String x:Key="Status.Upload.Success">Upload successful: {0}</sys:String>
   <sys:String x:Key="Status.Upload.Failed">Upload failed: {0}</sys:String>
   <sys:String x:Key="Status.Upload.UnexpectedError">Unexpected upload error: {0}</sys:String>

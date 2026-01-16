@@ -1739,7 +1739,7 @@ public partial class MainWindow : Window
             case 2:
                 title = LocalizationHelper.Get("Nav.Presets");
                 context = LocalizationHelper.Get("Page.Context.Presets");
-                breadcrumb = "Home >> Connections";
+                breadcrumb = "Home >> Uploads";
                 break;
             case 3:
                 title = LocalizationHelper.Get("Nav.History");
@@ -1911,10 +1911,10 @@ public partial class MainWindow : Window
         {
             case 0:
             case 3:
+            case 2:
                 MainNavUploads.IsChecked = true;
                 break;
             case 1:
-            case 2:
                 MainNavConnections.IsChecked = true;
                 break;
             case 4:
