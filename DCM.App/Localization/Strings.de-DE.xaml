@@ -183,6 +183,7 @@
   <sys:String x:Key="Nav.Connections">Verbindungen</sys:String>
   <sys:String x:Key="Nav.Accounts">Konten</sys:String>
   <sys:String x:Key="Nav.Channels">Kanäle</sys:String>
+  <sys:String x:Key="Nav.ChannelProfile">Kanalprofil</sys:String>
   <sys:String x:Key="Nav.Templates">Vorlagen</sys:String>
   <sys:String x:Key="Nav.Presets">Presets</sys:String>
   <sys:String x:Key="Nav.History">Verlauf</sys:String>

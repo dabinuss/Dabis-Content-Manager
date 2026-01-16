@@ -371,12 +371,20 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Stretch"
                             Visibility="Collapsed">
-                  <RadioButton x:Name="NavAccounts"
+                  <RadioButton x:Name="NavConnections"
                                Style="{StaticResource TopNavSubButton}"
                                GroupName="ConnectionsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="1">
-                    <TextBlock Text="{DynamicResource Nav.Accounts}"
+                    <TextBlock Text="{DynamicResource Nav.Connections}"
+                               HorizontalAlignment="Center"/>
+                  </RadioButton>
+                  <RadioButton x:Name="NavChannelProfile"
+                               Style="{StaticResource TopNavSubButton}"
+                               GroupName="ConnectionsSubMenu"
+                               Checked="NavButton_Checked"
+                               Tag="6">
+                    <TextBlock Text="{DynamicResource Nav.ChannelProfile}"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                 </StackPanel>
@@ -518,6 +526,16 @@
                       />
             </StackPanel>
 
+            <StackPanel x:Name="PageActionsChannelProfile"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button Content="{DynamicResource Common.Save}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe161;"
+                      Click="ChannelProfileSaveButton_Click"
+                      />
+            </StackPanel>
+
             <StackPanel x:Name="PageActionsPresets"
                         Orientation="Horizontal"
                         Visibility="Collapsed">
@@ -593,11 +611,18 @@
           <views:UploadView x:Name="UploadPageView"/>
         </ScrollViewer>
 
-        <!-- Page 1: Konten -->
-          <ScrollViewer x:Name="PageAccounts"
-                        VerticalScrollBarVisibility="Auto"
-                        Visibility="Collapsed">
+        <!-- Page 1: Connections -->
+        <ScrollViewer x:Name="PageAccounts"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="Collapsed">
           <views:AccountsView x:Name="AccountsPageView"/>
+        </ScrollViewer>
+
+        <!-- Page 6: Channel Profile -->
+        <ScrollViewer x:Name="PageChannelProfile"
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="Collapsed">
+          <views:ChannelView x:Name="ChannelProfilePageView"/>
         </ScrollViewer>
 
         <!-- Page 2: Presets -->

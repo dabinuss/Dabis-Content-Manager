@@ -183,6 +183,7 @@
   <sys:String x:Key="Nav.Connections">Connections</sys:String>
   <sys:String x:Key="Nav.Accounts">Accounts</sys:String>
   <sys:String x:Key="Nav.Channels">Channels</sys:String>
+  <sys:String x:Key="Nav.ChannelProfile">Channel Profile</sys:String>
   <sys:String x:Key="Nav.Templates">Templates</sys:String>
   <sys:String x:Key="Nav.Presets">Presets</sys:String>
   <sys:String x:Key="Nav.History">History</sys:String>

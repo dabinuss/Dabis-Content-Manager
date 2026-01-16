@@ -107,6 +107,7 @@ public partial class MainWindow : Window
         AttachPresetsViewEvents();
         AttachHistoryViewEvents();
         AttachSettingsViewEvents();
+        AttachChannelProfileViewEvents();
         RegisterEventSubscriptions();
         InitializePresetPlaceholders();
         InitializePresetOptions();
@@ -301,7 +302,16 @@ public partial class MainWindow : Window
         AccountsPageView.YouTubeConnectButtonClicked += YouTubeConnectButton_Click;
         AccountsPageView.YouTubeDisconnectButtonClicked += YouTubeDisconnectButton_Click;
         AccountsPageView.YouTubePlaylistsSelectionChanged += YouTubePlaylistsListBox_SelectionChanged;
-        AccountsPageView.ChannelProfileSaveButtonClicked += ChannelProfileSaveButton_Click;
+    }
+
+    private void AttachChannelProfileViewEvents()
+    {
+        if (ChannelProfilePageView is null)
+        {
+            return;
+        }
+
+        ChannelProfilePageView.ChannelProfileSaveButtonClicked += ChannelProfileSaveButton_Click;
     }
 
     private void AttachPresetsViewEvents()
@@ -898,7 +908,7 @@ public partial class MainWindow : Window
             .Select(c => $"{c.DisplayName} ({c.Name})")
             .ToList();
 
-        AccountsPageView?.SetChannelLanguageOptions(cultures);
+        ChannelProfilePageView?.SetLanguageOptions(cultures);
     }
 
     private void InitializeSchedulingDefaults()
@@ -1783,6 +1793,7 @@ public partial class MainWindow : Window
         // Alle Pages verstecken
         if (PageUpload is not null) PageUpload.Visibility = Visibility.Collapsed;
         if (PageAccounts is not null) PageAccounts.Visibility = Visibility.Collapsed;
+        if (PageChannelProfile is not null) PageChannelProfile.Visibility = Visibility.Collapsed;
         if (PagePresets is not null) PagePresets.Visibility = Visibility.Collapsed;
         if (PageHistory is not null) PageHistory.Visibility = Visibility.Collapsed;
         if (PageGeneralSettings is not null) PageGeneralSettings.Visibility = Visibility.Collapsed;
@@ -1796,6 +1807,9 @@ public partial class MainWindow : Window
                 break;
             case 1:
                 if (PageAccounts is not null) PageAccounts.Visibility = Visibility.Visible;
+                break;
+            case 6:
+                if (PageChannelProfile is not null) PageChannelProfile.Visibility = Visibility.Visible;
                 break;
             case 2:
                 if (PagePresets is not null) PagePresets.Visibility = Visibility.Visible;
@@ -1835,8 +1849,13 @@ public partial class MainWindow : Window
                 breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Uploads");
                 break;
             case 1:
-                title = LocalizationHelper.Get("Nav.Accounts");
+                title = LocalizationHelper.Get("Nav.Connections");
                 context = LocalizationHelper.Get("Page.Context.Accounts");
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Connections");
+                break;
+            case 6:
+                title = LocalizationHelper.Get("Nav.ChannelProfile");
+                context = LocalizationHelper.Get("Page.Context.Channel");
                 breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Connections");
                 break;
             case 2:
@@ -1879,6 +1898,7 @@ public partial class MainWindow : Window
     {
         if (PageActionsUpload is null ||
             PageActionsAccounts is null ||
+            PageActionsChannelProfile is null ||
             PageActionsPresets is null ||
             PageActionsHistory is null ||
             PageActionsGeneralSettings is null ||
@@ -1889,6 +1909,7 @@ public partial class MainWindow : Window
 
         PageActionsUpload.Visibility = Visibility.Collapsed;
         PageActionsAccounts.Visibility = Visibility.Collapsed;
+        PageActionsChannelProfile.Visibility = Visibility.Collapsed;
         PageActionsPresets.Visibility = Visibility.Collapsed;
         PageActionsHistory.Visibility = Visibility.Collapsed;
         PageActionsGeneralSettings.Visibility = Visibility.Collapsed;
@@ -1901,6 +1922,9 @@ public partial class MainWindow : Window
                 break;
             case 1:
                 PageActionsAccounts.Visibility = Visibility.Visible;
+                break;
+            case 6:
+                PageActionsChannelProfile.Visibility = Visibility.Visible;
                 break;
             case 2:
                 PageActionsPresets.Visibility = Visibility.Visible;
@@ -1919,8 +1943,8 @@ public partial class MainWindow : Window
 
     private void YouTubeServiceIcon_Click(object sender, MouseButtonEventArgs e)
     {
-        // Navigiere zum Konten-Tab
-        NavAccounts.IsChecked = true;
+        // Navigiere zum Connections-Tab
+        NavConnections.IsChecked = true;
         ShowPage(1);
     }
 
@@ -1971,11 +1995,12 @@ public partial class MainWindow : Window
         else if (sender == MainNavConnections)
         {
             SetSubMenuVisibility(ConnectionsSubMenuPanel);
-            if (NavAccounts is not null && NavAccounts.IsChecked != true)
+            var target = GetConnectionsSubMenuButton(_lastConnectionsPageIndex) ?? NavConnections;
+            if (target is not null && target.IsChecked != true)
             {
-                NavAccounts.IsChecked = true;
+                target.IsChecked = true;
             }
-            if (NavAccounts?.Tag is string tagString && int.TryParse(tagString, out var pageIndex))
+            if (target?.Tag is string tagString && int.TryParse(tagString, out var pageIndex))
             {
                 ShowPage(pageIndex);
             }
@@ -2044,6 +2069,7 @@ public partial class MainWindow : Window
                 }
                 break;
             case 1:
+            case 6:
                 if (MainNavConnections.IsChecked != true)
                 {
                     MainNavConnections.IsChecked = true;
@@ -2069,6 +2095,7 @@ public partial class MainWindow : Window
                 _lastUploadsPageIndex = pageIndex;
                 break;
             case 1:
+            case 6:
                 _lastConnectionsPageIndex = pageIndex;
                 break;
             case 4:
@@ -2084,6 +2111,12 @@ public partial class MainWindow : Window
         2 => NavPresets,
         3 => NavHistory,
         _ => NavUpload
+    };
+
+    private RadioButton? GetConnectionsSubMenuButton(int pageIndex) => pageIndex switch
+    {
+        6 => NavChannelProfile,
+        _ => NavConnections
     };
 
     private RadioButton? GetSettingsSubMenuButton(int pageIndex) => pageIndex switch
