@@ -185,6 +185,87 @@ public sealed class YouTubePlatformClient : IPlatformClient
         return result;
     }
 
+    public async Task<IReadOnlyList<OptionEntry>> GetVideoCategoriesAsync(
+        string regionCode,
+        string? hl = null,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureServiceAsync(cancellationToken);
+
+        if (_service is null)
+        {
+            throw new InvalidOperationException("YouTube-Dienst nicht initialisiert.");
+        }
+
+        if (string.IsNullOrWhiteSpace(regionCode))
+        {
+            throw new ArgumentException("RegionCode ist erforderlich.", nameof(regionCode));
+        }
+
+        _logger.Debug($"Lade YouTube-Kategorien ({regionCode}/{hl ?? "-"})...", "YouTube");
+
+        var request = _service.VideoCategories.List("snippet");
+        request.RegionCode = regionCode;
+        if (!string.IsNullOrWhiteSpace(hl))
+        {
+            request.Hl = hl;
+        }
+
+        var response = await request.ExecuteAsync(cancellationToken);
+
+        var result = response.Items?
+            .Where(c => !string.IsNullOrWhiteSpace(c.Id))
+            .Select(c => new OptionEntry
+            {
+                Code = c.Id ?? string.Empty,
+                Name = c.Snippet?.Title ?? c.Id ?? string.Empty
+            })
+            .OrderBy(c => c.Name)
+            .ToList() ?? new List<OptionEntry>();
+
+        _logger.Debug($"Kategorien geladen: {result.Count} gefunden", "YouTube");
+        return result;
+    }
+
+    public async Task<IReadOnlyList<OptionEntry>> GetI18nLanguagesAsync(
+        string? hl = null,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureServiceAsync(cancellationToken);
+
+        if (_service is null)
+        {
+            throw new InvalidOperationException("YouTube-Dienst nicht initialisiert.");
+        }
+
+        _logger.Debug($"Lade YouTube-Sprachen ({hl ?? "-"})...", "YouTube");
+
+        var request = _service.I18nLanguages.List("snippet");
+        if (!string.IsNullOrWhiteSpace(hl))
+        {
+            request.Hl = hl;
+        }
+
+        var response = await request.ExecuteAsync(cancellationToken);
+
+        var result = response.Items?
+            .Select(item =>
+            {
+                var code = item.Id ?? item.Snippet?.Hl ?? string.Empty;
+                var name = item.Snippet?.Name ?? code;
+                return string.IsNullOrWhiteSpace(code)
+                    ? null
+                    : new OptionEntry { Code = code, Name = name };
+            })
+            .Where(item => item is not null)
+            .Cast<OptionEntry>()
+            .OrderBy(c => c.Name)
+            .ToList() ?? new List<OptionEntry>();
+
+        _logger.Debug($"Sprachen geladen: {result.Count} gefunden", "YouTube");
+        return result;
+    }
+
     public async Task<UploadResult> UploadAsync(
         UploadProject project,
         IProgress<UploadProgressInfo>? progress = null,

@@ -61,6 +61,8 @@ public partial class MainWindow : Window
     private bool _isSettingDescriptionText;
 
     private readonly List<YouTubePlaylistInfo> _youTubePlaylists = new();
+    private readonly List<CategoryOption> _youTubeCategories = new();
+    private readonly List<LanguageOption> _youTubeLanguages = new();
 
     private List<UploadHistoryEntry> _allHistoryEntries = new();
 
@@ -107,6 +109,7 @@ public partial class MainWindow : Window
         AttachSettingsViewEvents();
         RegisterEventSubscriptions();
         InitializePresetPlaceholders();
+        InitializePresetOptions();
         InitializeUploadDrafts();
 
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
@@ -313,6 +316,7 @@ public partial class MainWindow : Window
         PresetsPageView.PresetDeleteButtonClicked += PresetDeleteButton_Click;
         PresetsPageView.PresetSaveButtonClicked += PresetSaveButton_Click;
         PresetsPageView.PresetListBoxSelectionChanged += PresetListBox_SelectionChanged;
+        PresetsPageView.PresetDefaultToggled += PresetDefaultToggled;
     }
 
     private void AttachHistoryViewEvents()
@@ -584,7 +588,7 @@ public partial class MainWindow : Window
         _isLanguageInitializing = false;
     }
 
-    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_isLanguageInitializing)
         {
@@ -607,6 +611,8 @@ public partial class MainWindow : Window
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.LanguageChanged", selectedLang.DisplayName);
         UpdatePageHeader(_currentPageIndex);
         _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
+
+        await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(true);
     }
 
     #endregion
@@ -791,6 +797,94 @@ public partial class MainWindow : Window
         };
 
         PresetsPageView?.SetPlaceholders(placeholders);
+    }
+
+    private void InitializePresetOptions()
+    {
+        LoadCachedYouTubeOptions();
+        PresetsPageView?.SetCategoryOptions(_youTubeCategories);
+        PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
+    }
+
+    private void LoadCachedYouTubeOptions()
+    {
+        _youTubeCategories.Clear();
+        _youTubeLanguages.Clear();
+
+        var localeKey = GetCurrentLocaleKey();
+        if (!string.Equals(_settings.YouTubeOptionsLocale, localeKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (_settings.YouTubeCategoryOptions is not null)
+        {
+            foreach (var option in _settings.YouTubeCategoryOptions)
+            {
+                if (!string.IsNullOrWhiteSpace(option.Code))
+                {
+                    _youTubeCategories.Add(new CategoryOption(option.Code, option.Name));
+                }
+            }
+        }
+
+        if (_settings.YouTubeLanguageOptions is not null)
+        {
+            foreach (var option in _settings.YouTubeLanguageOptions)
+            {
+                if (!string.IsNullOrWhiteSpace(option.Code))
+                {
+                    _youTubeLanguages.Add(new LanguageOption(option.Code, option.Name));
+                }
+            }
+        }
+    }
+
+    private string GetCurrentLocaleKey() =>
+        _settings.Language ?? LocalizationManager.Instance.CurrentLanguage;
+
+    private (string LocaleKey, string Hl, string RegionCode) GetYouTubeLocaleInfo()
+    {
+        var localeKey = GetCurrentLocaleKey();
+        var hl = "en";
+        var region = "US";
+
+        try
+        {
+            var culture = CultureInfo.GetCultureInfo(localeKey);
+            if (!string.IsNullOrWhiteSpace(culture.TwoLetterISOLanguageName))
+            {
+                hl = culture.TwoLetterISOLanguageName;
+            }
+
+            if (culture.Name.Contains('-', StringComparison.Ordinal))
+            {
+                region = culture.Name.Split('-')[1];
+            }
+            else
+            {
+                try
+                {
+                    var regionInfo = new RegionInfo(culture.Name);
+                    region = regionInfo.TwoLetterISORegionName;
+                }
+                catch
+                {
+                    // Fallback below.
+                }
+            }
+        }
+        catch
+        {
+            // Use defaults.
+        }
+
+        if (string.IsNullOrWhiteSpace(region))
+        {
+            region = string.Equals(hl, "de", StringComparison.OrdinalIgnoreCase) ? "DE" : "US";
+        }
+
+        return (localeKey, hl, region);
     }
 
     private void InitializeChannelLanguageComboBox()

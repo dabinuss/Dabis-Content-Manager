@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using DCM.App.Models;
 using DCM.Core.Models;
+using DCM.YouTube;
 
 namespace DCM.App.Views;
 
 public partial class PresetsView : UserControl
 {
+    private bool _isDefaultBinding;
+
     public PresetsView()
     {
         InitializeComponent();
@@ -19,8 +23,10 @@ public partial class PresetsView : UserControl
     public event RoutedEventHandler? PresetDeleteButtonClicked;
     public event RoutedEventHandler? PresetSaveButtonClicked;
     public event SelectionChangedEventHandler? PresetListBoxSelectionChanged;
+    public event RoutedEventHandler? PresetDefaultToggled;
 
     public UploadPreset? SelectedPreset => PresetListBox.SelectedItem as UploadPreset;
+    public bool IsDefaultChecked => PresetIsDefaultCheckBox?.IsChecked == true;
 
     public void BindPresets(IEnumerable<UploadPreset> presets, UploadPreset? selectedPreset)
     {
@@ -40,14 +46,15 @@ public partial class PresetsView : UserControl
         {
             PresetNameTextBox.Text = string.Empty;
             PresetPlatformComboBox.SelectedItem = null;
+            _isDefaultBinding = true;
             PresetIsDefaultCheckBox.IsChecked = false;
+            _isDefaultBinding = false;
             PresetDescriptionTextBox.Text = string.Empty;
             PresetTitlePrefixTextBox.Text = string.Empty;
             PresetTagsTextBox.Text = string.Empty;
-            PresetPlaylistIdTextBox.Text = string.Empty;
-            PresetPlaylistTitleTextBox.Text = string.Empty;
-            PresetCategoryIdTextBox.Text = string.Empty;
-            PresetLanguageTextBox.Text = string.Empty;
+            PresetPlaylistComboBox.SelectedItem = null;
+            PresetCategoryComboBox.SelectedItem = null;
+            PresetLanguageComboBox.SelectedItem = null;
             PresetDescriptionTemplateTextBox.Text = string.Empty;
             SelectComboBoxItemByTag(PresetVisibilityComboBox, VideoVisibility.Unlisted);
             SelectComboBoxItemByTag(PresetMadeForKidsComboBox, MadeForKidsSetting.Default);
@@ -57,14 +64,15 @@ public partial class PresetsView : UserControl
 
         PresetNameTextBox.Text = preset.Name;
         PresetPlatformComboBox.SelectedItem = preset.Platform;
+        _isDefaultBinding = true;
         PresetIsDefaultCheckBox.IsChecked = preset.IsDefault;
+        _isDefaultBinding = false;
         PresetDescriptionTextBox.Text = preset.Description ?? string.Empty;
         PresetTitlePrefixTextBox.Text = preset.TitlePrefix ?? string.Empty;
         PresetTagsTextBox.Text = preset.TagsCsv ?? string.Empty;
-        PresetPlaylistIdTextBox.Text = preset.PlaylistId ?? string.Empty;
-        PresetPlaylistTitleTextBox.Text = preset.PlaylistTitle ?? string.Empty;
-        PresetCategoryIdTextBox.Text = preset.CategoryId ?? string.Empty;
-        PresetLanguageTextBox.Text = preset.Language ?? string.Empty;
+        SelectPlaylistById(preset.PlaylistId, preset.PlaylistTitle);
+        SelectCategoryById(preset.CategoryId);
+        SelectLanguageByCode(preset.Language);
         PresetDescriptionTemplateTextBox.Text = preset.DescriptionTemplate ?? string.Empty;
         SelectComboBoxItemByTag(PresetVisibilityComboBox, preset.Visibility);
         SelectComboBoxItemByTag(PresetMadeForKidsComboBox, preset.MadeForKids);
@@ -74,6 +82,36 @@ public partial class PresetsView : UserControl
     public void SetPlatformOptions(Array platforms)
     {
         PresetPlatformComboBox.ItemsSource = platforms;
+    }
+
+    public void SetPlaylistOptions(IEnumerable<YouTubePlaylistInfo> playlists)
+    {
+        PresetPlaylistComboBox.ItemsSource = playlists?.ToList() ?? new List<YouTubePlaylistInfo>();
+
+        if (SelectedPreset is not null)
+        {
+            SelectPlaylistById(SelectedPreset.PlaylistId, SelectedPreset.PlaylistTitle);
+        }
+    }
+
+    public void SetCategoryOptions(IEnumerable<CategoryOption> categories)
+    {
+        PresetCategoryComboBox.ItemsSource = categories?.ToList() ?? new List<CategoryOption>();
+
+        if (SelectedPreset is not null)
+        {
+            SelectCategoryById(SelectedPreset.CategoryId);
+        }
+    }
+
+    public void SetLanguageOptions(IEnumerable<LanguageOption> languages)
+    {
+        PresetLanguageComboBox.ItemsSource = languages?.ToList() ?? new List<LanguageOption>();
+
+        if (SelectedPreset is not null)
+        {
+            SelectLanguageByCode(SelectedPreset.Language);
+        }
     }
 
     public void SetPlaceholders(IEnumerable<string> placeholders) =>
@@ -103,10 +141,9 @@ public partial class PresetsView : UserControl
             PresetTitlePrefixTextBox is null ||
             PresetTagsTextBox is null ||
             PresetVisibilityComboBox is null ||
-            PresetPlaylistIdTextBox is null ||
-            PresetPlaylistTitleTextBox is null ||
-            PresetCategoryIdTextBox is null ||
-            PresetLanguageTextBox is null ||
+            PresetPlaylistComboBox is null ||
+            PresetCategoryComboBox is null ||
+            PresetLanguageComboBox is null ||
             PresetMadeForKidsComboBox is null ||
             PresetCommentStatusComboBox is null ||
             PresetDescriptionTemplateTextBox is null ||
@@ -124,10 +161,28 @@ public partial class PresetsView : UserControl
         var titlePrefix = PresetTitlePrefixTextBox.Text ?? string.Empty;
         var tagsCsv = PresetTagsTextBox.Text ?? string.Empty;
         var visibility = GetSelectedVisibility();
-        var playlistId = PresetPlaylistIdTextBox.Text;
-        var playlistTitle = PresetPlaylistTitleTextBox.Text;
-        var categoryId = PresetCategoryIdTextBox.Text;
-        var language = PresetLanguageTextBox.Text;
+        string? playlistId = null;
+        string? playlistTitle = null;
+        if (PresetPlaylistComboBox.SelectedItem is YouTubePlaylistInfo playlist)
+        {
+            playlistId = playlist.Id;
+            playlistTitle = playlist.Title;
+        }
+        else if (PresetPlaylistComboBox.Items.Count == 0 && SelectedPreset is not null)
+        {
+            playlistId = SelectedPreset.PlaylistId;
+            playlistTitle = SelectedPreset.PlaylistTitle;
+        }
+        var categoryId = (PresetCategoryComboBox.SelectedItem as CategoryOption)?.Id;
+        if (categoryId is null && SelectedPreset is not null)
+        {
+            categoryId = SelectedPreset.CategoryId;
+        }
+        var language = (PresetLanguageComboBox.SelectedItem as LanguageOption)?.Code;
+        if (language is null && SelectedPreset is not null)
+        {
+            language = SelectedPreset.Language;
+        }
         var madeForKids = GetSelectedMadeForKids();
         var commentStatus = GetSelectedCommentStatus();
         var descriptionTemplate = PresetDescriptionTemplateTextBox.Text ?? string.Empty;
@@ -203,6 +258,94 @@ public partial class PresetsView : UserControl
         comboBox.SelectedItem = null;
     }
 
+    private void SelectPlaylistById(string? playlistId, string? playlistTitle)
+    {
+        if (PresetPlaylistComboBox is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(playlistId) && string.IsNullOrWhiteSpace(playlistTitle))
+        {
+            PresetPlaylistComboBox.SelectedItem = null;
+            return;
+        }
+
+        foreach (var item in PresetPlaylistComboBox.Items)
+        {
+            if (item is YouTubePlaylistInfo playlist)
+            {
+                if (!string.IsNullOrWhiteSpace(playlistId) &&
+                    string.Equals(playlist.Id, playlistId, StringComparison.OrdinalIgnoreCase))
+                {
+                    PresetPlaylistComboBox.SelectedItem = playlist;
+                    return;
+                }
+
+                if (!string.IsNullOrWhiteSpace(playlistTitle) &&
+                    string.Equals(playlist.Title, playlistTitle, StringComparison.OrdinalIgnoreCase))
+                {
+                    PresetPlaylistComboBox.SelectedItem = playlist;
+                    return;
+                }
+            }
+        }
+
+        PresetPlaylistComboBox.SelectedItem = null;
+    }
+
+    private void SelectCategoryById(string? categoryId)
+    {
+        if (PresetCategoryComboBox is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(categoryId))
+        {
+            PresetCategoryComboBox.SelectedItem = null;
+            return;
+        }
+
+        foreach (var item in PresetCategoryComboBox.Items)
+        {
+            if (item is CategoryOption category &&
+                string.Equals(category.Id, categoryId, StringComparison.OrdinalIgnoreCase))
+            {
+                PresetCategoryComboBox.SelectedItem = category;
+                return;
+            }
+        }
+
+        PresetCategoryComboBox.SelectedItem = null;
+    }
+
+    private void SelectLanguageByCode(string? languageCode)
+    {
+        if (PresetLanguageComboBox is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(languageCode))
+        {
+            PresetLanguageComboBox.SelectedItem = null;
+            return;
+        }
+
+        foreach (var item in PresetLanguageComboBox.Items)
+        {
+            if (item is LanguageOption language &&
+                string.Equals(language.Code, languageCode, StringComparison.OrdinalIgnoreCase))
+            {
+                PresetLanguageComboBox.SelectedItem = language;
+                return;
+            }
+        }
+
+        PresetLanguageComboBox.SelectedItem = null;
+    }
+
     private void PresetNewButton_Click(object sender, RoutedEventArgs e) =>
         PresetNewButtonClicked?.Invoke(sender, e);
 
@@ -217,6 +360,26 @@ public partial class PresetsView : UserControl
 
     private void PresetListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         PresetListBoxSelectionChanged?.Invoke(sender, e);
+
+    private void PresetIsDefaultCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_isDefaultBinding)
+        {
+            return;
+        }
+
+        PresetDefaultToggled?.Invoke(sender, e);
+    }
+
+    private void PresetIsDefaultCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (_isDefaultBinding)
+        {
+            return;
+        }
+
+        PresetDefaultToggled?.Invoke(sender, e);
+    }
 
     private void PlaceholderButton_Click(object sender, RoutedEventArgs e)
     {

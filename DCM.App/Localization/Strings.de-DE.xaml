@@ -289,6 +289,7 @@
   <sys:String x:Key="Status.YouTube.DisconnectFailed">Trennen fehlgeschlagen: {0}</sys:String>
   <sys:String x:Key="Status.YouTube.DefaultPlaylistSet">Standard-Playlist gesetzt: {0}</sys:String>
   <sys:String x:Key="Status.YouTube.LoadPlaylistsFailed">Fehler beim Laden der Playlists: {0}</sys:String>
+  <sys:String x:Key="Status.YouTube.LoadOptionsFailed">Fehler beim Laden der YouTube-Optionen: {0}</sys:String>
   <sys:String x:Key="Status.YouTube.Restored">YouTube-Verbindung wiederhergestellt.</sys:String>
 
   <!-- Accounts -->
@@ -379,15 +380,21 @@
   <sys:String x:Key="Presets.Placeholders.Insert">Platzhalter einfuegen</sys:String>
   <sys:String x:Key="Presets.Header">Verfuegbare Presets</sys:String>
   <sys:String x:Key="Presets.Edit">Preset bearbeiten</sys:String>
+  <sys:String x:Key="Presets.Section.Basic">Video-Vorgaben</sys:String>
+  <sys:String x:Key="Presets.Section.Info">Preset-Info</sys:String>
+  <sys:String x:Key="Presets.Section.Publishing">Veroeffentlichung</sys:String>
+  <sys:String x:Key="Presets.Section.Template">Beschreibungsvorlage</sys:String>
   <sys:String x:Key="Presets.Fields.Name">Name</sys:String>
   <sys:String x:Key="Presets.Fields.Platform">Platform</sys:String>
   <sys:String x:Key="Presets.Fields.UseAsStandard">Als Standard-Preset verwenden</sys:String>
   <sys:String x:Key="Presets.Fields.Notes">Notiz zum Preset</sys:String>
   <sys:String x:Key="Presets.Fields.TitlePrefix">Titel-Prefix</sys:String>
-  <sys:String x:Key="Presets.Fields.Tags">Tags (CSV)</sys:String>
+  <sys:String x:Key="Presets.Fields.Tags">Tags</sys:String>
   <sys:String x:Key="Presets.Fields.Visibility">Sichtbarkeit</sys:String>
+  <sys:String x:Key="Presets.Fields.Playlist">Playlist</sys:String>
   <sys:String x:Key="Presets.Fields.PlaylistId">Playlist-ID</sys:String>
   <sys:String x:Key="Presets.Fields.PlaylistTitle">Playlist-Titel</sys:String>
+  <sys:String x:Key="Presets.Fields.Category">Kategorie</sys:String>
   <sys:String x:Key="Presets.Fields.CategoryId">Kategorie-ID</sys:String>
   <sys:String x:Key="Presets.Fields.Language">Sprache</sys:String>
   <sys:String x:Key="Presets.Fields.MadeForKids">Made for Kids</sys:String>
@@ -399,6 +406,7 @@
   <sys:String x:Key="Presets.Fields.CommentStatus.Enabled">Aktiviert</sys:String>
   <sys:String x:Key="Presets.Fields.CommentStatus.Disabled">Deaktiviert</sys:String>
   <sys:String x:Key="Presets.Fields.TemplateBody">Beschreibungsvorlage</sys:String>
+  <sys:String x:Key="Presets.Badge.Default">Standard</sys:String>
   <sys:String x:Key="Presets.DefaultName">Neues Preset</sys:String>
   <sys:String x:Key="Status.Presets.LoadFailed">Presets konnten nicht geladen werden: {0}</sys:String>
   <sys:String x:Key="Status.Presets.SaveFailed">Presets konnten nicht gespeichert werden: {0}</sys:String>

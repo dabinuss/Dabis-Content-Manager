@@ -4,33 +4,219 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <Grid Margin="0,0,8,0">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="260"/>
+      <ColumnDefinition Width="320"/>
       <ColumnDefinition Width="{StaticResource SpacingL}"/>
-      <ColumnDefinition Width="*"
-                        MaxWidth="520"/>
+      <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
-    <GroupBox Header="{DynamicResource Presets.Header}"
-              Grid.Row="0"
-              Grid.Column="0">
-      <DockPanel>
+    <Border Grid.Column="1"
+            Background="{StaticResource BorderBrush}"
+            Width="1"
+            VerticalAlignment="Stretch"
+            HorizontalAlignment="Center"
+            Margin="0,8"
+            SnapsToDevicePixels="True"/>
+
+    <Grid Grid.Column="0"
+          Margin="8,8,0,8">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="{StaticResource SpacingS}"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="{StaticResource SpacingS}"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="{StaticResource SpacingS}"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <WrapPanel Grid.Row="0"
+                 VerticalAlignment="Top"
+                 Margin="0,0,8,0">
+        <Button Content="{DynamicResource Common.Add}"
+                Style="{StaticResource SecondaryButton}"
+                ap:ButtonIcon.Glyph="&#xe145;"
+                Click="PresetNewButton_Click"
+                Margin="0,0,8,8"
+                MinWidth="96"/>
+        <Button Content="{DynamicResource Common.Edit}"
+                Style="{StaticResource SecondaryButton}"
+                ap:ButtonIcon.Glyph="&#xe3c9;"
+                Click="PresetEditButton_Click"
+                Margin="0,0,8,8"
+                MinWidth="96"/>
+        <Button Content="{DynamicResource Common.Delete}"
+                Style="{StaticResource DangerButton}"
+                ap:ButtonIcon.Glyph="&#xe872;"
+                Click="PresetDeleteButton_Click"
+                Margin="0,0,8,8"
+                MinWidth="96"/>
+        <Button Content="{DynamicResource Common.Save}"
+                Style="{StaticResource PrimaryButton}"
+                ap:ButtonIcon.Glyph="&#xe161;"
+                Click="PresetSaveButton_Click"
+                Margin="0,0,8,8"
+                MinWidth="96"/>
+      </WrapPanel>
+
+      <TextBlock Grid.Row="2"
+                 Text="{DynamicResource Presets.Header}"
+                 Style="{StaticResource SectionHeader}"
+                 Margin="0,0,8,0"/>
+
+      <CheckBox x:Name="PresetIsDefaultCheckBox"
+                Grid.Row="4"
+                Content="{DynamicResource Presets.Fields.UseAsStandard}"
+                Margin="0,2,0,0"
+                Checked="PresetIsDefaultCheckBox_Checked"
+                Unchecked="PresetIsDefaultCheckBox_Unchecked">
+        <CheckBox.Style>
+          <Style TargetType="CheckBox"
+                 BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Setter Property="IsEnabled"
+                    Value="True"/>
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding ElementName=PresetListBox, Path=SelectedItem}"
+                           Value="{x:Null}">
+                <Setter Property="IsEnabled"
+                        Value="False"/>
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </CheckBox.Style>
+      </CheckBox>
+
+      <Border Grid.Row="6"
+              Padding="0">
         <ListBox x:Name="PresetListBox"
-                 DisplayMemberPath="Name"
                  ScrollViewer.CanContentScroll="True"
                  VirtualizingStackPanel.IsVirtualizing="True"
                  VirtualizingStackPanel.VirtualizationMode="Recycling"
-                 SelectionChanged="PresetListBox_SelectionChanged"/>
-      </DockPanel>
-    </GroupBox>
+                 SelectionChanged="PresetListBox_SelectionChanged">
+          <ListBox.ItemContainerStyle>
+            <Style TargetType="ListBoxItem">
+              <Setter Property="Margin"
+                      Value="0,0,0,8"/>
+              <Setter Property="Padding"
+                      Value="0"/>
+              <Setter Property="HorizontalContentAlignment"
+                      Value="Stretch"/>
+              <Setter Property="Background"
+                      Value="Transparent"/>
+              <Setter Property="BorderThickness"
+                      Value="0"/>
+              <Setter Property="FocusVisualStyle"
+                      Value="{x:Null}"/>
+              <Setter Property="SnapsToDevicePixels"
+                      Value="True"/>
+              <Setter Property="Template">
+                <Setter.Value>
+                  <ControlTemplate TargetType="ListBoxItem">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="True">
+                      <ContentPresenter Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </ListBox.ItemContainerStyle>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Border Padding="8,8,6,8">
+                <Border.Style>
+                  <Style TargetType="Border">
+                    <Setter Property="Background"
+                            Value="{StaticResource SurfaceElevatedBrush}"/>
+                    <Setter Property="BorderBrush"
+                            Value="{StaticResource BorderBrush}"/>
+                    <Setter Property="CornerRadius"
+                            Value="{StaticResource RadiusS}"/>
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}"
+                                   Value="True">
+                        <Setter Property="Background"
+                                Value="{StaticResource SurfaceHoverBrush}"/>
+                        <Setter Property="BorderBrush"
+                                Value="{StaticResource BorderHoverBrush}"/>
+                      </DataTrigger>
+                      <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}"
+                                   Value="True">
+                        <Setter Property="Background"
+                                Value="{StaticResource SurfacePressedBrush}"/>
+                        <Setter Property="BorderBrush"
+                                Value="{StaticResource BorderStrongBrush}"/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Border.Style>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{Binding Name}"
+                             FontSize="{StaticResource FontSizeS}"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             TextTrimming="CharacterEllipsis"
+                             VerticalAlignment="Center"/>
+                  <Border Grid.Column="1"
+                          Padding="6,2"
+                          Margin="8,0,0,0"
+                          CornerRadius="{StaticResource RadiusS}"
+                          Background="{StaticResource SurfaceHoverBrush}"
+                          BorderBrush="{StaticResource BorderBrush}"
+                          BorderThickness="1"
+                          VerticalAlignment="Center">
+                    <Border.Style>
+                      <Style TargetType="Border">
+                        <Setter Property="Visibility"
+                                Value="Collapsed"/>
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding IsDefault}"
+                                       Value="True">
+                            <Setter Property="Visibility"
+                                    Value="Visible"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </Border.Style>
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
+                                 Text="&#xe876;"
+                                 FontSize="14"
+                                 Foreground="{StaticResource TextSecondaryBrush}"
+                                 Margin="0,0,4,0"/>
+                      <TextBlock Text="{DynamicResource Presets.Badge.Default}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+    </Grid>
 
-    <GroupBox Header="{DynamicResource Presets.Edit}"
-              Grid.Row="0"
-              Grid.Column="2">
-      <ScrollViewer VerticalScrollBarVisibility="Auto"
+    <Grid Grid.Column="2"
+          Margin="8,8,8,8">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="{StaticResource SpacingM}"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <TextBlock Text="{DynamicResource Presets.Edit}"
+                 Style="{StaticResource SectionHeader}"/>
+
+      <ScrollViewer Grid.Row="2"
+                    VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
         <Grid>
           <Grid x:Name="PresetEditorGrid">
@@ -52,7 +238,8 @@
             </Style>
           </Grid.Style>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="120"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="{StaticResource SpacingL}"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -61,207 +248,248 @@
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="{StaticResource SpacingM}"/>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingS}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="*"
-                         MinHeight="140"/>
-          <RowDefinition Height="{StaticResource SpacingL}"/>
-          <RowDefinition Height="Auto"/>
-          </Grid.RowDefinitions>
+        </Grid.RowDefinitions>
 
-          <Label Content="{DynamicResource Presets.Fields.Name}"
-                 Grid.Row="0"
-                 Grid.Column="0"/>
-          <TextBox x:Name="PresetNameTextBox"
+        <GroupBox Header="{DynamicResource Presets.Section.Info}"
+                  Grid.Row="0"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="3"
+                  Padding="12">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Content="{DynamicResource Presets.Fields.Name}"
                    Grid.Row="0"
-                   Grid.Column="1"/>
+                   Grid.Column="0"/>
+            <TextBox x:Name="PresetNameTextBox"
+                     Grid.Row="0"
+                     Grid.Column="1"/>
 
-          <Label Content="{DynamicResource Presets.Fields.Platform}"
-                 Grid.Row="2"
-                 Grid.Column="0"/>
-          <ComboBox x:Name="PresetPlatformComboBox"
-                    Grid.Row="2"
-                    Grid.Column="1"
-                    HorizontalAlignment="Left"
-                    MinWidth="150"/>
+            <Label Content="{DynamicResource Presets.Fields.Platform}"
+                   Grid.Row="2"
+                   Grid.Column="0"/>
+            <ComboBox x:Name="PresetPlatformComboBox"
+                      Grid.Row="2"
+                      Grid.Column="1"
+                      HorizontalAlignment="Left"
+                      MinWidth="150"/>
 
-          <CheckBox x:Name="PresetIsDefaultCheckBox"
-                    Grid.Row="4"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2"
-                    Content="{DynamicResource Presets.Fields.UseAsStandard}"/>
+            <Label Content="{DynamicResource Presets.Fields.Notes}"
+                   Grid.Row="4"
+                   Grid.Column="0"/>
+            <TextBox x:Name="PresetDescriptionTextBox"
+                     Grid.Row="4"
+                     Grid.Column="1"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Height="60"
+                     VerticalScrollBarVisibility="Auto"/>
+          </Grid>
+        </GroupBox>
 
-          <Label Content="{DynamicResource Presets.Fields.Notes}"
-                 Grid.Row="6"
-                 Grid.Column="0"/>
-          <TextBox x:Name="PresetDescriptionTextBox"
+        <GroupBox Header="{DynamicResource Presets.Section.Basic}"
+                  Grid.Row="2"
+                  Grid.Column="0"
+                  Padding="12">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Content="{DynamicResource Presets.Fields.TitlePrefix}"
+                   Grid.Row="0"
+                   Grid.Column="0"/>
+            <TextBox x:Name="PresetTitlePrefixTextBox"
+                     Grid.Row="0"
+                     Grid.Column="1"/>
+
+            <Label Content="{DynamicResource Presets.Fields.Tags}"
+                   Grid.Row="2"
+                   Grid.Column="0"/>
+            <TextBox x:Name="PresetTagsTextBox"
+                     Grid.Row="2"
+                     Grid.Column="1"/>
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Header="{DynamicResource Presets.Section.Publishing}"
+                  Grid.Row="2"
+                  Grid.Column="2"
+                  Padding="12">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="140"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Content="{DynamicResource Presets.Fields.Visibility}"
+                   Grid.Row="0"
+                   Grid.Column="0"/>
+            <ComboBox x:Name="PresetVisibilityComboBox"
+                      Grid.Row="0"
+                      Grid.Column="1"
+                      HorizontalAlignment="Left"
+                      MinWidth="180">
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
+                            Tag="{x:Static core:VideoVisibility.Public}"/>
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
+                            Tag="{x:Static core:VideoVisibility.Unlisted}"/>
+              <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
+                            Tag="{x:Static core:VideoVisibility.Private}"/>
+            </ComboBox>
+
+            <Label Content="{DynamicResource Presets.Fields.Playlist}"
+                   Grid.Row="2"
+                   Grid.Column="0"/>
+            <ComboBox x:Name="PresetPlaylistComboBox"
+                      Grid.Row="2"
+                      Grid.Column="1"
+                      DisplayMemberPath="Title"/>
+
+            <Label Content="{DynamicResource Presets.Fields.Category}"
+                   Grid.Row="4"
+                   Grid.Column="0"/>
+            <ComboBox x:Name="PresetCategoryComboBox"
+                      Grid.Row="4"
+                      Grid.Column="1"
+                      DisplayMemberPath="DisplayName"/>
+
+            <Label Content="{DynamicResource Presets.Fields.Language}"
                    Grid.Row="6"
-                   Grid.Column="1"
-                   AcceptsReturn="True"
-                   TextWrapping="Wrap"
-                   Height="40"
-                   VerticalScrollBarVisibility="Auto"/>
+                   Grid.Column="0"/>
+            <ComboBox x:Name="PresetLanguageComboBox"
+                      Grid.Row="6"
+                      Grid.Column="1"
+                      DisplayMemberPath="DisplayName"/>
 
-        <Label Content="{DynamicResource Presets.Fields.TitlePrefix}"
-               Grid.Row="8"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetTitlePrefixTextBox"
-                 Grid.Row="8"
-                 Grid.Column="1"/>
+            <Label Content="{DynamicResource Presets.Fields.MadeForKids}"
+                   Grid.Row="8"
+                   Grid.Column="0"/>
+            <ComboBox x:Name="PresetMadeForKidsComboBox"
+                      Grid.Row="8"
+                      Grid.Column="1"
+                      HorizontalAlignment="Left"
+                      MinWidth="180">
+              <ComboBoxItem Content="{DynamicResource Presets.Fields.MadeForKids.Default}"
+                            Tag="{x:Static core:MadeForKidsSetting.Default}"
+                            IsSelected="True"/>
+              <ComboBoxItem Content="{DynamicResource Presets.Fields.MadeForKids.Yes}"
+                            Tag="{x:Static core:MadeForKidsSetting.Yes}"/>
+              <ComboBoxItem Content="{DynamicResource Presets.Fields.MadeForKids.No}"
+                            Tag="{x:Static core:MadeForKidsSetting.No}"/>
+            </ComboBox>
 
-        <Label Content="{DynamicResource Presets.Fields.Tags}"
-               Grid.Row="10"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetTagsTextBox"
-                 Grid.Row="10"
-                 Grid.Column="1"/>
+            <Label Content="{DynamicResource Presets.Fields.CommentStatus}"
+                   Grid.Row="10"
+                   Grid.Column="0"/>
+            <ComboBox x:Name="PresetCommentStatusComboBox"
+                      Grid.Row="10"
+                      Grid.Column="1"
+                      HorizontalAlignment="Left"
+                      MinWidth="180">
+              <ComboBoxItem Content="{DynamicResource Presets.Fields.CommentStatus.Default}"
+                            Tag="{x:Static core:CommentStatusSetting.Default}"
+                            IsSelected="True"/>
+              <ComboBoxItem Content="{DynamicResource Presets.Fields.CommentStatus.Enabled}"
+                            Tag="{x:Static core:CommentStatusSetting.Enabled}"/>
+              <ComboBoxItem Content="{DynamicResource Presets.Fields.CommentStatus.Disabled}"
+                            Tag="{x:Static core:CommentStatusSetting.Disabled}"/>
+            </ComboBox>
+          </Grid>
+        </GroupBox>
 
-        <Label Content="{DynamicResource Presets.Fields.Visibility}"
-               Grid.Row="12"
-               Grid.Column="0"/>
-        <ComboBox x:Name="PresetVisibilityComboBox"
-                  Grid.Row="12"
-                  Grid.Column="1"
-                  HorizontalAlignment="Left"
-                  MinWidth="180">
-          <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
-                        Tag="{x:Static core:VideoVisibility.Public}"/>
-          <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
-                        Tag="{x:Static core:VideoVisibility.Unlisted}"/>
-          <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
-                        Tag="{x:Static core:VideoVisibility.Private}"/>
-        </ComboBox>
+        <GroupBox Header="{DynamicResource Presets.Section.Template}"
+                  Grid.Row="4"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="3"
+                  Padding="12">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="{StaticResource SpacingM}"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Label Content="{DynamicResource Presets.Fields.PlaylistId}"
-               Grid.Row="14"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetPlaylistIdTextBox"
-                 Grid.Row="14"
-                 Grid.Column="1"/>
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource Presets.Fields.TemplateBody}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{StaticResource FontSizeM}"/>
+            <TextBox x:Name="PresetDescriptionTemplateTextBox"
+                     Grid.Row="2"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     MinHeight="96"
+                     VerticalScrollBarVisibility="Auto"/>
 
-        <Label Content="{DynamicResource Presets.Fields.PlaylistTitle}"
-               Grid.Row="16"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetPlaylistTitleTextBox"
-                 Grid.Row="16"
-                 Grid.Column="1"/>
-
-        <Label Content="{DynamicResource Presets.Fields.CategoryId}"
-               Grid.Row="18"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetCategoryIdTextBox"
-                 Grid.Row="18"
-                 Grid.Column="1"/>
-
-        <Label Content="{DynamicResource Presets.Fields.Language}"
-               Grid.Row="20"
-               Grid.Column="0"/>
-        <TextBox x:Name="PresetLanguageTextBox"
-                 Grid.Row="20"
-                 Grid.Column="1"/>
-
-        <Label Content="{DynamicResource Presets.Fields.MadeForKids}"
-               Grid.Row="22"
-               Grid.Column="0"/>
-        <ComboBox x:Name="PresetMadeForKidsComboBox"
-                  Grid.Row="22"
-                  Grid.Column="1"
-                  HorizontalAlignment="Left"
-                  MinWidth="180">
-          <ComboBoxItem Content="{DynamicResource Presets.Fields.MadeForKids.Default}"
-                        Tag="{x:Static core:MadeForKidsSetting.Default}"
-                        IsSelected="True"/>
-          <ComboBoxItem Content="{DynamicResource Presets.Fields.MadeForKids.Yes}"
-                        Tag="{x:Static core:MadeForKidsSetting.Yes}"/>
-          <ComboBoxItem Content="{DynamicResource Presets.Fields.MadeForKids.No}"
-                        Tag="{x:Static core:MadeForKidsSetting.No}"/>
-        </ComboBox>
-
-        <Label Content="{DynamicResource Presets.Fields.CommentStatus}"
-               Grid.Row="24"
-               Grid.Column="0"/>
-        <ComboBox x:Name="PresetCommentStatusComboBox"
-                  Grid.Row="24"
-                  Grid.Column="1"
-                  HorizontalAlignment="Left"
-                  MinWidth="180">
-          <ComboBoxItem Content="{DynamicResource Presets.Fields.CommentStatus.Default}"
-                        Tag="{x:Static core:CommentStatusSetting.Default}"
-                        IsSelected="True"/>
-          <ComboBoxItem Content="{DynamicResource Presets.Fields.CommentStatus.Enabled}"
-                        Tag="{x:Static core:CommentStatusSetting.Enabled}"/>
-          <ComboBoxItem Content="{DynamicResource Presets.Fields.CommentStatus.Disabled}"
-                        Tag="{x:Static core:CommentStatusSetting.Disabled}"/>
-        </ComboBox>
-
-        <TextBlock Grid.Row="26"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="2"
-                   Text="{DynamicResource Presets.Fields.TemplateBody}"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   FontSize="{StaticResource FontSizeM}"/>
-        <TextBox x:Name="PresetDescriptionTemplateTextBox"
-                 Grid.Row="27"
-                 Grid.Column="0"
-                 Grid.ColumnSpan="2"
-                 AcceptsReturn="True"
-                 TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto"/>
-
-        <Grid Grid.Row="29"
-              Grid.Column="0"
-              Grid.ColumnSpan="2">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="{StaticResource SpacingS}"/>
-            <RowDefinition Height="Auto"/>
-          </Grid.RowDefinitions>
-          <TextBlock Grid.Row="0"
-                     Text="{DynamicResource Presets.Placeholders.Insert}"
-                     FontSize="{StaticResource FontSizeS}"
-                     Foreground="{StaticResource TextMutedBrush}"/>
-          <ItemsControl x:Name="PlaceholderItemsControl"
-                        Grid.Row="2">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <WrapPanel />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Button Content="{Binding}"
-                        Margin="0,0,8,8"
-                        Style="{StaticResource SecondaryButton}"
-                        ap:ButtonIcon.Glyph="&#xe892;"
-                        Padding="8,8"
-                        Click="PlaceholderButton_Click"/>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </Grid>
+            <Grid Grid.Row="4">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="{StaticResource SpacingS}"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <TextBlock Grid.Row="0"
+                         Text="{DynamicResource Presets.Placeholders.Insert}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"/>
+              <ItemsControl x:Name="PlaceholderItemsControl"
+                            Grid.Row="2">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button Content="{Binding}"
+                            Margin="0,0,8,8"
+                            Style="{StaticResource SecondaryButton}"
+                            ap:ButtonIcon.Glyph="&#xe892;"
+                            Padding="8,8"
+                            Click="PlaceholderButton_Click"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Grid>
+          </Grid>
+        </GroupBox>
         </Grid>
 
         <Border x:Name="PresetEmptyState"
+                Grid.Row="0"
+                Grid.RowSpan="5"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
                 Background="Transparent">
           <Border.Style>
             <Style TargetType="Border">
@@ -299,6 +527,6 @@
         </Border>
       </Grid>
       </ScrollViewer>
-    </GroupBox>
+    </Grid>
   </Grid>
 </UserControl>

@@ -148,6 +148,36 @@ public partial class MainWindow
         }
     }
 
+    private void PresetDefaultToggled(object sender, System.Windows.RoutedEventArgs e)
+    {
+        if (PresetsPageView?.SelectedPreset is not UploadPreset preset)
+        {
+            return;
+        }
+
+        var isDefault = PresetsPageView.IsDefaultChecked;
+        if (preset.IsDefault == isDefault)
+        {
+            return;
+        }
+
+        preset.IsDefault = isDefault;
+        if (isDefault)
+        {
+            foreach (var other in _loadedPresets.Where(p =>
+                         p.Platform == preset.Platform && p.Id != preset.Id))
+            {
+                other.IsDefault = false;
+            }
+        }
+
+        SavePresetsToRepository();
+        RefreshPresetBindings();
+        PresetsPageView.SelectPreset(preset);
+        LoadPresetIntoEditor(preset);
+        StatusTextBlock.Text = LocalizationHelper.Format("Status.Preset.Saved", preset.Name);
+    }
+
     private void PresetSaveButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
         try

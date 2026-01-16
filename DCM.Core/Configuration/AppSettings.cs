@@ -29,4 +29,7 @@ public sealed class AppSettings
     public bool AutoRemoveCompletedDrafts { get; set; } = true;
     public List<UploadDraftSnapshot> SavedDrafts { get; set; } = new();
     public List<Guid> PendingTranscriptionQueue { get; set; } = new();
+    public string? YouTubeOptionsLocale { get; set; }
+    public List<OptionEntry> YouTubeCategoryOptions { get; set; } = new();
+    public List<OptionEntry> YouTubeLanguageOptions { get; set; } = new();
 }

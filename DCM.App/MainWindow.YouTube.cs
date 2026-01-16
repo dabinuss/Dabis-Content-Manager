@@ -1,4 +1,7 @@
+using System;
+using System.Linq;
 using System.Windows.Controls;
+using DCM.App.Models;
 using DCM.YouTube;
 
 namespace DCM.App;
@@ -16,6 +19,7 @@ public partial class MainWindow
             await _youTubeClient.ConnectAsync(System.Threading.CancellationToken.None);
             UpdateYouTubeStatusText();
             await RefreshYouTubePlaylistsAsync();
+            await RefreshYouTubeMetadataOptionsAsync();
             StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connected");
         }
         catch (System.Exception ex)
@@ -35,6 +39,8 @@ public partial class MainWindow
             _youTubePlaylists.Clear();
             AccountsPageView?.ClearYouTubePlaylists();
             UploadView.PlaylistComboBox.ItemsSource = null;
+            PresetsPageView?.SetPlaylistOptions(Array.Empty<YouTubePlaylistInfo>());
+            await RefreshYouTubeMetadataOptionsAsync();
             StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnected");
         }
         catch (System.Exception ex)
@@ -85,6 +91,7 @@ public partial class MainWindow
             _youTubePlaylists.Clear();
             AccountsPageView?.ClearYouTubePlaylists();
             UploadView.PlaylistComboBox.ItemsSource = null;
+            PresetsPageView?.SetPlaylistOptions(Array.Empty<YouTubePlaylistInfo>());
             return;
         }
 
@@ -97,6 +104,7 @@ public partial class MainWindow
 
             AccountsPageView?.SetYouTubePlaylists(_youTubePlaylists, _settings.DefaultPlaylistId);
             UploadView.PlaylistComboBox.ItemsSource = _youTubePlaylists;
+            PresetsPageView?.SetPlaylistOptions(_youTubePlaylists);
 
             if (!string.IsNullOrWhiteSpace(_settings.DefaultPlaylistId))
             {
@@ -113,6 +121,58 @@ public partial class MainWindow
         }
     }
 
+    private async System.Threading.Tasks.Task RefreshYouTubeMetadataOptionsAsync()
+    {
+        var (localeKey, hl, region) = GetYouTubeLocaleInfo();
+
+        _settings.YouTubeOptionsLocale = localeKey;
+        _settings.YouTubeCategoryOptions.Clear();
+        _settings.YouTubeLanguageOptions.Clear();
+        _youTubeCategories.Clear();
+        _youTubeLanguages.Clear();
+        PresetsPageView?.SetCategoryOptions(_youTubeCategories);
+        PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
+        ScheduleSettingsSave();
+
+        if (!_youTubeClient.IsConnected)
+        {
+            return;
+        }
+
+        try
+        {
+            var categories = await _youTubeClient.GetVideoCategoriesAsync(region, hl, System.Threading.CancellationToken.None);
+            var languages = await _youTubeClient.GetI18nLanguagesAsync(hl, System.Threading.CancellationToken.None);
+
+            _settings.YouTubeCategoryOptions = categories.ToList();
+            _settings.YouTubeLanguageOptions = languages.ToList();
+
+            foreach (var option in _settings.YouTubeCategoryOptions)
+            {
+                if (!string.IsNullOrWhiteSpace(option.Code))
+                {
+                    _youTubeCategories.Add(new CategoryOption(option.Code, option.Name));
+                }
+            }
+
+            foreach (var option in _settings.YouTubeLanguageOptions)
+            {
+                if (!string.IsNullOrWhiteSpace(option.Code))
+                {
+                    _youTubeLanguages.Add(new LanguageOption(option.Code, option.Name));
+                }
+            }
+
+            PresetsPageView?.SetCategoryOptions(_youTubeCategories);
+            PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
+            ScheduleSettingsSave();
+        }
+        catch (System.Exception ex)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.LoadOptionsFailed", ex.Message);
+        }
+    }
+
     private async System.Threading.Tasks.Task TryAutoConnectYouTubeAsync()
     {
         try
@@ -125,6 +185,7 @@ public partial class MainWindow
 
             UpdateYouTubeStatusText();
             await RefreshYouTubePlaylistsAsync();
+            await RefreshYouTubeMetadataOptionsAsync();
             StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Restored");
         }
         catch
