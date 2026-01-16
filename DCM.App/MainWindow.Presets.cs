@@ -130,52 +130,58 @@ public partial class MainWindow
             return;
         }
 
+        var wasDefault = preset.IsDefault;
+        var platform = preset.Platform;
+
         if (_loadedPresets.Remove(preset))
         {
+            var nextPreset = _loadedPresets.FirstOrDefault(p => p.Platform == platform)
+                             ?? _loadedPresets.FirstOrDefault();
             if (_currentEditingPreset?.Id == preset.Id)
             {
-                _currentEditingPreset = null;
-                LoadPresetIntoEditor(null);
+                _currentEditingPreset = nextPreset;
+                LoadPresetIntoEditor(nextPreset);
             }
             if (_presetState.Matches(preset))
             {
                 _presetState.Reset();
             }
 
+            if (wasDefault)
+            {
+                EnsureDefaultPreset(platform, preferredPresetId: nextPreset?.Id);
+            }
+
             SavePresetsToRepository();
             RefreshPresetBindings();
+            PresetsPageView?.SelectPreset(nextPreset);
             StatusTextBlock.Text = LocalizationHelper.Format("Status.Preset.Deleted", preset.Name);
+            PresetsPageView?.ResetDirtyState();
         }
     }
 
-    private void PresetDefaultToggled(object sender, System.Windows.RoutedEventArgs e)
+    private void PresetDefaultToggleRequested(object? sender, UploadPreset preset)
     {
-        if (PresetsPageView?.SelectedPreset is not UploadPreset preset)
+        if (preset is null)
         {
             return;
         }
 
-        var isDefault = PresetsPageView.IsDefaultChecked;
-        if (preset.IsDefault == isDefault)
+        if (preset.IsDefault)
         {
             return;
         }
 
-        preset.IsDefault = isDefault;
-        if (isDefault)
-        {
-            foreach (var other in _loadedPresets.Where(p =>
-                         p.Platform == preset.Platform && p.Id != preset.Id))
-            {
-                other.IsDefault = false;
-            }
-        }
+        var platform = preset.Platform;
+        preset.IsDefault = true;
+        ClearDefaultForPlatform(platform, preset.Id);
 
         SavePresetsToRepository();
         RefreshPresetBindings();
-        PresetsPageView.SelectPreset(preset);
+        PresetsPageView?.SelectPreset(preset);
         LoadPresetIntoEditor(preset);
         StatusTextBlock.Text = LocalizationHelper.Format("Status.Preset.Saved", preset.Name);
+        PresetsPageView?.ResetDirtyState();
     }
 
     private void PresetSaveButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -215,6 +221,7 @@ public partial class MainWindow
             {
                 StatusTextBlock.Text =
                     LocalizationHelper.Format("Status.Preset.Duplicate", platform);
+                return;
             }
 
             _currentEditingPreset.Name = name;
@@ -236,11 +243,11 @@ public partial class MainWindow
 
             if (isDefault)
             {
-                foreach (var other in _loadedPresets.Where(p =>
-                         p.Platform == platform && p.Id != _currentEditingPreset.Id))
-                {
-                    other.IsDefault = false;
-                }
+                ClearDefaultForPlatform(platform, _currentEditingPreset.Id);
+            }
+            else
+            {
+                EnsureDefaultPreset(platform, preferredPresetId: _currentEditingPreset.Id);
             }
 
             SavePresetsToRepository();
@@ -254,6 +261,7 @@ public partial class MainWindow
             }
 
             StatusTextBlock.Text = LocalizationHelper.Format("Status.Preset.Saved", _currentEditingPreset.Name);
+            PresetsPageView?.ResetDirtyState();
         }
         catch (Exception ex)
         {
@@ -295,6 +303,35 @@ public partial class MainWindow
             UploadView.PresetComboBox.SelectedIndex = 0;
         }
         _isPresetBinding = false;
+    }
+
+    private void ClearDefaultForPlatform(PlatformType platform, string keepPresetId)
+    {
+        foreach (var other in _loadedPresets.Where(p =>
+                     p.Platform == platform && !string.Equals(p.Id, keepPresetId, StringComparison.OrdinalIgnoreCase)))
+        {
+            other.IsDefault = false;
+        }
+    }
+
+    private bool EnsureDefaultPreset(PlatformType platform, string? preferredPresetId)
+    {
+        if (_loadedPresets.Any(p => p.Platform == platform && p.IsDefault))
+        {
+            return true;
+        }
+
+        var fallback = _loadedPresets.FirstOrDefault(p =>
+            p.Platform == platform &&
+            (preferredPresetId is null || !string.Equals(p.Id, preferredPresetId, StringComparison.OrdinalIgnoreCase)));
+
+        if (fallback is null)
+        {
+            return false;
+        }
+
+        fallback.IsDefault = true;
+        return true;
     }
 
     #endregion

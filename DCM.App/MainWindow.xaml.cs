@@ -316,7 +316,7 @@ public partial class MainWindow : Window
         PresetsPageView.PresetDeleteButtonClicked += PresetDeleteButton_Click;
         PresetsPageView.PresetSaveButtonClicked += PresetSaveButton_Click;
         PresetsPageView.PresetListBoxSelectionChanged += PresetListBox_SelectionChanged;
-        PresetsPageView.PresetDefaultToggled += PresetDefaultToggled;
+        PresetsPageView.PresetDefaultToggleRequested += PresetDefaultToggleRequested;
     }
 
     private void AttachHistoryViewEvents()

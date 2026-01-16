@@ -407,6 +407,11 @@
   <sys:String x:Key="Presets.Fields.CommentStatus.Disabled">Deaktiviert</sys:String>
   <sys:String x:Key="Presets.Fields.TemplateBody">Beschreibungsvorlage</sys:String>
   <sys:String x:Key="Presets.Badge.Default">Standard</sys:String>
+  <sys:String x:Key="Presets.Badge.Unsaved">Nicht gespeichert</sys:String>
+  <sys:String x:Key="Presets.Option.None">— Keine —</sys:String>
+  <sys:String x:Key="Presets.Empty.Title">Kein Preset ausgewaehlt.</sys:String>
+  <sys:String x:Key="Presets.Empty.Subtitle">Waehle links ein Preset oder erstelle ein neues.</sys:String>
+  <sys:String x:Key="Presets.Empty.Action">Neues Preset</sys:String>
   <sys:String x:Key="Presets.DefaultName">Neues Preset</sys:String>
   <sys:String x:Key="Status.Presets.LoadFailed">Presets konnten nicht geladen werden: {0}</sys:String>
   <sys:String x:Key="Status.Presets.SaveFailed">Presets konnten nicht gespeichert werden: {0}</sys:String>

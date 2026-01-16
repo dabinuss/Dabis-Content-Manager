@@ -25,8 +25,6 @@
         <RowDefinition Height="{StaticResource SpacingS}"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="{StaticResource SpacingS}"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingS}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
@@ -64,29 +62,7 @@
                  Style="{StaticResource SectionHeader}"
                  Margin="0,0,8,0"/>
 
-      <CheckBox x:Name="PresetIsDefaultCheckBox"
-                Grid.Row="4"
-                Content="{DynamicResource Presets.Fields.UseAsStandard}"
-                Margin="0,2,0,0"
-                Checked="PresetIsDefaultCheckBox_Checked"
-                Unchecked="PresetIsDefaultCheckBox_Unchecked">
-        <CheckBox.Style>
-          <Style TargetType="CheckBox"
-                 BasedOn="{StaticResource {x:Type CheckBox}}">
-            <Setter Property="IsEnabled"
-                    Value="True"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding ElementName=PresetListBox, Path=SelectedItem}"
-                           Value="{x:Null}">
-                <Setter Property="IsEnabled"
-                        Value="False"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </CheckBox.Style>
-      </CheckBox>
-
-      <Border Grid.Row="6"
+      <Border Grid.Row="4"
               Padding="0">
         <ListBox x:Name="PresetListBox"
                  ScrollViewer.CanContentScroll="True"
@@ -164,38 +140,76 @@
                              Foreground="{StaticResource TextPrimaryBrush}"
                              TextTrimming="CharacterEllipsis"
                              VerticalAlignment="Center"/>
-                  <Border Grid.Column="1"
-                          Padding="6,2"
+                  <Button Grid.Column="1"
+                          Padding="0"
                           Margin="8,0,0,0"
-                          CornerRadius="{StaticResource RadiusS}"
-                          Background="{StaticResource SurfaceHoverBrush}"
-                          BorderBrush="{StaticResource BorderBrush}"
-                          BorderThickness="1"
-                          VerticalAlignment="Center">
-                    <Border.Style>
-                      <Style TargetType="Border">
-                        <Setter Property="Visibility"
-                                Value="Collapsed"/>
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsDefault}"
-                                       Value="True">
-                            <Setter Property="Visibility"
-                                    Value="Visible"/>
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </Border.Style>
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
-                                 Text="&#xe876;"
-                                 FontSize="14"
-                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                 Margin="0,0,4,0"/>
-                      <TextBlock Text="{DynamicResource Presets.Badge.Default}"
-                                 FontSize="{StaticResource FontSizeXS}"
-                                 Foreground="{StaticResource TextSecondaryBrush}"/>
-                    </StackPanel>
-                  </Border>
+                          Background="Transparent"
+                          BorderThickness="0"
+                          Focusable="False"
+                          IsTabStop="False"
+                          CommandParameter="{Binding}"
+                          PreviewMouseLeftButtonDown="PresetDefaultToggleButton_PreviewMouseLeftButtonDown"
+                          Click="PresetDefaultToggleButton_Click">
+                    <Border Padding="6,2"
+                            CornerRadius="{StaticResource RadiusS}"
+                            Background="{StaticResource SurfaceHoverBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            VerticalAlignment="Center">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Setter Property="Opacity"
+                                  Value="0.5"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDefault}"
+                                         Value="True">
+                              <Setter Property="Opacity"
+                                      Value="1"/>
+                              <Setter Property="BorderBrush"
+                                      Value="{StaticResource BorderStrongBrush}"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
+                                   FontSize="14"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,0,4,0">
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Setter Property="Text"
+                                      Value="&#xe83a;"/>
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsDefault}"
+                                             Value="True">
+                                  <Setter Property="Text"
+                                          Value="&#xe838;"/>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="{DynamicResource Presets.Badge.Default}"
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Foreground="{StaticResource TextSecondaryBrush}">
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Setter Property="Visibility"
+                                      Value="Collapsed"/>
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsDefault}"
+                                             Value="True">
+                                  <Setter Property="Visibility"
+                                          Value="Visible"/>
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                      </StackPanel>
+                    </Border>
+                  </Button>
                 </Grid>
               </Border>
             </DataTemplate>
@@ -212,8 +226,35 @@
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
-      <TextBlock Text="{DynamicResource Presets.Edit}"
-                 Style="{StaticResource SectionHeader}"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="{DynamicResource Presets.Edit}"
+                   Style="{StaticResource SectionHeader}"/>
+        <Border x:Name="PresetDirtyBadge"
+                Grid.Column="1"
+                Padding="6,2"
+                Margin="8,0,0,0"
+                CornerRadius="{StaticResource RadiusS}"
+                Background="{StaticResource SurfaceHoverBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                VerticalAlignment="Center"
+                Visibility="Collapsed">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
+                       Text="&#xe001;"
+                       FontSize="14"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       Margin="0,0,4,0"/>
+            <TextBlock Text="{DynamicResource Presets.Badge.Unsaved}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+          </StackPanel>
+        </Border>
+      </Grid>
 
       <ScrollViewer Grid.Row="2"
                     VerticalScrollBarVisibility="Auto"
@@ -226,7 +267,14 @@
                       Value="True"/>
               <Setter Property="Opacity"
                       Value="1"/>
+              <Setter Property="Visibility"
+                      Value="Visible"/>
               <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=PresetListBox, Path=Items.Count}"
+                             Value="0">
+                  <Setter Property="Visibility"
+                          Value="Collapsed"/>
+                </DataTrigger>
                 <DataTrigger Binding="{Binding ElementName=PresetListBox, Path=SelectedItem}"
                              Value="{x:Null}">
                   <Setter Property="IsEnabled"
@@ -273,7 +321,8 @@
                    Grid.Column="0"/>
             <TextBox x:Name="PresetNameTextBox"
                      Grid.Row="0"
-                     Grid.Column="1"/>
+                     Grid.Column="1"
+                     TextChanged="PresetEditorField_Changed"/>
 
             <Label Content="{DynamicResource Presets.Fields.Platform}"
                    Grid.Row="2"
@@ -282,7 +331,8 @@
                       Grid.Row="2"
                       Grid.Column="1"
                       HorizontalAlignment="Left"
-                      MinWidth="150"/>
+                      MinWidth="150"
+                      SelectionChanged="PresetEditorField_Changed"/>
 
             <Label Content="{DynamicResource Presets.Fields.Notes}"
                    Grid.Row="4"
@@ -293,6 +343,7 @@
                      AcceptsReturn="True"
                      TextWrapping="Wrap"
                      Height="60"
+                     TextChanged="PresetEditorField_Changed"
                      VerticalScrollBarVisibility="Auto"/>
           </Grid>
         </GroupBox>
@@ -317,14 +368,16 @@
                    Grid.Column="0"/>
             <TextBox x:Name="PresetTitlePrefixTextBox"
                      Grid.Row="0"
-                     Grid.Column="1"/>
+                     Grid.Column="1"
+                     TextChanged="PresetEditorField_Changed"/>
 
             <Label Content="{DynamicResource Presets.Fields.Tags}"
                    Grid.Row="2"
                    Grid.Column="0"/>
             <TextBox x:Name="PresetTagsTextBox"
                      Grid.Row="2"
-                     Grid.Column="1"/>
+                     Grid.Column="1"
+                     TextChanged="PresetEditorField_Changed"/>
           </Grid>
         </GroupBox>
 
@@ -358,7 +411,8 @@
                       Grid.Row="0"
                       Grid.Column="1"
                       HorizontalAlignment="Left"
-                      MinWidth="180">
+                      MinWidth="180"
+                      SelectionChanged="PresetEditorField_Changed">
               <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
                             Tag="{x:Static core:VideoVisibility.Public}"/>
               <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
@@ -373,7 +427,8 @@
             <ComboBox x:Name="PresetPlaylistComboBox"
                       Grid.Row="2"
                       Grid.Column="1"
-                      DisplayMemberPath="Title"/>
+                      DisplayMemberPath="Title"
+                      SelectionChanged="PresetEditorField_Changed"/>
 
             <Label Content="{DynamicResource Presets.Fields.Category}"
                    Grid.Row="4"
@@ -381,7 +436,8 @@
             <ComboBox x:Name="PresetCategoryComboBox"
                       Grid.Row="4"
                       Grid.Column="1"
-                      DisplayMemberPath="DisplayName"/>
+                      DisplayMemberPath="DisplayName"
+                      SelectionChanged="PresetEditorField_Changed"/>
 
             <Label Content="{DynamicResource Presets.Fields.Language}"
                    Grid.Row="6"
@@ -389,7 +445,8 @@
             <ComboBox x:Name="PresetLanguageComboBox"
                       Grid.Row="6"
                       Grid.Column="1"
-                      DisplayMemberPath="DisplayName"/>
+                      DisplayMemberPath="DisplayName"
+                      SelectionChanged="PresetEditorField_Changed"/>
 
             <Label Content="{DynamicResource Presets.Fields.MadeForKids}"
                    Grid.Row="8"
@@ -398,7 +455,8 @@
                       Grid.Row="8"
                       Grid.Column="1"
                       HorizontalAlignment="Left"
-                      MinWidth="180">
+                      MinWidth="180"
+                      SelectionChanged="PresetEditorField_Changed">
               <ComboBoxItem Content="{DynamicResource Presets.Fields.MadeForKids.Default}"
                             Tag="{x:Static core:MadeForKidsSetting.Default}"
                             IsSelected="True"/>
@@ -415,7 +473,8 @@
                       Grid.Row="10"
                       Grid.Column="1"
                       HorizontalAlignment="Left"
-                      MinWidth="180">
+                      MinWidth="180"
+                      SelectionChanged="PresetEditorField_Changed">
               <ComboBoxItem Content="{DynamicResource Presets.Fields.CommentStatus.Default}"
                             Tag="{x:Static core:CommentStatusSetting.Default}"
                             IsSelected="True"/>
@@ -450,6 +509,7 @@
                      AcceptsReturn="True"
                      TextWrapping="Wrap"
                      MinHeight="96"
+                     TextChanged="PresetEditorField_Changed"
                      VerticalScrollBarVisibility="Auto"/>
 
             <Grid Grid.Row="4">
@@ -496,34 +556,49 @@
               <Setter Property="Visibility"
                       Value="Collapsed"/>
               <Style.Triggers>
-                <DataTrigger Binding="{Binding ElementName=PresetListBox, Path=SelectedItem}"
-                             Value="{x:Null}">
+                <DataTrigger Binding="{Binding ElementName=PresetListBox, Path=Items.Count}"
+                             Value="0">
                   <Setter Property="Visibility"
                           Value="Visible"/>
                 </DataTrigger>
               </Style.Triggers>
             </Style>
           </Border.Style>
-          <StackPanel HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      Margin="16">
-            <TextBlock Text="Kein Preset ausgewaehlt."
-                       FontSize="{StaticResource FontSizeM}"
-                       Foreground="{StaticResource TextPrimaryBrush}"
-                       FontWeight="SemiBold"
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="Waehle links ein Preset oder erstelle ein neues."
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       Margin="0,8,0,0"
-                       TextAlignment="Center"/>
-            <Button Content="Neues Preset"
-                    Style="{StaticResource PrimaryButton}"
-                    ap:ButtonIcon.Glyph="&#xe145;"
-                    Click="PresetNewButton_Click"
-                    Margin="0,12,0,0"
-                    HorizontalAlignment="Center"/>
-          </StackPanel>
+          <Grid MinHeight="360"
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="2*"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        Margin="32">
+              <TextBlock Style="{StaticResource Icon}"
+                         Text="&#xe8b8;"
+                         FontSize="{StaticResource FontSizeXXXXL}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         Margin="0,0,0,24"/>
+              <TextBlock Text="{DynamicResource Presets.Empty.Title}"
+                         FontSize="{StaticResource FontSizeXXL}"
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{DynamicResource Presets.Empty.Subtitle}"
+                         FontSize="{StaticResource FontSizeM}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         Margin="0,12,0,0"/>
+              <Button Content="{DynamicResource Presets.Empty.Action}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe145;"
+                      Click="PresetNewButton_Click"
+                      Margin="0,16,0,0"
+                      HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Grid>
         </Border>
       </Grid>
       </ScrollViewer>
