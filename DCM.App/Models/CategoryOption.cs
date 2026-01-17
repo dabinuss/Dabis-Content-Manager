@@ -1,4 +1,4 @@
-namespace DCM.App.Models;
+﻿namespace DCM.App.Models;
 
 public sealed class CategoryOption
 {

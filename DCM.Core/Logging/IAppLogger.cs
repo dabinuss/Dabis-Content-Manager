@@ -1,4 +1,4 @@
-namespace DCM.Core.Logging;
+﻿namespace DCM.Core.Logging;
 
 /// <summary>
 /// Interface für den zentralen App-Logger.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using DCM.Core.Models;
 
 namespace DCM.App.Events;

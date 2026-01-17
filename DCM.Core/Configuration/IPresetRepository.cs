@@ -1,4 +1,4 @@
-using DCM.Core.Models;
+﻿using DCM.Core.Models;
 
 namespace DCM.Core.Configuration;
 

@@ -1,4 +1,4 @@
-namespace DCM.Transcription;
+﻿namespace DCM.Transcription;
 
 /// <summary>
 /// Definiert die Phasen des Transkriptionsprozesses.

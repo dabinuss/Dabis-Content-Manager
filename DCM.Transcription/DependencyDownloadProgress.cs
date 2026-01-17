@@ -1,4 +1,4 @@
-namespace DCM.Transcription;
+﻿namespace DCM.Transcription;
 
 /// <summary>
 /// Definiert den Typ der Abhängigkeit, die heruntergeladen wird.

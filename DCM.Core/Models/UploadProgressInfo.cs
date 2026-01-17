@@ -1,4 +1,4 @@
-namespace DCM.Core.Models;
+﻿namespace DCM.Core.Models;
 
 public sealed class UploadProgressInfo
 {

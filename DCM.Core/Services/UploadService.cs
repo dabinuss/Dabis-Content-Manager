@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using DCM.Core.Logging;
 using DCM.Core.Models;
 

@@ -1,4 +1,4 @@
-// DCM.Tests/UploadProjectTests.cs
+﻿// DCM.Tests/UploadProjectTests.cs
 
 using System;
 using DCM.Core.Models;

@@ -1,4 +1,4 @@
-namespace DCM.Transcription.PostProcessing;
+﻿namespace DCM.Transcription.PostProcessing;
 
 /// <summary>
 /// Repräsentiert ein einzelnes Transkriptions-Segment mit Zeitstempeln.

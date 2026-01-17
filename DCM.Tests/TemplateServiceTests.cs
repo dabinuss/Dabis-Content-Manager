@@ -1,4 +1,4 @@
-// DCM.Tests/TemplateServiceTests.cs
+﻿// DCM.Tests/TemplateServiceTests.cs
 
 using DCM.Core.Models;
 using DCM.Core.Services;

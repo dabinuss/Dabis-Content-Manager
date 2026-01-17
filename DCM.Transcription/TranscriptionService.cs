@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Transcription.Internal;

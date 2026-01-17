@@ -1,4 +1,4 @@
-namespace DCM.Transcription.PostProcessing;
+﻿namespace DCM.Transcription.PostProcessing;
 
 /// <summary>
 /// Konfigurationsoptionen für die Transkriptions-Nachverarbeitung.

@@ -1,4 +1,4 @@
-namespace DCM.Core.Configuration;
+﻿namespace DCM.Core.Configuration;
 
 /// <summary>
 /// Definiert die verfügbaren LLM-Modi.

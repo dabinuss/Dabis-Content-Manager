@@ -1,4 +1,4 @@
-// DCM.YouTube/YouTubePlaylistInfo.cs
+﻿// DCM.YouTube/YouTubePlaylistInfo.cs
 
 namespace DCM.YouTube;
 

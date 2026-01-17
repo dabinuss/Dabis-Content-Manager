@@ -1,4 +1,4 @@
-// DCM.Core/Models/VideoVisibility.cs
+﻿// DCM.Core/Models/VideoVisibility.cs
 
 namespace DCM.Core.Models;
 

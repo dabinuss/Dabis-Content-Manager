@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using DCM.Core.Logging;
 
 namespace DCM.Core.Configuration;

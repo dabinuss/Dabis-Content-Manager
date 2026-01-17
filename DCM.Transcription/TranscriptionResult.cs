@@ -1,4 +1,4 @@
-namespace DCM.Transcription;
+﻿namespace DCM.Transcription;
 
 /// <summary>
 /// Enthält das Ergebnis einer Transkription.

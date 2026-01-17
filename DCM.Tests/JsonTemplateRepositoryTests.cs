@@ -1,4 +1,4 @@
-using DCM.Core.Configuration;
+﻿using DCM.Core.Configuration;
 using DCM.Core.Models;
 using Xunit;
 

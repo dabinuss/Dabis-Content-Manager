@@ -1,4 +1,4 @@
-// DCM.Core/Models/UploadResult.cs
+﻿// DCM.Core/Models/UploadResult.cs
 
 using System;
 

@@ -1,4 +1,4 @@
-// DCM.Core/Models/UploadProject.cs
+﻿// DCM.Core/Models/UploadProject.cs
 
 using System;
 using System.Collections.Generic;

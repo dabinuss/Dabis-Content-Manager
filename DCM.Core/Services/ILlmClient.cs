@@ -1,4 +1,4 @@
-namespace DCM.Core.Services;
+﻿namespace DCM.Core.Services;
 
 /// <summary>
 /// Abstraktes Interface für LLM-Clients (lokal oder remote).

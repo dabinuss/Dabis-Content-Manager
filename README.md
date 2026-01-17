@@ -1,4 +1,4 @@
-# Dabis Content Manager
+﻿# Dabis Content Manager
 
 > Desktop tool for content creators – upload, schedule and optimize videos with local AI.
 

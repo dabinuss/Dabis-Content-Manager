@@ -1,4 +1,4 @@
-// DCM.Core/Models/PlatformType.cs
+﻿// DCM.Core/Models/PlatformType.cs
 
 namespace DCM.Core.Models;
 

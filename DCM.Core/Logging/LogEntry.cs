@@ -1,4 +1,4 @@
-namespace DCM.Core.Logging;
+﻿namespace DCM.Core.Logging;
 
 /// <summary>
 /// Repräsentiert einen einzelnen Log-Eintrag.

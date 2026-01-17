@@ -1,4 +1,4 @@
-namespace DCM.Core;
+﻿namespace DCM.Core;
 
 /// <summary>
 /// Zentrale Konstanten für die Anwendung.
