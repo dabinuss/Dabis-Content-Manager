@@ -176,6 +176,8 @@
   <sys:String x:Key="Common.YesToAll">Ja, für alle</sys:String>
   <sys:String x:Key="Common.NoToAll">Nein, für alle</sys:String>
   <sys:String x:Key="Common.Unknown">Unbekannt</sys:String>
+  <sys:String x:Key="Common.On">An</sys:String>
+  <sys:String x:Key="Common.Off">Aus</sys:String>
 
   <!-- Navigation -->
   <sys:String x:Key="Nav.Uploads">Uploads</sys:String>
@@ -291,7 +293,12 @@
   <sys:String x:Key="Status.YouTube.DefaultPlaylistSet">Standard-Playlist gesetzt: {0}</sys:String>
   <sys:String x:Key="Status.YouTube.LoadPlaylistsFailed">Fehler beim Laden der Playlists: {0}</sys:String>
   <sys:String x:Key="Status.YouTube.LoadOptionsFailed">Fehler beim Laden der YouTube-Optionen: {0}</sys:String>
+  <sys:String x:Key="Status.YouTube.Refreshing">YouTube-Daten werden aktualisiert...</sys:String>
+  <sys:String x:Key="Status.YouTube.RefreshComplete">YouTube-Daten aktualisiert.</sys:String>
+  <sys:String x:Key="Status.YouTube.RefreshFailed">Aktualisierung fehlgeschlagen: {0}</sys:String>
   <sys:String x:Key="Status.YouTube.Restored">YouTube-Verbindung wiederhergestellt.</sys:String>
+  <sys:String x:Key="Status.YouTube.AutoConnectEnabled">Auto-Connect aktiviert.</sys:String>
+  <sys:String x:Key="Status.YouTube.AutoConnectDisabled">Auto-Connect deaktiviert.</sys:String>
 
   <!-- Accounts -->
   <sys:String x:Key="Accounts">Accounts</sys:String>
@@ -324,8 +331,38 @@
     Alle Einstellungen können pro Upload überschrieben werden, ohne die Konten-Konfiguration zu ändern.
   </sys:String>
   <sys:String x:Key="Accounts.ComingSoon">
-    Weitere Dienste wie TikTok und Instagram folgen in kommenden Versionen.
+    Nicht verfuegbar
   </sys:String>
+  <sys:String x:Key="Accounts.NotAvailable">Nicht verfuegbar</sys:String>
+  <sys:String x:Key="Accounts.Stats.EmptyDate">--</sys:String>
+  <sys:String x:Key="Accounts.YouTube.StatusTitle">Kontostatus</sys:String>
+  <sys:String x:Key="Accounts.YouTube.StatusHint">Verbindungsstatus und Sync-Details.</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.Label">Status</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.LastSync">Letzte Synchronisierung</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.Token">Token-Status</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.TokenUnknown">Unbekannt</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.TokenConnected">Verbunden</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.TokenDisconnected">Getrennt</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.AutoConnect">Auto-Connect</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.AutoConnectOn">An</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.AutoConnectOff">Aus</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Status.AutoConnectHint">Auto-Connect wird beim Start ausgefuehrt.</sys:String>
+  <sys:String x:Key="Accounts.YouTube.ActionsTitle">Schnellaktionen</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Action.Reconnect">Neu verbinden</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Action.Refresh">Daten aktualisieren</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Action.Disconnect">Zugriff entziehen</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Action.Logs">Logs ansehen</sys:String>
+  <sys:String x:Key="Accounts.YouTube.StatsTitle">Statistik-Snapshot</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Stats.Uploads7Days">Uploads (letzte 7 Tage)</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Stats.Uploads30Days">Uploads (letzte 30 Tage)</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Stats.LastSuccess">Letzte erfolgreiche Aktion</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Stats.Hint">Basierend auf der lokalen Upload-Historie.</sys:String>
+  <sys:String x:Key="Accounts.YouTube.SettingsTitle">Standard-Einstellungen</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Settings.Description">Voreinstellungen fuer neue Uploads.</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Settings.DefaultPlaylist">Standard-Playlist</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Settings.DefaultVisibility">Standard-Sichtbarkeit</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Settings.Locale">Region/Sprache</sys:String>
+  <sys:String x:Key="Accounts.YouTube.Settings.LocaleAuto">Auto</sys:String>
   <sys:String x:Key="Accounts.YouTube.Test">test</sys:String>
   <sys:String x:Key="Accounts.YouTube">YouTube-Konto</sys:String>
   <sys:String x:Key="Accounts.YouTube.Short">YT</sys:String>
@@ -335,6 +372,10 @@
   <sys:String x:Key="Accounts.YouTube.StandardPlaylist">Standard-Playlist für neue Uploads</sys:String>
   <sys:String x:Key="Accounts.YouTube.Msg.NotConnected">Nicht mit YouTube verbunden.</sys:String>
   <sys:String x:Key="Accounts.YouTube.Msg.ClickToConnect">Nicht mit YouTube verbunden.</sys:String>
+  <sys:String x:Key="Accounts.YouTube.AutoConnect">Auto-Connect</sys:String>
+  <sys:String x:Key="Accounts.YouTube.LastSync">Letzte Synchronisierung</sys:String>
+  <sys:String x:Key="Accounts.YouTube.LastSyncNever">nie</sys:String>
+  <sys:String x:Key="Accounts.YouTube.LastSyncPlaceholder">Letzte Synchronisierung: --</sys:String>
 
   <!-- Channel -->
   <sys:String x:Key="Channel">Kanalprofil</sys:String>

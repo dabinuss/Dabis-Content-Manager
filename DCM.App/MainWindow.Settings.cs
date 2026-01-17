@@ -96,6 +96,10 @@ public partial class MainWindow
         var persona = _settings.Persona ?? new ChannelPersona();
         _settings.Persona = persona;
         ChannelProfilePageView?.LoadPersona(persona);
+        AccountsPageView?.SetYouTubeAutoConnectState(_settings.AutoConnectYouTube);
+        AccountsPageView?.SetYouTubeLastSync(_settings.YouTubeLastSyncUtc);
+        AccountsPageView?.SetYouTubeDefaultVisibility(_settings.DefaultVisibility);
+        AccountsPageView?.SetYouTubeLocale(_settings.YouTubeOptionsLocale);
 
         var llm = _settings.Llm ?? new LlmSettings();
         LlmSettingsPageView?.ApplyLlmSettings(llm);
@@ -188,6 +192,16 @@ public partial class MainWindow
 
         SaveSettings();
         StatusTextBlock.Text = LocalizationHelper.Get("Status.Settings.ChannelProfileSaved");
+    }
+
+    private void YouTubeAutoConnectToggled(object? sender, bool isEnabled)
+    {
+        _settings.AutoConnectYouTube = isEnabled;
+        GeneralSettingsPageView?.ApplyAppSettings(_settings);
+        ScheduleSettingsSave();
+        StatusTextBlock.Text = isEnabled
+            ? LocalizationHelper.Get("Status.YouTube.AutoConnectEnabled")
+            : LocalizationHelper.Get("Status.YouTube.AutoConnectDisabled");
     }
 
     #endregion

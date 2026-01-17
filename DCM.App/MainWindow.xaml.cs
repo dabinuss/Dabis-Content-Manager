@@ -302,6 +302,9 @@ public partial class MainWindow : Window
         AccountsPageView.YouTubeConnectButtonClicked += YouTubeConnectButton_Click;
         AccountsPageView.YouTubeDisconnectButtonClicked += YouTubeDisconnectButton_Click;
         AccountsPageView.YouTubePlaylistsSelectionChanged += YouTubePlaylistsListBox_SelectionChanged;
+        AccountsPageView.YouTubeAutoConnectToggled += YouTubeAutoConnectToggled;
+        AccountsPageView.YouTubeRefreshButtonClicked += YouTubeRefreshButton_Click;
+        AccountsPageView.YouTubeOpenLogsButtonClicked += YouTubeOpenLogsButton_Click;
     }
 
     private void AttachChannelProfileViewEvents()
@@ -1477,6 +1480,16 @@ public partial class MainWindow : Window
     #region Log Window
 
     private void LogLink_Click(object sender, MouseButtonEventArgs e)
+    {
+        OpenLogWindow();
+    }
+
+    private void YouTubeOpenLogsButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenLogWindow();
+    }
+
+    private void OpenLogWindow()
     {
         if (_isClosing)
         {

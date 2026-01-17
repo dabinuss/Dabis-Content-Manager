@@ -12,10 +12,15 @@ public partial class MainWindow
 
     private async void YouTubeConnectButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connecting");
-
         try
         {
+            if (_youTubeClient.IsConnected)
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnecting");
+                await _youTubeClient.DisconnectAsync();
+            }
+
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connecting");
             await _youTubeClient.ConnectAsync(System.Threading.CancellationToken.None);
             UpdateYouTubeStatusText();
             await RefreshYouTubePlaylistsAsync();
@@ -49,6 +54,29 @@ public partial class MainWindow
         }
     }
 
+    private async void YouTubeRefreshButton_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+        if (!_youTubeClient.IsConnected)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnected");
+            return;
+        }
+
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Refreshing");
+
+        try
+        {
+            await RefreshYouTubePlaylistsAsync();
+            await RefreshYouTubeMetadataOptionsAsync();
+            UpdateYouTubeStatsFromHistory();
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.RefreshComplete");
+        }
+        catch (System.Exception ex)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.RefreshFailed", ex.Message);
+        }
+    }
+
     private void YouTubePlaylistsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var item = AccountsPageView?.SelectedYouTubePlaylist;
@@ -77,10 +105,12 @@ public partial class MainWindow
                 ? LocalizationHelper.Get("Status.YouTube.Connected")
                 : LocalizationHelper.Format("Status.YouTube.ConnectedAs", _youTubeClient.ChannelTitle);
             AccountsPageView?.SetYouTubeAccountStatus(status);
+            AccountsPageView?.SetYouTubeConnectionState(true);
         }
         else
         {
             AccountsPageView?.SetYouTubeAccountStatus(LocalizationHelper.Get("Accounts.YouTube.Msg.NotConnected"));
+            AccountsPageView?.SetYouTubeConnectionState(false);
         }
     }
 
@@ -114,6 +144,10 @@ public partial class MainWindow
                     UploadView.PlaylistComboBox.SelectedItem = selected;
                 }
             }
+
+            _settings.YouTubeLastSyncUtc = DateTime.UtcNow;
+            AccountsPageView?.SetYouTubeLastSync(_settings.YouTubeLastSyncUtc);
+            ScheduleSettingsSave();
         }
         catch (System.Exception ex)
         {
@@ -133,6 +167,7 @@ public partial class MainWindow
         PresetsPageView?.SetCategoryOptions(_youTubeCategories);
         PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
         ScheduleSettingsSave();
+        AccountsPageView?.SetYouTubeLocale(_settings.YouTubeOptionsLocale);
 
         if (!_youTubeClient.IsConnected)
         {

@@ -4,6 +4,195 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <UserControl.Resources>
+    <SolidColorBrush x:Key="UploadItemSelectedBrush"
+                     Color="#2A3448"/>
+    <CornerRadius x:Key="UploadItemCardCornerRadius">6,0,0,6</CornerRadius>
+    <SolidColorBrush x:Key="UploadListDividerBrush"
+                     Color="#4D596F"/>
+
+    <Style x:Key="ServiceCardToggleButton"
+           TargetType="ToggleButton">
+      <Setter Property="Cursor"
+              Value="Hand"/>
+      <Setter Property="Background"
+              Value="{StaticResource SurfaceElevatedBrush}"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource BorderBrush}"/>
+      <Setter Property="BorderThickness"
+              Value="1"/>
+      <Setter Property="Padding"
+              Value="0"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="CardBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{StaticResource RadiusS}"
+                    Margin="0,0,8,0"
+                    SnapsToDevicePixels="True">
+              <ContentPresenter Margin="8,8,4,8"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver"
+                       Value="True">
+                <Setter TargetName="CardBorder"
+                        Property="Background"
+                        Value="{StaticResource SurfaceHoverBrush}"/>
+                <Setter TargetName="CardBorder"
+                        Property="BorderBrush"
+                        Value="{StaticResource BorderHoverBrush}"/>
+              </Trigger>
+              <Trigger Property="IsChecked"
+                       Value="True">
+                <Setter TargetName="CardBorder"
+                        Property="Background"
+                        Value="{StaticResource UploadItemSelectedBrush}"/>
+                <Setter TargetName="CardBorder"
+                        Property="BorderBrush"
+                        Value="{StaticResource BorderStrongBrush}"/>
+                <Setter TargetName="CardBorder"
+                        Property="CornerRadius"
+                        Value="{StaticResource UploadItemCardCornerRadius}"/>
+                <Setter TargetName="CardBorder"
+                        Property="Margin"
+                        Value="0"/>
+              </Trigger>
+              <Trigger Property="IsEnabled"
+                       Value="False">
+                <Setter Property="Opacity"
+                        Value="0.6"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="AutoConnectToggleButton"
+           TargetType="ToggleButton">
+      <Setter Property="Padding"
+              Value="10,2"/>
+      <Setter Property="MinWidth"
+              Value="56"/>
+      <Setter Property="Background"
+              Value="{StaticResource SurfaceSunkenBrush}"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource BorderBrush}"/>
+      <Setter Property="BorderThickness"
+              Value="1"/>
+      <Setter Property="Foreground"
+              Value="{StaticResource TextMutedBrush}"/>
+      <Setter Property="Cursor"
+              Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="AutoConnectBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{StaticResource RadiusM}">
+              <ContentPresenter HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked"
+                       Value="True">
+                <Setter TargetName="AutoConnectBorder"
+                        Property="Background"
+                        Value="#264CAF50"/>
+                <Setter TargetName="AutoConnectBorder"
+                        Property="BorderBrush"
+                        Value="{StaticResource SuccessBrush}"/>
+                <Setter Property="Foreground"
+                        Value="{StaticResource SuccessBrush}"/>
+              </Trigger>
+              <Trigger Property="IsMouseOver"
+                       Value="True">
+                <Setter TargetName="AutoConnectBorder"
+                        Property="BorderBrush"
+                        Value="{StaticResource BorderHoverBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="ServiceCardAutoConnectToggleButton"
+           TargetType="ToggleButton"
+           BasedOn="{StaticResource AutoConnectToggleButton}">
+      <Setter Property="Padding"
+              Value="0"/>
+      <Setter Property="MinHeight"
+              Value="20"/>
+      <Setter Property="MinWidth"
+              Value="0"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Grid>
+              <Border x:Name="AutoConnectTrack"
+                      Background="#505765"
+                      BorderThickness="0"
+                      CornerRadius="0,0,6,6"
+                      Height="20"
+                      Margin="1,0"/>
+              <Grid Margin="1,1">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border x:Name="AutoConnectThumb"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Width="28"
+                        Height="16"
+                        Background="#BEBEBE"
+                        BorderThickness="0"
+                        CornerRadius="2,2,4,4"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Margin="2,0">
+                  <TextBlock x:Name="AutoConnectThumbText"
+                             Text="{TemplateBinding Content}"
+                             FontSize="8"
+                             FontWeight="SemiBold"
+                             Foreground="#2B2B2B"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"/>
+                </Border>
+              </Grid>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked"
+                       Value="True">
+                <Setter TargetName="AutoConnectThumb"
+                        Property="HorizontalAlignment"
+                        Value="Right"/>
+                <Setter TargetName="AutoConnectThumb"
+                        Property="Background"
+                        Value="{StaticResource SuccessBrush}"/>
+                <Setter TargetName="AutoConnectThumbText"
+                        Property="Foreground"
+                        Value="White"/>
+              </Trigger>
+              <Trigger Property="IsMouseOver"
+                       Value="True">
+                <Setter TargetName="AutoConnectTrack"
+                        Property="BorderBrush"
+                        Value="{StaticResource BorderHoverBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
     <Style x:Key="AccountsTabItemStyle"
            TargetType="TabItem">
       <Setter Property="Foreground"
@@ -117,99 +306,374 @@
     </Style>
   </UserControl.Resources>
   <Grid Margin="0,0,8,0">
-    <Grid Margin="0,8,0,0">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="320"/>
+      <ColumnDefinition Width="1"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+
+    <Border Grid.Column="1"
+            Background="{StaticResource UploadListDividerBrush}"
+            VerticalAlignment="Stretch"
+            HorizontalAlignment="Stretch"
+            Margin="0,8"
+            SnapsToDevicePixels="True"/>
+
+    <!-- SERVICE-LISTE LINKS -->
+    <StackPanel Grid.Column="0"
+                Margin="8,8,0,8"
+                VerticalAlignment="Top">
+      <TextBlock Text="{DynamicResource Nav.Connections}"
+                 Style="{StaticResource SectionHeader}"
+                 Margin="0,0,0,12"/>
+
+      <ToggleButton x:Name="AccountsYouTubeTab"
+                    Style="{StaticResource ServiceCardToggleButton}"
+                    IsChecked="True"
+                    Tag="YouTube"
+                    Checked="AccountsServiceTab_Checked"
+                    HorizontalContentAlignment="Stretch"
+                    MinHeight="88"
+                    Margin="0,0,0,12">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="72"/>
+            <ColumnDefinition Width="{StaticResource SpacingM}"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="1"/>
+            <ColumnDefinition Width="32"/>
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Row="0"
+                      Grid.Column="0"
+                      VerticalAlignment="Center">
+            <Border x:Name="YouTubeBadgeBorder"
+                    Width="72"
+                    Height="56"
+                    Background="{StaticResource PlatformYouTubeBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6,6,0,0">
+              <TextBlock Text="YT"
+                         Foreground="White"
+                         FontSize="{StaticResource FontSizeL}"
+                         FontWeight="Bold"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Border>
+            <ToggleButton x:Name="YouTubeAutoConnectToggle"
+                          Style="{StaticResource ServiceCardAutoConnectToggleButton}"
+                          Checked="YouTubeAutoConnectToggle_Checked"
+                          Unchecked="YouTubeAutoConnectToggle_Unchecked"
+                          Margin="0"
+                          Width="{Binding ElementName=YouTubeBadgeBorder, Path=Width}"/>
+            <TextBlock Text="{DynamicResource Accounts.YouTube.AutoConnect}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,2,0,0"/>
+          </StackPanel>
+          <Grid Grid.Column="2"
+                VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource Accounts.YouTube}"
+                       FontSize="{StaticResource FontSizeM}"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis"/>
+
+            <StackPanel Grid.Row="1"
+                        Orientation="Vertical"
+                        Margin="0,4,0,0"
+                        VerticalAlignment="Center">
+              <Border x:Name="YouTubeServiceChipBorder"
+                      Padding="6,2"
+                      CornerRadius="{StaticResource RadiusS}"
+                      Background="{StaticResource SurfaceHoverBrush}"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      BorderThickness="1"
+                      MaxWidth="200"
+                      HorizontalAlignment="Left"
+                      Margin="0,0,0,2">
+                <TextBlock x:Name="YouTubeServiceChip"
+                           Text="{DynamicResource Accounts.YouTube.Msg.NotConnected}"
+                           FontSize="{StaticResource FontSizeXS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextTrimming="CharacterEllipsis"/>
+              </Border>
+              <TextBlock x:Name="YouTubeLastSyncTextBlock"
+                         Text="{DynamicResource Accounts.YouTube.LastSyncPlaceholder}"
+                         FontSize="{StaticResource FontSizeXS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextTrimming="CharacterEllipsis"
+                         Margin="0"/>
+            </StackPanel>
+          </Grid>
+          <Border Grid.Column="3"
+                  Grid.Row="0"
+                  Background="{StaticResource BorderBrush}"
+                  Margin="0"
+                  VerticalAlignment="Stretch"
+                  HorizontalAlignment="Stretch"/>
+          <TextBlock Grid.Column="4"
+                     Grid.Row="0"
+                     FontFamily="{StaticResource MaterialIconsFont}"
+                     Text="&#xe5cc;"
+                     FontSize="{StaticResource FontSizeM}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"/>
+        </Grid>
+      </ToggleButton>
+
+      <ToggleButton x:Name="AccountsTikTokTab"
+                    Style="{StaticResource ServiceCardToggleButton}"
+                    IsEnabled="False"
+                    Tag="TikTok"
+                    Checked="AccountsServiceTab_Checked"
+                    HorizontalContentAlignment="Stretch"
+                    MinHeight="80"
+                    Margin="0,0,0,12">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="72"/>
+            <ColumnDefinition Width="{StaticResource SpacingM}"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="1"/>
+            <ColumnDefinition Width="32"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Row="0"
+                      Grid.Column="0"
+                      VerticalAlignment="Center">
+            <Border Width="72"
+                    Height="56"
+                    Background="Black"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6,6,0,0">
+              <TextBlock Text="TT"
+                         Foreground="White"
+                         FontSize="{StaticResource FontSizeL}"
+                         FontWeight="Bold"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Border>
+            <ToggleButton Style="{StaticResource ServiceCardAutoConnectToggleButton}"
+                          Margin="0"
+                          Width="72"/>
+            <TextBlock Text="{DynamicResource Accounts.YouTube.AutoConnect}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,2,0,0"/>
+          </StackPanel>
+          <Grid Grid.Column="2"
+                VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource Platform.TikTok}"
+                       FontSize="{StaticResource FontSizeM}"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       FontWeight="SemiBold"/>
+            <StackPanel Grid.Row="1"
+                        Orientation="Vertical"
+                        Margin="0,4,0,0"
+                        VerticalAlignment="Center">
+              <Border Padding="6,2"
+                      CornerRadius="{StaticResource RadiusS}"
+                      Background="{StaticResource SurfaceHoverBrush}"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      BorderThickness="1"
+                      MaxWidth="200"
+                      HorizontalAlignment="Left"
+                      Margin="0,0,0,2">
+                <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
+                           FontSize="{StaticResource FontSizeXS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextTrimming="CharacterEllipsis"/>
+              </Border>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.LastSyncPlaceholder}"
+                         FontSize="{StaticResource FontSizeXS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextTrimming="CharacterEllipsis"
+                         Margin="0"/>
+            </StackPanel>
+          </Grid>
+          <Border Grid.Column="3"
+                  Grid.Row="0"
+                  Background="{StaticResource BorderBrush}"
+                  Margin="0"
+                  VerticalAlignment="Stretch"
+                  HorizontalAlignment="Stretch"/>
+          <TextBlock Grid.Column="4"
+                     Grid.Row="0"
+                     FontFamily="{StaticResource MaterialIconsFont}"
+                     Text="&#xe5cc;"
+                     FontSize="{StaticResource FontSizeM}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"/>
+        </Grid>
+      </ToggleButton>
+
+      <ToggleButton x:Name="AccountsInstagramTab"
+                    Style="{StaticResource ServiceCardToggleButton}"
+                    IsEnabled="False"
+                    Tag="Instagram"
+                    Checked="AccountsServiceTab_Checked"
+                    MinHeight="80">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="72"/>
+            <ColumnDefinition Width="{StaticResource SpacingM}"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="1"/>
+            <ColumnDefinition Width="32"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Row="0"
+                      Grid.Column="0"
+                      VerticalAlignment="Center">
+            <Border Width="72"
+                    Height="56"
+                    Background="{StaticResource PlatformInstagramBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6,6,0,0">
+              <TextBlock Text="IG"
+                         Foreground="White"
+                         FontSize="{StaticResource FontSizeL}"
+                         FontWeight="Bold"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Border>
+            <ToggleButton Style="{StaticResource ServiceCardAutoConnectToggleButton}"
+                          Margin="0"
+                          Width="72"/>
+            <TextBlock Text="{DynamicResource Accounts.YouTube.AutoConnect}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,2,0,0"/>
+          </StackPanel>
+          <Grid Grid.Column="2"
+                VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource Platform.Instagram}"
+                       FontSize="{StaticResource FontSizeM}"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       FontWeight="SemiBold"/>
+            <StackPanel Grid.Row="1"
+                        Orientation="Vertical"
+                        Margin="0,4,0,0"
+                        VerticalAlignment="Center">
+              <Border Padding="6,2"
+                      CornerRadius="{StaticResource RadiusS}"
+                      Background="{StaticResource SurfaceHoverBrush}"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      BorderThickness="1"
+                      MaxWidth="200"
+                      HorizontalAlignment="Left"
+                      Margin="0,0,0,2">
+                <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
+                           FontSize="{StaticResource FontSizeXS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextTrimming="CharacterEllipsis"/>
+              </Border>
+              <TextBlock Text="{DynamicResource Accounts.YouTube.LastSyncPlaceholder}"
+                         FontSize="{StaticResource FontSizeXS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextTrimming="CharacterEllipsis"
+                         Margin="0"/>
+            </StackPanel>
+          </Grid>
+          <Border Grid.Column="3"
+                  Grid.Row="0"
+                  Background="{StaticResource BorderBrush}"
+                  Margin="0"
+                  VerticalAlignment="Stretch"
+                  HorizontalAlignment="Stretch"/>
+          <TextBlock Grid.Column="4"
+                     Grid.Row="0"
+                     FontFamily="{StaticResource MaterialIconsFont}"
+                     Text="&#xe5cc;"
+                     FontSize="{StaticResource FontSizeM}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"/>
+        </Grid>
+      </ToggleButton>
+    </StackPanel>
+
+    <!-- DETAILS RECHTS -->
+    <Grid Grid.Column="2"
+          Margin="12,8,8,8">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <!-- Service Tabs -->
-        <RowDefinition Height="{StaticResource SpacingL}"/>
+        <RowDefinition Height="{StaticResource SpacingM}"/>
         <RowDefinition Height="*"/>
-        <!-- Content -->
       </Grid.RowDefinitions>
 
-      <!-- SERVICE-TABS OBEN (YOUTUBE / TIKTOK / INSTAGRAM) -->
       <Grid Grid.Row="0">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="{StaticResource SpacingS}"/>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="{StaticResource SpacingS}"/>
-          <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        <!-- YouTube Tab -->
-        <ToggleButton x:Name="AccountsYouTubeTab"
-                      Style="{StaticResource PlatformToggleButton}"
-                      IsChecked="True"
-                      Tag="YouTube"
-                      Grid.Column="0"
-                      Checked="AccountsServiceTab_Checked">
-          <StackPanel VerticalAlignment="Center"
-                      HorizontalAlignment="Center">
-            <TextBlock Style="{StaticResource IconL}"
-                       Text="&#xe038;"
-                       Margin="0,0,0,8"/>
-            <TextBlock Text="{DynamicResource Accounts.YouTube.Test}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Center"
-                       TextWrapping="Wrap"/>
-          </StackPanel>
-        </ToggleButton>
-
-        <!-- TikTok Tab (Platzhalter, deaktiviert) -->
-        <ToggleButton x:Name="AccountsTikTokTab"
-                      Style="{StaticResource PlatformToggleButton}"
-                      IsEnabled="False"
-                      Tag="TikTok"
-                      Grid.Column="2"
-                      Checked="AccountsServiceTab_Checked">
-          <StackPanel VerticalAlignment="Center"
-                      HorizontalAlignment="Center">
-            <Border Width="28"
-                    Height="20"
-                    CornerRadius="{StaticResource RadiusM}"
-                    Background="Black"
-                    Margin="0,0,0,8">
-              <TextBlock Text=""
-                         HorizontalAlignment="Center"
-                         VerticalAlignment="Center"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="White"/>
-            </Border>
-            <TextBlock Text="{DynamicResource Platform.TikTok}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       HorizontalAlignment="Center"
-                       TextWrapping="Wrap"/>
-          </StackPanel>
-        </ToggleButton>
-
-        <!-- Instagram Tab (Platzhalter, deaktiviert) -->
-        <ToggleButton x:Name="AccountsInstagramTab"
-                      Style="{StaticResource PlatformToggleButton}"
-                      IsEnabled="False"
-                      Tag="Instagram"
-                      Grid.Column="4"
-                      Checked="AccountsServiceTab_Checked">
-          <StackPanel VerticalAlignment="Center"
-                      HorizontalAlignment="Center">
-            <Border Width="28"
-                    Height="20"
-                    CornerRadius="{StaticResource RadiusM}"
-                    Background="{StaticResource PlatformInstagramBrush}"
-                    Margin="0,0,0,8">
-              <TextBlock Text="?"
-                         HorizontalAlignment="Center"
-                         VerticalAlignment="Center"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="White"/>
-            </Border>
-            <TextBlock Text="{DynamicResource Platform.Instagram}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       HorizontalAlignment="Center"
-                       TextWrapping="Wrap"/>
-          </StackPanel>
-        </ToggleButton>
+        <TextBlock Text="{DynamicResource Accounts.YouTube}">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock"
+                   BasedOn="{StaticResource SectionHeader}">
+              <Setter Property="Visibility"
+                      Value="Collapsed"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=AccountsYouTubeTab, Path=IsChecked}"
+                             Value="True">
+                  <Setter Property="Visibility"
+                          Value="Visible"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
+        <TextBlock Text="{DynamicResource Platform.TikTok}">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock"
+                   BasedOn="{StaticResource SectionHeader}">
+              <Setter Property="Visibility"
+                      Value="Collapsed"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=AccountsTikTokTab, Path=IsChecked}"
+                             Value="True">
+                  <Setter Property="Visibility"
+                          Value="Visible"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
+        <TextBlock Text="{DynamicResource Platform.Instagram}">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock"
+                   BasedOn="{StaticResource SectionHeader}">
+              <Setter Property="Visibility"
+                      Value="Collapsed"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=AccountsInstagramTab, Path=IsChecked}"
+                             Value="True">
+                  <Setter Property="Visibility"
+                          Value="Visible"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
       </Grid>
 
       <!-- CONTENT-BEREICHE PRO SERVICE -->
@@ -225,7 +689,7 @@
                                   MinWidth="260"/>
               </Grid.ColumnDefinitions>
 
-              <!-- LINKE SPALTE: VERBINDUNG + SICHERHEIT -->
+              <!-- LINKE SPALTE: STATUS + AKTIONEN -->
               <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
@@ -233,108 +697,151 @@
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Verbindung -->
+                <!-- Account-Status -->
                 <GroupBox Grid.Row="0"
-                          Header="{DynamicResource Accounts.YouTube}">
+                          Header="{DynamicResource Accounts.YouTube.StatusTitle}">
                   <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                      </Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                      <!-- Icon / Avatar -->
-                      <Border Grid.Column="0"
-                              Width="40"
-                              Height="40"
-                              CornerRadius="{StaticResource RadiusCircle}"
-                              Background="{StaticResource PlatformYouTubeBrush}"
-                              Margin="0,0,8,0">
-                        <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
-                                   Foreground="White"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   FontWeight="Bold"
-                                   FontSize="{StaticResource FontSizeM}"/>
-                      </Border>
+                    <Border Grid.Column="0"
+                            Width="40"
+                            Height="40"
+                            CornerRadius="{StaticResource RadiusCircle}"
+                            Background="{StaticResource PlatformYouTubeBrush}"
+                            Margin="0,0,8,0">
+                      <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
+                                 Foreground="White"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 FontWeight="Bold"
+                                 FontSize="{StaticResource FontSizeM}"/>
+                    </Border>
 
-                      <!-- Status -->
-                      <Grid Grid.Column="1"
-                            VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1">
+                      <TextBlock x:Name="YouTubeAccountStatusTextBlock"
+                                 Text="{DynamicResource Accounts.YouTube.Msg.NotConnected}"
+                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 FontWeight="Medium"
+                                 FontSize="{StaticResource FontSizeM}"/>
+                      <TextBlock Text="{DynamicResource Accounts.YouTube.StatusHint}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeS}"
+                                 Margin="0,2,0,0"/>
+
+                      <Grid Margin="0,8,0,0">
                         <Grid.RowDefinitions>
                           <RowDefinition Height="Auto"/>
-                          <RowDefinition Height="{StaticResource SpacingS}"/>
+                          <RowDefinition Height="Auto"/>
+                          <RowDefinition Height="Auto"/>
                           <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="YouTubeAccountStatusTextBlock"
-                                   Grid.Row="0"
-                                   Text="{DynamicResource Accounts.YouTube.Msg.NotConnected}"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   FontWeight="Medium"
-                                   FontSize="{StaticResource FontSizeM}"/>
-                        <TextBlock Grid.Row="2"
-                                   Text="{DynamicResource Accounts.YouTube.Msg.ClickToConnect}"
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   Text="{DynamicResource Accounts.YouTube.Status.Label}"
                                    Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="{StaticResource FontSizeS}"/>
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Margin="0,0,8,2"/>
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="1"
+                                   Text="{Binding ElementName=YouTubeAccountStatusTextBlock, Path=Text}"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="{StaticResource FontSizeXS}"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   Text="{DynamicResource Accounts.YouTube.Status.LastSync}"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Margin="0,0,8,2"/>
+                        <TextBlock x:Name="YouTubeLastSyncDetailTextBlock"
+                                   Grid.Row="1"
+                                   Grid.Column="1"
+                                   Text="{DynamicResource Accounts.YouTube.LastSyncPlaceholder}"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="{StaticResource FontSizeXS}"/>
+
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   Text="{DynamicResource Accounts.YouTube.Status.Token}"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Margin="0,0,8,2"/>
+                        <TextBlock x:Name="YouTubeTokenStatusTextBlock"
+                                   Grid.Row="2"
+                                   Grid.Column="1"
+                                   Text="{DynamicResource Accounts.YouTube.Status.TokenUnknown}"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="{StaticResource FontSizeXS}"/>
+
+                        <TextBlock Grid.Row="3"
+                                   Grid.Column="0"
+                                   Text="{DynamicResource Accounts.YouTube.Status.AutoConnect}"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{StaticResource FontSizeXS}"
+                                   Margin="0,0,8,0"/>
+                        <TextBlock x:Name="YouTubeAutoConnectStatusTextBlock"
+                                   Grid.Row="3"
+                                   Grid.Column="1"
+                                   Text="{DynamicResource Accounts.YouTube.Status.AutoConnectOff}"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="{StaticResource FontSizeXS}"/>
                       </Grid>
 
-                      <Button Grid.Column="2"
-                              Content="{DynamicResource Accounts.YouTube.Connect}"
-                              Style="{StaticResource PrimaryButton}"
-                              ap:ButtonIcon.Glyph="&#xe157;"
-                              Click="YouTubeConnectButton_Click"
-                              Margin="8,0,0,0"
-                              VerticalAlignment="Center"/>
-
-                    </Grid>
-
-                    <!-- Kurzbeschreibung -->
-                    <TextBlock Grid.Row="1"
-                               Text="{DynamicResource Accounts.YouTube.Description}"
-                               Margin="0,8,0,0"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               TextWrapping="Wrap"/>
+                      <TextBlock Text="{DynamicResource Accounts.YouTube.Status.AutoConnectHint}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Margin="0,6,0,0"
+                                 TextWrapping="Wrap"/>
+                    </StackPanel>
                   </Grid>
                 </GroupBox>
 
-                <!-- Sicherheit / Speicherung -->
+                <!-- Schnellaktionen -->
                 <GroupBox Grid.Row="2"
-                          Header="{DynamicResource Accounts.YouTube.SecurityTitle}">
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0"
-                               Text="{DynamicResource Accounts.YouTube.Security.Line1}"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,8"/>
-                    <TextBlock Grid.Row="1"
-                               Text="{DynamicResource Accounts.YouTube.Security.Line2}"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,8"/>
-                    <TextBlock Grid.Row="2"
-                               Text="{DynamicResource Accounts.YouTube.Security.Line3}"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               TextWrapping="Wrap"/>
-                  </Grid>
+                          Header="{DynamicResource Accounts.YouTube.ActionsTitle}">
+                  <UniformGrid Columns="4"
+                               Margin="0,4,0,0">
+                    <Button x:Name="YouTubeReconnectButton"
+                            Content="{DynamicResource Accounts.YouTube.Action.Reconnect}"
+                            Style="{StaticResource PrimaryButton}"
+                            ap:ButtonIcon.Glyph="&#xe5d5;"
+                            Click="YouTubeConnectButton_Click"
+                            MinHeight="32"
+                            Margin="0,0,8,0"/>
+                    <Button x:Name="YouTubeRefreshButton"
+                            Content="{DynamicResource Accounts.YouTube.Action.Refresh}"
+                            Style="{StaticResource SecondaryButton}"
+                            ap:ButtonIcon.Glyph="&#xe5d5;"
+                            Click="YouTubeRefreshButton_Click"
+                            MinHeight="32"
+                            Margin="0,0,8,0"/>
+                    <Button x:Name="YouTubeDisconnectButton"
+                            Content="{DynamicResource Accounts.YouTube.Action.Disconnect}"
+                            Style="{StaticResource SecondaryButton}"
+                            ap:ButtonIcon.Glyph="&#xe161;"
+                            Click="YouTubeDisconnectButton_Click"
+                            MinHeight="32"
+                            Margin="0,0,8,0"/>
+                    <Button x:Name="YouTubeLogsButton"
+                            Content="{DynamicResource Accounts.YouTube.Action.Logs}"
+                            Style="{StaticResource SecondaryButton}"
+                            ap:ButtonIcon.Glyph="&#xe872;"
+                            Click="YouTubeOpenLogsButton_Click"
+                            MinHeight="32"/>
+                  </UniformGrid>
                 </GroupBox>
 
               </Grid>
 
-              <!-- RECHTE SPALTE: PLAYLISTS + NUTZUNG -->
+              <!-- RECHTE SPALTE: STATS + STANDARD -->
               <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
@@ -342,55 +849,122 @@
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Playlists / Standard-Playlist -->
+                <!-- Statistik-Snapshot -->
                 <GroupBox Grid.Row="0"
-                          Header="{DynamicResource Accounts.YouTube.Playlists}">
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0"
-                               Text="{DynamicResource Accounts.YouTube.Playlists.Descr}"
-                               FontSize="{StaticResource FontSizeS}"
+                          Header="{DynamicResource Accounts.YouTube.StatsTitle}">
+                  <StackPanel>
+                    <Grid>
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                      </Grid.RowDefinitions>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+
+                      <TextBlock Grid.Row="0"
+                                 Grid.Column="0"
+                                 Text="{DynamicResource Accounts.YouTube.Stats.Uploads7Days}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Margin="0,0,8,2"/>
+                    <TextBlock x:Name="YouTubeUploads7DaysTextBlock"
+                               Grid.Row="0"
+                               Grid.Column="1"
+                               Text="0"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+
+                      <TextBlock Grid.Row="1"
+                                 Grid.Column="0"
+                                 Text="{DynamicResource Accounts.YouTube.Stats.Uploads30Days}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Margin="0,0,8,2"/>
+                    <TextBlock x:Name="YouTubeUploads30DaysTextBlock"
+                               Grid.Row="1"
+                               Grid.Column="1"
+                               Text="0"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+
+                      <TextBlock Grid.Row="2"
+                                 Grid.Column="0"
+                                 Text="{DynamicResource Accounts.YouTube.Stats.LastSuccess}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Margin="0,0,8,0"/>
+                    <TextBlock x:Name="YouTubeLastActionTextBlock"
+                               Grid.Row="2"
+                               Grid.Column="1"
+                               Text="{DynamicResource Accounts.Stats.EmptyDate}"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontSize="{StaticResource FontSizeXS}"/>
+                    </Grid>
+                    <TextBlock Text="{DynamicResource Accounts.YouTube.Stats.Hint}"
                                Foreground="{StaticResource TextMutedBrush}"
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,8"/>
-                    <ListBox Grid.Row="1"
-                             x:Name="YouTubePlaylistsListBox"
-                             DisplayMemberPath="Title"
-                             Height="200"
-                             SelectionChanged="YouTubePlaylistsListBox_SelectionChanged"/>
-                  </Grid>
+                               FontSize="{StaticResource FontSizeXS}"
+                               Margin="0,6,0,0"/>
+                  </StackPanel>
                 </GroupBox>
 
-                <!-- Wie DCM das Konto nutzt -->
+                <!-- Standard-Einstellungen -->
                 <GroupBox Grid.Row="2"
-                          Header="{DynamicResource Accounts.YouTube.UsageTitle}">
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0"
-                               Text="{DynamicResource Accounts.YouTube.Usage.Line1}"
+                          Header="{DynamicResource Accounts.YouTube.SettingsTitle}">
+                  <StackPanel>
+                    <TextBlock Text="{DynamicResource Accounts.YouTube.Settings.Description}"
                                FontSize="{StaticResource FontSizeS}"
                                Foreground="{StaticResource TextMutedBrush}"
                                TextWrapping="Wrap"
                                Margin="0,0,0,8"/>
-                    <TextBlock Grid.Row="1"
-                               Text="{DynamicResource Accounts.YouTube.Usage.Line2}"
-                               FontSize="{StaticResource FontSizeS}"
+                    <TextBlock Text="{DynamicResource Accounts.YouTube.Settings.DefaultPlaylist}"
+                               FontSize="{StaticResource FontSizeXS}"
                                Foreground="{StaticResource TextMutedBrush}"
-                               TextWrapping="Wrap"
-                               Margin="0,0,0,8"/>
-                    <TextBlock Grid.Row="2"
-                               Text="{DynamicResource Accounts.YouTube.Usage.Line3}"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               TextWrapping="Wrap"/>
-                  </Grid>
+                               Margin="0,0,0,4"/>
+                    <ListBox x:Name="YouTubePlaylistsListBox"
+                             DisplayMemberPath="Title"
+                             Height="160"
+                             SelectionChanged="YouTubePlaylistsListBox_SelectionChanged"/>
+
+                    <Grid Margin="0,8,0,0">
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                      </Grid.RowDefinitions>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+
+                      <TextBlock Grid.Row="0"
+                                 Grid.Column="0"
+                                 Text="{DynamicResource Accounts.YouTube.Settings.DefaultVisibility}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Margin="0,0,8,2"/>
+                      <TextBlock x:Name="YouTubeDefaultVisibilityTextBlock"
+                                 Grid.Row="0"
+                                 Grid.Column="1"
+                                 Text="{DynamicResource Accounts.NotAvailable}"
+                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"/>
+
+                      <TextBlock Grid.Row="1"
+                                 Grid.Column="0"
+                                 Text="{DynamicResource Accounts.YouTube.Settings.Locale}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Margin="0,0,8,0"/>
+                      <TextBlock x:Name="YouTubeLocaleTextBlock"
+                                 Grid.Row="1"
+                                 Grid.Column="1"
+                                 Text="{DynamicResource Accounts.YouTube.Settings.LocaleAuto}"
+                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"/>
+                    </Grid>
+                  </StackPanel>
                 </GroupBox>
 
               </Grid>

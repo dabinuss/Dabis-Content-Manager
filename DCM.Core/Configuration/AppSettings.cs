@@ -32,4 +32,5 @@ public sealed class AppSettings
     public string? YouTubeOptionsLocale { get; set; }
     public List<OptionEntry> YouTubeCategoryOptions { get; set; } = new();
     public List<OptionEntry> YouTubeLanguageOptions { get; set; } = new();
+    public DateTime? YouTubeLastSyncUtc { get; set; }
 }

@@ -25,6 +25,7 @@ public partial class MainWindow
                 .ToList());
 
             _allHistoryEntries = entries;
+            UpdateYouTubeStatsFromHistory();
             ApplyHistoryFilter();
         }
         catch (Exception ex)
@@ -140,6 +141,31 @@ public partial class MainWindow
     private void HistoryOpenSelectedAction_Click(object sender, RoutedEventArgs e)
     {
         _eventAggregator.Publish(new HistoryEntryOpenRequestedEvent(HistoryPageView?.SelectedEntry));
+    }
+
+    private void UpdateYouTubeStatsFromHistory()
+    {
+        if (AccountsPageView is null)
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.Now;
+        var last7Days = now.AddDays(-7);
+        var last30Days = now.AddDays(-30);
+
+        var successfulUploads = _allHistoryEntries
+            .Where(e => e.Platform == PlatformType.YouTube && e.Success)
+            .ToList();
+
+        var uploads7Days = successfulUploads.Count(e => e.DateTime >= last7Days);
+        var uploads30Days = successfulUploads.Count(e => e.DateTime >= last30Days);
+        var lastSuccess = successfulUploads
+            .OrderByDescending(e => e.DateTime)
+            .FirstOrDefault()
+            ?.DateTime;
+
+        AccountsPageView.SetYouTubeUploadStats(uploads7Days, uploads30Days, lastSuccess);
     }
 
     #endregion
