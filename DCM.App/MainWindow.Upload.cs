@@ -29,9 +29,14 @@ public partial class MainWindow
 {
     private const string UploadLogSource = "Upload";
     private const string PresetLogSource = "Preset";
+    private const int ThumbnailDecodePixelWidth = 640;
+    private const int VideoPreviewDecodePixelWidth = 640;
+    private static readonly TimeSpan DraftTextDebounceDelay = TimeSpan.FromMilliseconds(350);
     private readonly SemaphoreSlim _videoInfoSemaphore = new(2, 2);
     private readonly SemaphoreSlim _videoPreviewSemaphore = new(1, 1);
     private bool _isFastFillRunning;
+    private DispatcherTimer? _draftTextDebounceTimer;
+    private bool _draftTextDebouncePending;
 
     #region Draft Persistence
 
@@ -171,6 +176,41 @@ public partial class MainWindow
 
         _draftPersistenceTimer.Stop();
         _draftPersistenceTimer.Start();
+    }
+
+    private void ScheduleDraftPersistenceDebounced()
+    {
+        if (_isRestoringDrafts || _settings.RememberDraftsBetweenSessions != true)
+        {
+            return;
+        }
+
+        _draftTextDebouncePending = true;
+
+        if (_draftTextDebounceTimer is null)
+        {
+            _draftTextDebounceTimer = new DispatcherTimer
+            {
+                Interval = DraftTextDebounceDelay
+            };
+            _draftTextDebounceTimer.Tick += DraftTextDebounceTimer_Tick;
+        }
+
+        _draftTextDebounceTimer.Stop();
+        _draftTextDebounceTimer.Start();
+    }
+
+    private void DraftTextDebounceTimer_Tick(object? sender, EventArgs e)
+    {
+        _draftTextDebounceTimer?.Stop();
+
+        if (!_draftTextDebouncePending)
+        {
+            return;
+        }
+
+        _draftTextDebouncePending = false;
+        ScheduleDraftPersistence();
     }
 
     private void DraftPersistenceTimer_Tick(object? sender, EventArgs e)
@@ -1478,7 +1518,7 @@ public partial class MainWindow
             return;
         }
 
-        var image = LoadImageSource(previewPath);
+        var image = LoadImageSource(previewPath, VideoPreviewDecodePixelWidth);
         if (image is null)
         {
             ClearVideoPreviewDisplay();
@@ -1490,7 +1530,7 @@ public partial class MainWindow
         UploadView.VideoPreviewEmptyState.Visibility = Visibility.Collapsed;
     }
 
-    private static ImageSource? LoadImageSource(string path)
+    private static ImageSource? LoadImageSource(string path, int decodePixelWidth)
     {
         try
         {
@@ -1498,6 +1538,10 @@ public partial class MainWindow
             var image = new BitmapImage();
             image.BeginInit();
             image.CacheOption = BitmapCacheOption.OnLoad;
+            if (decodePixelWidth > 0)
+            {
+                image.DecodePixelWidth = decodePixelWidth;
+            }
             image.StreamSource = stream;
             image.EndInit();
             image.Freeze();
@@ -2131,7 +2175,7 @@ public partial class MainWindow
         }
 
         UpdateUploadButtonState();
-        ScheduleDraftPersistence();
+        ScheduleDraftPersistenceDebounced();
     }
 
     private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -2191,7 +2235,7 @@ public partial class MainWindow
             _activeDraft.Transcript = UploadView.TranscriptTextBox.Text ?? string.Empty;
         }
 
-        ScheduleDraftPersistence();
+        ScheduleDraftPersistenceDebounced();
     }
 
     private void PlatformYouTubeToggle_Checked(object sender, RoutedEventArgs e)
@@ -2259,7 +2303,7 @@ public partial class MainWindow
             _activeDraft.PlaylistTitle = null;
         }
 
-        ScheduleDraftPersistence();
+        ScheduleDraftPersistenceDebounced();
     }
 
     private void CategoryIdTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -2276,7 +2320,7 @@ public partial class MainWindow
                 : UploadView.CategoryIdTextBox.Text.Trim();
         }
 
-        ScheduleDraftPersistence();
+        ScheduleDraftPersistenceDebounced();
     }
 
     private void LanguageTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -2293,7 +2337,7 @@ public partial class MainWindow
                 : UploadView.LanguageTextBox.Text.Trim();
         }
 
-        ScheduleDraftPersistence();
+        ScheduleDraftPersistenceDebounced();
     }
 
     private void MadeForKidsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2308,7 +2352,7 @@ public partial class MainWindow
             _activeDraft.MadeForKids = GetSelectedMadeForKidsFromUi();
         }
 
-        ScheduleDraftPersistence();
+        ScheduleDraftPersistenceDebounced();
     }
 
     private void CommentStatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -2340,7 +2384,7 @@ public partial class MainWindow
             _activeDraft.ScheduleEnabled = UploadView.ScheduleCheckBox.IsChecked == true;
             _activeDraft.ScheduledDate = UploadView.ScheduleDatePicker.SelectedDate;
             _activeDraft.ScheduledTimeText = UploadView.ScheduleTimeTextBox.Text;
-            ScheduleDraftPersistence();
+            ScheduleDraftPersistenceDebounced();
         }
     }
 
@@ -2661,12 +2705,13 @@ public partial class MainWindow
     {
         try
         {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(filePath);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            UploadView.ThumbnailPreviewImage.Source = bitmap;
+            var image = LoadImageSource(filePath, ThumbnailDecodePixelWidth);
+            if (image is null)
+            {
+                return false;
+            }
+
+            UploadView.ThumbnailPreviewImage.Source = image;
 
             UploadView.ThumbnailEmptyState.Visibility = Visibility.Collapsed;
             UploadView.ThumbnailPreviewState.Visibility = Visibility.Visible;
