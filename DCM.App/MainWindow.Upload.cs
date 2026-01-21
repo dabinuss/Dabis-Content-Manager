@@ -321,6 +321,7 @@ public partial class MainWindow
         draft.MadeForKids = MadeForKidsSetting.Default;
         draft.CommentStatus = CommentStatusSetting.Default;
         draft.Transcript = string.Empty;
+        draft.ChaptersText = string.Empty;
         draft.ThumbnailPath = string.Empty;
         draft.UploadState = UploadDraftUploadState.Pending;
         draft.UploadStatus = string.Empty;
@@ -884,6 +885,7 @@ public partial class MainWindow
         UploadView.SetCommentStatus(CommentStatusSetting.Default);
         UploadView.PresetComboBox.SelectedItem = null;
         UploadView.TranscriptTextBox.Text = string.Empty;
+        UploadView.ChaptersTextBox.Text = string.Empty;
         ClearThumbnailPreview();
     }
 
@@ -903,6 +905,7 @@ public partial class MainWindow
         UploadView.DescriptionTextBox.Text = draft.Description;
         UploadView.TagsTextBox.Text = draft.TagsCsv;
         UploadView.TranscriptTextBox.Text = draft.Transcript;
+        UploadView.ChaptersTextBox.Text = draft.ChaptersText;
 
         ApplyDraftThumbnailToUi(draft.ThumbnailPath);
         ApplyDraftUploadSettingsToUi(draft);
@@ -2238,6 +2241,21 @@ public partial class MainWindow
         ScheduleDraftPersistenceDebounced();
     }
 
+    private void ChaptersTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isLoadingDraft)
+        {
+            return;
+        }
+
+        if (_activeDraft is not null)
+        {
+            _activeDraft.ChaptersText = UploadView.ChaptersTextBox.Text ?? string.Empty;
+        }
+
+        ScheduleDraftPersistenceDebounced();
+    }
+
     private void PlatformYouTubeToggle_Checked(object sender, RoutedEventArgs e)
     {
         if (_isLoadingDraft)
@@ -3390,6 +3408,7 @@ public partial class MainWindow
             ScheduledTime = scheduledTime,
             ThumbnailPath = draftOverride?.ThumbnailPath ?? UploadView.ThumbnailPathTextBox.Text,
             TranscriptText = draftOverride?.Transcript ?? UploadView.TranscriptTextBox.Text,
+            ChaptersText = draftOverride?.ChaptersText ?? UploadView.ChaptersTextBox.Text,
             CategoryId = string.IsNullOrWhiteSpace(categoryId) ? null : categoryId.Trim(),
             Language = string.IsNullOrWhiteSpace(language) ? null : language.Trim(),
             MadeForKids = ToNullableBool(madeForKidsSetting),
@@ -3476,6 +3495,16 @@ public partial class MainWindow
         return Regex.IsMatch(preset.DescriptionTemplate, @"\{+\s*description\s*\}+", RegexOptions.IgnoreCase);
     }
 
+    private static bool PresetHasChaptersPlaceholder(UploadPreset preset)
+    {
+        if (preset is null || string.IsNullOrWhiteSpace(preset.DescriptionTemplate))
+        {
+            return false;
+        }
+
+        return Regex.IsMatch(preset.DescriptionTemplate, @"\{+\s*chapters\s*\}+", RegexOptions.IgnoreCase);
+    }
+
     private void ApplyGeneratedDescription(string newDescription)
     {
         if (_presetState.Preset is not null && _presetState.HasDescriptionPlaceholder)
@@ -3490,6 +3519,34 @@ public partial class MainWindow
         {
             AppendDescriptionText(newDescription);
         }
+    }
+
+    private void ApplyGeneratedChapters(string chaptersText)
+    {
+        UploadView.ChaptersTextBox.Text = chaptersText ?? string.Empty;
+
+        if (_presetState.Preset is null || !PresetHasChaptersPlaceholder(_presetState.Preset))
+        {
+            return;
+        }
+
+        var project = BuildUploadProjectFromUi(includeScheduling: true);
+
+        if (PresetHasDescriptionPlaceholder(_presetState.Preset))
+        {
+            if (_presetState.TryGetBaseDescription(_presetState.Preset, out var storedBase))
+            {
+                project.Description = storedBase;
+            }
+            else if (_presetState.TryGetBaseDescription(out var fallbackBase))
+            {
+                project.Description = fallbackBase;
+            }
+        }
+
+        var applied = _templateService.ApplyTemplate(_presetState.Preset.DescriptionTemplate, project);
+        _presetState.UpdateLastResult(applied);
+        SetDescriptionText(applied);
     }
 
     #endregion

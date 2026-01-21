@@ -180,4 +180,16 @@ public sealed class SimpleFallbackSuggestionService : IFallbackSuggestionService
 
         return Task.FromResult<IReadOnlyList<string>>(uniqueTags);
     }
+
+    public Task<IReadOnlyList<ChapterTopic>> SuggestChaptersAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.Debug("Fallback-Kapitelgenerierung: keine Ausgabe", "FallbackSuggestion");
+
+        return Task.FromResult<IReadOnlyList<ChapterTopic>>(Array.Empty<ChapterTopic>());
+    }
 }

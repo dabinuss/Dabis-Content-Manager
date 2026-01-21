@@ -40,7 +40,6 @@ public sealed partial class TranscriptionPostProcessor
             {
                 continue;
             }
-
             // Prüfen ob ein neuer Absatz beginnen soll
             if (lastSegmentEnd.HasValue && _options.InsertParagraphs)
             {
@@ -154,7 +153,6 @@ public sealed partial class TranscriptionPostProcessor
 
         return result;
     }
-
     // Regex für Wortduplikationen: findet "wort wort" (case-insensitive)
     [GeneratedRegex(@"\b(\w+)\s+\1\b", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex WordDuplicationRegex();

@@ -31,19 +31,21 @@ public static partial class TextCleaningUtility
             return text;
         }
 
-        var result = text;
+        var result = text.Trim();
 
-        while (result.Length > 0 && QuoteChars.Contains(result[0]))
+        while (result.Length >= 2)
         {
-            result = result[1..];
+            var first = result[0];
+            var last = result[^1];
+            if (!QuoteChars.Contains(first) || !QuoteChars.Contains(last))
+            {
+                break;
+            }
+
+            result = result[1..^1].Trim();
         }
 
-        while (result.Length > 0 && QuoteChars.Contains(result[^1]))
-        {
-            result = result[..^1];
-        }
-
-        return result.Trim();
+        return result;
     }
 
     /// <summary>

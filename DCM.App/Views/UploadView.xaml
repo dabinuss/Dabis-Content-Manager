@@ -1366,6 +1366,10 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="{StaticResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
 
                   <TextBlock Grid.Row="0"
@@ -1379,6 +1383,7 @@
                            VerticalScrollBarVisibility="Auto"
                            TextWrapping="Wrap"
                            MinHeight="140"
+                           MaxHeight="320"
                            TextChanged="TranscriptTextBox_TextChanged"/>
 
                   <!-- Transkription Controls -->
@@ -1393,6 +1398,8 @@
                       <!-- Transkribieren -->
                       <ColumnDefinition Width="Auto"/>
                       <!-- Export -->
+                      <ColumnDefinition Width="Auto"/>
+                      <!-- Kapitel -->
                       <ColumnDefinition Width="*"/>
                       <!-- Progress -->
                     </Grid.ColumnDefinitions>
@@ -1436,9 +1443,36 @@
                             Margin="8,0,0,0"
                             Content="{DynamicResource Common.Export}"/>
 
+                    <Button x:Name="GenerateChaptersButton"
+                            Grid.Row="0"
+                            Grid.Column="2"
+                            Click="GenerateChaptersButton_Click"
+                            Tag="default"
+                            ToolTip="{DynamicResource Upload.Fields.Chapters.Generate}"
+                            Margin="8,0,0,0">
+                      <Button.Style>
+                        <Style TargetType="Button"
+                               BasedOn="{StaticResource SecondaryButton}">
+                          <Setter Property="Content"
+                                  Value="{DynamicResource Upload.Fields.Chapters.Generate}"/>
+                          <Setter Property="ap:ButtonIcon.Glyph"
+                                  Value="&#xe663;"/>
+                          <Style.Triggers>
+                            <Trigger Property="Tag"
+                                     Value="active">
+                              <Setter Property="Content"
+                                      Value="{DynamicResource Common.Cancel}"/>
+                              <Setter Property="ap:ButtonIcon.Glyph"
+                                      Value="&#xe5c9;"/>
+                            </Trigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Button.Style>
+                    </Button>
+
                     <ProgressBar x:Name="TranscriptionProgressBar"
                                  Grid.Row="0"
-                                 Grid.Column="2"
+                                 Grid.Column="3"
                                  Height="20"
                                  Margin="{StaticResource SpacingHorizontalM}"
                                  Minimum="0"
@@ -1449,11 +1483,31 @@
                     <TextBlock x:Name="TranscriptionPhaseTextBlock"
                                Grid.Row="2"
                                Grid.Column="0"
-                               Grid.ColumnSpan="3"
+                               Grid.ColumnSpan="4"
                                FontSize="{StaticResource FontSizeS}"
                                Foreground="{StaticResource TextMutedBrush}"
                                Visibility="Collapsed"/>
                   </Grid>
+
+                  <StackPanel Grid.Row="6">
+                    <TextBlock Text="{DynamicResource Upload.Fields.Chapters}"
+                               FontSize="{StaticResource FontSizeS}"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{DynamicResource Upload.Fields.Chapters.Descr}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="0,2,0,0"/>
+                  </StackPanel>
+
+                  <TextBox x:Name="ChaptersTextBox"
+                           Grid.Row="8"
+                           AcceptsReturn="True"
+                           VerticalScrollBarVisibility="Auto"
+                           TextWrapping="Wrap"
+                           MinHeight="110"
+                           ToolTip="{DynamicResource Upload.Fields.Chapters.ToolTip}"
+                           TextChanged="ChaptersTextBox_TextChanged"/>
               </Grid>
             </GroupBox>
 

@@ -472,7 +472,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         InferenceParams inferenceParams;
         string formattedPrompt;
         int tokenCountLimit;
-        const int charLimit = 1500;
+        const int charLimit = 4000;
 
         lock (_lock)
         {
@@ -511,7 +511,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             {
                 maxTokens = 256;
             }
-            maxTokens = Math.Min(maxTokens, 512);
+            maxTokens = Math.Min(maxTokens, 1024);
             tokenCountLimit = maxTokens;
 
             var samplingPipeline = new DefaultSamplingPipeline

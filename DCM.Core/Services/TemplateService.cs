@@ -65,6 +65,7 @@ public sealed partial class TemplateService
         {
             ["TITLE"] = project.Title,
             ["DESCRIPTION"] = project.Description ?? string.Empty,
+            ["CHAPTERS"] = project.ChaptersText ?? string.Empty,
             ["TAGS"] = tagsCsv,
             ["HASHTAGS"] = hashTags,
             ["PLAYLIST"] = project.PlaylistTitle ?? project.PlaylistId,

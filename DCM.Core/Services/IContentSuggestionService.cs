@@ -18,4 +18,9 @@ public interface IContentSuggestionService
         UploadProject project,
         ChannelPersona persona,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ChapterTopic>> SuggestChaptersAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default);
 }

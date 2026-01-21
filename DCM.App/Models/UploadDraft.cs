@@ -17,6 +17,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private string _tagsCsv = string.Empty;
     private string _thumbnailPath = string.Empty;
     private string _transcript = string.Empty;
+    private string _chaptersText = string.Empty;
     private string? _presetId;
     private string _fileName = string.Empty;
     private long _fileSizeBytes;
@@ -103,6 +104,12 @@ public sealed class UploadDraft : INotifyPropertyChanged
     {
         get => _transcript;
         set => SetProperty(ref _transcript, value);
+    }
+
+    public string ChaptersText
+    {
+        get => _chaptersText;
+        set => SetProperty(ref _chaptersText, value);
     }
 
     public PlatformType Platform
@@ -396,6 +403,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
             TagsCsv = TagsCsv,
             ThumbnailPath = ThumbnailPath,
             Transcript = Transcript,
+            ChaptersText = ChaptersText,
             PresetId = PresetId,
             VideoResolution = VideoResolution,
             VideoFps = VideoFps,
@@ -434,6 +442,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
             TagsCsv = snapshot.TagsCsv ?? string.Empty,
             ThumbnailPath = snapshot.ThumbnailPath ?? string.Empty,
             Transcript = snapshot.Transcript ?? string.Empty,
+            ChaptersText = snapshot.ChaptersText ?? string.Empty,
             PresetId = snapshot.PresetId,
             VideoResolution = snapshot.VideoResolution,
             VideoFps = snapshot.VideoFps,

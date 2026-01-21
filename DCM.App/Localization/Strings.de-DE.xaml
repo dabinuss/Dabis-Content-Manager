@@ -31,6 +31,13 @@
   <sys:String x:Key="Status.LLM.NoTags">Keine Tag-Vorschläge verfügbar.</sys:String>
   <sys:String x:Key="Status.LLM.TagsCanceled">Tag-Generierung abgebrochen.</sys:String>
   <sys:String x:Key="Status.LLM.TagsError">Fehler bei Tag-Generierung: {0}</sys:String>
+  <sys:String x:Key="Status.LLM.GenerateChapters">Generiere Kapitelmarker...</sys:String>
+  <sys:String x:Key="Status.LLM.ChaptersInserted">Kapitelmarker eingefuegt.</sys:String>
+  <sys:String x:Key="Status.LLM.NoChapters">Keine Kapitelmarker verfuegbar.</sys:String>
+  <sys:String x:Key="Status.LLM.ChaptersCanceled">Kapitelgenerierung abgebrochen.</sys:String>
+  <sys:String x:Key="Status.LLM.ChaptersError">Fehler bei Kapitelgenerierung: {0}</sys:String>
+  <sys:String x:Key="Status.LLM.ChaptersMissingTranscript">Kein Transkript fuer Kapitel vorhanden.</sys:String>
+  <sys:String x:Key="Status.LLM.ChaptersMissingDuration">Videodauer fehlt fuer Kapitel.</sys:String>
   <sys:String x:Key="Status.Update.Checking">Prüfe auf Updates...</sys:String>
   <sys:String x:Key="Status.Update.NotPossible">Update-Prüfung nicht möglich.</sys:String>
   <sys:String x:Key="Status.Update.InfoMissing">Update-Informationen konnten nicht gelesen werden.</sys:String>
@@ -224,6 +231,10 @@
   <sys:String x:Key="Upload.Fields.Tags">Tags</sys:String>
   <sys:String x:Key="Upload.Fields.Transcription">Transkription</sys:String>
   <sys:String x:Key="Upload.Fields.Transcription.Descr">Automatisch generiertes Transkript, benutzt für KI-Vorschläge.</sys:String>
+  <sys:String x:Key="Upload.Fields.Chapters">Kapitel</sys:String>
+  <sys:String x:Key="Upload.Fields.Chapters.Descr">Themenbasierte Kapitelmarker fuer die Beschreibung.</sys:String>
+  <sys:String x:Key="Upload.Fields.Chapters.ToolTip">Kapitelmarker (wird in Preset-Templates als {Chapters} genutzt)</sys:String>
+  <sys:String x:Key="Upload.Fields.Chapters.Generate">Kapitel generieren</sys:String>
   <sys:String x:Key="Upload.Fields.Transcripe">Transkribieren</sys:String>
   <sys:String x:Key="Upload.Fields.Platform">Platform</sys:String>
   <sys:String x:Key="Upload.Fields.Platform.YouTube">Youtube</sys:String>

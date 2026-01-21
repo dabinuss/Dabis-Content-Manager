@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using DCM.Core.Configuration;
 using DCM.Core.Logging;
@@ -22,6 +23,9 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     private const int MaxTranscriptCharsForDescription = 4000;
     private const int MaxTranscriptCharsForTags = 2000;
     private const int MaxTranscriptCharsForTitles = 1500;
+    private const int MaxTranscriptCharsForChapters = 6000;
+    private const int ChapterChunkSize = 3500;
+    private const int ChapterChunkOverlap = 400;
     private const int MinimumTranscriptLength = 50;
 
     private static readonly string[] TitleStyles =
@@ -648,6 +652,1309 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
     #endregion
 
+    #region SuggestChaptersAsync
+
+    public async Task<IReadOnlyList<ChapterTopic>> SuggestChaptersAsync(
+        UploadProject project,
+        ChannelPersona persona,
+        CancellationToken cancellationToken = default)
+    {
+        var originalMaxTokens = _settings.MaxTokens;
+
+        if (!HasTranscript(project))
+        {
+            _logger.Debug("Kapitel: Kein Transkript vorhanden -> Fallback", "ContentSuggestion");
+            return await _fallbackSuggestionService.SuggestChaptersAsync(project, persona, cancellationToken);
+        }
+
+        if (!await EnsureLlmReadyAsync(cancellationToken))
+        {
+            _logger.Debug("Kapitel: LLM nicht bereit -> Fallback", "ContentSuggestion");
+            return await _fallbackSuggestionService.SuggestChaptersAsync(project, persona, cancellationToken);
+        }
+
+        try
+        {
+            var maxTokensOverride = Math.Max(originalMaxTokens, 1024);
+            if (maxTokensOverride != originalMaxTokens)
+            {
+                _settings.MaxTokens = maxTokensOverride;
+            }
+
+            var normalizedTranscript = NormalizeTranscriptForPrompt(project.TranscriptText ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(normalizedTranscript))
+            {
+                _logger.Warning("Kapitel: Transkript leer nach Normalisierung -> Fallback", "ContentSuggestion");
+                return await _fallbackSuggestionService.SuggestChaptersAsync(project, persona, cancellationToken);
+            }
+
+            IReadOnlyList<ChapterTopic> chapters;
+
+            if (normalizedTranscript.Length <= MaxTranscriptCharsForChapters)
+            {
+                var prompt = BuildChaptersPrompt(
+                    normalizedTranscript,
+                    strictJson: false,
+                    minChapters: 6,
+                    maxChapters: 10,
+                    chunkHint: null);
+                _logger.Debug($"Kapitel-Prompt erstellt, Laenge: {prompt.Length} Zeichen", "ContentSuggestion");
+
+                var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
+                _logger.Debug($"Kapitel-Response erhalten, Laenge: {response?.Length ?? 0} Zeichen", "ContentSuggestion");
+
+                var parsed = ParseChaptersResponse(response, normalizedTranscript, minExpected: 6);
+                if (parsed.Count < 6)
+                {
+                    _logger.Warning("Kapitel: Zu wenige valide Anker -> Retry", "ContentSuggestion");
+
+                    var retryPrompt = BuildChaptersPrompt(
+                        normalizedTranscript,
+                        strictJson: true,
+                        minChapters: 6,
+                        maxChapters: 10,
+                        chunkHint: null);
+                    _logger.Debug($"Kapitel-Retry-Prompt erstellt, Laenge: {retryPrompt.Length} Zeichen", "ContentSuggestion");
+
+                    var retryResponse = await _llmClient.CompleteAsync(retryPrompt, cancellationToken);
+                    _logger.Debug($"Kapitel-Retry-Response erhalten, Laenge: {retryResponse?.Length ?? 0} Zeichen", "ContentSuggestion");
+
+                    parsed = ParseChaptersResponse(retryResponse, normalizedTranscript, minExpected: 6);
+                }
+
+                chapters = parsed;
+                if (chapters.Count < 6)
+                {
+                    _logger.Warning("Kapitel: Fallback auf Segmentierung", "ContentSuggestion");
+                    chapters = await SuggestChaptersChunkedAsync(
+                        normalizedTranscript,
+                        cancellationToken,
+                        forcedChunkSize: GetFallbackChunkSize(normalizedTranscript));
+                }
+            }
+            else
+            {
+                chapters = await SuggestChaptersChunkedAsync(normalizedTranscript, cancellationToken);
+            }
+
+            if (chapters.Count == 0)
+            {
+                _logger.Warning("Kapitel: Keine Kapitel aus Response geparsed -> Fallback", "ContentSuggestion");
+                return await _fallbackSuggestionService.SuggestChaptersAsync(project, persona, cancellationToken);
+            }
+
+            chapters = await EnsureChapterTitlesAsync(chapters, normalizedTranscript, cancellationToken);
+            if (chapters.Count == 0)
+            {
+                _logger.Warning("Kapitel: Keine gueltigen Titel generiert", "ContentSuggestion");
+                return Array.Empty<ChapterTopic>();
+            }
+
+            _logger.Info($"Kapitel: {chapters.Count} Themenbereiche generiert", "ContentSuggestion");
+            return chapters;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.Debug("Kapitel-Generierung abgebrochen", "ContentSuggestion");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Kapitel-Generierung fehlgeschlagen: {ex.Message}", "ContentSuggestion", ex);
+            return await _fallbackSuggestionService.SuggestChaptersAsync(project, persona, cancellationToken);
+        }
+        finally
+        {
+            _settings.MaxTokens = originalMaxTokens;
+        }
+    }
+
+    private async Task<IReadOnlyList<ChapterTopic>> SuggestChaptersChunkedAsync(
+        string normalizedTranscript,
+        CancellationToken cancellationToken,
+        int? forcedChunkSize = null)
+    {
+        var chunkSize = forcedChunkSize ?? ChapterChunkSize;
+        var overlap = Math.Min(ChapterChunkOverlap, Math.Max(100, chunkSize / 4));
+        var chunks = SplitTranscriptIntoChunks(normalizedTranscript, chunkSize, overlap);
+        if (chunks.Count == 0)
+        {
+            return Array.Empty<ChapterTopic>();
+        }
+
+        var totalChunks = chunks.Count;
+        var minPerChunk = totalChunks <= 3 ? 3 : totalChunks <= 6 ? 2 : 1;
+        var maxPerChunk = totalChunks <= 3 ? 5 : totalChunks <= 6 ? 4 : 3;
+
+        var chunkedTopics = new List<ChunkTopic>();
+        for (var i = 0; i < chunks.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var chunk = chunks[i];
+
+            var prompt = BuildChaptersPrompt(
+                chunk.Text,
+                strictJson: false,
+                minChapters: minPerChunk,
+                maxChapters: maxPerChunk,
+                chunkHint: $"{i + 1}/{totalChunks}");
+
+            _logger.Debug($"Kapitel-Chunk-Prompt erstellt ({i + 1}/{totalChunks}), Laenge: {prompt.Length} Zeichen", "ContentSuggestion");
+
+            var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
+            _logger.Debug($"Kapitel-Chunk-Response erhalten ({i + 1}/{totalChunks}), Laenge: {response?.Length ?? 0} Zeichen", "ContentSuggestion");
+
+            var parsed = ParseChaptersResponse(response, normalizedTranscript, minExpected: minPerChunk);
+            if (parsed.Count < minPerChunk)
+            {
+                _logger.Warning($"Kapitel-Chunk {i + 1}/{totalChunks}: Zu wenige valide Anker -> Retry", "ContentSuggestion");
+
+                var retryPrompt = BuildChaptersPrompt(
+                    chunk.Text,
+                    strictJson: true,
+                    minChapters: minPerChunk,
+                    maxChapters: maxPerChunk,
+                    chunkHint: $"{i + 1}/{totalChunks}");
+
+                _logger.Debug($"Kapitel-Chunk-Retry-Prompt erstellt ({i + 1}/{totalChunks}), Laenge: {retryPrompt.Length} Zeichen", "ContentSuggestion");
+
+                var retryResponse = await _llmClient.CompleteAsync(retryPrompt, cancellationToken);
+                _logger.Debug($"Kapitel-Chunk-Retry-Response erhalten ({i + 1}/{totalChunks}), Laenge: {retryResponse?.Length ?? 0} Zeichen", "ContentSuggestion");
+
+                parsed = ParseChaptersResponse(retryResponse, normalizedTranscript, minExpected: minPerChunk);
+            }
+
+            foreach (var topic in parsed)
+            {
+                chunkedTopics.Add(new ChunkTopic(topic, chunk.StartIndex));
+            }
+        }
+
+        if (chunkedTopics.Count == 0)
+        {
+            return Array.Empty<ChapterTopic>();
+        }
+
+        var lowerTranscript = normalizedTranscript.ToLowerInvariant();
+        var ordered = chunkedTopics
+            .Select((entry, index) => new ChapterOrder(
+                entry.Topic,
+                GetTopicPosition(lowerTranscript, entry.Topic, entry.StartIndex),
+                index))
+            .OrderBy(x => x.Position)
+            .ThenBy(x => x.Order)
+            .ToList();
+
+        var maxDesired = totalChunks * maxPerChunk;
+        var minDesired = Math.Min(8, maxDesired);
+        var desiredMin = Math.Clamp(normalizedTranscript.Length / 1500, minDesired, maxDesired);
+
+        var merged = MergeChapters(ordered, aggressive: true);
+        if (merged.Count < desiredMin)
+        {
+            merged = MergeChapters(ordered, aggressive: false);
+        }
+
+        return merged.Select(m => m.Topic).ToList();
+    }
+
+    private string BuildChaptersPrompt(
+        string transcript,
+        bool strictJson,
+        int minChapters,
+        int maxChapters,
+        string? chunkHint)
+    {
+        var sb = new StringBuilder();
+        var sessionId = GetSessionId();
+        var normalizedTranscript = NormalizeTranscriptForPrompt(transcript);
+        var truncated = TextCleaningUtility.TruncateTranscript(normalizedTranscript, MaxTranscriptCharsForChapters);
+
+        sb.AppendLine("<|system|>");
+        sb.AppendLine("Du segmentierst ein Transkript in thematische Kapitel.");
+        sb.AppendLine("Antworte als JSON-Array, keine Markdown-Fences, keine Zusatztexte.");
+        sb.AppendLine("Schema je Kapitel:");
+        sb.AppendLine("{\"anchor\":\"<exakte Wortfolge aus dem Transkript>\",\"keywords\":[\"...\",\"...\"]}");
+        sb.AppendLine("Anchor-Regeln:");
+        sb.AppendLine("- MUSS exakte Wortfolge aus dem Transkript sein (2-12 Woerter, 1:1 kopieren).");
+        sb.AppendLine("- Bevorzuge 3-8 Woerter; 2 Woerter nur wenn sehr eindeutig.");
+        sb.AppendLine("- MUSS eindeutig sein (kommt idealerweise nur 1x vor, keine generischen Phrasen).");
+        sb.AppendLine("- Waehle informative Phrasen, keine Standardfloskeln.");
+        sb.AppendLine("- Keine Zeitangaben, keine Nummerierung, keine Ueberschriften.");
+        sb.AppendLine("Keywords optional, leeres Array wenn unsicher.");
+        sb.AppendLine("WICHTIG: Keine Titel liefern. Titel werden spaeter aus dem Kontext erzeugt.");
+        sb.AppendLine("Diversitaet: Kapitel muessen klar unterschiedliche Schwerpunkte haben, keine wiederholten Oberthemen.");
+        sb.AppendLine($"Gib {minChapters}-{maxChapters} Kapitel zurueck, lieber etwas mehr als zu wenig, wenn klar trennbar.");
+        sb.AppendLine("Ausgabe muss mit '[' beginnen und mit ']' enden.");
+        if (strictJson)
+        {
+            sb.AppendLine("WICHTIG: Ausgabe muss gueltiges JSON sein, sonst [].");
+            sb.AppendLine("Vorige Antwort hatte zu wenige valide Anker. Waehle eindeutigere Anker.");
+        }
+        sb.AppendLine("<|end|>");
+
+        sb.AppendLine("<|user|>");
+        sb.AppendLine($"[Session: {sessionId}]");
+        if (!string.IsNullOrWhiteSpace(chunkHint))
+        {
+            sb.AppendLine($"Ausschnitt: {chunkHint}");
+        }
+        sb.AppendLine("Ordne die Themen so, wie sie im Transkript vorkommen.");
+        sb.AppendLine("Anker nur fuer diesen Ausschnitt, keine generischen Wiederholungen.");
+        sb.AppendLine();
+        sb.AppendLine("---TRANSKRIPT START---");
+        sb.Append(truncated);
+        sb.AppendLine();
+        sb.AppendLine("---TRANSKRIPT ENDE---");
+        sb.AppendLine("<|end|>");
+        sb.AppendLine("<|assistant|>");
+
+        return sb.ToString();
+    }
+
+    private List<ChapterTopic> ParseChaptersResponse(string? response, string transcript, int minExpected = 0)
+    {
+        if (string.IsNullOrWhiteSpace(response) || string.IsNullOrWhiteSpace(transcript))
+        {
+            return new List<ChapterTopic>();
+        }
+
+        var json = ExtractJsonPayload(response);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new List<ChapterTopic>();
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            var elements = new List<JsonElement>();
+
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                elements.AddRange(root.EnumerateArray());
+            }
+            else if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (TryGetArrayProperty(root, new[] { "chapters", "topics", "items" }, out var array))
+                {
+                    elements.AddRange(array);
+                }
+                else
+                {
+                    elements.Add(root);
+                }
+            }
+
+            var normalizedTranscript = NormalizeForMatch(transcript);
+            var strictTopics = new List<ChapterTopic>();
+            var relaxedTopics = new List<ChapterTopic>();
+            var looseTopics = new List<ChapterTopic>();
+
+            foreach (var element in elements)
+            {
+                if (element.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var anchor = GetStringProperty(element, "anchor", "anker", "anchorText", "ankertext", "quote");
+
+                if (string.IsNullOrWhiteSpace(anchor))
+                {
+                    continue;
+                }
+
+                anchor = TextCleaningUtility.RemoveQuotes(anchor).Trim();
+
+                var normalizedAnchor = NormalizeForMatch(anchor);
+                if (!string.IsNullOrWhiteSpace(normalizedAnchor))
+                {
+                    var wordCount = CountWords(normalizedAnchor);
+                    var occurrences = 0;
+                    if (normalizedTranscript.Contains(normalizedAnchor, StringComparison.Ordinal))
+                    {
+                        occurrences = CountOccurrences(normalizedTranscript, normalizedAnchor);
+                    }
+
+                    if (occurrences == 0)
+                    {
+                        continue;
+                    }
+
+                    var keywords = GetKeywordsProperty(element, "keywords", "stichwoerter", "schluesselwoerter");
+                    if (keywords.Count == 0)
+                    {
+                        keywords = ExtractKeywords(anchor);
+                    }
+
+                    var topic = new ChapterTopic(string.Empty, keywords, anchor);
+
+                    if (wordCount >= 3
+                        && wordCount <= 14
+                        && occurrences <= 6)
+                    {
+                        strictTopics.Add(topic);
+                    }
+
+                    if (wordCount >= 2
+                        && wordCount <= 16
+                        && occurrences <= 10)
+                    {
+                        relaxedTopics.Add(topic);
+                    }
+
+                    if (wordCount >= 2
+                        && wordCount <= 20
+                        && occurrences <= 14)
+                    {
+                        looseTopics.Add(topic);
+                    }
+                }
+            }
+
+            var strictDistinct = strictTopics
+                .DistinctBy(t => t.AnchorText ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var relaxedDistinct = relaxedTopics
+                .DistinctBy(t => t.AnchorText ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var looseDistinct = looseTopics
+                .DistinctBy(t => t.AnchorText ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var minCount = Math.Max(1, minExpected);
+            var best = new[] { strictDistinct, relaxedDistinct, looseDistinct }
+                .Where(list => list.Count > 0)
+                .OrderByDescending(list => list.Count)
+                .FirstOrDefault();
+
+            var bestMeetingMin = new[] { strictDistinct, relaxedDistinct, looseDistinct }
+                .Where(list => list.Count >= minCount)
+                .OrderByDescending(list => list.Count)
+                .FirstOrDefault();
+
+            return bestMeetingMin ?? best ?? new List<ChapterTopic>();
+        }
+        catch
+        {
+            return new List<ChapterTopic>();
+        }
+    }
+
+    private async Task<IReadOnlyList<ChapterTopic>> EnsureChapterTitlesAsync(
+        IReadOnlyList<ChapterTopic> topics,
+        string transcript,
+        CancellationToken cancellationToken)
+    {
+        if (topics.Count == 0)
+        {
+            return topics;
+        }
+
+        var needsTitles = topics.Any(t => string.IsNullOrWhiteSpace(t.Title));
+        if (!needsTitles)
+        {
+            return topics;
+        }
+
+        try
+        {
+            var missing = topics.Where(t => string.IsNullOrWhiteSpace(t.Title)).ToList();
+            var resolved = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            await GenerateTitlesForMissingAsync(missing, transcript, strict: false, resolved, cancellationToken);
+            missing = missing
+                .Where(t => !resolved.ContainsKey(NormalizeForMatch(t.AnchorText ?? string.Empty)))
+                .ToList();
+
+            if (missing.Count > 0)
+            {
+                await GenerateTitlesForMissingAsync(missing, transcript, strict: true, resolved, cancellationToken);
+            }
+
+            return topics
+                .Select(topic =>
+                {
+                    if (!string.IsNullOrWhiteSpace(topic.Title))
+                    {
+                        return topic;
+                    }
+
+                    var key = NormalizeForMatch(topic.AnchorText ?? string.Empty);
+                    if (resolved.TryGetValue(key, out var title) && IsValidChapterTitle(title))
+                    {
+                        return topic with { Title = title };
+                    }
+
+                    return topic;
+                })
+                .Where(t => IsValidChapterTitle(t.Title))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning($"Kapitel: Titel-Generierung fehlgeschlagen ({ex.Message})", "ContentSuggestion");
+            return topics
+                .Where(t => IsValidChapterTitle(t.Title))
+                .ToList();
+        }
+    }
+
+    private async Task GenerateTitlesForMissingAsync(
+        IReadOnlyList<ChapterTopic> missing,
+        string transcript,
+        bool strict,
+        Dictionary<string, string> resolved,
+        CancellationToken cancellationToken)
+    {
+        const int batchSize = 8;
+        for (var i = 0; i < missing.Count; i += batchSize)
+        {
+            var batch = missing.Skip(i).Take(batchSize).ToList();
+            var prompt = BuildChapterTitlesPrompt(batch, transcript, strict);
+            var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
+            var titleMap = ParseChapterTitlesResponse(response);
+
+            foreach (var pair in titleMap)
+            {
+                if (!resolved.ContainsKey(pair.Key))
+                {
+                    resolved[pair.Key] = pair.Value;
+                }
+            }
+        }
+    }
+
+    private string BuildChapterTitlesPrompt(IReadOnlyList<ChapterTopic> topics, string transcript, bool strict)
+    {
+        var sb = new StringBuilder();
+        var sessionId = GetSessionId();
+
+        sb.AppendLine("<|system|>");
+        sb.AppendLine("Du erstellst kurze YouTube-Kapitel-Titel auf Deutsch.");
+        sb.AppendLine("Ausgabe: JSON-Array, keine Markdown-Fences, keine Zusatztexte.");
+        sb.AppendLine("Schema je Eintrag: {\"anchor\":\"<exakte Wortfolge>\",\"title\":\"<kurzer Titel>\"}");
+        sb.AppendLine("Titel-Regeln: 2-8 Woerter, keine Nummerierung, keine generischen Titel.");
+        sb.AppendLine("Titel darf KEIN direktes Zitat oder Teilstring des Anchors sein.");
+        sb.AppendLine("Nutze nur den Kontext, keine neuen Fakten erfinden.");
+        if (strict)
+        {
+            sb.AppendLine("WICHTIG: Titel muessen klar anders formuliert sein als der Anchor.");
+        }
+        sb.AppendLine("<|end|>");
+
+        sb.AppendLine("<|user|>");
+        sb.AppendLine($"[Session: {sessionId}]");
+        sb.AppendLine("Erzeuge fuer jeden Anchor einen passenden Titel.");
+        sb.AppendLine("Anchor muss im Output exakt gleich sein.");
+        sb.AppendLine();
+
+        foreach (var topic in topics)
+        {
+            if (string.IsNullOrWhiteSpace(topic.AnchorText))
+            {
+                continue;
+            }
+
+            var context = BuildAnchorContext(transcript, topic.AnchorText, 320);
+            if (string.IsNullOrWhiteSpace(context))
+            {
+                context = topic.AnchorText;
+            }
+
+            sb.AppendLine($"Anchor: {topic.AnchorText}");
+            sb.AppendLine($"Kontext: {context}");
+            sb.AppendLine("---");
+        }
+
+        sb.AppendLine("<|end|>");
+        sb.AppendLine("<|assistant|>");
+
+        return sb.ToString();
+    }
+
+    private Dictionary<string, string> ParseChapterTitlesResponse(string? response)
+    {
+        var titles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            return titles;
+        }
+
+        var json = ExtractJsonPayload(response);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return titles;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+            var elements = new List<JsonElement>();
+
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                elements.AddRange(root.EnumerateArray());
+            }
+            else if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (TryGetArrayProperty(root, new[] { "chapters", "titles", "items" }, out var array))
+                {
+                    elements.AddRange(array);
+                }
+                else
+                {
+                    elements.Add(root);
+                }
+            }
+
+            foreach (var element in elements)
+            {
+                if (element.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var anchor = GetStringProperty(element, "anchor", "anker", "anchorText", "ankertext", "quote");
+                var title = GetStringProperty(element, "title", "titel", "name");
+
+                if (string.IsNullOrWhiteSpace(anchor) || string.IsNullOrWhiteSpace(title))
+                {
+                    continue;
+                }
+
+                var cleanedTitle = CleanChapterTitle(title);
+                if (!IsValidChapterTitle(cleanedTitle))
+                {
+                    continue;
+                }
+
+                var key = NormalizeForMatch(anchor);
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    continue;
+                }
+
+                if (IsTitleTooCloseToAnchor(cleanedTitle, anchor))
+                {
+                    continue;
+                }
+
+                titles[key] = cleanedTitle;
+            }
+        }
+        catch
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        return titles;
+    }
+
+    private static string CleanChapterTitle(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return string.Empty;
+        }
+
+        var cleaned = TextCleaningUtility.CleanTitleLine(title);
+        cleaned = TextCleaningUtility.RemoveQuotes(cleaned);
+        return cleaned.Trim();
+    }
+
+    private static bool IsValidChapterTitle(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return false;
+        }
+
+        if (title.Length < 3 || title.Length > 160)
+        {
+            return false;
+        }
+
+        return !IsChapterHeaderLine(title);
+    }
+
+
+    private static bool IsTitleTooCloseToAnchor(string title, string anchor)
+    {
+        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(anchor))
+        {
+            return false;
+        }
+
+        var normalizedTitle = TextCleaningUtility.NormalizeForComparison(title);
+        var normalizedAnchor = TextCleaningUtility.NormalizeForComparison(anchor);
+
+        if (string.IsNullOrWhiteSpace(normalizedTitle) || string.IsNullOrWhiteSpace(normalizedAnchor))
+        {
+            return false;
+        }
+
+        if (normalizedAnchor.Contains(normalizedTitle, StringComparison.Ordinal))
+        {
+            var ratio = (double)normalizedTitle.Length / normalizedAnchor.Length;
+            if (ratio >= 0.7)
+            {
+                return true;
+            }
+        }
+
+        var similarity = TextCleaningUtility.CalculateSimilarity(normalizedTitle, normalizedAnchor);
+        return similarity >= 0.9;
+    }
+
+    private static string BuildAnchorContext(string transcript, string anchor, int maxChars)
+    {
+        if (string.IsNullOrWhiteSpace(transcript) || string.IsNullOrWhiteSpace(anchor))
+        {
+            return string.Empty;
+        }
+
+        var lowerTranscript = transcript.ToLowerInvariant();
+        var anchorLower = anchor.ToLowerInvariant();
+        var anchorIndex = lowerTranscript.IndexOf(anchorLower, StringComparison.Ordinal);
+        if (anchorIndex < 0)
+        {
+            return string.Empty;
+        }
+
+        var left = FindSentenceBoundaryLeft(transcript, anchorIndex, 2);
+        var right = FindSentenceBoundaryRight(transcript, anchorIndex + anchor.Length, 2);
+        if (right <= left)
+        {
+            return string.Empty;
+        }
+
+        var context = transcript[left..right].Trim();
+        if (context.Length > maxChars)
+        {
+            var half = maxChars / 2;
+            var start = Math.Max(0, anchorIndex - half);
+            var end = Math.Min(transcript.Length, anchorIndex + anchor.Length + half);
+            context = transcript[start..end].Trim();
+        }
+
+        return context.Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim();
+    }
+
+    private static int FindSentenceBoundaryLeft(string text, int index, int count)
+    {
+        if (index <= 0)
+        {
+            return 0;
+        }
+
+        var pos = Math.Min(index, text.Length - 1);
+        for (var i = 0; i < count; i++)
+        {
+            var boundary = text.LastIndexOfAny(new[] { '.', '!', '?', '\n' }, pos);
+            if (boundary < 0)
+            {
+                return 0;
+            }
+
+            pos = Math.Max(0, boundary - 1);
+        }
+
+        return Math.Min(text.Length, pos + 2);
+    }
+
+    private static int FindSentenceBoundaryRight(string text, int index, int count)
+    {
+        if (index >= text.Length)
+        {
+            return text.Length;
+        }
+
+        var pos = Math.Max(0, index);
+        for (var i = 0; i < count; i++)
+        {
+            var boundary = text.IndexOfAny(new[] { '.', '!', '?', '\n' }, pos);
+            if (boundary < 0)
+            {
+                return text.Length;
+            }
+
+            pos = Math.Min(text.Length, boundary + 1);
+        }
+
+        return Math.Min(text.Length, pos + 1);
+    }
+
+    private static string ExtractJsonPayload(string response)
+    {
+        if (string.IsNullOrWhiteSpace(response))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = response.Trim();
+        if (trimmed.StartsWith("```", StringComparison.Ordinal))
+        {
+            var fenceEnd = trimmed.LastIndexOf("```", StringComparison.Ordinal);
+            if (fenceEnd > 0)
+            {
+                trimmed = trimmed[3..fenceEnd].Trim();
+            }
+        }
+
+        var arrayStart = trimmed.IndexOf('[', StringComparison.Ordinal);
+        var objectStart = trimmed.IndexOf('{', StringComparison.Ordinal);
+        if (arrayStart >= 0 && (objectStart < 0 || arrayStart < objectStart))
+        {
+            var arrayEnd = trimmed.LastIndexOf(']');
+            if (arrayEnd > arrayStart)
+            {
+                return trimmed[arrayStart..(arrayEnd + 1)];
+            }
+        }
+
+        if (objectStart >= 0)
+        {
+            var objectEnd = trimmed.LastIndexOf('}');
+            if (objectEnd > objectStart)
+            {
+                return trimmed[objectStart..(objectEnd + 1)];
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static bool TryGetArrayProperty(JsonElement element, IReadOnlyList<string> names, out List<JsonElement> array)
+    {
+        array = new List<JsonElement>();
+        foreach (var property in element.EnumerateObject())
+        {
+            foreach (var name in names)
+            {
+                if (!string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (property.Value.ValueKind == JsonValueKind.Array)
+                {
+                    array.AddRange(property.Value.EnumerateArray());
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static string? GetStringProperty(JsonElement element, params string[] names)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            foreach (var name in names)
+            {
+                if (!string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (property.Value.ValueKind == JsonValueKind.String)
+                {
+                    return property.Value.GetString();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static List<string> GetKeywordsProperty(JsonElement element, params string[] names)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            foreach (var name in names)
+            {
+                if (!string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (property.Value.ValueKind == JsonValueKind.Array)
+                {
+                    return property.Value
+                        .EnumerateArray()
+                        .Where(v => v.ValueKind == JsonValueKind.String)
+                        .Select(v => v.GetString() ?? string.Empty)
+                        .Select(TextCleaningUtility.RemoveQuotes)
+                        .Select(TextCleaningUtility.RemoveNumberPrefix)
+                        .Select(k => k.Trim())
+                        .Where(k => k.Length >= 3)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .Take(12)
+                        .ToList();
+                }
+
+                if (property.Value.ValueKind == JsonValueKind.String)
+                {
+                    return ExtractKeywords(property.Value.GetString() ?? string.Empty);
+                }
+            }
+        }
+
+        return new List<string>();
+    }
+
+    private static string NormalizeForMatch(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var normalized = Regex.Replace(text, @"[^\p{L}\p{N}]+", " ");
+        normalized = Regex.Replace(normalized, @"\s+", " ");
+        return normalized.Trim().ToLowerInvariant();
+    }
+
+    private static string NormalizeTranscriptForPrompt(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        return Regex.Replace(text, @"\s+", " ").Trim();
+    }
+
+    private static int CountWords(string normalizedText)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedText))
+        {
+            return 0;
+        }
+
+        return normalizedText
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Length;
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(value))
+        {
+            return 0;
+        }
+
+        var count = 0;
+        var index = 0;
+        while (true)
+        {
+            var found = text.IndexOf(value, index, StringComparison.Ordinal);
+            if (found < 0)
+            {
+                break;
+            }
+
+            count++;
+            index = found + value.Length;
+            if (index >= text.Length)
+            {
+                break;
+            }
+        }
+
+        return count;
+    }
+
+    private static List<TranscriptChunk> SplitTranscriptIntoChunks(string transcript, int chunkSize, int overlap)
+    {
+        var chunks = new List<TranscriptChunk>();
+        if (string.IsNullOrWhiteSpace(transcript))
+        {
+            return chunks;
+        }
+
+        var length = transcript.Length;
+        if (length <= chunkSize)
+        {
+            chunks.Add(new TranscriptChunk(transcript, 0));
+            return chunks;
+        }
+
+        var start = 0;
+        while (start < length)
+        {
+            var end = Math.Min(start + chunkSize, length);
+            if (end < length)
+            {
+                var split = transcript.LastIndexOf(' ', end);
+                if (split > start + (chunkSize / 2))
+                {
+                    end = split;
+                }
+            }
+
+            if (end <= start)
+            {
+                end = Math.Min(start + chunkSize, length);
+            }
+
+            var chunkText = transcript[start..end].Trim();
+            if (!string.IsNullOrWhiteSpace(chunkText))
+            {
+                chunks.Add(new TranscriptChunk(chunkText, start));
+            }
+
+            if (end >= length)
+            {
+                break;
+            }
+
+            start = Math.Max(0, end - overlap);
+        }
+
+        return chunks;
+    }
+
+    private static int GetFallbackChunkSize(string normalizedTranscript)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedTranscript))
+        {
+            return ChapterChunkSize;
+        }
+
+        var length = normalizedTranscript.Length;
+        var target = Math.Max(900, length / 3);
+        return Math.Clamp(target, 900, ChapterChunkSize);
+    }
+
+    private static int GetTopicPosition(string lowerTranscript, ChapterTopic topic, int fallbackPosition)
+    {
+        if (!string.IsNullOrWhiteSpace(topic.AnchorText))
+        {
+            var anchorIdx = lowerTranscript.IndexOf(topic.AnchorText.Trim().ToLowerInvariant(), StringComparison.Ordinal);
+            if (anchorIdx >= 0)
+            {
+                return anchorIdx;
+            }
+        }
+
+        var keywords = topic.Keywords ?? Array.Empty<string>();
+        foreach (var keyword in keywords)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                continue;
+            }
+
+            var idx = lowerTranscript.IndexOf(keyword.Trim().ToLowerInvariant(), StringComparison.Ordinal);
+            if (idx >= 0)
+            {
+                return idx;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(topic.Title))
+        {
+            var titleIdx = lowerTranscript.IndexOf(topic.Title.Trim().ToLowerInvariant(), StringComparison.Ordinal);
+            if (titleIdx >= 0)
+            {
+                return titleIdx;
+            }
+        }
+
+        return fallbackPosition;
+    }
+
+    private static bool IsDuplicateChapter(
+        IReadOnlyList<ChapterWithPosition> existing,
+        ChapterTopic candidate,
+        int candidatePosition)
+    {
+        if (existing.Count == 0)
+        {
+            return false;
+        }
+
+        var title = candidate.Title?.Trim();
+        var normalizedTitle = NormalizeTitleForComparison(title);
+        var candidateKeywords = NormalizeKeywords(candidate.Keywords);
+        var proximityThreshold = Math.Max(ChapterChunkOverlap * 3, 800);
+
+        foreach (var item in existing)
+        {
+            var distance = Math.Abs(candidatePosition - item.Position);
+            if (distance > proximityThreshold)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                var existingTitle = item.Topic.Title?.Trim();
+                if (string.Equals(existingTitle, title, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                var existingNormalized = NormalizeTitleForComparison(existingTitle);
+                if (!string.IsNullOrWhiteSpace(normalizedTitle)
+                    && !string.IsNullOrWhiteSpace(existingNormalized))
+                {
+                    var similarity = TextCleaningUtility.CalculateSimilarity(normalizedTitle, existingNormalized);
+                    if (similarity >= 0.78)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if (candidateKeywords.Count > 0)
+            {
+                var existingKeywords = NormalizeKeywords(item.Topic.Keywords);
+                if (existingKeywords.Count > 0)
+                {
+                    var overlap = KeywordOverlapRatio(candidateKeywords, existingKeywords);
+                    if (overlap >= 0.6)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(candidate.AnchorText))
+        {
+            var anchor = NormalizeForMatch(candidate.AnchorText);
+            foreach (var item in existing)
+            {
+                if (string.IsNullOrWhiteSpace(item.Topic.AnchorText))
+                {
+                    continue;
+                }
+
+                var distance = Math.Abs(candidatePosition - item.Position);
+                if (distance > proximityThreshold)
+                {
+                    continue;
+                }
+
+                if (NormalizeForMatch(item.Topic.AnchorText) == anchor)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static List<ChapterWithPosition> MergeChapters(
+        IReadOnlyList<ChapterOrder> ordered,
+        bool aggressive)
+    {
+        var merged = new List<ChapterWithPosition>();
+
+        foreach (var item in ordered)
+        {
+            var current = item.Topic;
+            var position = item.Position;
+
+            var isDuplicate = aggressive
+                ? IsDuplicateChapter(merged, current, position)
+                : IsExactTitleDuplicate(merged, current);
+
+            if (isDuplicate)
+            {
+                continue;
+            }
+
+            merged.Add(new ChapterWithPosition(current, position));
+        }
+
+        return merged;
+    }
+
+    private static bool IsExactTitleDuplicate(IReadOnlyList<ChapterWithPosition> existing, ChapterTopic candidate)
+    {
+        if (existing.Count == 0)
+        {
+            return false;
+        }
+
+        var title = candidate.Title?.Trim();
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return false;
+        }
+
+        foreach (var item in existing)
+        {
+            if (string.Equals(item.Topic.Title, title, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string NormalizeTitleForComparison(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return string.Empty;
+        }
+
+        return TextCleaningUtility.NormalizeForComparison(title);
+    }
+
+    private static List<string> NormalizeKeywords(IReadOnlyList<string>? keywords)
+    {
+        if (keywords is null || keywords.Count == 0)
+        {
+            return new List<string>();
+        }
+
+        return keywords
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => TextCleaningUtility.NormalizeForComparison(k))
+            .Where(k => k.Length >= 3)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static double KeywordOverlapRatio(IReadOnlyList<string> a, IReadOnlyList<string> b)
+    {
+        if (a.Count == 0 || b.Count == 0)
+        {
+            return 0d;
+        }
+
+        var setA = a.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var setB = b.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var intersection = setA.Intersect(setB, StringComparer.OrdinalIgnoreCase).Count();
+        var minCount = Math.Min(setA.Count, setB.Count);
+        return minCount > 0 ? (double)intersection / minCount : 0d;
+    }
+
+    private static string CollapseMultiTopicTitle(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return string.Empty;
+        }
+
+        var splitters = new[] { " / ", "/", "|", " /", "/ " };
+        foreach (var splitter in splitters)
+        {
+            var idx = title.IndexOf(splitter, StringComparison.Ordinal);
+            if (idx > 0)
+            {
+                return title[..idx].Trim();
+            }
+        }
+
+        return title.Trim();
+    }
+
+    private sealed record TranscriptChunk(string Text, int StartIndex);
+    private sealed record ChunkTopic(ChapterTopic Topic, int StartIndex);
+    private sealed record ChapterWithPosition(ChapterTopic Topic, int Position);
+    private sealed record ChapterOrder(ChapterTopic Topic, int Position, int Order);
+
+    private static bool IsChapterHeaderLine(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return true;
+        }
+
+        var cleaned = TextCleaningUtility.CleanTitleLine(line);
+        if (string.IsNullOrWhiteSpace(cleaned))
+        {
+            return true;
+        }
+
+        var trimmed = cleaned.Trim();
+        var normalized = trimmed.TrimEnd(':').ToLowerInvariant();
+
+        var headers = new[]
+        {
+            "hauptpunkte",
+            "kapitel",
+            "kapitelmarker",
+            "themen",
+            "themenbereiche",
+            "topics",
+            "outline",
+            "gliederung",
+            "abschnitte",
+            "sektionen"
+        };
+
+        foreach (var header in headers)
+        {
+            if (normalized == header || normalized.StartsWith(header + " ", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryParsePrefixedValue(string line, IReadOnlyList<string> prefixes, out string value)
+    {
+        value = string.Empty;
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return false;
+        }
+
+        foreach (var prefix in prefixes)
+        {
+            if (line.StartsWith(prefix + ":", StringComparison.OrdinalIgnoreCase))
+            {
+                value = line[(prefix.Length + 1)..].Trim();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static List<string> ExtractKeywords(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return new List<string>();
+        }
+
+        var separators = new[] { ',', ';', '|', '/', '\\', '\t' };
+        var raw = value
+            .Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(TextCleaningUtility.RemoveQuotes)
+            .Select(TextCleaningUtility.RemoveNumberPrefix)
+            .Select(k => k.Trim())
+            .Where(k => k.Length >= 3)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(12)
+            .ToList();
+
+        return raw;
+    }
+
+    #endregion
+
     #region Prompt Leakage Prevention
 
     private static HashSet<string> ExtractFilterWords(string? customPrompt)
@@ -765,3 +2072,4 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     [GeneratedRegex(@"^[-\*\u2022]\s*")]
     private static partial Regex BulletListRegex();
 }
+

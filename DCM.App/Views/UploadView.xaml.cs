@@ -33,10 +33,12 @@ public partial class UploadView : UserControl
     public event SelectionChangedEventHandler? PresetComboBoxSelectionChanged;
     public event RoutedEventHandler? ApplyPresetButtonClicked;
     public event RoutedEventHandler? GenerateTagsButtonClicked;
+    public event RoutedEventHandler? GenerateChaptersButtonClicked;
     public event RoutedEventHandler? TranscribeButtonClicked;
     public event RoutedEventHandler? TranscriptionExportButtonClicked;
     public event TextChangedEventHandler? TagsTextBoxTextChanged;
     public event TextChangedEventHandler? TranscriptTextBoxTextChanged;
+    public event TextChangedEventHandler? ChaptersTextBoxTextChanged;
     public event SelectionChangedEventHandler? UploadItemsSelectionChanged;
     public event RoutedEventHandler? AddVideosButtonClicked;
     public event RoutedEventHandler? UploadAllButtonClicked;
@@ -110,6 +112,9 @@ public partial class UploadView : UserControl
     private void GenerateTagsButton_Click(object sender, RoutedEventArgs e) =>
         GenerateTagsButtonClicked?.Invoke(sender, e);
 
+    private void GenerateChaptersButton_Click(object sender, RoutedEventArgs e) =>
+        GenerateChaptersButtonClicked?.Invoke(sender, e);
+
     private void TranscribeButton_Click(object sender, RoutedEventArgs e) =>
         TranscribeButtonClicked?.Invoke(sender, e);
 
@@ -121,6 +126,9 @@ public partial class UploadView : UserControl
 
     private void TranscriptTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
         TranscriptTextBoxTextChanged?.Invoke(sender, e);
+
+    private void ChaptersTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+        ChaptersTextBoxTextChanged?.Invoke(sender, e);
 
     private void UploadItemsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         UploadItemsSelectionChanged?.Invoke(sender, e);

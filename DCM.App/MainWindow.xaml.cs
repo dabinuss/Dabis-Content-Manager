@@ -30,6 +30,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DCM.App;
 
@@ -67,6 +68,7 @@ public partial class MainWindow : Window
     private List<UploadHistoryEntry> _allHistoryEntries = new();
 
     private CancellationTokenSource? _currentLlmCts;
+    private bool _isChaptersGenerationRunning;
 
     private LogWindow? _logWindow;
     private bool _isClosing;
@@ -242,8 +244,10 @@ public partial class MainWindow : Window
         UploadPageView.DescriptionTextBoxTextChanged += DescriptionTextBox_TextChanged;
         UploadPageView.TagsTextBoxTextChanged += TagsTextBox_TextChanged;
         UploadPageView.TranscriptTextBoxTextChanged += TranscriptTextBox_TextChanged;
+        UploadPageView.ChaptersTextBoxTextChanged += ChaptersTextBox_TextChanged;
         UploadPageView.GenerateTitleButtonClicked += GenerateTitleButton_Click;
         UploadPageView.GenerateDescriptionButtonClicked += GenerateDescriptionButton_Click;
+        UploadPageView.GenerateChaptersButtonClicked += GenerateChaptersButton_Click;
         UploadPageView.PresetComboBoxSelectionChanged += PresetComboBox_SelectionChanged;
         UploadPageView.ApplyPresetButtonClicked += ApplyPresetButton_Click;
         UploadPageView.GenerateTagsButtonClicked += GenerateTagsButton_Click;
@@ -791,6 +795,7 @@ public partial class MainWindow : Window
         {
             "{Title}",
             "{Description}",
+            "{Chapters}",
             "{Tags}",
             "{Hashtags}",
             "{Playlist}",
@@ -1225,6 +1230,838 @@ public partial class MainWindow : Window
                 CloseSuggestionPopup();
             }
         }
+    }
+
+    private async void GenerateChaptersButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isChaptersGenerationRunning)
+        {
+            CancelCurrentLlmOperation();
+            return;
+        }
+
+        try
+        {
+            await GenerateChaptersAsync().ConfigureAwait(true); // Keep UI context
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Unexpected error in chapters generation: {ex.Message}", LlmLogSource, ex);
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.ChaptersError", ex.Message);
+            SetChaptersGenerationState(false);
+            UpdateLogLinkIndicator();
+        }
+    }
+
+    private async Task GenerateChaptersAsync()
+    {
+        var project = BuildUploadProjectFromUi(includeScheduling: false);
+        _settings.Persona ??= new ChannelPersona();
+
+        var transcript = project.TranscriptText ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(transcript))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersMissingTranscript");
+            return;
+        }
+
+        if (!TryParseDurationSeconds(_activeDraft?.VideoDuration, out var durationSeconds))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersMissingDuration");
+            return;
+        }
+
+        SetChaptersGenerationState(true);
+        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateChapters");
+
+        var timeoutSeconds = GetChapterTimeoutSeconds(transcript);
+        var cancellationToken = GetNewLlmCancellationToken(timeoutSeconds);
+
+        _logger.Debug("Kapitelgenerierung gestartet", LlmLogSource);
+
+        try
+        {
+            var topics = await _contentSuggestionService.SuggestChaptersAsync(
+                project,
+                _settings.Persona,
+                cancellationToken).ConfigureAwait(true); // Keep UI context
+
+            if (topics is null || topics.Count == 0)
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoChapters");
+                _logger.Warning("Kapitel: Keine Vorschlaege erhalten", LlmLogSource);
+                return;
+            }
+
+            var maxChapters = GetMaxChapters(durationSeconds);
+            var chapterText = await Task.Run(
+                () => BuildChapterMarkersText(topics, transcript, durationSeconds, maxChapters, cancellationToken),
+                cancellationToken).ConfigureAwait(true);
+
+            if (string.IsNullOrWhiteSpace(chapterText))
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoChapters");
+                return;
+            }
+
+            ApplyGeneratedChapters(chapterText);
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersInserted");
+        }
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersCanceled");
+            _logger.Debug("Kapitelgenerierung abgebrochen", LlmLogSource);
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.ChaptersError", ex.Message);
+            _logger.Error($"Kapitelgenerierung fehlgeschlagen: {ex.Message}", LlmLogSource, ex);
+        }
+        finally
+        {
+            SetChaptersGenerationState(false);
+            UpdateLogLinkIndicator();
+        }
+    }
+
+    private void SetChaptersGenerationState(bool isRunning)
+    {
+        _isChaptersGenerationRunning = isRunning;
+        if (UploadView?.GenerateChaptersButton is not null)
+        {
+            UploadView.GenerateChaptersButton.Tag = isRunning ? "active" : "default";
+            UploadView.GenerateChaptersButton.IsEnabled = true;
+        }
+    }
+
+    private static int GetChapterTimeoutSeconds(string transcript)
+    {
+        var length = Math.Max(0, transcript?.Length ?? 0);
+        var scaled = 120 + (length / 200);
+        return Math.Clamp(scaled, 180, 900);
+    }
+
+    private static bool TryParseDurationSeconds(string? durationText, out double seconds)
+    {
+        seconds = 0;
+        if (string.IsNullOrWhiteSpace(durationText))
+        {
+            return false;
+        }
+
+        var parts = durationText.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length < 2 || parts.Length > 3)
+        {
+            return false;
+        }
+
+        var start = parts.Length == 3 ? 1 : 0;
+        var hours = 0;
+        if (parts.Length == 3 && !int.TryParse(parts[0], out hours))
+        {
+            return false;
+        }
+
+        if (!int.TryParse(parts[start], out var minutes) ||
+            !int.TryParse(parts[start + 1], out var secs))
+        {
+            return false;
+        }
+
+        var totalSeconds = (parts.Length == 3 ? hours * 3600 : 0) + minutes * 60 + secs;
+        if (totalSeconds <= 0)
+        {
+            return false;
+        }
+
+        seconds = totalSeconds;
+        return true;
+    }
+
+    private static string BuildChapterMarkersText(
+        IReadOnlyList<ChapterTopic> topics,
+        string transcript,
+        double durationSeconds,
+        int maxChapters,
+        CancellationToken cancellationToken)
+    {
+        if (topics.Count == 0 || durationSeconds <= 0 || string.IsNullOrWhiteSpace(transcript))
+        {
+            return string.Empty;
+        }
+
+        var normalized = NormalizeTranscript(transcript);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return string.Empty;
+        }
+
+        var markers = BuildChapterMarkers(topics, normalized, durationSeconds, maxChapters, cancellationToken);
+        if (markers.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var includeHours = durationSeconds >= 3600;
+        return string.Join(Environment.NewLine, markers.Select(marker =>
+            $"{FormatChapterTimestamp(marker.Start, includeHours)} {marker.Title}"));
+    }
+
+    private static string NormalizeTranscript(string transcript)
+    {
+        var trimmed = transcript?.Trim() ?? string.Empty;
+        if (trimmed.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return Regex.Replace(trimmed, @"\s+", " ");
+    }
+
+    private sealed record ChapterMarker(TimeSpan Start, string Title);
+    private sealed record ChapterCandidate(ChapterTopic Topic, double Position, int Order);
+
+    private static List<ChapterMarker> BuildChapterMarkers(
+        IReadOnlyList<ChapterTopic> topics,
+        string transcript,
+        double durationSeconds,
+        int maxChapters,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var lowerTranscript = transcript.ToLowerInvariant();
+        var normalizedTranscript = BuildNormalizedTranscriptMap(transcript, out var normalizedIndexMap);
+        var transcriptLength = transcript.Length;
+        if (transcriptLength == 0)
+        {
+            return new List<ChapterMarker>();
+        }
+
+        var positions = new double[topics.Count];
+        var hasMatch = new bool[topics.Count];
+
+        for (var i = 0; i < topics.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var matchIndex = FindTopicMatchIndex(
+                lowerTranscript,
+                normalizedTranscript,
+                normalizedIndexMap,
+                topics[i]);
+            if (matchIndex >= 0)
+            {
+                positions[i] = matchIndex;
+                hasMatch[i] = true;
+            }
+            else
+            {
+                positions[i] = double.NaN;
+            }
+        }
+
+        FillMissingPositions(positions, hasMatch, transcriptLength);
+
+        var ordered = topics
+            .Select((topic, index) => new ChapterCandidate(topic, positions[index], index))
+            .OrderBy(x => x.Position)
+            .ThenBy(x => x.Order)
+            .ToList();
+
+        ordered = MergeSimilarCandidates(ordered);
+        if (maxChapters > 0 && ordered.Count > maxChapters)
+        {
+            ordered = ReduceCandidatesByUniqueness(ordered, maxChapters);
+        }
+
+        var starts = ordered
+            .Select(entry => (entry.Position / transcriptLength) * durationSeconds)
+            .ToArray();
+
+        if (starts.Length > 0)
+        {
+            starts[0] = 0;
+        }
+
+        var minGapSeconds = 1d;
+        for (var i = 1; i < starts.Length; i++)
+        {
+            if (starts[i] <= starts[i - 1])
+            {
+                starts[i] = starts[i - 1] + minGapSeconds;
+            }
+        }
+
+        var minChapterSeconds = GetMinChapterSeconds(durationSeconds, ordered.Count);
+        var merged = new List<ChapterMarker>();
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var start = Math.Clamp(starts[i], 0, durationSeconds);
+            var title = ordered[i].Topic.Title;
+
+            if (merged.Count == 0)
+            {
+                merged.Add(new ChapterMarker(TimeSpan.FromSeconds(start), title));
+                continue;
+            }
+
+            var last = merged[^1];
+            var delta = start - last.Start.TotalSeconds;
+            if (delta < minChapterSeconds)
+            {
+                continue;
+            }
+
+            merged.Add(new ChapterMarker(TimeSpan.FromSeconds(start), title));
+        }
+
+        var step = 1;
+        var rounded = new List<ChapterMarker>();
+        foreach (var marker in merged)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var seconds = RoundToStep(marker.Start.TotalSeconds, step);
+            if (rounded.Count > 0 && seconds <= rounded[^1].Start.TotalSeconds)
+            {
+                seconds = rounded[^1].Start.TotalSeconds + step;
+            }
+
+            if (seconds > durationSeconds)
+            {
+                break;
+            }
+
+            rounded.Add(new ChapterMarker(TimeSpan.FromSeconds(seconds), marker.Title));
+        }
+
+        return rounded;
+    }
+
+    private static List<ChapterCandidate> MergeSimilarCandidates(List<ChapterCandidate> candidates)
+    {
+        if (candidates.Count <= 1)
+        {
+            return candidates;
+        }
+
+        var merged = new List<ChapterCandidate> { candidates[0] };
+
+        for (var i = 1; i < candidates.Count; i++)
+        {
+            var current = candidates[i];
+            var previous = merged[^1];
+            if (SimilarityScore(previous.Topic, current.Topic) >= 0.78d)
+            {
+                continue;
+            }
+
+            merged.Add(current);
+        }
+
+        return merged;
+    }
+
+    private static List<ChapterCandidate> ReduceCandidatesByUniqueness(List<ChapterCandidate> candidates, int maxChapters)
+    {
+        var working = new List<ChapterCandidate>(candidates);
+        if (maxChapters <= 0 || working.Count <= maxChapters)
+        {
+            return working;
+        }
+
+        while (working.Count > maxChapters)
+        {
+            var bestIndex = -1;
+            var bestScore = double.MinValue;
+
+            for (var i = 1; i < working.Count; i++)
+            {
+                var score = 0d;
+                if (i > 0)
+                {
+                    score = Math.Max(score, SimilarityScore(working[i].Topic, working[i - 1].Topic));
+                }
+
+                if (i + 1 < working.Count)
+                {
+                    score = Math.Max(score, SimilarityScore(working[i].Topic, working[i + 1].Topic));
+                }
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestIndex = i;
+                }
+            }
+
+            if (bestIndex <= 0 || bestScore <= 0.01d)
+            {
+                bestIndex = Math.Max(1, working.Count / 2);
+            }
+
+            working.RemoveAt(bestIndex);
+        }
+
+        return working;
+    }
+
+    private static double SimilarityScore(ChapterTopic a, ChapterTopic b)
+    {
+        var titleA = TextCleaningUtility.NormalizeForComparison(a.Title ?? string.Empty);
+        var titleB = TextCleaningUtility.NormalizeForComparison(b.Title ?? string.Empty);
+        var titleSimilarity = 0d;
+        if (!string.IsNullOrWhiteSpace(titleA) && !string.IsNullOrWhiteSpace(titleB))
+        {
+            titleSimilarity = TextCleaningUtility.CalculateSimilarity(titleA, titleB);
+        }
+
+        var keywordOverlap = KeywordOverlapRatio(a.Keywords, b.Keywords);
+        return Math.Max(titleSimilarity, keywordOverlap);
+    }
+
+    private static double KeywordOverlapRatio(IReadOnlyList<string>? a, IReadOnlyList<string>? b)
+    {
+        if (a is null || b is null || a.Count == 0 || b.Count == 0)
+        {
+            return 0d;
+        }
+
+        var setA = a
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => TextCleaningUtility.NormalizeForComparison(k))
+            .Where(k => k.Length >= 3)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var setB = b
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => TextCleaningUtility.NormalizeForComparison(k))
+            .Where(k => k.Length >= 3)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (setA.Count == 0 || setB.Count == 0)
+        {
+            return 0d;
+        }
+
+        var intersection = setA.Intersect(setB, StringComparer.OrdinalIgnoreCase).Count();
+        var minCount = Math.Min(setA.Count, setB.Count);
+        return minCount > 0 ? (double)intersection / minCount : 0d;
+    }
+
+    private static int GetMaxChapters(double durationSeconds)
+    {
+        if (durationSeconds <= 0)
+        {
+            return 3;
+        }
+
+        var blocks = Math.Ceiling(durationSeconds / 600d);
+        var maxChapters = (int)(2 * blocks + 1);
+        return Math.Clamp(maxChapters, 3, 18);
+    }
+
+    private static int FindTopicMatchIndex(
+        string lowerTranscript,
+        string normalizedTranscript,
+        IReadOnlyList<int> normalizedIndexMap,
+        ChapterTopic topic)
+    {
+        if (!string.IsNullOrWhiteSpace(topic.AnchorText))
+        {
+            var anchor = topic.AnchorText.Trim().ToLowerInvariant();
+            var anchorIdx = FindBestAnchorIndex(lowerTranscript, anchor, topic.Keywords);
+            if (anchorIdx >= 0)
+            {
+                return anchorIdx;
+            }
+
+            var normalizedAnchor = TextCleaningUtility.NormalizeForComparison(anchor);
+            var normalizedIdx = FindBestAnchorIndexNormalized(
+                normalizedTranscript,
+                normalizedIndexMap,
+                normalizedAnchor,
+                lowerTranscript,
+                topic.Keywords);
+            if (normalizedIdx >= 0)
+            {
+                return normalizedIdx;
+            }
+        }
+
+    var keywords = topic.Keywords ?? Array.Empty<string>();
+    var keywordIdx = FindMedianIndex(lowerTranscript, normalizedTranscript, normalizedIndexMap, keywords);
+    if (keywordIdx >= 0)
+    {
+        return keywordIdx;
+    }
+
+    if (!string.IsNullOrWhiteSpace(topic.Title))
+    {
+        var titleIdx = FindMedianIndex(
+            lowerTranscript,
+            normalizedTranscript,
+            normalizedIndexMap,
+            new[] { topic.Title });
+        if (titleIdx >= 0)
+        {
+            return titleIdx;
+        }
+        }
+
+        return -1;
+    }
+
+    private static int FindMedianIndex(
+        string lowerTranscript,
+        string normalizedTranscript,
+        IReadOnlyList<int> normalizedIndexMap,
+        IEnumerable<string> candidates)
+    {
+        var indices = new List<int>();
+
+        foreach (var raw in candidates)
+        {
+            var candidate = raw?.Trim();
+            if (string.IsNullOrWhiteSpace(candidate) || candidate.Length < 3)
+            {
+                continue;
+            }
+
+            var idx = FindFirstMatchIndex(lowerTranscript, normalizedTranscript, normalizedIndexMap, candidate);
+            if (idx >= 0)
+            {
+                indices.Add(idx);
+            }
+        }
+
+        if (indices.Count == 0)
+        {
+            return -1;
+        }
+
+        indices.Sort();
+        return indices[indices.Count / 2];
+    }
+
+    private static int FindFirstMatchIndex(
+        string lowerTranscript,
+        string normalizedTranscript,
+        IReadOnlyList<int> normalizedIndexMap,
+        string candidate)
+    {
+        var lower = candidate.ToLowerInvariant();
+        var idx = IndexOfFrom(lowerTranscript, lower);
+        if (idx >= 0)
+        {
+            return idx;
+        }
+
+        var normalized = TextCleaningUtility.NormalizeForComparison(candidate);
+        return IndexOfNormalized(normalizedTranscript, normalizedIndexMap, normalized);
+    }
+
+    private static int FindBestAnchorIndex(
+        string lowerTranscript,
+        string anchorLower,
+        IReadOnlyList<string>? keywords)
+    {
+        var occurrences = FindAllOccurrences(lowerTranscript, anchorLower);
+        if (occurrences.Count == 0)
+        {
+            return -1;
+        }
+
+        if (occurrences.Count == 1)
+        {
+            return occurrences[0];
+        }
+
+        if (keywords is null || keywords.Count == 0)
+        {
+            return occurrences[0];
+        }
+
+        var bestIndex = occurrences[0];
+        var bestScore = -1;
+        foreach (var occurrence in occurrences)
+        {
+            var score = CountKeywordHits(lowerTranscript, keywords, occurrence, 220);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestIndex = occurrence;
+            }
+        }
+
+        return bestIndex;
+    }
+
+    private static int FindBestAnchorIndexNormalized(
+        string normalizedTranscript,
+        IReadOnlyList<int> normalizedIndexMap,
+        string normalizedAnchor,
+        string lowerTranscript,
+        IReadOnlyList<string>? keywords)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedAnchor))
+        {
+            return -1;
+        }
+
+        var occurrences = FindAllOccurrences(normalizedTranscript, normalizedAnchor);
+        if (occurrences.Count == 0)
+        {
+            return -1;
+        }
+
+        var mapped = occurrences
+            .Where(idx => idx >= 0 && idx < normalizedIndexMap.Count)
+            .Select(idx => normalizedIndexMap[idx])
+            .ToList();
+
+        if (mapped.Count == 0)
+        {
+            return -1;
+        }
+
+        if (keywords is null || keywords.Count == 0)
+        {
+            return mapped[0];
+        }
+
+        var bestIndex = mapped[0];
+        var bestScore = -1;
+        foreach (var occurrence in mapped)
+        {
+            var score = CountKeywordHits(lowerTranscript, keywords, occurrence, 220);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestIndex = occurrence;
+            }
+        }
+
+        return bestIndex;
+    }
+
+    private static int IndexOfFrom(string haystack, string needle)
+    {
+        if (string.IsNullOrWhiteSpace(needle))
+        {
+            return -1;
+        }
+
+        return haystack.IndexOf(needle, StringComparison.Ordinal);
+    }
+
+    private static int IndexOfNormalized(
+        string normalizedTranscript,
+        IReadOnlyList<int> normalizedIndexMap,
+        string normalizedNeedle)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedNeedle) || normalizedIndexMap.Count == 0)
+        {
+            return -1;
+        }
+
+        var idx = normalizedTranscript.IndexOf(normalizedNeedle, StringComparison.Ordinal);
+        if (idx < 0 || idx >= normalizedIndexMap.Count)
+        {
+            return -1;
+        }
+
+        return normalizedIndexMap[idx];
+    }
+
+    private static List<int> FindAllOccurrences(string haystack, string needle)
+    {
+        var results = new List<int>();
+        if (string.IsNullOrWhiteSpace(needle))
+        {
+            return results;
+        }
+
+        var index = 0;
+        while (index < haystack.Length)
+        {
+            var found = haystack.IndexOf(needle, index, StringComparison.Ordinal);
+            if (found < 0)
+            {
+                break;
+            }
+
+            results.Add(found);
+            index = found + needle.Length;
+        }
+
+        return results;
+    }
+
+    private static int CountKeywordHits(
+        string lowerTranscript,
+        IReadOnlyList<string> keywords,
+        int centerIndex,
+        int window)
+    {
+        if (keywords.Count == 0 || lowerTranscript.Length == 0)
+        {
+            return 0;
+        }
+
+        var start = Math.Max(0, centerIndex - window);
+        var end = Math.Min(lowerTranscript.Length, centerIndex + window);
+        if (end <= start)
+        {
+            return 0;
+        }
+
+        var slice = lowerTranscript[start..end];
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var hits = 0;
+
+        foreach (var raw in keywords)
+        {
+            var keyword = raw?.Trim();
+            if (string.IsNullOrWhiteSpace(keyword) || keyword.Length < 3)
+            {
+                continue;
+            }
+
+            var lower = keyword.ToLowerInvariant();
+            if (!seen.Add(lower))
+            {
+                continue;
+            }
+
+            if (slice.Contains(lower, StringComparison.Ordinal))
+            {
+                hits++;
+            }
+        }
+
+        return hits;
+    }
+
+    private static double GetMinChapterSeconds(double durationSeconds, int topicCount)
+    {
+        if (durationSeconds <= 0 || topicCount <= 0)
+        {
+            return 30d;
+        }
+
+        var target = durationSeconds / (topicCount * 3d);
+        return Math.Clamp(target, 12d, 45d);
+    }
+
+
+    private static string BuildNormalizedTranscriptMap(string transcript, out List<int> indexMap)
+    {
+        indexMap = new List<int>(transcript.Length);
+        if (string.IsNullOrWhiteSpace(transcript))
+        {
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder(transcript.Length);
+        var lastWasSpace = true;
+        for (var i = 0; i < transcript.Length; i++)
+        {
+            var c = transcript[i];
+            if (char.IsLetterOrDigit(c))
+            {
+                sb.Append(char.ToLowerInvariant(c));
+                indexMap.Add(i);
+                lastWasSpace = false;
+            }
+            else if (!lastWasSpace)
+            {
+                sb.Append(' ');
+                indexMap.Add(i);
+                lastWasSpace = true;
+            }
+        }
+
+        if (sb.Length > 0 && sb[^1] == ' ')
+        {
+            sb.Length -= 1;
+            indexMap.RemoveAt(indexMap.Count - 1);
+        }
+
+        return sb.ToString();
+    }
+
+    private static void FillMissingPositions(double[] positions, bool[] hasMatch, int transcriptLength)
+    {
+        if (positions.Length == 0)
+        {
+            return;
+        }
+
+        var matchedIndices = Enumerable.Range(0, positions.Length)
+            .Where(i => hasMatch[i])
+            .ToList();
+
+        if (matchedIndices.Count == 0)
+        {
+            var gap = transcriptLength / (double)(positions.Length + 1);
+            for (var i = 0; i < positions.Length; i++)
+            {
+                positions[i] = gap * (i + 1);
+            }
+            return;
+        }
+
+        var firstMatch = matchedIndices[0];
+        for (var i = 0; i < firstMatch; i++)
+        {
+            var gap = positions[firstMatch] / (firstMatch + 1);
+            positions[i] = gap * (i + 1);
+        }
+
+        for (var m = 0; m < matchedIndices.Count - 1; m++)
+        {
+            var startIndex = matchedIndices[m];
+            var endIndex = matchedIndices[m + 1];
+            var missingCount = endIndex - startIndex - 1;
+            if (missingCount <= 0)
+            {
+                continue;
+            }
+
+            var gap = (positions[endIndex] - positions[startIndex]) / (missingCount + 1);
+            for (var i = 1; i <= missingCount; i++)
+            {
+                positions[startIndex + i] = positions[startIndex] + gap * i;
+            }
+        }
+
+        var lastMatch = matchedIndices[^1];
+        for (var i = lastMatch + 1; i < positions.Length; i++)
+        {
+            var gap = (transcriptLength - positions[lastMatch]) / (positions.Length - lastMatch);
+            positions[i] = positions[lastMatch] + gap * (i - lastMatch);
+        }
+    }
+
+    private static double RoundToStep(double value, int stepSeconds)
+    {
+        if (stepSeconds <= 1)
+        {
+            return value;
+        }
+
+        return Math.Round(value / stepSeconds, MidpointRounding.AwayFromZero) * stepSeconds;
+    }
+
+    private static string FormatChapterTimestamp(TimeSpan timestamp, bool includeHours)
+    {
+        if (includeHours)
+        {
+            return $"{(int)timestamp.TotalHours}:{timestamp.Minutes:00}:{timestamp.Seconds:00}";
+        }
+
+        return $"{timestamp.Minutes:00}:{timestamp.Seconds:00}";
     }
 
     private void UploadView_SuggestionItemClicked(object? sender, string suggestion)

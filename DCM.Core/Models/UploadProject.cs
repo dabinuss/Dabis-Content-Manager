@@ -30,6 +30,11 @@ public sealed class UploadProject
     /// </summary>
     public string? TranscriptText { get; set; }
 
+    /// <summary>
+    /// Optionaler Kapiteltext fuer Description-Templates.
+    /// </summary>
+    public string? ChaptersText { get; set; }
+
     public List<string> Tags { get; } = new();
 
     public string? CategoryId { get; set; }
