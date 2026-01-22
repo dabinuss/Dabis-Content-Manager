@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using DCM.App;
+using DCM.App.Models;
 using DCM.Core.Models;
 
 namespace DCM.App.Views;
@@ -65,7 +67,7 @@ public partial class UploadView : UserControl
     public event SelectionChangedEventHandler? VisibilitySelectionChanged;
     public event SelectionChangedEventHandler? PlaylistSelectionChanged;
     public event TextChangedEventHandler? CategoryIdTextBoxTextChanged;
-    public event TextChangedEventHandler? LanguageTextBoxTextChanged;
+    public event SelectionChangedEventHandler? LanguageSelectionChanged;
     public event SelectionChangedEventHandler? MadeForKidsSelectionChanged;
     public event SelectionChangedEventHandler? CommentStatusSelectionChanged;
     public event RoutedEventHandler? ScheduleCheckBoxChecked;
@@ -196,8 +198,64 @@ public partial class UploadView : UserControl
     private void CategoryIdTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
         CategoryIdTextBoxTextChanged?.Invoke(sender, e);
 
-    private void LanguageTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
-        LanguageTextBoxTextChanged?.Invoke(sender, e);
+    private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        LanguageSelectionChanged?.Invoke(sender, e);
+
+    public void SetLanguageOptions(IEnumerable<LanguageOption> languages)
+    {
+        var list = languages?.ToList() ?? new List<LanguageOption>();
+        list.Insert(0, new LanguageOption(string.Empty, LocalizationHelper.Get("Presets.Option.None")));
+        LanguageComboBox.ItemsSource = list;
+    }
+
+    public string? GetSelectedLanguageCode()
+    {
+        var code = (LanguageComboBox.SelectedItem as LanguageOption)?.Code;
+        return string.IsNullOrWhiteSpace(code) ? null : code;
+    }
+
+    public void SelectLanguageByCode(string? languageCode)
+    {
+        if (LanguageComboBox is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(languageCode))
+        {
+            LanguageComboBox.SelectedItem = null;
+            return;
+        }
+
+        var list = LanguageComboBox.ItemsSource as IList<LanguageOption>;
+        if (list is not null)
+        {
+            var match = list.FirstOrDefault(item =>
+                string.Equals(item.Code, languageCode, StringComparison.OrdinalIgnoreCase));
+            if (match is not null)
+            {
+                LanguageComboBox.SelectedItem = match;
+                return;
+            }
+
+            var fallback = new LanguageOption(languageCode, languageCode);
+            list.Add(fallback);
+            LanguageComboBox.SelectedItem = fallback;
+            return;
+        }
+
+        foreach (var item in LanguageComboBox.Items)
+        {
+            if (item is LanguageOption language &&
+                string.Equals(language.Code, languageCode, StringComparison.OrdinalIgnoreCase))
+            {
+                LanguageComboBox.SelectedItem = language;
+                return;
+            }
+        }
+
+        LanguageComboBox.SelectedItem = null;
+    }
 
     private void MadeForKidsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         MadeForKidsSelectionChanged?.Invoke(sender, e);

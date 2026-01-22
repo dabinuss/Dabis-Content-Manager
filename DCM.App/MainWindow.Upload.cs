@@ -886,7 +886,7 @@ public partial class MainWindow
         UploadView.DescriptionTextBox.Text = string.Empty;
         UploadView.TagsTextBox.Text = string.Empty;
         UploadView.CategoryIdTextBox.Text = string.Empty;
-        UploadView.LanguageTextBox.Text = string.Empty;
+        UploadView.SelectLanguageByCode(null);
         UploadView.SetMadeForKids(MadeForKidsSetting.Default);
         UploadView.SetCommentStatus(CommentStatusSetting.Default);
         UploadView.PresetComboBox.SelectedItem = null;
@@ -1074,9 +1074,7 @@ public partial class MainWindow
         draft.CategoryId = string.IsNullOrWhiteSpace(UploadView.CategoryIdTextBox.Text)
             ? null
             : UploadView.CategoryIdTextBox.Text.Trim();
-        draft.Language = string.IsNullOrWhiteSpace(UploadView.LanguageTextBox.Text)
-            ? null
-            : UploadView.LanguageTextBox.Text.Trim();
+        draft.Language = UploadView.GetSelectedLanguageCode();
         draft.MadeForKids = GetSelectedMadeForKidsFromUi();
         draft.CommentStatus = GetSelectedCommentStatusFromUi();
 
@@ -1118,7 +1116,7 @@ public partial class MainWindow
         UploadView.SetDefaultVisibility(draft.Visibility);
         ApplyDraftPlaylistSelection(draft.PlaylistId);
         UploadView.CategoryIdTextBox.Text = draft.CategoryId ?? string.Empty;
-        UploadView.LanguageTextBox.Text = draft.Language ?? string.Empty;
+        UploadView.SelectLanguageByCode(draft.Language);
         UploadView.SetMadeForKids(draft.MadeForKids);
         UploadView.SetCommentStatus(draft.CommentStatus);
 
@@ -2347,7 +2345,7 @@ public partial class MainWindow
         ScheduleDraftPersistenceDebounced();
     }
 
-    private void LanguageTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void UploadLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_isLoadingDraft)
         {
@@ -2356,9 +2354,7 @@ public partial class MainWindow
 
         if (_activeDraft is not null)
         {
-            _activeDraft.Language = string.IsNullOrWhiteSpace(UploadView.LanguageTextBox.Text)
-                ? null
-                : UploadView.LanguageTextBox.Text.Trim();
+            _activeDraft.Language = UploadView.GetSelectedLanguageCode();
         }
 
         ScheduleDraftPersistenceDebounced();
@@ -3272,7 +3268,7 @@ public partial class MainWindow
         UploadView.TagsTextBox.Text = draft.TagsCsv;
         UploadView.SetDefaultVisibility(draft.Visibility);
         UploadView.CategoryIdTextBox.Text = draft.CategoryId ?? string.Empty;
-        UploadView.LanguageTextBox.Text = draft.Language ?? string.Empty;
+        UploadView.SelectLanguageByCode(draft.Language);
         UploadView.SetMadeForKids(draft.MadeForKids);
         UploadView.SetCommentStatus(draft.CommentStatus);
         ApplyDraftPlaylistSelection(draft.PlaylistId);
@@ -3398,7 +3394,7 @@ public partial class MainWindow
         else
         {
             categoryId = UploadView.CategoryIdTextBox.Text;
-            language = UploadView.LanguageTextBox.Text;
+            language = UploadView.GetSelectedLanguageCode();
             madeForKidsSetting = GetSelectedMadeForKidsFromUi();
             commentStatusSetting = GetSelectedCommentStatusFromUi();
         }

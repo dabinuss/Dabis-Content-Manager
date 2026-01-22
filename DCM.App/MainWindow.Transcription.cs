@@ -133,11 +133,6 @@ public partial class MainWindow
             return;
         }
 
-        if (_activeDraft != draft)
-        {
-            SetActiveDraft(draft);
-        }
-
         if (string.IsNullOrWhiteSpace(draft.VideoPath) || !File.Exists(draft.VideoPath))
         {
             StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");

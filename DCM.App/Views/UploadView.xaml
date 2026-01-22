@@ -1771,10 +1771,11 @@
                            Text="{DynamicResource Upload.Fields.Language}"
                            VerticalAlignment="Center"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
-                <TextBox x:Name="LanguageTextBox"
-                         Grid.Row="2"
-                         Grid.Column="2"
-                         TextChanged="LanguageTextBox_TextChanged"/>
+                <ComboBox x:Name="LanguageComboBox"
+                          Grid.Row="2"
+                          Grid.Column="2"
+                          DisplayMemberPath="DisplayName"
+                          SelectionChanged="LanguageComboBox_SelectionChanged"/>
 
                 <TextBlock Grid.Row="4"
                            Grid.Column="0"

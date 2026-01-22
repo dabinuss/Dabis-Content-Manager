@@ -271,7 +271,7 @@ public partial class MainWindow : Window
         UploadPageView.VisibilitySelectionChanged += VisibilityComboBox_SelectionChanged;
         UploadPageView.PlaylistSelectionChanged += PlaylistComboBox_SelectionChanged;
         UploadPageView.CategoryIdTextBoxTextChanged += CategoryIdTextBox_TextChanged;
-        UploadPageView.LanguageTextBoxTextChanged += LanguageTextBox_TextChanged;
+        UploadPageView.LanguageSelectionChanged += UploadLanguageComboBox_SelectionChanged;
         UploadPageView.MadeForKidsSelectionChanged += MadeForKidsComboBox_SelectionChanged;
         UploadPageView.CommentStatusSelectionChanged += CommentStatusComboBox_SelectionChanged;
         UploadPageView.ScheduleCheckBoxChecked += ScheduleCheckBox_Checked;
@@ -855,6 +855,8 @@ public partial class MainWindow : Window
         LoadCachedYouTubeOptions();
         PresetsPageView?.SetCategoryOptions(_youTubeCategories);
         PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
+        UploadView.SetLanguageOptions(_youTubeLanguages);
+        UploadView.SelectLanguageByCode(_activeDraft?.Language);
     }
 
     private void LoadCachedYouTubeOptions()
