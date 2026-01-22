@@ -741,6 +741,7 @@ public partial class MainWindow
         }
 
         var project = BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft);
+        ApplySuggestionLanguage(project);
         if (!string.IsNullOrWhiteSpace(draft.Transcript))
         {
             project.TranscriptText = draft.Transcript;
@@ -776,6 +777,7 @@ public partial class MainWindow
             }
 
             project = BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft);
+            ApplySuggestionLanguage(project);
             StatusTextBlock.Text = "Fast Fill: Generiere Tags...";
             var tags = await _contentSuggestionService.SuggestTagsAsync(
                 project,

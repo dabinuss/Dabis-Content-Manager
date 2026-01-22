@@ -12,19 +12,8 @@ public sealed class JsonSettingsProvider : ISettingsProvider
     public JsonSettingsProvider(IAppLogger? logger = null, string? customAppDataFolder = null)
     {
         _logger = logger ?? AppLogger.Instance;
-        var baseFolder = ResolveBaseFolder(customAppDataFolder);
+        var baseFolder = AppDataPathResolver.ResolveBaseFolder(customAppDataFolder);
         _settingsFilePath = Path.Combine(baseFolder, Constants.SettingsFileName);
-    }
-
-    private static string ResolveBaseFolder(string? customAppDataFolder)
-    {
-        if (string.IsNullOrWhiteSpace(customAppDataFolder))
-        {
-            return Constants.AppDataFolder;
-        }
-
-        Directory.CreateDirectory(customAppDataFolder);
-        return customAppDataFolder;
     }
 
     public AppSettings Load()

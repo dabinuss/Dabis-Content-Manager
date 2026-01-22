@@ -14,20 +14,9 @@ public sealed class JsonPresetRepository : IPresetRepository
     public JsonPresetRepository(IAppLogger? logger = null, string? customAppDataFolder = null)
     {
         _logger = logger ?? AppLogger.Instance;
-        var baseFolder = ResolveBaseFolder(customAppDataFolder);
+        var baseFolder = AppDataPathResolver.ResolveBaseFolder(customAppDataFolder);
         _presetsFilePath = Path.Combine(baseFolder, Constants.PresetsFileName);
         _templatesFilePath = Path.Combine(baseFolder, Constants.TemplatesFileName);
-    }
-
-    private static string ResolveBaseFolder(string? customAppDataFolder)
-    {
-        if (string.IsNullOrWhiteSpace(customAppDataFolder))
-        {
-            return Constants.AppDataFolder;
-        }
-
-        Directory.CreateDirectory(customAppDataFolder);
-        return customAppDataFolder;
     }
 
     public IEnumerable<UploadPreset> Load()

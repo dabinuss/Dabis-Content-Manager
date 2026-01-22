@@ -1,4 +1,5 @@
 using System.Text;
+using System.Globalization;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -44,6 +45,18 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         "einladend und freundlich"
     };
 
+    private static readonly string[] TitleStylesEnglish =
+    {
+        "creative and eye-catching",
+        "informative and clear",
+        "curiosity-driven",
+        "direct and concise",
+        "entertaining and casual",
+        "professional and serious",
+        "exciting and engaging",
+        "inviting and friendly"
+    };
+
     private static readonly string[] DescriptionStyles =
     {
         "einladend und neugierig machend",
@@ -54,6 +67,18 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         "kurz und knackig",
         "detailliert und umfassend",
         "spannend und fesselnd"
+    };
+
+    private static readonly string[] DescriptionStylesEnglish =
+    {
+        "inviting and curiosity-driven",
+        "informative and factual",
+        "casual and entertaining",
+        "professional and persuasive",
+        "personal and approachable",
+        "short and punchy",
+        "detailed and comprehensive",
+        "exciting and engaging"
     };
 
     private static readonly string[] TagFocuses =
@@ -67,6 +92,20 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         "Fokus auf spezifische Details",
         "Fokus auf verwandte Themen"
     };
+
+    private static readonly string[] TagFocusesEnglish =
+    {
+        "Focus on main topics",
+        "Focus on target audience",
+        "Focus on emotions and mood",
+        "Focus on actions and activities",
+        "Focus on technical terms",
+        "Focus on general search terms",
+        "Focus on specific details",
+        "Focus on related topics"
+    };
+
+    private sealed record PromptLanguage(string Code, string DisplayName, bool IsGerman, bool IsEnglish);
 
     public ContentSuggestionService(
         ILlmClient llmClient,
@@ -120,6 +159,56 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         }, cancellationToken);
     }
 
+    private static PromptLanguage ResolvePromptLanguage(UploadProject project, ChannelPersona persona)
+    {
+        var raw = project.Language;
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            raw = persona.Language;
+        }
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            raw = "en";
+        }
+
+        var normalized = raw.Trim();
+        var lower = normalized.ToLowerInvariant();
+
+        if (lower.Contains("de") || lower.Contains("german") || lower.Contains("deutsch"))
+        {
+            return new PromptLanguage("de", "Deutsch", IsGerman: true, IsEnglish: false);
+        }
+
+        if (lower.Contains("en") || lower.Contains("english"))
+        {
+            return new PromptLanguage("en", "English", IsGerman: false, IsEnglish: true);
+        }
+
+        var displayName = GetLanguageDisplayName(normalized) ?? normalized;
+        return new PromptLanguage(normalized, displayName, IsGerman: false, IsEnglish: false);
+    }
+
+    private static string? GetLanguageDisplayName(string code)
+    {
+        try
+        {
+            var culture = new CultureInfo(code);
+            var name = culture.EnglishName;
+            var idx = name.IndexOf('(');
+            if (idx > 0)
+            {
+                name = name[..idx].Trim();
+            }
+
+            return string.IsNullOrWhiteSpace(name) ? null : name;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private static bool HasTranscript(UploadProject project)
     {
         if (string.IsNullOrWhiteSpace(project.TranscriptText))
@@ -167,7 +256,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
         try
         {
-            var prompt = BuildTitlePrompt(project);
+            var prompt = BuildTitlePrompt(project, persona);
             _logger.Debug($"Titel-Prompt erstellt, Länge: {prompt.Length} Zeichen", "ContentSuggestion");
 
             var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
@@ -202,34 +291,53 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         }
     }
 
-    private string BuildTitlePrompt(UploadProject project)
+    private string BuildTitlePrompt(UploadProject project, ChannelPersona persona)
     {
         var sb = AcquireBuilder();
-        var style = GetRandomVariation(TitleStyles);
+        var language = ResolvePromptLanguage(project, persona);
+        var style = GetRandomVariation(language.IsGerman ? TitleStyles : TitleStylesEnglish);
         var sessionId = GetSessionId();
 
         try
         {
             sb.AppendLine("<|system|>");
-            sb.AppendLine("Du generierst YouTube-Videotitel auf Deutsch.");
-            sb.AppendLine("Ausgabe: Bis zu 5 Titel, jeder in einer eigenen Zeile.");
-            sb.AppendLine("Format: Nur die Titel, nichts anderes; kein Satz davor oder danach.");
-            sb.AppendLine("Jeder Titel ist ein einzelner kurzer Satz (5-12 Wörter), keine Nummerierung oder Aufzählungszeichen.");
-            sb.AppendLine("Verboten: Nummerierung, Anführungszeichen, Aufzählungszeichen, Erklärungen.");
+            if (language.IsGerman)
+            {
+                sb.AppendLine("Du generierst YouTube-Videotitel auf Deutsch.");
+                sb.AppendLine("Sprache: Deutsch. Antworte ausschließlich auf Deutsch.");
+                sb.AppendLine("Wenn das Transkript eine andere Sprache hat, uebersetze sinngemaess ins Deutsche.");
+                sb.AppendLine("Ausgabe: Bis zu 5 Titel, jeder in einer eigenen Zeile.");
+                sb.AppendLine("Format: Nur die Titel, nichts anderes; kein Satz davor oder danach.");
+                sb.AppendLine("Jeder Titel ist ein einzelner kurzer Satz (5-12 Wörter), keine Nummerierung oder Aufzählungszeichen.");
+                sb.AppendLine("Verboten: Nummerierung, Anführungszeichen, Aufzählungszeichen, Erklärungen.");
+            }
+            else
+            {
+                sb.AppendLine($"You generate YouTube video titles in {language.DisplayName}.");
+                sb.AppendLine($"Language: {language.DisplayName}. Respond only in {language.DisplayName}.");
+                sb.AppendLine("If the transcript is in another language, translate appropriately.");
+                sb.AppendLine("Output: up to 5 titles, each on its own line.");
+                sb.AppendLine("Format: titles only; no extra text before or after.");
+                sb.AppendLine("Each title is a short sentence (5-12 words), no numbering or bullets.");
+                sb.AppendLine("Forbidden: numbering, quotes, bullet points, explanations.");
+            }
             sb.AppendLine("<|end|>");
 
             sb.AppendLine("<|user|>");
             sb.AppendLine($"[Session: {sessionId}]");
-            sb.AppendLine($"Stil: {style}");
+            sb.AppendLine(language.IsGerman ? $"Stil: {style}" : $"Style: {style}");
             sb.AppendLine();
 
             if (!string.IsNullOrWhiteSpace(_settings.TitleCustomPrompt))
             {
-                sb.AppendLine($"Beachte: {TextCleaningUtility.SanitizeCustomPrompt(_settings.TitleCustomPrompt)}");
+                var noteLabel = language.IsGerman ? "Beachte" : "Note";
+                sb.AppendLine($"{noteLabel}: {TextCleaningUtility.SanitizeCustomPrompt(_settings.TitleCustomPrompt)}");
                 sb.AppendLine();
             }
 
-            sb.AppendLine("Generiere bis zu 5 neue, unterschiedliche Titel basierend auf diesem Transkript:");
+            sb.AppendLine(language.IsGerman
+                ? "Generiere bis zu 5 neue, unterschiedliche Titel basierend auf diesem Transkript:"
+                : "Generate up to 5 new, distinct titles based on this transcript:");
             sb.AppendLine();
             sb.AppendLine("---TRANSKRIPT START---");
             sb.Append(TextCleaningUtility.TruncateTranscript(project.TranscriptText!, MaxTranscriptCharsForTitles));
@@ -289,7 +397,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
         try
         {
-            var prompt = BuildDescriptionPrompt(project);
+            var prompt = BuildDescriptionPrompt(project, persona);
             _logger.Debug($"Beschreibung-Prompt erstellt, Länge: {prompt.Length} Zeichen", "ContentSuggestion");
 
             var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
@@ -324,41 +432,68 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         }
     }
 
-    private string BuildDescriptionPrompt(UploadProject project)
+    private string BuildDescriptionPrompt(UploadProject project, ChannelPersona persona)
     {
         var sb = AcquireBuilder();
-        var style = GetRandomVariation(DescriptionStyles);
+        var language = ResolvePromptLanguage(project, persona);
+        var style = GetRandomVariation(language.IsGerman ? DescriptionStyles : DescriptionStylesEnglish);
         var sessionId = GetSessionId();
 
         try
         {
             sb.AppendLine("<|system|>");
-            sb.AppendLine("Du schreibst YouTube-Videobeschreibungen auf Deutsch.");
-            sb.AppendLine("WICHTIG: Die Beschreibung muss den VIDEO-INHALT zusammenfassen, NICHT den Titel wiederholen!");
-            sb.AppendLine("Ausgabe: Bis zu 5 unterschiedliche Beschreibungen, jeweils als eigener Absatz, getrennt durch eine Leerzeile.");
-            sb.AppendLine("Jeder Absatz umfasst 2-4 Sätze, klarer Fließtext, mindestens 80 Zeichen.");
-            sb.AppendLine("Verboten: Aufzählungen, Emojis, Hashtags, Überschriften, Erklärungen, Titel-Wiederholung.");
+            if (language.IsGerman)
+            {
+                sb.AppendLine("Du schreibst YouTube-Videobeschreibungen auf Deutsch.");
+                sb.AppendLine("Sprache: Deutsch. Antworte ausschließlich auf Deutsch.");
+                sb.AppendLine("Wenn das Transkript eine andere Sprache hat, uebersetze sinngemaess ins Deutsche.");
+                sb.AppendLine("WICHTIG: Die Beschreibung muss den VIDEO-INHALT zusammenfassen, NICHT den Titel wiederholen!");
+                sb.AppendLine("Ausgabe: Bis zu 5 unterschiedliche Beschreibungen, jeweils als eigener Absatz, getrennt durch eine Leerzeile.");
+                sb.AppendLine("Jeder Absatz umfasst 2-4 Sätze, klarer Fließtext, mindestens 80 Zeichen.");
+                sb.AppendLine("Verboten: Aufzählungen, Emojis, Hashtags, Überschriften, Erklärungen, Titel-Wiederholung.");
+            }
+            else
+            {
+                sb.AppendLine($"You write YouTube video descriptions in {language.DisplayName}.");
+                sb.AppendLine($"Language: {language.DisplayName}. Respond only in {language.DisplayName}.");
+                sb.AppendLine("If the transcript is in another language, translate appropriately.");
+                sb.AppendLine("IMPORTANT: The description must summarize the VIDEO CONTENT, NOT repeat the title!");
+                sb.AppendLine("Output: up to 5 distinct descriptions, each as its own paragraph, separated by a blank line.");
+                sb.AppendLine("Each paragraph is 2-4 sentences of clear prose, at least 80 characters.");
+                sb.AppendLine("Forbidden: lists, emojis, hashtags, headings, explanations, title repetition.");
+            }
             sb.AppendLine("<|end|>");
 
             sb.AppendLine("<|user|>");
             sb.AppendLine($"[Session: {sessionId}]");
-            sb.AppendLine($"Stil: {style}");
+            sb.AppendLine(language.IsGerman ? $"Stil: {style}" : $"Style: {style}");
             sb.AppendLine();
 
             if (!string.IsNullOrWhiteSpace(_settings.DescriptionCustomPrompt))
             {
-                sb.AppendLine($"Beachte: {TextCleaningUtility.SanitizeCustomPrompt(_settings.DescriptionCustomPrompt)}");
+                var noteLabel = language.IsGerman ? "Beachte" : "Note";
+                sb.AppendLine($"{noteLabel}: {TextCleaningUtility.SanitizeCustomPrompt(_settings.DescriptionCustomPrompt)}");
                 sb.AppendLine();
             }
 
             if (!string.IsNullOrWhiteSpace(project.Title))
             {
-                sb.AppendLine($"Der Videotitel lautet: \"{project.Title}\"");
-                sb.AppendLine("WIEDERHOLE DIESEN TITEL NICHT in der Beschreibung!");
+                if (language.IsGerman)
+                {
+                    sb.AppendLine($"Der Videotitel lautet: \"{project.Title}\"");
+                    sb.AppendLine("WIEDERHOLE DIESEN TITEL NICHT in der Beschreibung!");
+                }
+                else
+                {
+                    sb.AppendLine($"The video title is: \"{project.Title}\"");
+                    sb.AppendLine("DO NOT repeat this title in the description!");
+                }
                 sb.AppendLine();
             }
 
-            sb.AppendLine("Schreibe bis zu 5 neue, verschiedene Beschreibungen, die den VIDEO-INHALT zusammenfassen, basierend auf diesem Transkript:");
+            sb.AppendLine(language.IsGerman
+                ? "Schreibe bis zu 5 neue, verschiedene Beschreibungen, die den VIDEO-INHALT zusammenfassen, basierend auf diesem Transkript:"
+                : "Write up to 5 new, distinct descriptions that summarize the VIDEO CONTENT based on this transcript:");
             sb.AppendLine();
             sb.AppendLine("---TRANSKRIPT START---");
             sb.Append(TextCleaningUtility.TruncateTranscript(project.TranscriptText!, MaxTranscriptCharsForDescription));
@@ -557,7 +692,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
         try
         {
-            var prompt = BuildTagsPrompt(project);
+            var prompt = BuildTagsPrompt(project, persona);
             _logger.Debug($"Tags-Prompt erstellt, Länge: {prompt.Length} Zeichen", "ContentSuggestion");
 
             var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
@@ -592,19 +727,34 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         }
     }
 
-    private string BuildTagsPrompt(UploadProject project)
+    private string BuildTagsPrompt(UploadProject project, ChannelPersona persona)
     {
         var sb = AcquireBuilder();
-        var focus = GetRandomVariation(TagFocuses);
+        var language = ResolvePromptLanguage(project, persona);
+        var focus = GetRandomVariation(language.IsGerman ? TagFocuses : TagFocusesEnglish);
         var sessionId = GetSessionId();
 
         try
         {
             sb.AppendLine("<|system|>");
-            sb.AppendLine("Du generierst YouTube-Tags auf Deutsch.");
-            sb.AppendLine("WICHTIG: Jeder Tag ist EIN EINZELNES WORT.");
-            sb.AppendLine("Ausgabe: 15-20 Wörter, kommasepariert, eine Zeile.");
-            sb.AppendLine("Verboten: Mehrworttags, Unterstriche, Bindestriche, Hashtags, Nummerierung.");
+            if (language.IsGerman)
+            {
+                sb.AppendLine("Du generierst YouTube-Tags auf Deutsch.");
+                sb.AppendLine("Sprache: Deutsch. Antworte ausschließlich auf Deutsch.");
+                sb.AppendLine("Wenn das Transkript eine andere Sprache hat, uebersetze die Tags sinngemaess ins Deutsche.");
+                sb.AppendLine("WICHTIG: Jeder Tag ist EIN EINZELNES WORT.");
+                sb.AppendLine("Ausgabe: 15-20 Wörter, kommasepariert, eine Zeile.");
+                sb.AppendLine("Verboten: Mehrworttags, Unterstriche, Bindestriche, Hashtags, Nummerierung.");
+            }
+            else
+            {
+                sb.AppendLine($"You generate YouTube tags in {language.DisplayName}.");
+                sb.AppendLine($"Language: {language.DisplayName}. Respond only in {language.DisplayName}.");
+                sb.AppendLine("If the transcript is in another language, translate tags appropriately.");
+                sb.AppendLine("IMPORTANT: Each tag must be a SINGLE WORD.");
+                sb.AppendLine("Output: 15-20 words, comma-separated, one line.");
+                sb.AppendLine("Forbidden: multi-word tags, underscores, hyphens, hashtags, numbering.");
+            }
             sb.AppendLine("<|end|>");
 
             sb.AppendLine("<|user|>");
@@ -614,11 +764,14 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
             if (!string.IsNullOrWhiteSpace(_settings.TagsCustomPrompt))
             {
-                sb.AppendLine($"Beachte: {TextCleaningUtility.SanitizeCustomPrompt(_settings.TagsCustomPrompt)}");
+                var noteLabel = language.IsGerman ? "Beachte" : "Note";
+                sb.AppendLine($"{noteLabel}: {TextCleaningUtility.SanitizeCustomPrompt(_settings.TagsCustomPrompt)}");
                 sb.AppendLine();
             }
 
-            sb.AppendLine("Generiere neue, einzelne Wörter als Tags basierend auf diesem Transkript:");
+            sb.AppendLine(language.IsGerman
+                ? "Generiere neue, einzelne Wörter als Tags basierend auf diesem Transkript:"
+                : "Generate new single-word tags based on this transcript:");
             sb.AppendLine();
             sb.AppendLine("---TRANSKRIPT START---");
             sb.Append(TextCleaningUtility.TruncateTranscript(project.TranscriptText!, MaxTranscriptCharsForTags));
@@ -686,6 +839,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         CancellationToken cancellationToken = default)
     {
         var originalMaxTokens = _settings.MaxTokens;
+        var language = ResolvePromptLanguage(project, persona);
 
         if (!HasTranscript(project))
         {
@@ -725,7 +879,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                     strictJson: false,
                     minChapters: 6,
                     maxChapters: 10,
-                    chunkHint: null);
+                    chunkHint: null,
+                    language);
                 _logger.Debug($"Kapitel-Prompt erstellt, Laenge: {prompt.Length} Zeichen", "ContentSuggestion");
 
                 var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
@@ -745,7 +900,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                         strictJson: true,
                         minChapters: 6,
                         maxChapters: 10,
-                        chunkHint: null);
+                        chunkHint: null,
+                        language);
                     _logger.Debug($"Kapitel-Retry-Prompt erstellt, Laenge: {retryPrompt.Length} Zeichen", "ContentSuggestion");
 
                     var retryResponse = await _llmClient.CompleteAsync(retryPrompt, cancellationToken);
@@ -766,7 +922,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                         normalizedTranscript,
                         cancellationToken,
                         forcedChunkSize: GetFallbackChunkSize(normalizedTranscript),
-                        normalizedTranscriptForMatch: normalizedTranscriptForMatch);
+                        normalizedTranscriptForMatch: normalizedTranscriptForMatch,
+                        language: language);
                 }
             }
             else
@@ -774,7 +931,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                 chapters = await SuggestChaptersChunkedAsync(
                     normalizedTranscript,
                     cancellationToken,
-                    normalizedTranscriptForMatch: normalizedTranscriptForMatch);
+                    normalizedTranscriptForMatch: normalizedTranscriptForMatch,
+                    language: language);
             }
 
             if (chapters.Count == 0)
@@ -783,7 +941,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                 return await _fallbackSuggestionService.SuggestChaptersAsync(project, persona, cancellationToken);
             }
 
-            chapters = await EnsureChapterTitlesAsync(chapters, normalizedTranscript, cancellationToken);
+            chapters = await EnsureChapterTitlesAsync(chapters, normalizedTranscript, language, cancellationToken);
             if (chapters.Count == 0)
             {
                 _logger.Warning("Kapitel: Keine gueltigen Titel generiert", "ContentSuggestion");
@@ -813,8 +971,10 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         string normalizedTranscript,
         CancellationToken cancellationToken,
         int? forcedChunkSize = null,
-        string? normalizedTranscriptForMatch = null)
+        string? normalizedTranscriptForMatch = null,
+        PromptLanguage? language = null)
     {
+        language ??= new PromptLanguage("en", "English", IsGerman: false, IsEnglish: true);
         var chunkSize = forcedChunkSize ?? ChapterChunkSize;
         var overlap = Math.Min(ChapterChunkOverlap, Math.Max(100, chunkSize / 4));
         var chunks = SplitTranscriptIntoChunks(normalizedTranscript, chunkSize, overlap);
@@ -842,7 +1002,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                 strictJson: false,
                 minChapters: minPerChunk,
                 maxChapters: maxPerChunk,
-                chunkHint: $"{i + 1}/{totalChunks}");
+                chunkHint: $"{i + 1}/{totalChunks}",
+                language);
 
             _logger.Debug($"Kapitel-Chunk-Prompt erstellt ({i + 1}/{totalChunks}), Laenge: {prompt.Length} Zeichen", "ContentSuggestion");
 
@@ -863,7 +1024,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
                     strictJson: true,
                     minChapters: minPerChunk,
                     maxChapters: maxPerChunk,
-                    chunkHint: $"{i + 1}/{totalChunks}");
+                    chunkHint: $"{i + 1}/{totalChunks}",
+                    language);
 
                 _logger.Debug($"Kapitel-Chunk-Retry-Prompt erstellt ({i + 1}/{totalChunks}), Laenge: {retryPrompt.Length} Zeichen", "ContentSuggestion");
 
@@ -916,7 +1078,8 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         bool strictJson,
         int minChapters,
         int maxChapters,
-        string? chunkHint)
+        string? chunkHint,
+        PromptLanguage language)
     {
         var sb = AcquireBuilder();
         var sessionId = GetSessionId();
@@ -926,25 +1089,60 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         try
         {
             sb.AppendLine("<|system|>");
-            sb.AppendLine("Du segmentierst ein Transkript in thematische Kapitel.");
-            sb.AppendLine("Antworte als JSON-Array, keine Markdown-Fences, keine Zusatztexte.");
-            sb.AppendLine("Schema je Kapitel:");
-            sb.AppendLine("{\"anchor\":\"<exakte Wortfolge aus dem Transkript>\",\"keywords\":[\"...\",\"...\"]}");
-            sb.AppendLine("Anchor-Regeln:");
-            sb.AppendLine("- MUSS exakte Wortfolge aus dem Transkript sein (2-12 Woerter, 1:1 kopieren).");
-            sb.AppendLine("- Bevorzuge 3-8 Woerter; 2 Woerter nur wenn sehr eindeutig.");
-            sb.AppendLine("- MUSS eindeutig sein (kommt idealerweise nur 1x vor, keine generischen Phrasen).");
-            sb.AppendLine("- Waehle informative Phrasen, keine Standardfloskeln.");
-            sb.AppendLine("- Keine Zeitangaben, keine Nummerierung, keine Ueberschriften.");
-            sb.AppendLine("Keywords optional, leeres Array wenn unsicher.");
-            sb.AppendLine("WICHTIG: Keine Titel liefern. Titel werden spaeter aus dem Kontext erzeugt.");
-            sb.AppendLine("Diversitaet: Kapitel muessen klar unterschiedliche Schwerpunkte haben, keine wiederholten Oberthemen.");
-            sb.AppendLine($"Gib {minChapters}-{maxChapters} Kapitel zurueck, lieber etwas mehr als zu wenig, wenn klar trennbar.");
-            sb.AppendLine("Ausgabe muss mit '[' beginnen und mit ']' enden.");
+            if (language.IsGerman)
+            {
+                sb.AppendLine("Du segmentierst ein Transkript in thematische Kapitel.");
+                sb.AppendLine("Sprache: Deutsch. Antworte ausschließlich auf Deutsch.");
+                sb.AppendLine("Wenn das Transkript eine andere Sprache hat, uebersetze Keywords sinngemaess ins Deutsche.");
+                sb.AppendLine("Antworte als JSON-Array, keine Markdown-Fences, keine Zusatztexte.");
+                sb.AppendLine("Schema je Kapitel:");
+                sb.AppendLine("{\"anchor\":\"<exakte Wortfolge aus dem Transkript>\",\"keywords\":[\"...\",\"...\"]}");
+                sb.AppendLine("Anchor-Regeln:");
+                sb.AppendLine("- MUSS exakte Wortfolge aus dem Transkript sein (2-12 Woerter, 1:1 kopieren).");
+                sb.AppendLine("- Bevorzuge 3-8 Woerter; 2 Woerter nur wenn sehr eindeutig.");
+                sb.AppendLine("- MUSS eindeutig sein (kommt idealerweise nur 1x vor, keine generischen Phrasen).");
+                sb.AppendLine("- Waehle informative Phrasen, keine Standardfloskeln.");
+                sb.AppendLine("- Keine Zeitangaben, keine Nummerierung, keine Ueberschriften.");
+                sb.AppendLine("Keywords optional, leeres Array wenn unsicher.");
+                sb.AppendLine("Keywords bitte auf Deutsch, falls moeglich.");
+                sb.AppendLine("WICHTIG: Keine Titel liefern. Titel werden spaeter aus dem Kontext erzeugt.");
+                sb.AppendLine("Diversitaet: Kapitel muessen klar unterschiedliche Schwerpunkte haben, keine wiederholten Oberthemen.");
+                sb.AppendLine($"Gib {minChapters}-{maxChapters} Kapitel zurueck, lieber etwas mehr als zu wenig, wenn klar trennbar.");
+                sb.AppendLine("Ausgabe muss mit '[' beginnen und mit ']' enden.");
+            }
+            else
+            {
+                sb.AppendLine("You segment a transcript into thematic chapters.");
+                sb.AppendLine($"Language: {language.DisplayName}. Respond only in {language.DisplayName}.");
+                sb.AppendLine("If the transcript is in another language, translate keywords appropriately.");
+                sb.AppendLine("Respond as a JSON array, no Markdown fences, no extra text.");
+                sb.AppendLine("Schema per chapter:");
+                sb.AppendLine("{\"anchor\":\"<exact phrase from transcript>\",\"keywords\":[\"...\",\"...\"]}");
+                sb.AppendLine("Anchor rules:");
+                sb.AppendLine("- MUST be an exact phrase from the transcript (2-12 words, copy 1:1).");
+                sb.AppendLine("- Prefer 3-8 words; 2 words only if very unambiguous.");
+                sb.AppendLine("- MUST be unique (ideally appears once, no generic phrases).");
+                sb.AppendLine("- Choose informative phrases, no boilerplate.");
+                sb.AppendLine("- No timestamps, no numbering, no headings.");
+                sb.AppendLine("Keywords are optional, use an empty array if unsure.");
+                sb.AppendLine($"Keywords should be in {language.DisplayName} when possible.");
+                sb.AppendLine("IMPORTANT: Do not provide titles. Titles will be generated later from context.");
+                sb.AppendLine("Diversity: chapters must cover distinct topics, no repeated themes.");
+                sb.AppendLine($"Return {minChapters}-{maxChapters} chapters, prefer slightly more if clearly separable.");
+                sb.AppendLine("Output must start with '[' and end with ']'.");
+            }
             if (strictJson)
             {
-                sb.AppendLine("WICHTIG: Ausgabe muss gueltiges JSON sein, sonst [].");
-                sb.AppendLine("Vorige Antwort hatte zu wenige valide Anker. Waehle eindeutigere Anker.");
+                if (language.IsGerman)
+                {
+                    sb.AppendLine("WICHTIG: Ausgabe muss gueltiges JSON sein, sonst [].");
+                    sb.AppendLine("Vorige Antwort hatte zu wenige valide Anker. Waehle eindeutigere Anker.");
+                }
+                else
+                {
+                    sb.AppendLine("IMPORTANT: Output must be valid JSON, otherwise return [].");
+                    sb.AppendLine("Previous response had too few valid anchors. Choose more distinctive anchors.");
+                }
             }
             sb.AppendLine("<|end|>");
 
@@ -952,10 +1150,14 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             sb.AppendLine($"[Session: {sessionId}]");
             if (!string.IsNullOrWhiteSpace(chunkHint))
             {
-                sb.AppendLine($"Ausschnitt: {chunkHint}");
+                sb.AppendLine(language.IsGerman ? $"Ausschnitt: {chunkHint}" : $"Chunk: {chunkHint}");
             }
-            sb.AppendLine("Ordne die Themen so, wie sie im Transkript vorkommen.");
-            sb.AppendLine("Anker nur fuer diesen Ausschnitt, keine generischen Wiederholungen.");
+            sb.AppendLine(language.IsGerman
+                ? "Ordne die Themen so, wie sie im Transkript vorkommen."
+                : "Order the topics as they appear in the transcript.");
+            sb.AppendLine(language.IsGerman
+                ? "Anker nur fuer diesen Ausschnitt, keine generischen Wiederholungen."
+                : "Anchors must be from this chunk only, no generic repeats.");
             sb.AppendLine();
             sb.AppendLine("---TRANSKRIPT START---");
             sb.Append(truncated);
@@ -1114,6 +1316,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
     private async Task<IReadOnlyList<ChapterTopic>> EnsureChapterTitlesAsync(
         IReadOnlyList<ChapterTopic> topics,
         string transcript,
+        PromptLanguage language,
         CancellationToken cancellationToken)
     {
         if (topics.Count == 0)
@@ -1132,14 +1335,14 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             var missing = topics.Where(t => string.IsNullOrWhiteSpace(t.Title)).ToList();
             var resolved = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            await GenerateTitlesForMissingAsync(missing, transcript, strict: false, resolved, cancellationToken);
+            await GenerateTitlesForMissingAsync(missing, transcript, strict: false, resolved, language, cancellationToken);
             missing = missing
                 .Where(t => !resolved.ContainsKey(NormalizeForMatch(t.AnchorText ?? string.Empty)))
                 .ToList();
 
             if (missing.Count > 0)
             {
-                await GenerateTitlesForMissingAsync(missing, transcript, strict: true, resolved, cancellationToken);
+                await GenerateTitlesForMissingAsync(missing, transcript, strict: true, resolved, language, cancellationToken);
             }
 
             return topics
@@ -1175,13 +1378,14 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         string transcript,
         bool strict,
         Dictionary<string, string> resolved,
+        PromptLanguage language,
         CancellationToken cancellationToken)
     {
         const int batchSize = 8;
         for (var i = 0; i < missing.Count; i += batchSize)
         {
             var batch = missing.Skip(i).Take(batchSize).ToList();
-            var prompt = BuildChapterTitlesPrompt(batch, transcript, strict);
+            var prompt = BuildChapterTitlesPrompt(batch, transcript, strict, language);
             var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
             var titleMap = ParseChapterTitlesResponse(response);
 
@@ -1195,7 +1399,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         }
     }
 
-    private string BuildChapterTitlesPrompt(IReadOnlyList<ChapterTopic> topics, string transcript, bool strict)
+    private string BuildChapterTitlesPrompt(IReadOnlyList<ChapterTopic> topics, string transcript, bool strict, PromptLanguage language)
     {
         var sb = AcquireBuilder();
         var sessionId = GetSessionId();
@@ -1203,22 +1407,44 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
         try
         {
             sb.AppendLine("<|system|>");
-            sb.AppendLine("Du erstellst kurze YouTube-Kapitel-Titel auf Deutsch.");
-            sb.AppendLine("Ausgabe: JSON-Array, keine Markdown-Fences, keine Zusatztexte.");
-            sb.AppendLine("Schema je Eintrag: {\"anchor\":\"<exakte Wortfolge>\",\"title\":\"<kurzer Titel>\"}");
-            sb.AppendLine("Titel-Regeln: 2-8 Woerter, keine Nummerierung, keine generischen Titel.");
-            sb.AppendLine("Titel darf KEIN direktes Zitat oder Teilstring des Anchors sein.");
-            sb.AppendLine("Nutze nur den Kontext, keine neuen Fakten erfinden.");
+            if (language.IsGerman)
+            {
+                sb.AppendLine("Du erstellst kurze YouTube-Kapitel-Titel auf Deutsch.");
+                sb.AppendLine("Sprache: Deutsch. Antworte ausschließlich auf Deutsch.");
+                sb.AppendLine("Wenn das Transkript eine andere Sprache hat, uebersetze sinngemaess ins Deutsche.");
+                sb.AppendLine("Ausgabe: JSON-Array, keine Markdown-Fences, keine Zusatztexte.");
+                sb.AppendLine("Schema je Eintrag: {\"anchor\":\"<exakte Wortfolge>\",\"title\":\"<kurzer Titel>\"}");
+                sb.AppendLine("Titel-Regeln: 2-8 Woerter, keine Nummerierung, keine generischen Titel.");
+                sb.AppendLine("Titel darf KEIN direktes Zitat oder Teilstring des Anchors sein.");
+                sb.AppendLine("Nutze nur den Kontext, keine neuen Fakten erfinden.");
+            }
+            else
+            {
+                sb.AppendLine($"You create short YouTube chapter titles in {language.DisplayName}.");
+                sb.AppendLine($"Language: {language.DisplayName}. Respond only in {language.DisplayName}.");
+                sb.AppendLine("If the transcript is in another language, translate appropriately.");
+                sb.AppendLine("Output: JSON array, no Markdown fences, no extra text.");
+                sb.AppendLine("Schema per item: {\"anchor\":\"<exact phrase>\",\"title\":\"<short title>\"}");
+                sb.AppendLine("Title rules: 2-8 words, no numbering, no generic titles.");
+                sb.AppendLine("Title must NOT be a direct quote or substring of the anchor.");
+                sb.AppendLine("Use only the context, do not invent new facts.");
+            }
             if (strict)
             {
-                sb.AppendLine("WICHTIG: Titel muessen klar anders formuliert sein als der Anchor.");
+                sb.AppendLine(language.IsGerman
+                    ? "WICHTIG: Titel muessen klar anders formuliert sein als der Anchor."
+                    : "IMPORTANT: Titles must be clearly phrased differently than the anchor.");
             }
             sb.AppendLine("<|end|>");
 
             sb.AppendLine("<|user|>");
             sb.AppendLine($"[Session: {sessionId}]");
-            sb.AppendLine("Erzeuge fuer jeden Anchor einen passenden Titel.");
-            sb.AppendLine("Anchor muss im Output exakt gleich sein.");
+            sb.AppendLine(language.IsGerman
+                ? "Erzeuge fuer jeden Anchor einen passenden Titel."
+                : "Generate a fitting title for each anchor.");
+            sb.AppendLine(language.IsGerman
+                ? "Anchor muss im Output exakt gleich sein."
+                : "Anchor must match exactly in the output.");
             sb.AppendLine();
 
             foreach (var topic in topics)

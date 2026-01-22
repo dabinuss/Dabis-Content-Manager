@@ -742,6 +742,36 @@ public partial class MainWindow : Window
         return _currentLlmCts.Token;
     }
 
+    private string ResolveSuggestionLanguage()
+    {
+        var appLanguage = _settings.Language;
+        if (!string.IsNullOrWhiteSpace(appLanguage))
+        {
+            return appLanguage;
+        }
+
+        var currentUiLanguage = LocalizationManager.Instance.CurrentLanguage;
+        if (!string.IsNullOrWhiteSpace(currentUiLanguage))
+        {
+            return currentUiLanguage;
+        }
+
+        return "en";
+    }
+
+    private void ApplySuggestionLanguage(UploadProject project)
+    {
+        if (project is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(project.Language))
+        {
+            project.Language = ResolveSuggestionLanguage();
+        }
+    }
+
     private ILlmClient CreateLlmClient(LlmSettings settings)
     {
         if (settings.IsLocalMode && !string.IsNullOrWhiteSpace(settings.LocalModelPath))
@@ -972,95 +1002,68 @@ public partial class MainWindow : Window
 
     private async Task GenerateTitleAsync()
     {
-        CloseSuggestionPopup();
-
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
+        ApplySuggestionLanguage(project);
 
-        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateTitles");
-        UploadView.GenerateTitleButton.IsEnabled = false;
-
-        var cancellationToken = GetNewLlmCancellationToken();
         var desired = Math.Max(1, _settings.TitleSuggestionCount);
-        if (desired > 1)
-        {
-            ShowSuggestionLoading(SuggestionTarget.Title, LocalizationHelper.Get("Upload.Fields.Title"), desired);
-        }
-
-        _logger.Debug(LocalizationHelper.Get("Log.LLM.TitleGeneration.Started"), LlmLogSource);
-
-        try
-        {
-            var titles = await CollectSuggestionsAsync(
-                () => _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona, cancellationToken),
-                Math.Max(1, _settings.TitleSuggestionCount),
+        await RunSuggestionAsync(
+            target: SuggestionTarget.Title,
+            triggerButton: UploadView.GenerateTitleButton,
+            desiredCount: desired,
+            fieldLabel: LocalizationHelper.Get("Upload.Fields.Title"),
+            statusGenerating: LocalizationHelper.Get("Status.LLM.GenerateTitles"),
+            statusNoSuggestions: LocalizationHelper.Get("Status.LLM.NoTitles"),
+            statusCanceled: LocalizationHelper.Get("Status.LLM.TitleCanceled"),
+            statusError: ex => LocalizationHelper.Format("Status.LLM.TitleError", ex.Message),
+            logStarted: () => _logger.Debug(LocalizationHelper.Get("Log.LLM.TitleGeneration.Started"), LlmLogSource),
+            logNoSuggestions: () => _logger.Warning(LocalizationHelper.Get("Log.LLM.TitleGeneration.NoSuggestions"), LlmLogSource),
+            logCanceled: () => _logger.Debug(LocalizationHelper.Get("Log.LLM.TitleGeneration.Canceled"), LlmLogSource),
+            logError: ex => _logger.Error(
+                LocalizationHelper.Format("Log.LLM.TitleGeneration.Error", ex.Message),
+                LlmLogSource,
+                ex),
+            producer: ct => CollectSuggestionsAsync(
+                () => _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona, ct),
+                desired,
                 maxRetries: 2,
-                cancellationToken).ConfigureAwait(true); // Keep UI context
-
-            if (titles is null || titles.Count == 0)
-            {
-                UploadView.TitleTextBox.Text = LocalizationHelper.Get("Llm.TitlePlaceholder.NoSuggestions");
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoTitles");
-                _logger.Warning(LocalizationHelper.Get("Log.LLM.TitleGeneration.NoSuggestions"), LlmLogSource);
-                CloseSuggestionPopup();
-                return;
-            }
-
-            var trimmed = titles
+                ct),
+            suggestionSelector: items => (items ?? new List<string>())
                 .Select(TextCleaningUtility.RemoveWrappedTitleQuotes)
                 .Select(t => t?.Trim() ?? string.Empty)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
-                .Take(Math.Max(1, desired))
-                .ToList();
+                .ToList(),
+            handleResults: (_, suggestions) =>
+            {
+                var trimmed = suggestions.Take(desired).ToList();
+                if (trimmed.Count == 0)
+                {
+                    UploadView.TitleTextBox.Text = LocalizationHelper.Get("Llm.TitlePlaceholder.NoSuggestions");
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoTitles");
+                    _logger.Warning(LocalizationHelper.Get("Log.LLM.TitleGeneration.NoSuggestions"), LlmLogSource);
+                    CloseSuggestionPopup();
+                    return;
+                }
 
-            if (trimmed.Count == 0)
+                if (desired <= 1 || trimmed.Count <= 1)
+                {
+                    UploadView.TitleTextBox.Text = trimmed[0];
+                    StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", 1);
+                    _logger.Info(
+                        LocalizationHelper.Format("Log.LLM.TitleGeneration.Success", trimmed[0]),
+                        LlmLogSource);
+                    CloseSuggestionPopup();
+                }
+                else
+                {
+                    ShowSuggestionPopup(SuggestionTarget.Title, trimmed, LocalizationHelper.Get("Upload.Fields.Title"));
+                    StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", trimmed.Count);
+                }
+            },
+            onNoSuggestions: () =>
             {
                 UploadView.TitleTextBox.Text = LocalizationHelper.Get("Llm.TitlePlaceholder.NoSuggestions");
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoTitles");
-                _logger.Warning(LocalizationHelper.Get("Log.LLM.TitleGeneration.NoSuggestions"), LlmLogSource);
-                CloseSuggestionPopup();
-                return;
-            }
-
-            if (desired <= 1 || trimmed.Count <= 1)
-            {
-                UploadView.TitleTextBox.Text = trimmed[0];
-                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", 1);
-                _logger.Info(
-                    LocalizationHelper.Format("Log.LLM.TitleGeneration.Success", trimmed[0]),
-                    LlmLogSource);
-                CloseSuggestionPopup();
-            }
-            else
-            {
-                ShowSuggestionPopup(SuggestionTarget.Title, trimmed, LocalizationHelper.Get("Upload.Fields.Title"));
-                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleInserted", trimmed.Count);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.TitleCanceled");
-            _logger.Debug(LocalizationHelper.Get("Log.LLM.TitleGeneration.Canceled"), LlmLogSource);
-            CloseSuggestionPopup();
-        }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleError", ex.Message);
-            _logger.Error(
-                LocalizationHelper.Format("Log.LLM.TitleGeneration.Error", ex.Message),
-                LlmLogSource,
-                ex);
-            CloseSuggestionPopup();
-        }
-        finally
-        {
-            UploadView.GenerateTitleButton.IsEnabled = true;
-            UpdateLogLinkIndicator();
-            if (desired <= 1)
-            {
-                CloseSuggestionPopup();
-            }
-        }
+            }).ConfigureAwait(true); // Keep UI context
     }
 
     // OPTIMIZATION: Extracted async logic to separate method with proper exception handling
@@ -1081,78 +1084,52 @@ public partial class MainWindow : Window
 
     private async Task GenerateDescriptionAsync()
     {
-        CloseSuggestionPopup();
-
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
+        ApplySuggestionLanguage(project);
 
-        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateDescription");
-        UploadView.GenerateDescriptionButton.IsEnabled = false;
-
-        var cancellationToken = GetNewLlmCancellationToken();
         var desired = Math.Max(1, _settings.DescriptionSuggestionCount);
-        if (desired > 1)
-        {
-            ShowSuggestionLoading(SuggestionTarget.Description, LocalizationHelper.Get("Upload.Fields.Description"), desired);
-        }
-
-        _logger.Debug(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Started"), LlmLogSource);
-
-        try
-        {
-            var descriptions = await CollectSuggestionsAsync(
-                () => _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona, cancellationToken),
-                Math.Max(1, _settings.DescriptionSuggestionCount),
-                maxRetries: 2,
-                cancellationToken).ConfigureAwait(true); // Keep UI context
-
-            if (descriptions is null || descriptions.Count == 0)
-            {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoDescriptions");
-                _logger.Warning(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.NoSuggestions"), LlmLogSource);
-                CloseSuggestionPopup();
-                return;
-            }
-
-            var trimmed = descriptions.Take(Math.Max(1, desired)).ToList();
-
-            if (desired <= 1 || trimmed.Count <= 1)
-            {
-                ApplyGeneratedDescription(trimmed[0]);
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionInserted");
-                _logger.Info(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Success"), LlmLogSource);
-                CloseSuggestionPopup();
-            }
-            else
-            {
-                ShowSuggestionPopup(SuggestionTarget.Description, trimmed, LocalizationHelper.Get("Upload.Fields.Description"));
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateDescription");
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionCanceled");
-            _logger.Debug(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Canceled"), LlmLogSource);
-            CloseSuggestionPopup();
-        }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.DescriptionError", ex.Message);
-            _logger.Error(
+        await RunSuggestionAsync(
+            target: SuggestionTarget.Description,
+            triggerButton: UploadView.GenerateDescriptionButton,
+            desiredCount: desired,
+            fieldLabel: LocalizationHelper.Get("Upload.Fields.Description"),
+            statusGenerating: LocalizationHelper.Get("Status.LLM.GenerateDescription"),
+            statusNoSuggestions: LocalizationHelper.Get("Status.LLM.NoDescriptions"),
+            statusCanceled: LocalizationHelper.Get("Status.LLM.DescriptionCanceled"),
+            statusError: ex => LocalizationHelper.Format("Status.LLM.DescriptionError", ex.Message),
+            logStarted: () => _logger.Debug(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Started"), LlmLogSource),
+            logNoSuggestions: () => _logger.Warning(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.NoSuggestions"), LlmLogSource),
+            logCanceled: () => _logger.Debug(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Canceled"), LlmLogSource),
+            logError: ex => _logger.Error(
                 LocalizationHelper.Format("Log.LLM.DescriptionGeneration.Error", ex.Message),
                 LlmLogSource,
-                ex);
-            CloseSuggestionPopup();
-        }
-        finally
-        {
-            UploadView.GenerateDescriptionButton.IsEnabled = true;
-            UpdateLogLinkIndicator();
-            if (desired <= 1)
+                ex),
+            producer: ct => CollectSuggestionsAsync(
+                () => _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona, ct),
+                desired,
+                maxRetries: 2,
+                ct),
+            suggestionSelector: items => (items ?? new List<string>())
+                .Select(t => t?.Trim() ?? string.Empty)
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .ToList(),
+            handleResults: (_, suggestions) =>
             {
-                CloseSuggestionPopup();
-            }
-        }
+                var trimmed = suggestions.Take(desired).ToList();
+                if (desired <= 1 || trimmed.Count <= 1)
+                {
+                    ApplyGeneratedDescription(trimmed[0]);
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.DescriptionInserted");
+                    _logger.Info(LocalizationHelper.Get("Log.LLM.DescriptionGeneration.Success"), LlmLogSource);
+                    CloseSuggestionPopup();
+                }
+                else
+                {
+                    ShowSuggestionPopup(SuggestionTarget.Description, trimmed, LocalizationHelper.Get("Upload.Fields.Description"));
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateDescription");
+                }
+            }).ConfigureAwait(true); // Keep UI context
     }
 
     // OPTIMIZATION: Extracted async logic to separate method with proper exception handling
@@ -1175,30 +1152,29 @@ public partial class MainWindow : Window
     {
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
+        ApplySuggestionLanguage(project);
 
-        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateTags");
-        UploadView.GenerateTagsButton.IsEnabled = false;
-
-        var cancellationToken = GetNewLlmCancellationToken();
         var desired = Math.Max(1, _settings.TagsSuggestionCount);
-        if (desired > 1)
-        {
-            ShowSuggestionLoading(SuggestionTarget.Tags, LocalizationHelper.Get("Upload.Fields.Tags"), desired);
-        }
-
-        _logger.Debug(LocalizationHelper.Get("Log.LLM.TagGeneration.Started"), LlmLogSource);
-
-        try
-        {
-            var tags = await _contentSuggestionService.SuggestTagsAsync(
-                project,
-                _settings.Persona,
-                cancellationToken).ConfigureAwait(true); // Keep UI context
-
-            if (tags is not null && tags.Count > 0)
+        await RunSuggestionAsync(
+            target: SuggestionTarget.Tags,
+            triggerButton: UploadView.GenerateTagsButton,
+            desiredCount: desired,
+            fieldLabel: LocalizationHelper.Get("Upload.Fields.Tags"),
+            statusGenerating: LocalizationHelper.Get("Status.LLM.GenerateTags"),
+            statusNoSuggestions: LocalizationHelper.Get("Status.LLM.NoTags"),
+            statusCanceled: LocalizationHelper.Get("Status.LLM.TagsCanceled"),
+            statusError: ex => LocalizationHelper.Format("Status.LLM.TagsError", ex.Message),
+            logStarted: () => _logger.Debug(LocalizationHelper.Get("Log.LLM.TagGeneration.Started"), LlmLogSource),
+            logNoSuggestions: () => _logger.Warning(LocalizationHelper.Get("Log.LLM.TagGeneration.NoSuggestions"), LlmLogSource),
+            logCanceled: () => _logger.Debug(LocalizationHelper.Get("Log.LLM.TagGeneration.Canceled"), LlmLogSource),
+            logError: ex => _logger.Error(
+                LocalizationHelper.Format("Log.LLM.TagGeneration.Error", ex.Message),
+                LlmLogSource,
+                ex),
+            producer: ct => _contentSuggestionService.SuggestTagsAsync(project, _settings.Persona, ct),
+            suggestionSelector: items => BuildTagSuggestionSets(items ?? Array.Empty<string>(), desired),
+            handleResults: (tags, suggestions) =>
             {
-                var suggestions = BuildTagSuggestionSets(tags, desired);
-
                 if (desired <= 1 || suggestions.Count <= 1)
                 {
                     var joined = suggestions.FirstOrDefault() ?? string.Join(", ", tags);
@@ -1215,38 +1191,7 @@ public partial class MainWindow : Window
                     ShowSuggestionPopup(SuggestionTarget.Tags, suggestions, LocalizationHelper.Get("Upload.Fields.Tags"));
                     StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsInserted", tags.Count);
                 }
-            }
-            else
-            {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoTags");
-                _logger.Warning(LocalizationHelper.Get("Log.LLM.TagGeneration.NoSuggestions"), LlmLogSource);
-                CloseSuggestionPopup();
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.TagsCanceled");
-            _logger.Debug(LocalizationHelper.Get("Log.LLM.TagGeneration.Canceled"), LlmLogSource);
-            CloseSuggestionPopup();
-        }
-        catch (Exception ex)
-        {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsError", ex.Message);
-            _logger.Error(
-                LocalizationHelper.Format("Log.LLM.TagGeneration.Error", ex.Message),
-                LlmLogSource,
-                ex);
-            CloseSuggestionPopup();
-        }
-        finally
-        {
-            UploadView.GenerateTagsButton.IsEnabled = true;
-            UpdateLogLinkIndicator();
-            if (desired <= 1)
-            {
-                CloseSuggestionPopup();
-            }
-        }
+            }).ConfigureAwait(true); // Keep UI context
     }
 
     private async void GenerateChaptersButton_Click(object sender, RoutedEventArgs e)
@@ -1274,6 +1219,7 @@ public partial class MainWindow : Window
     {
         var project = BuildUploadProjectFromUi(includeScheduling: false);
         _settings.Persona ??= new ChannelPersona();
+        ApplySuggestionLanguage(project);
 
         var transcript = project.TranscriptText ?? string.Empty;
         if (string.IsNullOrWhiteSpace(transcript))
@@ -2210,6 +2156,77 @@ public partial class MainWindow : Window
             SuggestionTarget.Tags => UploadView.GetTagsSuggestionAnchor(),
             _ => null
         };
+    }
+
+    private async Task RunSuggestionAsync<T>(
+        SuggestionTarget target,
+        Button triggerButton,
+        int desiredCount,
+        string fieldLabel,
+        string statusGenerating,
+        string statusNoSuggestions,
+        string statusCanceled,
+        Func<Exception, string> statusError,
+        Action logStarted,
+        Action logNoSuggestions,
+        Action logCanceled,
+        Action<Exception> logError,
+        Func<CancellationToken, Task<T>> producer,
+        Func<T, List<string>> suggestionSelector,
+        Action<T, List<string>> handleResults,
+        Action? onNoSuggestions = null)
+    {
+        CloseSuggestionPopup();
+
+        StatusTextBlock.Text = statusGenerating;
+        triggerButton.IsEnabled = false;
+
+        var cancellationToken = GetNewLlmCancellationToken();
+
+        if (desiredCount > 1)
+        {
+            ShowSuggestionLoading(target, fieldLabel, desiredCount);
+        }
+
+        logStarted();
+
+        try
+        {
+            var result = await producer(cancellationToken).ConfigureAwait(true); // Keep UI context
+            var suggestions = suggestionSelector(result) ?? new List<string>();
+
+            if (suggestions.Count == 0)
+            {
+                StatusTextBlock.Text = statusNoSuggestions;
+                logNoSuggestions();
+                onNoSuggestions?.Invoke();
+                CloseSuggestionPopup();
+                return;
+            }
+
+            handleResults(result, suggestions);
+        }
+        catch (OperationCanceledException)
+        {
+            StatusTextBlock.Text = statusCanceled;
+            logCanceled();
+            CloseSuggestionPopup();
+        }
+        catch (Exception ex)
+        {
+            StatusTextBlock.Text = statusError(ex);
+            logError(ex);
+            CloseSuggestionPopup();
+        }
+        finally
+        {
+            triggerButton.IsEnabled = true;
+            UpdateLogLinkIndicator();
+            if (desiredCount <= 1)
+            {
+                CloseSuggestionPopup();
+            }
+        }
     }
 
     private static async Task<List<string>> CollectSuggestionsAsync(

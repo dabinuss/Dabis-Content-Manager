@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Windows.Controls;
 using DCM.App.Models;
+using System.Globalization;
 
 namespace DCM.App;
 
@@ -191,7 +192,7 @@ public partial class MainWindow
             }
 
             // Transkription starten
-            var language = _settings.Transcription?.Language;
+            var language = ResolveTranscriptionLanguage(draft);
             var transcriptionProgress = new Progress<TranscriptionProgress>(ReportTranscriptionProgress);
 
                 var result = await _transcriptionService.TranscribeAsync(
@@ -766,6 +767,62 @@ public partial class MainWindow
         var canDownload = ffmpegMissing || !selectedModelInstalled;
 
         GeneralSettingsPageView.SetTranscriptionDownloadAvailability(canDownload);
+    }
+
+    private string? ResolveTranscriptionLanguage(UploadDraft draft)
+    {
+        var raw = draft.Language;
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            raw = _settings.Language;
+        }
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            raw = LocalizationManager.Instance.CurrentLanguage;
+        }
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            raw = _settings.Transcription?.Language;
+        }
+
+        return NormalizeWhisperLanguage(raw);
+    }
+
+    private static string? NormalizeWhisperLanguage(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        var value = raw.Trim();
+        if (string.Equals(value, "auto", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var lower = value.ToLowerInvariant();
+        if (lower.StartsWith("de") || lower.Contains("deutsch") || lower.Contains("german"))
+        {
+            return "de";
+        }
+
+        if (lower.StartsWith("en") || lower.Contains("english"))
+        {
+            return "en";
+        }
+
+        try
+        {
+            var culture = new CultureInfo(value);
+            return culture.TwoLetterISOLanguageName;
+        }
+        catch
+        {
+            return value;
+        }
     }
 
     private void TranscriptionModelSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
