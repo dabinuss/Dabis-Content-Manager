@@ -76,7 +76,7 @@ public sealed class YouTubePlatformClient : IPlatformClient
             _logger.Debug("Versuche Silent-Connect mit gespeicherten Tokens...", "YouTube");
 
             var secrets = await LoadSecretsAsync(cancellationToken);
-            var dataStore = new FileDataStore(_tokenFolder, true);
+            var dataStore = CreateDataStore();
 
             var storedToken = await dataStore.GetAsync<TokenResponse>(UserKey);
             if (storedToken is null)
@@ -531,7 +531,7 @@ public sealed class YouTubePlatformClient : IPlatformClient
             _logger.Debug("Lade YouTube Client-Secrets...", "YouTube");
             var secrets = await LoadSecretsAsync(cancellationToken);
 
-            var dataStore = new FileDataStore(_tokenFolder, true);
+            var dataStore = CreateDataStore();
 
             _logger.Debug("Starte OAuth-Autorisierung...", "YouTube");
 
@@ -556,6 +556,8 @@ public sealed class YouTubePlatformClient : IPlatformClient
 
     private Task<GoogleClientSecrets> LoadSecretsAsync(CancellationToken cancellationToken) =>
         GoogleClientSecrets.FromFileAsync(_clientSecretsPath, cancellationToken);
+
+    private IDataStore CreateDataStore() => new EncryptedFileDataStore(_tokenFolder);
 
     private static YouTubeService CreateService(UserCredential credential) =>
         new(new BaseClientService.Initializer
