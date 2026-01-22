@@ -32,6 +32,10 @@ public partial class MainWindow
     private const int ThumbnailDecodePixelWidth = 640;
     private const int VideoPreviewDecodePixelWidth = 640;
     private static readonly TimeSpan DraftTextDebounceDelay = TimeSpan.FromMilliseconds(350);
+    private static readonly Regex DescriptionPlaceholderRegex = new(@"\{+\s*description\s*\}+",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex ChaptersPlaceholderRegex = new(@"\{+\s*chapters\s*\}+",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private readonly SemaphoreSlim _videoInfoSemaphore = new(2, 2);
     private readonly SemaphoreSlim _videoPreviewSemaphore = new(1, 1);
     private bool _isFastFillRunning;
@@ -3492,7 +3496,7 @@ public partial class MainWindow
             return false;
         }
 
-        return Regex.IsMatch(preset.DescriptionTemplate, @"\{+\s*description\s*\}+", RegexOptions.IgnoreCase);
+        return DescriptionPlaceholderRegex.IsMatch(preset.DescriptionTemplate);
     }
 
     private static bool PresetHasChaptersPlaceholder(UploadPreset preset)
@@ -3502,7 +3506,7 @@ public partial class MainWindow
             return false;
         }
 
-        return Regex.IsMatch(preset.DescriptionTemplate, @"\{+\s*chapters\s*\}+", RegexOptions.IgnoreCase);
+        return ChaptersPlaceholderRegex.IsMatch(preset.DescriptionTemplate);
     }
 
     private void ApplyGeneratedDescription(string newDescription)

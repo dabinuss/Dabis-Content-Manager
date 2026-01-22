@@ -531,7 +531,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
         try
         {
-            await _inferenceGate.WaitAsync(cancellationToken);
+            await _inferenceGate.WaitAsync(cancellationToken).ConfigureAwait(false);
             gateAcquired = true;
 
             // Falls zwischenzeitlich disposed wurde, nicht mehr starten (verhindert Executor-after-dispose).
@@ -543,7 +543,8 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
             _logger.Debug($"LLM-Inferenz gestartet (Profil: {_detectedModelType}), Prompt-Länge: {formattedPrompt.Length} Zeichen", "LocalLlm");
 
-            var result = new StringBuilder();
+            var estimatedCapacity = Math.Min(charLimit, Math.Max(256, tokenCountLimit * 4));
+            var result = new StringBuilder(estimatedCapacity);
             var tokenCount = 0;
 
             await foreach (var token in executor.InferAsync(formattedPrompt, inferenceParams, cancellationToken))

@@ -1017,87 +1017,95 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
             arguments.Append(QuotePath(outputPath)).Append(' ');
         }
 
-        try
+        const int maxAttempts = 2;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            using var process = new Process
+            try
             {
-                StartInfo = new ProcessStartInfo
+                using var process = new Process
                 {
-                    FileName = ffmpegPath,
-                    Arguments = arguments.ToString(),
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            if (!process.Start())
-            {
-                return null;
-            }
-
-            using var registration = cancellationToken.Register(() =>
-            {
-                try
-                {
-                    if (!process.HasExited)
+                    StartInfo = new ProcessStartInfo
                     {
-                        process.Kill(entireProcessTree: true);
+                        FileName = ffmpegPath,
+                        Arguments = arguments.ToString(),
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+
+                if (!process.Start())
+                {
+                    throw new InvalidOperationException("FFmpeg-Prozess konnte nicht gestartet werden.");
+                }
+
+                using var registration = cancellationToken.Register(() =>
+                {
+                    try
+                    {
+                        if (!process.HasExited)
+                        {
+                            process.Kill(entireProcessTree: true);
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore cleanup failures on cancellation.
+                    }
+                });
+
+                var outputTask = process.StandardOutput.ReadToEndAsync();
+                var errorTask = process.StandardError.ReadToEndAsync();
+
+                await Task.WhenAll(
+                    process.WaitForExitAsync(cancellationToken),
+                    outputTask,
+                    errorTask).ConfigureAwait(false);
+
+                if (process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException("FFmpeg lieferte einen Fehlercode.");
+                }
+
+                foreach (var outputPath in outputPaths)
+                {
+                    if (!File.Exists(outputPath))
+                    {
+                        throw new FileNotFoundException("FFmpeg-Ausgabe fehlt.", outputPath);
                     }
                 }
-                catch
-                {
-                    // Ignore cleanup failures on cancellation.
-                }
-            });
 
-            var outputTask = process.StandardOutput.ReadToEndAsync();
-            var errorTask = process.StandardError.ReadToEndAsync();
-
-            await Task.WhenAll(
-                process.WaitForExitAsync(cancellationToken),
-                outputTask,
-                errorTask).ConfigureAwait(false);
-
-            if (process.ExitCode != 0)
+                return outputPaths;
+            }
+            catch (OperationCanceledException)
             {
+                foreach (var outputPath in outputPaths)
+                {
+                    CleanupTempFile(outputPath);
+                }
+
+                throw;
+            }
+            catch
+            {
+                foreach (var outputPath in outputPaths)
+                {
+                    CleanupTempFile(outputPath);
+                }
+
+                if (attempt < maxAttempts)
+                {
+                    await Task.Delay(200, cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
                 return null;
             }
-
-            foreach (var outputPath in outputPaths)
-            {
-                if (!File.Exists(outputPath))
-                {
-                    foreach (var path in outputPaths)
-                    {
-                        CleanupTempFile(path);
-                    }
-
-                    return null;
-                }
-            }
-
-            return outputPaths;
         }
-        catch (OperationCanceledException)
-        {
-            foreach (var outputPath in outputPaths)
-            {
-                CleanupTempFile(outputPath);
-            }
 
-            throw;
-        }
-        catch
-        {
-            foreach (var outputPath in outputPaths)
-            {
-                CleanupTempFile(outputPath);
-            }
-
-            return null;
-        }
+        return null;
     }
 
     private static string QuotePath(string path)

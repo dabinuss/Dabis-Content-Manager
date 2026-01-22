@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
+using System.Collections.Concurrent;
 
 namespace DCM.Core.Services;
 
@@ -7,6 +8,9 @@ namespace DCM.Core.Services;
 /// </summary>
 public static partial class TextCleaningUtility
 {
+    private const int NormalizeCacheLimit = 2048;
+    private const int NormalizeCacheMaxInputLength = 200;
+    private static readonly ConcurrentDictionary<string, string> NormalizeComparisonCache = new(StringComparer.Ordinal);
     private static readonly char[] QuoteChars =
     {
         '"', '\'', '\u201E', '\u201C', '\u201A', '\u2018',
@@ -286,11 +290,28 @@ public static partial class TextCleaningUtility
             return string.Empty;
         }
 
+        if (text.Length <= NormalizeCacheMaxInputLength
+            && NormalizeComparisonCache.TryGetValue(text, out var cached))
+        {
+            return cached;
+        }
+
         var normalized = text.ToLowerInvariant();
         normalized = NonAlphanumericRegex().Replace(normalized, " ");
         normalized = MultipleSpacesRegex().Replace(normalized, " ");
+        normalized = normalized.Trim();
 
-        return normalized.Trim();
+        if (text.Length <= NormalizeCacheMaxInputLength)
+        {
+            if (NormalizeComparisonCache.Count >= NormalizeCacheLimit)
+            {
+                NormalizeComparisonCache.Clear();
+            }
+
+            NormalizeComparisonCache.TryAdd(text, normalized);
+        }
+
+        return normalized;
     }
 
     /// <summary>
@@ -350,3 +371,5 @@ public static partial class TextCleaningUtility
     [GeneratedRegex(@"\s+")]
     private static partial Regex MultipleSpacesRegex();
 }
+
+
