@@ -394,7 +394,6 @@ public partial class MainWindow
             _activeTranscriptionDraft.IsTranscriptionProgressIndeterminate = false;
             _activeTranscriptionDraft.TranscriptionProgress = Math.Clamp(progress.Percent, 0, 100);
             _activeTranscriptionDraft.TranscriptionStatus = message;
-            ScheduleDraftPersistence();
         }
     }
 
@@ -434,7 +433,6 @@ public partial class MainWindow
             _activeTranscriptionDraft.IsTranscriptionProgressIndeterminate = isIndeterminate;
             _activeTranscriptionDraft.TranscriptionProgress = percent;
             _activeTranscriptionDraft.TranscriptionStatus = phaseText;
-            ScheduleDraftPersistence();
         }
     }
 

@@ -83,7 +83,8 @@ public partial class MainWindow : Window
     private readonly List<Guid> _transcriptionQueue = new();
     private UploadDraft? _activeDraft;
     private bool _isLoadingDraft;
-    private readonly DraftRepository _draftRepository = new();
+    private readonly DraftTranscriptStore _draftTranscriptStore;
+    private readonly DraftRepository _draftRepository;
     private readonly DraftPersistenceCoordinator _draftPersistence;
     private DispatcherTimer? _settingsSaveTimer;
     private bool _settingsSaveDirty;
@@ -131,6 +132,8 @@ public partial class MainWindow : Window
         AppVersion = $"v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "0.0"}";
 
         _logger = AppLogger.Instance;
+        _draftTranscriptStore = new DraftTranscriptStore();
+        _draftRepository = new DraftRepository(_draftTranscriptStore);
         _logger.Info(LocalizationHelper.Get("Log.MainWindow.Started"), MainWindowLogSource);
 
         // Fensterzustand wiederherstellen (smart, ohne das Fenster zu "verlieren")
@@ -485,6 +488,15 @@ public partial class MainWindow : Window
                 // OPTIMIZATION: Added logging
                 _logger.Debug($"Failed to dispose LLM client: {ex.Message}", MainWindowLogSource);
             }
+        }
+
+        try
+        {
+            _draftTranscriptStore.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _logger.Debug($"Failed to dispose transcript store: {ex.Message}", MainWindowLogSource);
         }
     }
 

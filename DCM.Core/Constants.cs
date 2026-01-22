@@ -68,6 +68,11 @@ public static class Constants
     public const string VideoPreviewFolderName = "video_previews";
 
     /// <summary>
+    /// Ordnername für ausgelagerte Transkripte der Upload-Drafts.
+    /// </summary>
+    public const string DraftTranscriptsFolderName = "draft_transcripts";
+
+    /// <summary>
     /// Ordnername für temporäre Transkriptionsdateien (im System-Temp).
     /// </summary>
     public const string TranscriptionTempFolderName = "DCM_Transcription";
@@ -180,6 +185,25 @@ public static class Constants
         get
         {
             var folder = Path.Combine(AppDataFolder, VideoPreviewFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Draft-Transkript-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string DraftTranscriptsFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, DraftTranscriptsFolderName);
 
             if (!Directory.Exists(folder))
             {

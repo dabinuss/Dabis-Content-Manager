@@ -100,6 +100,7 @@ public sealed class AppSettings
                     TagsCsv = d.TagsCsv,
                     ThumbnailPath = d.ThumbnailPath,
                     Transcript = d.Transcript,
+                    TranscriptPath = d.TranscriptPath,
                     ChaptersText = d.ChaptersText,
                     PresetId = d.PresetId,
                     VideoResolution = d.VideoResolution,

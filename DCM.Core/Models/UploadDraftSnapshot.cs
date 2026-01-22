@@ -11,6 +11,7 @@ public sealed class UploadDraftSnapshot
     public string? TagsCsv { get; set; }
     public string? ThumbnailPath { get; set; }
     public string? Transcript { get; set; }
+    public string? TranscriptPath { get; set; }
     public string? ChaptersText { get; set; }
     public string? PresetId { get; set; }
     public string? VideoResolution { get; set; }

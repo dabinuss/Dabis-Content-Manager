@@ -46,7 +46,6 @@ public partial class MainWindow
 
     private void SaveSettings(bool forceSync = false)
     {
-        var snapshot = _settings.DeepCopy();
         var version = Interlocked.Increment(ref _settingsSaveVersion);
 
         if (forceSync || _isClosing)
@@ -56,6 +55,7 @@ public partial class MainWindow
             {
                 _settingsSaveGate.Wait();
                 gateAcquired = true;
+                var snapshot = _settings.DeepCopy();
                 _settingsProvider.Save(snapshot);
                 Interlocked.Exchange(ref _settingsSaveWrittenVersion, version);
             }
@@ -85,6 +85,7 @@ public partial class MainWindow
                     return;
                 }
 
+                var snapshot = _settings.DeepCopy();
                 _settingsProvider.Save(snapshot);
                 Interlocked.Exchange(ref _settingsSaveWrittenVersion, version);
             }

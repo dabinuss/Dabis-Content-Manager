@@ -62,6 +62,7 @@ public partial class MainWindow
 
         _isRestoringDrafts = true;
         var migratedThumbnails = false;
+        var migratedTranscripts = false;
         var autoRemoveCompleted = _settings.AutoRemoveCompletedDrafts == true;
 
         try
@@ -73,6 +74,7 @@ public partial class MainWindow
                 autoRemoveCompleted,
                 ShouldAutoRemoveDraft);
             var removedDuringRestore = loadResult.RemovedDuringRestore;
+            migratedTranscripts = loadResult.MigratedTranscripts;
 
             foreach (var draft in loadResult.Drafts)
             {
@@ -111,6 +113,10 @@ public partial class MainWindow
                 }
             }
 
+            _draftTranscriptStore.CleanupOrphanedTranscripts(
+                _uploadDrafts.Select(d => d.Id).ToHashSet(),
+                maxAge: TimeSpan.FromDays(30));
+
             var storedQueue = _settings.PendingTranscriptionQueue ?? new List<Guid>();
             foreach (var draftId in storedQueue)
             {
@@ -139,7 +145,7 @@ public partial class MainWindow
             }
             UpdateUploadListVisibility();
 
-            if (removedDuringRestore || migratedThumbnails)
+            if (removedDuringRestore || migratedThumbnails || migratedTranscripts)
             {
                 PersistDrafts();
             }
@@ -184,6 +190,7 @@ public partial class MainWindow
         }
 
         RemoveDraftFromTranscriptionQueue(draft.Id);
+        _draftTranscriptStore.DeleteTranscript(draft.Id);
         var previousIndex = _uploadDrafts.IndexOf(draft);
         var wasActive = draft == _activeDraft;
         var scrollOffset = UploadView?.GetUploadItemsVerticalOffset() ?? 0;

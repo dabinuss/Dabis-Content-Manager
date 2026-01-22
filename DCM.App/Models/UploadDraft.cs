@@ -49,6 +49,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private double _transcriptionProgress;
     private bool _transcriptionProgressIsIndeterminate = true;
     private DateTimeOffset _lastUpdated = DateTimeOffset.UtcNow;
+    private bool _transcriptDirty;
+    private bool _suppressTranscriptDirty;
 
     public string VideoPath
     {
@@ -103,7 +105,16 @@ public sealed class UploadDraft : INotifyPropertyChanged
     public string Transcript
     {
         get => _transcript;
-        set => SetProperty(ref _transcript, value);
+        set
+        {
+            if (SetProperty(ref _transcript, value))
+            {
+                if (!_suppressTranscriptDirty)
+                {
+                    _transcriptDirty = true;
+                }
+            }
+        }
     }
 
     public string ChaptersText
@@ -296,6 +307,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
 
     public DateTimeOffset LastUpdated => _lastUpdated;
 
+    public bool TranscriptDirty => _transcriptDirty;
+
     public bool HasVideo => !string.IsNullOrWhiteSpace(VideoPath);
 
     public string DisplayName
@@ -432,6 +445,19 @@ public sealed class UploadDraft : INotifyPropertyChanged
         };
     }
 
+    internal void SetTranscriptFromStorage(string? value)
+    {
+        _suppressTranscriptDirty = true;
+        Transcript = value ?? string.Empty;
+        _suppressTranscriptDirty = false;
+        _transcriptDirty = false;
+    }
+
+    internal void MarkTranscriptPersisted()
+    {
+        _transcriptDirty = false;
+    }
+
     public static UploadDraft FromSnapshot(UploadDraftSnapshot snapshot)
     {
         var draft = new UploadDraft
@@ -441,7 +467,6 @@ public sealed class UploadDraft : INotifyPropertyChanged
             Description = snapshot.Description ?? string.Empty,
             TagsCsv = snapshot.TagsCsv ?? string.Empty,
             ThumbnailPath = snapshot.ThumbnailPath ?? string.Empty,
-            Transcript = snapshot.Transcript ?? string.Empty,
             ChaptersText = snapshot.ChaptersText ?? string.Empty,
             PresetId = snapshot.PresetId,
             VideoResolution = snapshot.VideoResolution,
@@ -496,6 +521,12 @@ public sealed class UploadDraft : INotifyPropertyChanged
         draft.UploadStatus = snapshot.UploadStatus;
         draft.TranscriptionStatus = snapshot.TranscriptionStatus;
         draft._lastUpdated = snapshot.LastUpdated;
+
+        if (!string.IsNullOrWhiteSpace(snapshot.Transcript))
+        {
+            draft.SetTranscriptFromStorage(snapshot.Transcript);
+        }
+
         return draft;
     }
 
