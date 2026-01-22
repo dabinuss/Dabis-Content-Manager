@@ -12,7 +12,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Security.Cryptography;
@@ -39,9 +38,6 @@ public partial class MainWindow
     private readonly SemaphoreSlim _videoInfoSemaphore = new(2, 2);
     private readonly SemaphoreSlim _videoPreviewSemaphore = new(1, 1);
     private bool _isFastFillRunning;
-    private DispatcherTimer? _draftTextDebounceTimer;
-    private bool _draftTextDebouncePending;
-
     #region Draft Persistence
 
     private void RestoreDraftsFromSettings()
@@ -65,7 +61,6 @@ public partial class MainWindow
         }
 
         _isRestoringDrafts = true;
-        var removedDuringRestore = false;
         var migratedThumbnails = false;
         var autoRemoveCompleted = _settings.AutoRemoveCompletedDrafts == true;
 
@@ -73,16 +68,14 @@ public partial class MainWindow
         {
             _transcriptionQueue.Clear();
 
-            foreach (var snapshot in snapshots)
+            var loadResult = _draftRepository.LoadDrafts(
+                snapshots,
+                autoRemoveCompleted,
+                ShouldAutoRemoveDraft);
+            var removedDuringRestore = loadResult.RemovedDuringRestore;
+
+            foreach (var draft in loadResult.Drafts)
             {
-                var draft = UploadDraft.FromSnapshot(snapshot);
-
-                if (autoRemoveCompleted && ShouldAutoRemoveDraft(draft))
-                {
-                    removedDuringRestore = true;
-                    continue;
-                }
-
                 _uploadDrafts.Add(draft);
             }
 
@@ -157,77 +150,12 @@ public partial class MainWindow
         }
     }
 
-    private void ScheduleDraftPersistence()
-    {
-        if (_isRestoringDrafts || _settings.RememberDraftsBetweenSessions != true)
-        {
-            return;
-        }
+    private void ScheduleDraftPersistence() => _draftPersistence.Schedule();
 
-        _draftPersistenceDirty = true;
-
-        if (_draftPersistenceTimer is null)
-        {
-            _draftPersistenceTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(2)
-            };
-            _draftPersistenceTimer.Tick += DraftPersistenceTimer_Tick;
-        }
-
-        _draftPersistenceTimer.Stop();
-        _draftPersistenceTimer.Start();
-    }
-
-    private void ScheduleDraftPersistenceDebounced()
-    {
-        if (_isRestoringDrafts || _settings.RememberDraftsBetweenSessions != true)
-        {
-            return;
-        }
-
-        _draftTextDebouncePending = true;
-
-        if (_draftTextDebounceTimer is null)
-        {
-            _draftTextDebounceTimer = new DispatcherTimer
-            {
-                Interval = DraftTextDebounceDelay
-            };
-            _draftTextDebounceTimer.Tick += DraftTextDebounceTimer_Tick;
-        }
-
-        _draftTextDebounceTimer.Stop();
-        _draftTextDebounceTimer.Start();
-    }
-
-    private void DraftTextDebounceTimer_Tick(object? sender, EventArgs e)
-    {
-        _draftTextDebounceTimer?.Stop();
-
-        if (!_draftTextDebouncePending)
-        {
-            return;
-        }
-
-        _draftTextDebouncePending = false;
-        ScheduleDraftPersistence();
-    }
-
-    private void DraftPersistenceTimer_Tick(object? sender, EventArgs e)
-    {
-        _draftPersistenceTimer?.Stop();
-
-        if (_draftPersistenceDirty)
-        {
-            PersistDrafts();
-        }
-    }
+    private void ScheduleDraftPersistenceDebounced() => _draftPersistence.ScheduleDebounced();
 
     private void PersistDrafts()
     {
-        _draftPersistenceDirty = false;
-
         if (_settings.RememberDraftsBetweenSessions != true)
         {
             _settings.SavedDrafts?.Clear();
@@ -236,9 +164,7 @@ public partial class MainWindow
             return;
         }
 
-        var snapshots = _uploadDrafts
-            .Select(d => d.ToSnapshot())
-            .ToList();
+        var snapshots = _draftRepository.CreateSnapshots(_uploadDrafts);
 
         _settings.SavedDrafts = snapshots;
         _settings.PendingTranscriptionQueue = _transcriptionQueue.ToList();

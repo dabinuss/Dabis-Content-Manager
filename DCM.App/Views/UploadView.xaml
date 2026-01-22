@@ -17,48 +17,6 @@
     <CornerRadius x:Key="UploadItemCardCornerRadius">6,0,0,6</CornerRadius>
     <SolidColorBrush x:Key="UploadListDividerBrush"
                      Color="#4D596F"/>
-    <Style x:Key="LeftScrollbarScrollViewerStyle"
-           TargetType="ScrollViewer">
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="ScrollViewer">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-              </Grid.RowDefinitions>
-              <ScrollContentPresenter Grid.Column="1"
-                                      Grid.Row="0"
-                                      Margin="{TemplateBinding Padding}"
-                                      Content="{TemplateBinding Content}"
-                                      ContentTemplate="{TemplateBinding ContentTemplate}"
-                                      CanContentScroll="{TemplateBinding CanContentScroll}"/>
-              <ScrollBar x:Name="PART_VerticalScrollBar"
-                         Grid.Column="0"
-                         Grid.Row="0"
-                         Orientation="Vertical"
-                         Maximum="{TemplateBinding ScrollableHeight}"
-                         ViewportSize="{TemplateBinding ViewportHeight}"
-                         Value="{TemplateBinding VerticalOffset}"
-                         Margin="0,0,8,0"
-                         Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
-              <ScrollBar x:Name="PART_HorizontalScrollBar"
-                         Grid.Column="1"
-                         Grid.Row="1"
-                         Orientation="Horizontal"
-                         Maximum="{TemplateBinding ScrollableWidth}"
-                         ViewportSize="{TemplateBinding ViewportWidth}"
-                         Value="{TemplateBinding HorizontalOffset}"
-                         Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
-            </Grid>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
   </UserControl.Resources>
   <Grid x:Name="RootGrid"
       Margin="0,0,8,0">
@@ -248,6 +206,7 @@
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      VirtualizingPanel.IsVirtualizing="True"
                      VirtualizingPanel.VirtualizationMode="Recycling"
+                     VirtualizingStackPanel.ScrollUnit="Pixel"
                      ScrollViewer.CanContentScroll="True"
                      VerticalAlignment="Stretch"
                      SelectionChanged="UploadItemsListBox_SelectionChanged"

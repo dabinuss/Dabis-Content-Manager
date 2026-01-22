@@ -15,6 +15,7 @@ using DCM.App.Events;
 using DCM.App.Infrastructure;
 using DCM.App.Models;
 using DCM.App.Views;
+using DCM.App.Services;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Logging;
@@ -82,8 +83,8 @@ public partial class MainWindow : Window
     private readonly List<Guid> _transcriptionQueue = new();
     private UploadDraft? _activeDraft;
     private bool _isLoadingDraft;
-    private DispatcherTimer? _draftPersistenceTimer;
-    private bool _draftPersistenceDirty;
+    private readonly DraftRepository _draftRepository = new();
+    private readonly DraftPersistenceCoordinator _draftPersistence;
     private DispatcherTimer? _settingsSaveTimer;
     private bool _settingsSaveDirty;
     private readonly SemaphoreSlim _settingsSaveGate = new(1, 1);
@@ -108,6 +109,14 @@ public partial class MainWindow : Window
         UpdatePageHeader(_currentPageIndex);
         UpdatePageActions(_currentPageIndex);
         UpdateMaximizeButtonIcon();
+        _draftPersistence = new DraftPersistenceCoordinator(
+            Dispatcher,
+            TimeSpan.FromSeconds(2),
+            DraftTextDebounceDelay,
+            () => _settings.RememberDraftsBetweenSessions == true,
+            () => _isRestoringDrafts,
+            PersistDrafts);
+
         AttachUploadViewEvents();
         AttachAccountsViewEvents();
         AttachPresetsViewEvents();
@@ -433,12 +442,7 @@ public partial class MainWindow : Window
 
         // Fensterzustand speichern
         WindowStateManager.Save(this);
-        _draftPersistenceTimer?.Stop();
-        _draftPersistenceTimer = null;
-        if (_draftPersistenceDirty)
-        {
-            PersistDrafts();
-        }
+        _draftPersistence.FlushIfDirty();
         _settingsSaveTimer?.Stop();
         _settingsSaveTimer = null;
         if (_settingsSaveDirty)
