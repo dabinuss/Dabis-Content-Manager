@@ -258,6 +258,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
             .Where(line => !ContainsPromptLeakage(line, customPromptWords))
             .Where(line => line.Length > 5 && line.Length < 150)
             .Select(TextCleaningUtility.CleanTitleLine)
+            .Select(TextCleaningUtility.RemoveWrappedTitleQuotes)
             .Where(line => !string.IsNullOrWhiteSpace(line))
             .Where(line => line.Length > 5)
             .Distinct()

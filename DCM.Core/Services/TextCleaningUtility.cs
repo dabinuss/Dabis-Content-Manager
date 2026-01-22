@@ -40,13 +40,31 @@ public static partial class TextCleaningUtility
         while (result.Length >= 2)
         {
             var first = result[0];
-            var last = result[^1];
-            if (!QuoteChars.Contains(first) || !QuoteChars.Contains(last))
+            var lastIndex = result.Length - 1;
+            var last = result[lastIndex];
+
+            if (!QuoteChars.Contains(first))
             {
                 break;
             }
 
-            result = result[1..^1].Trim();
+            if (QuoteChars.Contains(last))
+            {
+                result = result[1..^1].Trim();
+                continue;
+            }
+
+            if (IsTrailingPunctuation(last) && result.Length >= 3)
+            {
+                var beforeLast = result[lastIndex - 1];
+                if (QuoteChars.Contains(beforeLast))
+                {
+                    result = result[1..(lastIndex - 1)].Trim();
+                    continue;
+                }
+            }
+
+            break;
         }
 
         return result;
@@ -74,6 +92,41 @@ public static partial class TextCleaningUtility
         cleaned = cleaned.TrimStart(BulletChars).TrimStart();
 
         return cleaned;
+    }
+
+    /// <summary>
+    /// Entfernt umschließende Anführungszeichen aus Titelvorschlägen,
+    /// auch wenn nach dem abschließenden Anführungszeichen Emojis/Symbole folgen.
+    /// </summary>
+    public static string RemoveWrappedTitleQuotes(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var result = text.Trim();
+
+        // Führende Anführungszeichen entfernen (auch mehrfach).
+        result = result.TrimStart(QuoteChars).TrimStart();
+
+        // Abschließende Anführungszeichen direkt nach dem letzten Wort entfernen.
+        var lastLetterDigitIndex = LastIndexOfLetterOrDigit(result);
+        if (lastLetterDigitIndex >= 0 && lastLetterDigitIndex + 1 < result.Length)
+        {
+            var index = lastLetterDigitIndex + 1;
+            while (index < result.Length && char.IsWhiteSpace(result[index]))
+            {
+                index++;
+            }
+
+            if (index < result.Length && QuoteChars.Contains(result[index]))
+            {
+                result = result.Remove(index, 1);
+            }
+        }
+
+        return result.Trim();
     }
 
     /// <summary>
@@ -370,6 +423,24 @@ public static partial class TextCleaningUtility
 
     [GeneratedRegex(@"\s+")]
     private static partial Regex MultipleSpacesRegex();
+
+    private static bool IsTrailingPunctuation(char ch)
+    {
+        return ch == ',' || ch == '.' || ch == ';' || ch == ':' || ch == '!' || ch == '?';
+    }
+
+    private static int LastIndexOfLetterOrDigit(string text)
+    {
+        for (var i = text.Length - 1; i >= 0; i--)
+        {
+            if (char.IsLetterOrDigit(text[i]))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 }
 
 

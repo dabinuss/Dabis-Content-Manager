@@ -1006,7 +1006,21 @@ public partial class MainWindow : Window
                 return;
             }
 
-            var trimmed = titles.Take(Math.Max(1, desired)).ToList();
+            var trimmed = titles
+                .Select(TextCleaningUtility.RemoveWrappedTitleQuotes)
+                .Select(t => t?.Trim() ?? string.Empty)
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .Take(Math.Max(1, desired))
+                .ToList();
+
+            if (trimmed.Count == 0)
+            {
+                UploadView.TitleTextBox.Text = LocalizationHelper.Get("Llm.TitlePlaceholder.NoSuggestions");
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoTitles");
+                _logger.Warning(LocalizationHelper.Get("Log.LLM.TitleGeneration.NoSuggestions"), LlmLogSource);
+                CloseSuggestionPopup();
+                return;
+            }
 
             if (desired <= 1 || trimmed.Count <= 1)
             {
