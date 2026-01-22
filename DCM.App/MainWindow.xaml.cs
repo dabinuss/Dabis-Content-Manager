@@ -77,6 +77,7 @@ public partial class MainWindow : Window
     private readonly List<IDisposable> _eventSubscriptions = new();
     private SuggestionTarget _activeSuggestionTarget = SuggestionTarget.None;
     private bool _isThemeInitializing;
+    private bool _isUploadLanguageInitializing;
     private readonly ObservableCollection<UploadDraft> _uploadDrafts = new();
     private readonly List<Guid> _transcriptionQueue = new();
     private UploadDraft? _activeDraft;
@@ -278,14 +279,14 @@ public partial class MainWindow : Window
         UploadPageView.ScheduleCheckBoxUnchecked += ScheduleCheckBox_Unchecked;
         UploadPageView.ScheduleDateChanged += ScheduleDatePicker_SelectedDateChanged;
         UploadPageView.ScheduleTimeTextChanged += ScheduleTimeTextBox_TextChanged;
-        UploadPageView.UploadItemsSelectionChanged += UploadItemsListBox_SelectionChanged;
+        UploadPageView.UploadItemsSelectionChanged += UploadDraftSelectionChanged;
         UploadPageView.RemoveDraftButtonClicked += RemoveDraftButton_Click;
         UploadPageView.FastFillSuggestionsButtonClicked += FastFillSuggestionsButton_Click;
         UploadPageView.UploadDraftButtonClicked += UploadDraftButton_Click;
         UploadPageView.TranscribeDraftButtonClicked += TranscribeDraftButton_Click;
         UploadPageView.CancelUploadButtonClicked += CancelUploadButton_Click;
-        UploadPageView.TranscriptionPrioritizeButtonClicked += TranscriptionPrioritizeButton_Click;
-        UploadPageView.TranscriptionSkipButtonClicked += TranscriptionSkipButton_Click;
+        UploadPageView.TranscriptionPrioritizeButtonClicked += TranscriptionQueuePrioritizeButton_Click;
+        UploadPageView.TranscriptionSkipButtonClicked += TranscriptionQueueSkipButton_Click;
     }
 
     private void InitializeUploadDrafts()
@@ -852,11 +853,29 @@ public partial class MainWindow : Window
 
     private void InitializePresetOptions()
     {
+        ApplyCachedYouTubeOptions();
+    }
+
+    private void ApplyCachedYouTubeOptions()
+    {
         LoadCachedYouTubeOptions();
         PresetsPageView?.SetCategoryOptions(_youTubeCategories);
         PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
-        UploadView.SetLanguageOptions(_youTubeLanguages);
-        UploadView.SelectLanguageByCode(_activeDraft?.Language);
+        ApplyUploadLanguageOptions(_youTubeLanguages);
+    }
+
+    private void ApplyUploadLanguageOptions(IEnumerable<LanguageOption> languages)
+    {
+        _isUploadLanguageInitializing = true;
+        try
+        {
+            UploadView.SetLanguageOptions(languages);
+            UploadView.SelectLanguageByCode(_activeDraft?.Language);
+        }
+        finally
+        {
+            _isUploadLanguageInitializing = false;
+        }
     }
 
     private void LoadCachedYouTubeOptions()

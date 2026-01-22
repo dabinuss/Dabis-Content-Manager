@@ -38,6 +38,7 @@ public partial class MainWindow
         _settings.Theme = string.IsNullOrWhiteSpace(_settings.Theme) ? "Dark" : _settings.Theme.Trim();
 
         ApplyTheme(_settings.Theme);
+        ApplyCachedYouTubeOptions();
 
         RestoreDraftsFromSettings();
         ApplySettingsToUi();

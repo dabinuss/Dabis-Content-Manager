@@ -166,8 +166,7 @@ public partial class MainWindow
         _youTubeLanguages.Clear();
         PresetsPageView?.SetCategoryOptions(_youTubeCategories);
         PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
-        UploadView.SetLanguageOptions(_youTubeLanguages);
-        UploadView.SelectLanguageByCode(_activeDraft?.Language);
+        ApplyUploadLanguageOptions(_youTubeLanguages);
         ScheduleSettingsSave();
         AccountsPageView?.SetYouTubeLocale(_settings.YouTubeOptionsLocale);
 
@@ -202,8 +201,7 @@ public partial class MainWindow
 
             PresetsPageView?.SetCategoryOptions(_youTubeCategories);
             PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
-            UploadView.SetLanguageOptions(_youTubeLanguages);
-            UploadView.SelectLanguageByCode(_activeDraft?.Language);
+            ApplyUploadLanguageOptions(_youTubeLanguages);
             ScheduleSettingsSave();
         }
         catch (System.Exception ex)

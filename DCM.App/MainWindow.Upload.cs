@@ -136,10 +136,7 @@ public partial class MainWindow
 
                 if (candidate.TranscriptionState == UploadDraftTranscriptionState.None)
                 {
-                    candidate.TranscriptionState = UploadDraftTranscriptionState.Pending;
-                    candidate.TranscriptionStatus = LocalizationHelper.Get("Status.Transcription.Queued");
-                    candidate.IsTranscriptionProgressIndeterminate = true;
-                    candidate.TranscriptionProgress = 0;
+                    MarkDraftQueued(candidate);
                 }
             }
 
@@ -285,8 +282,7 @@ public partial class MainWindow
         UploadView?.RestoreUploadItemsVerticalOffset(scrollOffset);
         UploadView?.SuppressUploadItemsBringIntoView(false);
 
-        UpdateUploadButtonState();
-        UpdateTranscriptionButtonState();
+        UpdateDraftActionStates();
         ScheduleDraftPersistence();
     }
 
@@ -329,12 +325,23 @@ public partial class MainWindow
         draft.ThumbnailPath = string.Empty;
         draft.UploadState = UploadDraftUploadState.Pending;
         draft.UploadStatus = string.Empty;
+        draft.UploadProgress = 0;
+        draft.IsUploadProgressIndeterminate = true;
+        ResetTranscriptionState(draft);
+    }
+
+    private static void ResetTranscriptionState(UploadDraft draft)
+    {
         draft.TranscriptionState = UploadDraftTranscriptionState.None;
         draft.TranscriptionStatus = string.Empty;
-        draft.UploadProgress = 0;
         draft.TranscriptionProgress = 0;
-        draft.IsUploadProgressIndeterminate = true;
         draft.IsTranscriptionProgressIndeterminate = true;
+    }
+
+    private void UpdateDraftActionStates()
+    {
+        UpdateUploadButtonState();
+        UpdateTranscriptionButtonState();
     }
 
     private static bool ShouldAutoRemoveDraft(UploadDraft draft) =>
@@ -491,8 +498,7 @@ public partial class MainWindow
             _ = LoadVideoFileInfoAsync(draft, triggerAutoTranscribe: shouldAutoTranscribe);
         }
 
-        UpdateUploadButtonState();
-        UpdateTranscriptionButtonState();
+        UpdateDraftActionStates();
 
         if (firstDuplicateName is not null)
         {
@@ -506,7 +512,7 @@ public partial class MainWindow
         }
     }
 
-    private void UploadItemsListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void UploadDraftSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (UploadView.GetSelectedUploadItem() is UploadDraft draft)
         {
@@ -584,9 +590,7 @@ public partial class MainWindow
 
     private void RemoveDraftButton_Click(object sender, RoutedEventArgs e)
     {
-        var draft = (sender as FrameworkElement)?.Tag as UploadDraft
-                    ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
-
+        var draft = ResolveDraftFromSender(sender);
         if (draft is null)
         {
             return;
@@ -611,8 +615,7 @@ public partial class MainWindow
 
     private async void UploadDraftButton_Click(object sender, RoutedEventArgs e)
     {
-        var draft = (sender as FrameworkElement)?.Tag as UploadDraft
-                    ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
+        var draft = ResolveDraftFromSender(sender);
         if (draft is null)
         {
             return;
@@ -631,8 +634,7 @@ public partial class MainWindow
 
     private async void TranscribeDraftButton_Click(object sender, RoutedEventArgs e)
     {
-        var draft = (sender as FrameworkElement)?.Tag as UploadDraft
-                    ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
+        var draft = ResolveDraftFromSender(sender);
         if (draft is null)
         {
             return;
@@ -653,7 +655,7 @@ public partial class MainWindow
         await StartTranscriptionAsync(draft);
     }
 
-    private async void TranscriptionPrioritizeButton_Click(object sender, RoutedEventArgs e)
+    private async void TranscriptionQueuePrioritizeButton_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not UploadDraft draft)
         {
@@ -668,7 +670,7 @@ public partial class MainWindow
         }
     }
 
-    private void TranscriptionSkipButton_Click(object sender, RoutedEventArgs e)
+    private void TranscriptionQueueSkipButton_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not UploadDraft draft)
         {
@@ -676,10 +678,7 @@ public partial class MainWindow
         }
 
         RemoveDraftFromTranscriptionQueue(draft.Id);
-        draft.TranscriptionState = UploadDraftTranscriptionState.None;
-        draft.TranscriptionStatus = string.Empty;
-        draft.TranscriptionProgress = 0;
-        draft.IsTranscriptionProgressIndeterminate = true;
+        ResetTranscriptionState(draft);
         ScheduleDraftPersistence();
     }
 
@@ -691,8 +690,7 @@ public partial class MainWindow
             return;
         }
 
-        var draft = (sender as FrameworkElement)?.Tag as UploadDraft
-                    ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
+        var draft = ResolveDraftFromSender(sender);
         if (draft is null)
         {
             return;
@@ -810,6 +808,12 @@ public partial class MainWindow
         }
     }
 
+    private UploadDraft? ResolveDraftFromSender(object sender)
+    {
+        return (sender as FrameworkElement)?.Tag as UploadDraft
+               ?? (UploadView.GetSelectedUploadItem() as UploadDraft);
+    }
+
     private async Task TryTranscribeForFastFillAsync(UploadDraft draft)
     {
         if (string.IsNullOrWhiteSpace(draft.VideoPath) || !File.Exists(draft.VideoPath))
@@ -870,8 +874,7 @@ public partial class MainWindow
             _isLoadingDraft = false;
         }
 
-        UpdateUploadButtonState();
-        UpdateTranscriptionButtonState();
+        UpdateDraftActionStates();
     }
 
     private void ClearActiveDraftView()
@@ -1357,8 +1360,7 @@ public partial class MainWindow
 
         RememberLastVideoFolder(Path.GetDirectoryName(normalizedPath));
 
-        UpdateUploadButtonState();
-        UpdateTranscriptionButtonState();
+        UpdateDraftActionStates();
 
         var (fileName, _) = GetFileDisplayInfo(filePath);
         if (triggerAutoTranscribe && draft == _activeDraft)
@@ -2347,7 +2349,7 @@ public partial class MainWindow
 
     private void UploadLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_isLoadingDraft)
+        if (_isLoadingDraft || _isUploadLanguageInitializing)
         {
             return;
         }
@@ -2357,7 +2359,7 @@ public partial class MainWindow
             _activeDraft.Language = UploadView.GetSelectedLanguageCode();
         }
 
-        ScheduleDraftPersistenceDebounced();
+        ScheduleDraftPersistence();
     }
 
     private void MadeForKidsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

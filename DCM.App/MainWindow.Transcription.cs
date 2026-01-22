@@ -268,10 +268,6 @@ public partial class MainWindow
             {
                 UploadView.TranscriptTextBox.Text = result.Text;
             }
-            else
-            {
-                draft.Transcript = result.Text;
-            }
 
             var completedStatus = LocalizationHelper.Format(
                 "Status.Transcription.Completed",
