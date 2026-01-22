@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 
 namespace DCM.App;
@@ -59,6 +60,10 @@ public sealed class LocalizationManager : INotifyPropertyChanged
         EnsureBaseDictionaryLoaded();
 
         languageCode = NormalizeLanguageCode(languageCode);
+        if (!IsSupportedLanguage(languageCode))
+        {
+            languageCode = "en-US";
+        }
 
         if (languageCode == CurrentLanguage && _currentLanguageDictionary is not null)
         {
@@ -66,27 +71,11 @@ public sealed class LocalizationManager : INotifyPropertyChanged
             return;
         }
 
-        var merged = Application.Current.Resources.MergedDictionaries;
-
-        // 1. Altes Sprachdictionary entfernen (falls vorhanden)
-        if (_currentLanguageDictionary is not null && merged.Contains(_currentLanguageDictionary))
+        if (!TryApplyLanguage(languageCode) &&
+            !string.Equals(languageCode, "en-US", StringComparison.OrdinalIgnoreCase))
         {
-            merged.Remove(_currentLanguageDictionary);
+            TryApplyLanguage("en-US");
         }
-
-        // 2. Neues Sprachdictionary laden
-        var uriString = $"/DCM.App;component/Localization/Strings.{languageCode}.xaml";
-        var uri = new Uri(uriString, UriKind.Relative);
-        var newDict = new ResourceDictionary { Source = uri };
-
-        // 3. Neues Sprachdictionary hinzufügen (nach dem Basis-Strings.xaml)
-        merged.Add(newDict);
-
-        _currentLanguageDictionary = newDict;
-        CurrentLanguage = languageCode;
-
-        OnPropertyChanged(nameof(CurrentLanguage));
-        RefreshLanguageDisplayNames();
     }
 
     private void EnsureBaseDictionaryLoaded()
@@ -126,6 +115,47 @@ public sealed class LocalizationManager : INotifyPropertyChanged
         }
 
         return languageCode;
+    }
+
+    private bool IsSupportedLanguage(string languageCode)
+    {
+        return _languages.Any(l => string.Equals(l.Code, languageCode, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool TryApplyLanguage(string languageCode)
+    {
+        if (Application.Current is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var merged = Application.Current.Resources.MergedDictionaries;
+
+            if (_currentLanguageDictionary is not null && merged.Contains(_currentLanguageDictionary))
+            {
+                merged.Remove(_currentLanguageDictionary);
+            }
+
+            var uriString = $"/DCM.App;component/Localization/Strings.{languageCode}.xaml";
+            var uri = new Uri(uriString, UriKind.Relative);
+            var newDict = new ResourceDictionary { Source = uri };
+
+            merged.Add(newDict);
+
+            _currentLanguageDictionary = newDict;
+            CurrentLanguage = languageCode;
+
+            OnPropertyChanged(nameof(CurrentLanguage));
+            RefreshLanguageDisplayNames();
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

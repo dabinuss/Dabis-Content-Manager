@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using DCM.Core.Logging;
 using DCM.Core.Models;
+using DCM.Core;
 
 namespace DCM.Core.Configuration;
 
@@ -84,7 +85,7 @@ public sealed class JsonTemplateRepository : ITemplateRepository
 
             var templateList = templates.ToList();
             var json = JsonSerializer.Serialize(templateList, options);
-            File.WriteAllText(path, json);
+            AtomicFile.WriteAllText(path, json);
             _logger.Debug($"Templates gespeichert: {templateList.Count} Einträge", "Templates");
         }
         catch (Exception ex)

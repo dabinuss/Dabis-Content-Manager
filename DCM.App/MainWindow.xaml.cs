@@ -85,6 +85,9 @@ public partial class MainWindow : Window
     private bool _draftPersistenceDirty;
     private DispatcherTimer? _settingsSaveTimer;
     private bool _settingsSaveDirty;
+    private readonly SemaphoreSlim _settingsSaveGate = new(1, 1);
+    private int _settingsSaveVersion;
+    private int _settingsSaveWrittenVersion;
     private bool _isRestoringDrafts;
     private bool _isUploading;
     private UploadDraft? _activeUploadDraft;
@@ -440,7 +443,7 @@ public partial class MainWindow : Window
         if (_settingsSaveDirty)
         {
             _settingsSaveDirty = false;
-            SaveSettings();
+            SaveSettings(forceSync: true);
         }
 
         // Event-Handler zuerst entfernen

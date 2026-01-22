@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using DCM.Core;
 using DCM.Core.Configuration;
 
@@ -193,12 +194,11 @@ internal sealed class WhisperModelManager
 
             await fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-            // Sanity-Check (gleiche Schwelle wie CheckAvailability: >= 50% expected)
-            // -> verhindert "Download OK aber Datei praktisch leer/kaputt".
+            // Sanity-Check: Datei sollte weitgehend vollständig sein.
             try
             {
                 var fi = new FileInfo(tempPath);
-                if (!fi.Exists || fi.Length < expectedBytes * 0.5)
+                if (!fi.Exists || fi.Length < expectedBytes * 0.8)
                 {
                     CleanupTempFile(tempPath);
 
@@ -213,6 +213,12 @@ internal sealed class WhisperModelManager
             catch
             {
                 // Wenn wir nicht prüfen können, machen wir weiter wie bisher
+            }
+
+            if (!VerifySha256IfProvided(size, tempPath, progress))
+            {
+                CleanupTempFile(tempPath);
+                return false;
             }
 
             // Umbenennen/Ersetzen möglichst atomar (File.Replace ist framework-breit verfügbar)
@@ -318,5 +324,56 @@ internal sealed class WhisperModelManager
         {
             // Ignorieren
         }
+    }
+
+    private static bool VerifySha256IfProvided(
+        WhisperModelSize size,
+        string filePath,
+        IProgress<DependencyDownloadProgress>? progress)
+    {
+        var expectedHash = GetExpectedSha256(size);
+        if (string.IsNullOrWhiteSpace(expectedHash))
+        {
+            return true;
+        }
+
+        try
+        {
+            if (!VerifySha256(filePath, expectedHash, out var actualHash))
+            {
+                progress?.Report(new DependencyDownloadProgress(
+                    DependencyType.WhisperModel,
+                    0,
+                    $"Whisper-Download Hash-Mismatch. Erwartet: {expectedHash}, erhalten: {actualHash}"));
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            progress?.Report(new DependencyDownloadProgress(
+                DependencyType.WhisperModel,
+                0,
+                $"Whisper-Download konnte nicht validiert werden: {ex.Message}"));
+            return false;
+        }
+    }
+
+    private static string? GetExpectedSha256(WhisperModelSize size)
+    {
+        var key = $"DCM_WHISPER_SHA256_{size.ToString().ToUpperInvariant()}";
+        return Environment.GetEnvironmentVariable(key)
+               ?? Environment.GetEnvironmentVariable("DCM_WHISPER_SHA256");
+    }
+
+    private static bool VerifySha256(string filePath, string expectedHash, out string actualHash)
+    {
+        expectedHash = expectedHash.Trim().ToLowerInvariant();
+        using var stream = File.OpenRead(filePath);
+        using var sha = SHA256.Create();
+        var hash = sha.ComputeHash(stream);
+        actualHash = Convert.ToHexString(hash).ToLowerInvariant();
+        return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
     }
 }

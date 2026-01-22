@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using System.Threading;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
@@ -42,23 +43,66 @@ public partial class MainWindow
         ApplySettingsToUi();
     }
 
-    private void SaveSettings()
+    private void SaveSettings(bool forceSync = false)
     {
-        try
+        var snapshot = _settings.DeepCopy();
+        var version = Interlocked.Increment(ref _settingsSaveVersion);
+
+        if (forceSync || _isClosing)
         {
-            _settingsProvider.Save(_settings);
+            var gateAcquired = false;
+            try
+            {
+                _settingsSaveGate.Wait();
+                gateAcquired = true;
+                _settingsProvider.Save(snapshot);
+                Interlocked.Exchange(ref _settingsSaveWrittenVersion, version);
+            }
+            catch
+            {
+                // Für jetzt nicht kritisch.
+            }
+            finally
+            {
+                if (gateAcquired)
+                {
+                    _settingsSaveGate.Release();
+                }
+            }
+
+            return;
         }
-        catch
+
+        _ = Task.Run(async () =>
         {
-            // Für jetzt nicht kritisch.
-        }
+            await _settingsSaveGate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                var latestVersion = Volatile.Read(ref _settingsSaveVersion);
+                if (version < latestVersion)
+                {
+                    return;
+                }
+
+                _settingsProvider.Save(snapshot);
+                Interlocked.Exchange(ref _settingsSaveWrittenVersion, version);
+            }
+            catch
+            {
+                // Für jetzt nicht kritisch.
+            }
+            finally
+            {
+                _settingsSaveGate.Release();
+            }
+        });
     }
 
     private void ScheduleSettingsSave()
     {
         if (_isClosing)
         {
-            SaveSettings();
+            SaveSettings(forceSync: true);
             return;
         }
 

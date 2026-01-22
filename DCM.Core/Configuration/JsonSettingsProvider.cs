@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using DCM.Core.Logging;
+using DCM.Core;
 
 namespace DCM.Core.Configuration;
 
@@ -80,7 +81,7 @@ public sealed class JsonSettingsProvider : ISettingsProvider
             };
 
             var json = JsonSerializer.Serialize(settings, options);
-            File.WriteAllText(path, json);
+            AtomicFile.WriteAllText(path, json);
             _logger.Debug("Einstellungen erfolgreich gespeichert", "Settings");
         }
         catch (Exception ex)

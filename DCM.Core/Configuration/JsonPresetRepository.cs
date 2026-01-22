@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using DCM.Core.Logging;
 using DCM.Core.Models;
+using DCM.Core;
 
 namespace DCM.Core.Configuration;
 
@@ -93,7 +94,7 @@ public sealed class JsonPresetRepository : IPresetRepository
 
             var presetList = presets.ToList();
             var json = JsonSerializer.Serialize(presetList, options);
-            File.WriteAllText(path, json);
+            AtomicFile.WriteAllText(path, json);
             _logger.Debug($"Presets gespeichert: {presetList.Count} Eintraege", "Presets");
         }
         catch (Exception ex)

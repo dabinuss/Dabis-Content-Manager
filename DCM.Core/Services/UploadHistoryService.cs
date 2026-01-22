@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using DCM.Core.Logging;
 using DCM.Core.Models;
+using DCM.Core;
 
 namespace DCM.Core.Services;
 
@@ -119,7 +120,7 @@ public sealed class UploadHistoryService
             try
             {
                 var json = JsonSerializer.Serialize(entries, JsonOptions);
-                File.WriteAllText(_filePath, json);
+                AtomicFile.WriteAllText(_filePath, json);
                 _logger.Debug($"Historie gespeichert: {entries.Count} Einträge", "UploadHistory");
             }
             catch (Exception ex)

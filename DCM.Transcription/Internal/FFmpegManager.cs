@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using DCM.Core;
 
 namespace DCM.Transcription.Internal;
@@ -116,6 +117,12 @@ internal sealed class FFmpegManager
             // TempZip -> Zip (Overwrite über Delete um Framework-kompatibel zu bleiben)
             TryDeleteFile(zipPath);
             File.Move(tempZipPath, zipPath);
+
+            if (!ValidateDownloadedZip(zipPath, progress))
+            {
+                TryDeleteFile(zipPath);
+                return false;
+            }
 
             progress?.Report(DependencyDownloadProgress.FFmpegDownload(90, "Entpacke..."));
 
@@ -238,6 +245,64 @@ internal sealed class FFmpegManager
                 downloadedBytes,
                 totalBytes));
         }
+    }
+
+    private static bool ValidateDownloadedZip(string zipPath, IProgress<DependencyDownloadProgress>? progress)
+    {
+        try
+        {
+            var expectedHash = Environment.GetEnvironmentVariable("DCM_FFMPEG_SHA256");
+            if (!string.IsNullOrWhiteSpace(expectedHash))
+            {
+                if (!VerifySha256(zipPath, expectedHash, out var actualHash))
+                {
+                    progress?.Report(new DependencyDownloadProgress(
+                        DependencyType.FFmpeg,
+                        0,
+                        $"FFmpeg-Download Hash-Mismatch. Erwartet: {expectedHash}, erhalten: {actualHash}"));
+                    return false;
+                }
+            }
+
+            var ffmpegName = GetExeName("ffmpeg");
+            var ffprobeName = GetExeName("ffprobe");
+            if (!ZipContainsExecutables(zipPath, ffmpegName, ffprobeName))
+            {
+                progress?.Report(new DependencyDownloadProgress(
+                    DependencyType.FFmpeg,
+                    0,
+                    "FFmpeg-Download ist unvollständig oder beschädigt."));
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            progress?.Report(new DependencyDownloadProgress(
+                DependencyType.FFmpeg,
+                0,
+                $"FFmpeg-Download konnte nicht validiert werden: {ex.Message}"));
+            return false;
+        }
+    }
+
+    private static bool VerifySha256(string filePath, string expectedHash, out string actualHash)
+    {
+        expectedHash = expectedHash.Trim().ToLowerInvariant();
+        using var stream = File.OpenRead(filePath);
+        using var sha = SHA256.Create();
+        var hash = sha.ComputeHash(stream);
+        actualHash = Convert.ToHexString(hash).ToLowerInvariant();
+        return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ZipContainsExecutables(string zipPath, string ffmpegName, string ffprobeName)
+    {
+        using var archive = ZipFile.OpenRead(zipPath);
+        var hasFfmpeg = archive.Entries.Any(e => string.Equals(e.Name, ffmpegName, StringComparison.OrdinalIgnoreCase));
+        var hasFfprobe = archive.Entries.Any(e => string.Equals(e.Name, ffprobeName, StringComparison.OrdinalIgnoreCase));
+        return hasFfmpeg && hasFfprobe;
     }
 
     private static string GetExeName(string baseName)

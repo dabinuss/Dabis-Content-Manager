@@ -3377,7 +3377,8 @@ public partial class MainWindow
                 }
 
                 var localDateTime = date.Date + timeOfDay;
-                scheduledTime = new DateTimeOffset(localDateTime, DateTimeOffset.Now.Offset);
+                var offset = TimeZoneInfo.Local.GetUtcOffset(localDateTime);
+                scheduledTime = new DateTimeOffset(localDateTime, offset);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DCM.Core.Logging;
@@ -25,8 +26,10 @@ public sealed class AppLogger : IAppLogger, IDisposable
 
     public event Action<LogEntry>? EntryAdded;
 
+    private int _errorCount;
+
     public bool HasErrors => ErrorCount > 0;
-    public int ErrorCount { get; private set; }
+    public int ErrorCount => Volatile.Read(ref _errorCount);
 
     private AppLogger()
     {
@@ -53,7 +56,7 @@ public sealed class AppLogger : IAppLogger, IDisposable
     public void Error(string message, string? source = null, Exception? exception = null)
     {
         Log(LogLevel.Error, message, source, exception);
-        ErrorCount++;
+        Interlocked.Increment(ref _errorCount);
     }
 
     private void Log(LogLevel level, string message, string? source, Exception? exception)
@@ -100,7 +103,7 @@ public sealed class AppLogger : IAppLogger, IDisposable
     public void Clear()
     {
         while (_entries.TryDequeue(out _)) { }
-        ErrorCount = 0;
+        Interlocked.Exchange(ref _errorCount, 0);
     }
 
     private void QueueWrite(string line)
