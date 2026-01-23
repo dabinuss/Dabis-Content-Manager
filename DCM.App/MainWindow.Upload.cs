@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Security.Cryptography;
 using DCM.App.Models;
+using DCM.App.Infrastructure;
 using DCM.Core;
 using DCM.Core.Configuration;
 using DCM.Core.Models;
@@ -1482,7 +1483,7 @@ public partial class MainWindow
         var filePath = draft.VideoPath;
         if (!File.Exists(filePath))
         {
-            await OnUiThreadAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 ClearDraftVideoInfo(draft);
                 if (_activeDraft == draft)
@@ -1503,7 +1504,7 @@ public partial class MainWindow
 
             draft.TranscriptionStatus ??= string.Empty;
 
-            await OnUiThreadAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 UpdateDraftVideoInfo(draft, mediaInfo);
                 if (_activeDraft == draft)
@@ -1534,7 +1535,7 @@ public partial class MainWindow
                 UploadLogSource,
                 ex);
 
-            await OnUiThreadAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 ClearDraftVideoInfo(draft);
                 if (_activeDraft == draft)
@@ -1672,7 +1673,7 @@ public partial class MainWindow
 
         if (!string.IsNullOrWhiteSpace(draft.VideoPreviewPath) && File.Exists(draft.VideoPreviewPath))
         {
-            await OnUiThreadAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 if (_activeDraft == draft)
                 {
@@ -1692,7 +1693,7 @@ public partial class MainWindow
         if (File.Exists(previewPath))
         {
             draft.VideoPreviewPath = previewPath;
-            await OnUiThreadAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 if (_activeDraft == draft)
                 {
@@ -1708,7 +1709,7 @@ public partial class MainWindow
             if (File.Exists(previewPath))
             {
                 draft.VideoPreviewPath = previewPath;
-                await OnUiThreadAsync(() =>
+                await _ui.RunAsync(() =>
                 {
                     if (_activeDraft == draft)
                     {
@@ -1728,7 +1729,7 @@ public partial class MainWindow
             }
 
             draft.VideoPreviewPath = previewPath;
-            await OnUiThreadAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 if (_activeDraft == draft)
                 {
@@ -3174,7 +3175,7 @@ public partial class MainWindow
 
     private void ShowUploadProgress(string message)
     {
-        OnUiThread(() =>
+        _ui.Run(() =>
         {
             UploadProgressBar.Visibility = Visibility.Visible;
             UploadProgressLabel.Visibility = Visibility.Visible;
@@ -3182,42 +3183,45 @@ public partial class MainWindow
             UploadProgressBar.IsIndeterminate = true;
             UploadProgressBar.Value = 0;
             UploadProgressLabel.Text = message;
-        });
+        }, UiUpdatePolicy.ProgressPriority);
     }
 
     private void ReportUploadProgress(UploadProgressInfo info)
     {
-        OnUiThread(() =>
+        _uploadProgressThrottle.Post(() => ApplyUploadProgress(info));
+    }
+
+    private void ApplyUploadProgress(UploadProgressInfo info)
+    {
+        UploadProgressBar.Visibility = Visibility.Visible;
+        UploadProgressLabel.Visibility = Visibility.Visible;
+
+        UploadProgressBar.IsIndeterminate = info.IsIndeterminate;
+
+        if (!info.IsIndeterminate)
         {
-            UploadProgressBar.Visibility = Visibility.Visible;
-            UploadProgressLabel.Visibility = Visibility.Visible;
+            var percent = double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100);
+            UploadProgressBar.Value = percent;
+        }
 
-            UploadProgressBar.IsIndeterminate = info.IsIndeterminate;
-
-            if (!info.IsIndeterminate)
-            {
-                var percent = double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100);
-                UploadProgressBar.Value = percent;
-            }
-
-            if (!string.IsNullOrWhiteSpace(info.Message))
-            {
-                UploadProgressLabel.Text = info.Message;
-                StatusTextBlock.Text = info.Message;
-            }
-        });
+        if (!string.IsNullOrWhiteSpace(info.Message))
+        {
+            UploadProgressLabel.Text = info.Message;
+            StatusTextBlock.Text = info.Message;
+        }
     }
 
     private void HideUploadProgress()
     {
-        OnUiThread(() =>
+        _uploadProgressThrottle.CancelPending();
+        _ui.Run(() =>
         {
             UploadProgressBar.Visibility = Visibility.Collapsed;
             UploadProgressLabel.Visibility = Visibility.Collapsed;
             UploadProgressBar.IsIndeterminate = false;
             UploadProgressBar.Value = 0;
             UploadProgressLabel.Text = string.Empty;
-        });
+        }, UiUpdatePolicy.ProgressPriority);
     }
 
     private void UpdateUploadStatus(

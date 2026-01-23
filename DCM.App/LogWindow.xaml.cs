@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using DCM.Core;
 using DCM.Core.Logging;
+using DCM.App.Infrastructure;
 
 namespace DCM.App;
 
@@ -11,6 +13,10 @@ public partial class LogWindow : Window
 {
     private readonly IAppLogger _logger;
     private readonly ObservableCollection<LogEntry> _filteredEntries = new();
+    private readonly UiDispatcher _ui;
+    private static readonly TimeSpan LogBatchInterval = TimeSpan.FromMilliseconds(150);
+    private readonly ConcurrentQueue<LogEntry> _pendingEntries = new();
+    private readonly UiThrottledAction _logBatcher;
     private bool _isInitialized;
     private bool _isClosing;
 
@@ -20,6 +26,8 @@ public partial class LogWindow : Window
         _logger = AppLogger.Instance;
 
         InitializeComponent();
+        _ui = new UiDispatcher(Dispatcher);
+        _logBatcher = new UiThrottledAction(_ui, LogBatchInterval, UiUpdatePolicy.LogPriority);
 
         // ItemsSource NACH InitializeComponent setzen
         LogListBox.ItemsSource = _filteredEntries;
@@ -43,6 +51,8 @@ public partial class LogWindow : Window
             // Ignorieren
         }
 
+        _logBatcher.Dispose();
+
         base.OnClosed(e);
     }
 
@@ -60,26 +70,52 @@ public partial class LogWindow : Window
             return;
         }
 
-        if (!Dispatcher.CheckAccess())
+        try
         {
-            try
-            {
-                Dispatcher.BeginInvoke(() =>
-                {
-                    if (!_isClosing && _isInitialized)
-                    {
-                        AddEntryToList(entry);
-                    }
-                });
-            }
-            catch
-            {
-                // Dispatcher könnte bereits heruntergefahren sein
-            }
+            _pendingEntries.Enqueue(entry);
+            _logBatcher.Post(FlushPendingEntries);
+        }
+        catch
+        {
+            // Dispatcher könnte bereits heruntergefahren sein
+        }
+    }
+
+    private void FlushPendingEntries()
+    {
+        if (_isClosing || !_isInitialized)
+        {
             return;
         }
 
-        AddEntryToList(entry);
+        var addedAny = false;
+        try
+        {
+            while (_pendingEntries.TryDequeue(out var entry))
+            {
+                if (ShouldShowEntry(entry))
+                {
+                    _filteredEntries.Add(entry);
+                    addedAny = true;
+                }
+            }
+
+            if (!addedAny)
+            {
+                return;
+            }
+
+            UpdateEntryCount();
+
+            if (AutoScrollCheckBox?.IsChecked == true && _filteredEntries.Count > 0)
+            {
+                LogListBox?.ScrollIntoView(_filteredEntries[^1]);
+            }
+        }
+        catch
+        {
+            // UI-Fehler ignorieren
+        }
     }
 
     private void AddEntryToList(LogEntry entry)

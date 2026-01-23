@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using DCM.App;
+using DCM.App.Infrastructure;
 using DCM.App.Models;
 using DCM.Core.Models;
 
@@ -15,10 +16,12 @@ namespace DCM.App.Views;
 public partial class UploadView : UserControl
 {
     private bool _suppressBringIntoView;
+    private readonly UiDispatcher _ui;
 
     public UploadView()
     {
         InitializeComponent();
+        _ui = new UiDispatcher(Dispatcher);
     }
 
     public event DragEventHandler? VideoDropDragOver;
@@ -399,11 +402,11 @@ public partial class UploadView : UserControl
             return;
         }
 
-        Dispatcher.BeginInvoke(() =>
+        _ui.Run(() =>
         {
             var viewer = FindDescendant<ScrollViewer>(UploadItemsListBox);
             viewer?.ScrollToVerticalOffset(offset);
-        }, System.Windows.Threading.DispatcherPriority.Background);
+        }, UiUpdatePolicy.LayoutPriority);
     }
 
     private void UploadItemsListBox_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)

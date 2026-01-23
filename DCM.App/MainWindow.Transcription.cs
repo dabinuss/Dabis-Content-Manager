@@ -10,6 +10,7 @@ using System.Linq;
 using System.Windows.Controls;
 using DCM.App.Models;
 using System.Globalization;
+using DCM.App.Infrastructure;
 
 namespace DCM.App;
 
@@ -311,64 +312,56 @@ public partial class MainWindow
 
     private void ShowTranscriptionProgress()
     {
-        if (!Dispatcher.CheckAccess())
+        _ui.Run(() =>
         {
-            Dispatcher.BeginInvoke(ShowTranscriptionProgress);
-            return;
-        }
-
-        UploadView.TranscriptionProgressBar.Visibility = Visibility.Visible;
-        UploadView.TranscriptionProgressBar.IsIndeterminate = true;
-        UploadView.TranscriptionProgressBar.Value = 0;
-        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
-        UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Initializing"));
+            UploadView.TranscriptionProgressBar.Visibility = Visibility.Visible;
+            UploadView.TranscriptionProgressBar.IsIndeterminate = true;
+            UploadView.TranscriptionProgressBar.Value = 0;
+            UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+            UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Initializing"));
+        }, UiUpdatePolicy.ProgressPriority);
     }
 
     private void HideTranscriptionProgress()
     {
-        if (!Dispatcher.CheckAccess())
+        _dependencyProgressThrottle.CancelPending();
+        _transcriptionProgressThrottle.CancelPending();
+        _ui.Run(() =>
         {
-            Dispatcher.BeginInvoke(HideTranscriptionProgress);
-            return;
-        }
+            UploadView.TranscriptionProgressBar.Visibility = Visibility.Collapsed;
+            UploadView.TranscriptionProgressBar.IsIndeterminate = false;
+            UploadView.TranscriptionProgressBar.Value = 0;
 
-        UploadView.TranscriptionProgressBar.Visibility = Visibility.Collapsed;
-        UploadView.TranscriptionProgressBar.IsIndeterminate = false;
-        UploadView.TranscriptionProgressBar.Value = 0;
-
-        // Phase-Text nach kurzer Zeit ausblenden
-        Task.Delay(3000).ContinueWith(_ =>
-        {
-            Dispatcher.BeginInvoke(() =>
+            // Phase-Text nach kurzer Zeit ausblenden
+            Task.Delay(3000).ContinueWith(_ =>
             {
-                if (!_isTranscribing)
+                _ui.Run(() =>
                 {
-                    UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Collapsed;
-                }
+                    if (!_isTranscribing)
+                    {
+                        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Collapsed;
+                    }
+                }, UiUpdatePolicy.ProgressPriority);
             });
-        });
+        }, UiUpdatePolicy.ProgressPriority);
     }
 
     private void UpdateTranscriptionPhaseText(string text)
     {
-        if (!Dispatcher.CheckAccess())
+        _ui.Run(() =>
         {
-            Dispatcher.BeginInvoke(() => UpdateTranscriptionPhaseText(text));
-            return;
-        }
-
-        UploadView.TranscriptionPhaseTextBlock.Text = text;
-        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+            UploadView.TranscriptionPhaseTextBlock.Text = text;
+            UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+        }, UiUpdatePolicy.ProgressPriority);
     }
 
     private void ReportDependencyProgress(DependencyDownloadProgress progress)
     {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => ReportDependencyProgress(progress));
-            return;
-        }
+        _dependencyProgressThrottle.Post(() => ApplyDependencyProgress(progress));
+    }
 
+    private void ApplyDependencyProgress(DependencyDownloadProgress progress)
+    {
         // Alle UI-Updates gebündelt
         UploadView.TranscriptionProgressBar.IsIndeterminate = false;
         UploadView.TranscriptionProgressBar.Value = progress.Percent;
@@ -399,15 +392,11 @@ public partial class MainWindow
 
     private void ReportTranscriptionProgress(TranscriptionProgress progress)
     {
-        // Progress<T> wird bereits auf dem UI-Thread aufgerufen,
-        // daher ist CheckAccess normalerweise nicht nötig.
-        // Zur Sicherheit behalten wir es bei, optimieren aber die Logik.
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => ReportTranscriptionProgress(progress));
-            return;
-        }
+        _transcriptionProgressThrottle.Post(() => ApplyTranscriptionProgress(progress));
+    }
 
+    private void ApplyTranscriptionProgress(TranscriptionProgress progress)
+    {
         // Alle UI-Updates hier sind jetzt sicher auf dem UI-Thread
         UploadView.TranscriptionProgressBar.IsIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
         UploadView.TranscriptionProgressBar.Value = progress.Percent;
@@ -459,17 +448,17 @@ public partial class MainWindow
     // Allgemeine Funktion zum Umschalten von Button-States
     private void SetButtonState(Button button, bool isActive)
     {
-        OnUiThread(() => button.Tag = isActive ? "active" : "default");
+        _ui.Run(() => button.Tag = isActive ? "active" : "default", UiUpdatePolicy.ButtonPriority);
     }
 
     // Optional: Mit Enable/Disable
     private void SetButtonState(Button button, bool isActive, bool isEnabled)
     {
-        OnUiThread(() =>
+        _ui.Run(() =>
         {
             button.Tag = isActive ? "active" : "default";
             button.IsEnabled = isEnabled;
-        });
+        }, UiUpdatePolicy.ButtonPriority);
     }
 
     private void UpdateTranscriptionButtonState()
@@ -514,11 +503,7 @@ public partial class MainWindow
         }
 
         // Prüfung muss auf UI-Thread sein
-        if (!Dispatcher.CheckAccess())
-        {
-            await Dispatcher.InvokeAsync(async () => await TryAutoTranscribeAsync(draft));
-            return;
-        }
+        await _ui.RunAsync(() => TryAutoTranscribeAsync(draft));
 
         if (_isTranscribing)
         {
@@ -557,12 +542,7 @@ public partial class MainWindow
 
     private Task StartNextQueuedAutoTranscriptionAsync()
     {
-        if (!Dispatcher.CheckAccess())
-        {
-            return Dispatcher.InvokeAsync(StartNextQueuedAutoTranscriptionCoreAsync).Task;
-        }
-
-        return StartNextQueuedAutoTranscriptionCoreAsync();
+        return _ui.RunAsync(StartNextQueuedAutoTranscriptionCoreAsync);
     }
 
     private async Task StartNextQueuedAutoTranscriptionCoreAsync()
@@ -758,6 +738,29 @@ public partial class MainWindow
         GeneralSettingsPageView.SetTranscriptionDownloadAvailability(canDownload);
     }
 
+    private void QueueDependencyDownloadProgress(DependencyDownloadProgress progress)
+    {
+        _dependencyDownloadThrottle.Post(() => ApplyDependencyDownloadProgress(progress));
+    }
+
+    private void ApplyDependencyDownloadProgress(DependencyDownloadProgress progress)
+    {
+        GeneralSettingsPageView?.UpdateTranscriptionDownloadProgress(progress.Percent);
+
+        var defaultType = progress.Type == DependencyType.FFmpeg
+            ? LocalizationHelper.Get("Transcription.Dependency.Type.FFmpeg")
+            : LocalizationHelper.Get("Transcription.Dependency.Type.Whisper");
+        var message = progress.Message ?? LocalizationHelper.Format("Transcription.Dependency.Progress.Percent", defaultType, progress.Percent);
+        if (progress.TotalBytes > 0 && progress.BytesDownloaded > 0)
+        {
+            var downloadedMB = progress.BytesDownloaded / (1024.0 * 1024.0);
+            var totalMB = progress.TotalBytes / (1024.0 * 1024.0);
+            message = LocalizationHelper.Format("Transcription.Dependency.Progress.Bytes", defaultType, downloadedMB, totalMB);
+        }
+
+        StatusTextBlock.Text = message;
+    }
+
     private string? ResolveTranscriptionLanguage(UploadDraft draft)
     {
         var raw = draft.Language;
@@ -847,26 +850,7 @@ public partial class MainWindow
 
         try
         {
-            var progress = new Progress<DependencyDownloadProgress>(p =>
-            {
-                Dispatcher.BeginInvoke(() =>
-                {
-                    GeneralSettingsPageView?.UpdateTranscriptionDownloadProgress(p.Percent);
-
-                    var defaultType = p.Type == DependencyType.FFmpeg
-                        ? LocalizationHelper.Get("Transcription.Dependency.Type.FFmpeg")
-                        : LocalizationHelper.Get("Transcription.Dependency.Type.Whisper");
-                    var message = p.Message ?? LocalizationHelper.Format("Transcription.Dependency.Progress.Percent", defaultType, p.Percent);
-                    if (p.TotalBytes > 0 && p.BytesDownloaded > 0)
-                    {
-                        var downloadedMB = p.BytesDownloaded / (1024.0 * 1024.0);
-                        var totalMB = p.TotalBytes / (1024.0 * 1024.0);
-                        message = LocalizationHelper.Format("Transcription.Dependency.Progress.Bytes", defaultType, downloadedMB, totalMB);
-                    }
-
-                    StatusTextBlock.Text = message;
-                });
-            });
+            var progress = new Progress<DependencyDownloadProgress>(QueueDependencyDownloadProgress);
 
             var requiresModelDownload = !selectedModelAlreadyInstalled;
 
@@ -898,6 +882,7 @@ public partial class MainWindow
         }
         finally
         {
+            _dependencyDownloadThrottle.CancelPending();
             GeneralSettingsPageView?.SetTranscriptionDownloadState(false);
             UpdateTranscriptionStatusDisplay();
         }

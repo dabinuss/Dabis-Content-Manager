@@ -102,10 +102,24 @@ public partial class MainWindow : Window
 
     // OPTIMIZATION: Cached theme dictionary for faster theme switching
     private ResourceDictionary? _currentThemeDictionary;
+    private readonly UiDispatcher _ui;
+    private static readonly TimeSpan UiProgressThrottleInterval = TimeSpan.FromMilliseconds(150);
+    private static readonly TimeSpan UiLogThrottleInterval = TimeSpan.FromMilliseconds(150);
+    private readonly UiThrottledAction _logIndicatorThrottle;
+    private readonly UiThrottledAction _uploadProgressThrottle;
+    private readonly UiThrottledAction _transcriptionProgressThrottle;
+    private readonly UiThrottledAction _dependencyProgressThrottle;
+    private readonly UiThrottledAction _dependencyDownloadThrottle;
 
     public MainWindow()
     {
         InitializeComponent();
+        _ui = new UiDispatcher(Dispatcher);
+        _logIndicatorThrottle = new UiThrottledAction(_ui, UiLogThrottleInterval, UiUpdatePolicy.LogPriority);
+        _uploadProgressThrottle = new UiThrottledAction(_ui, UiProgressThrottleInterval, UiUpdatePolicy.ProgressPriority);
+        _transcriptionProgressThrottle = new UiThrottledAction(_ui, UiProgressThrottleInterval, UiUpdatePolicy.ProgressPriority);
+        _dependencyProgressThrottle = new UiThrottledAction(_ui, UiProgressThrottleInterval, UiUpdatePolicy.ProgressPriority);
+        _dependencyDownloadThrottle = new UiThrottledAction(_ui, UiProgressThrottleInterval, UiUpdatePolicy.ProgressPriority);
         _currentPageIndex = 0;
         UpdatePageHeader(_currentPageIndex);
         UpdatePageActions(_currentPageIndex);
@@ -414,33 +428,16 @@ public partial class MainWindow : Window
         _eventSubscriptions.Clear();
     }
 
-    private void OnUiThread(Action action)
-    {
-        if (Dispatcher.CheckAccess())
-        {
-            action();
-            return;
-        }
-
-        Dispatcher.BeginInvoke(action);
-    }
-
-    private Task OnUiThreadAsync(Action action)
-    {
-        if (Dispatcher.CheckAccess())
-        {
-            action();
-            return Task.CompletedTask;
-        }
-
-        return Dispatcher.InvokeAsync(action).Task;
-    }
-
     #region Lifecycle
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         _isClosing = true;
+        _logIndicatorThrottle.Dispose();
+        _uploadProgressThrottle.Dispose();
+        _transcriptionProgressThrottle.Dispose();
+        _dependencyProgressThrottle.Dispose();
+        _dependencyDownloadThrottle.Dispose();
         DisposeEventSubscriptions();
 
         // Fensterzustand speichern
@@ -566,28 +563,15 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (!Dispatcher.CheckAccess())
+        try
         {
-            try
-            {
-                // OPTIMIZATION: Use InvokeAsync with lower priority for better responsiveness
-                Dispatcher.InvokeAsync(() =>
-                {
-                    if (!_isClosing)
-                    {
-                        UpdateLogLinkIndicatorSafe();
-                    }
-                }, System.Windows.Threading.DispatcherPriority.Background);
-            }
-            catch (Exception ex)
-            {
-                // OPTIMIZATION: Added logging
-                _logger.Debug($"Dispatcher invoke failed: {ex.Message}", MainWindowLogSource);
-            }
-            return;
+            _logIndicatorThrottle.Post(UpdateLogLinkIndicatorSafe);
         }
-
-        UpdateLogLinkIndicatorSafe();
+        catch (Exception ex)
+        {
+            // OPTIMIZATION: Added logging
+            _logger.Debug($"Dispatcher invoke failed: {ex.Message}", MainWindowLogSource);
+        }
     }
 
     private void UpdateLogLinkIndicatorSafe()
@@ -2119,17 +2103,15 @@ public partial class MainWindow : Window
 
         if (anchor is not null && scrollViewer is not null)
         {
-            Dispatcher.BeginInvoke(
-                new Action(() =>
+            _ui.Run(() =>
+            {
+                var newTop = anchor.TranslatePoint(new Point(0, 0), scrollViewer).Y;
+                var delta = newTop - previousTop;
+                if (Math.Abs(delta) > 0.5)
                 {
-                    var newTop = anchor.TranslatePoint(new Point(0, 0), scrollViewer).Y;
-                    var delta = newTop - previousTop;
-                    if (Math.Abs(delta) > 0.5)
-                    {
-                        scrollViewer.ScrollToVerticalOffset(previousOffset + delta);
-                    }
-                }),
-                DispatcherPriority.Loaded);
+                    scrollViewer.ScrollToVerticalOffset(previousOffset + delta);
+                }
+            }, UiUpdatePolicy.LayoutPriority);
         }
     }
 
@@ -2164,17 +2146,15 @@ public partial class MainWindow : Window
 
         if (anchor is not null && scrollViewer is not null)
         {
-            Dispatcher.BeginInvoke(
-                new Action(() =>
+            _ui.Run(() =>
+            {
+                var newTop = anchor.TranslatePoint(new Point(0, 0), scrollViewer).Y;
+                var delta = newTop - previousTop;
+                if (Math.Abs(delta) > 0.5)
                 {
-                    var newTop = anchor.TranslatePoint(new Point(0, 0), scrollViewer).Y;
-                    var delta = newTop - previousTop;
-                    if (Math.Abs(delta) > 0.5)
-                    {
-                        scrollViewer.ScrollToVerticalOffset(previousOffset + delta);
-                    }
-                }),
-                DispatcherPriority.Loaded);
+                    scrollViewer.ScrollToVerticalOffset(previousOffset + delta);
+                }
+            }, UiUpdatePolicy.LayoutPriority);
         }
     }
 
@@ -2485,7 +2465,7 @@ public partial class MainWindow : Window
             if (!response.IsSuccessStatusCode)
             {
                 // OPTIMIZATION: Switch to UI context for UI updates
-                await Dispatcher.InvokeAsync(() =>
+                await _ui.RunAsync(() =>
                 {
                     StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.NotPossible");
                 });
@@ -2506,7 +2486,7 @@ public partial class MainWindow : Window
 
             if (string.IsNullOrWhiteSpace(tagName))
             {
-                await Dispatcher.InvokeAsync(() =>
+                await _ui.RunAsync(() =>
                 {
                     StatusTextBlock.Text = LocalizationHelper.Get("Status.Update.InfoMissing");
                 });
@@ -2517,7 +2497,7 @@ public partial class MainWindow : Window
             var latestVersionString = tagName.TrimStart('v', 'V');
             if (!Version.TryParse(latestVersionString, out var latestVersion))
             {
-                await Dispatcher.InvokeAsync(() =>
+                await _ui.RunAsync(() =>
                 {
                     StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.VersionFormat", tagName);
                 });
@@ -2532,7 +2512,7 @@ public partial class MainWindow : Window
 
             if (latestVersion <= currentVersion)
             {
-                await Dispatcher.InvokeAsync(() =>
+                await _ui.RunAsync(() =>
                 {
                     StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.LatestVersion", AppVersion);
                 });
@@ -2543,7 +2523,7 @@ public partial class MainWindow : Window
             }
 
             // OPTIMIZATION: Switch to UI context for MessageBox
-            await Dispatcher.InvokeAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.NewVersion", latestVersion);
             });
@@ -2552,7 +2532,7 @@ public partial class MainWindow : Window
                 LocalizationHelper.Format("Log.Updates.NewVersionFound", currentVersion, latestVersion),
                 UpdatesLogSource);
 
-            var result = await Dispatcher.InvokeAsync(() => MessageBox.Show(
+            var result = await _ui.RunAsync(() => MessageBox.Show(
                 this,
                 LocalizationHelper.Format("Dialog.Update.Available.Text", currentVersion, latestVersion),
                 LocalizationHelper.Get("Dialog.Update.Available.Title"),
@@ -2577,7 +2557,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            await Dispatcher.InvokeAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 StatusTextBlock.Text = LocalizationHelper.Format("Status.Update.Failed", ex.Message);
             });
@@ -2588,7 +2568,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            await Dispatcher.InvokeAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 UpdateLogLinkIndicator();
             });
@@ -2653,7 +2633,7 @@ public partial class MainWindow : Window
             // OPTIMIZATION: Use ConfigureAwait for file I/O
             await File.WriteAllTextAsync(dialog.FileName, transcript, Encoding.UTF8).ConfigureAwait(false);
             
-            await Dispatcher.InvokeAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportSuccess", dialog.FileName);
             });
@@ -2662,7 +2642,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            await Dispatcher.InvokeAsync(() =>
+            await _ui.RunAsync(() =>
             {
                 StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.ExportFailed", ex.Message);
             });
