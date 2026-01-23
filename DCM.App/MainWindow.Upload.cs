@@ -325,9 +325,9 @@ public partial class MainWindow
         }
     }
 
-    private void ScheduleDraftPersistence() => _draftPersistence.Schedule();
+    private void ScheduleDraftPersistence() => _ui.Run(_draftPersistence.Schedule, UiUpdatePolicy.LogPriority);
 
-    private void ScheduleDraftPersistenceDebounced() => _draftPersistence.ScheduleDebounced();
+    private void ScheduleDraftPersistenceDebounced() => _ui.Run(_draftPersistence.ScheduleDebounced, UiUpdatePolicy.LogPriority);
 
     private void PersistDrafts()
     {
@@ -348,9 +348,9 @@ public partial class MainWindow
 
     private void RemoveDraft(UploadDraft draft)
     {
-        if (_isTranscribing && _activeTranscriptionDraft == draft)
+        if (IsDraftTranscribing(draft))
         {
-            CancelTranscription();
+            CancelTranscription(draft);
         }
 
         if (_isUploading && _activeUploadDraft == draft)
@@ -468,7 +468,7 @@ public partial class MainWindow
             return;
         }
 
-        if (_isTranscribing && _activeTranscriptionDraft == draft)
+        if (IsDraftTranscribing(draft))
         {
             return;
         }
@@ -652,7 +652,10 @@ public partial class MainWindow
         var readyDrafts = _uploadDrafts.Where(d => d.HasVideo).ToList();
         if (readyDrafts.Count == 0)
         {
-            StatusTextBlock.Text = "Bitte zuerst ein Video auswaehlen.";
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = "Bitte zuerst ein Video auswaehlen.";
+            }, UiUpdatePolicy.StatusPriority);
             return;
         }
 
@@ -667,27 +670,73 @@ public partial class MainWindow
 
         foreach (var draft in readyDrafts)
         {
-            await UploadDraftAsync(draft);
+            await UploadDraftAsync(draft).ConfigureAwait(false);
         }
     }
 
-    private async void TranscribeAllButton_Click(object sender, RoutedEventArgs e)
+    private void TranscribeAllButton_Click(object sender, RoutedEventArgs e)
     {
-        var readyDrafts = _uploadDrafts.Where(d => d.HasVideo).ToList();
-        if (readyDrafts.Count == 0)
+        if (_isTranscribeAllActive)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
+            _ui.Run(() =>
+            {
+                CancelQueuedTranscriptions();
+                CancelAllTranscriptions();
+                _isTranscribeAllActive = false;
+                UpdateTranscribeAllActionUi();
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.Canceled");
+            }, UiUpdatePolicy.StatusPriority);
             return;
         }
 
+        var readyDrafts = _uploadDrafts.Where(d => d.HasVideo).ToList();
+        if (readyDrafts.Count == 0)
+        {
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
+            }, UiUpdatePolicy.StatusPriority);
+            return;
+        }
+
+        var queuedAny = false;
         foreach (var draft in readyDrafts)
         {
             if (draft is null)
             {
                 continue;
             }
-            await StartTranscriptionAsync(draft!);
+
+            if (!string.IsNullOrWhiteSpace(draft.Transcript))
+            {
+                continue;
+            }
+
+            if (IsDraftTranscribing(draft) || IsDraftQueued(draft))
+            {
+                continue;
+            }
+
+            QueueDraftForTranscription(draft);
+            queuedAny = true;
         }
+
+        if (!queuedAny && ActiveTranscriptionCount == 0)
+        {
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
+            }, UiUpdatePolicy.StatusPriority);
+            return;
+        }
+
+        _isTranscribeAllActive = true;
+        _ui.Run(() =>
+        {
+            UpdateTranscribeAllActionUi();
+            StatusTextBlock.Text = "Transkriptionen gestartet (max. 2 parallel).";
+        }, UiUpdatePolicy.StatusPriority);
+        _ = StartNextQueuedAutoTranscriptionAsync(ignoreAutoSetting: true);
     }
 
     private void RemoveDraftButton_Click(object sender, RoutedEventArgs e)
@@ -731,7 +780,7 @@ public partial class MainWindow
             }
         }
 
-        await UploadDraftAsync(draft);
+        await UploadDraftAsync(draft).ConfigureAwait(false);
     }
 
     private async void TranscribeDraftButton_Click(object sender, RoutedEventArgs e)
@@ -742,19 +791,18 @@ public partial class MainWindow
             return;
         }
 
-        if (_isTranscribing && _activeTranscriptionDraft == draft)
+        if (IsDraftTranscribing(draft))
         {
-            CancelTranscription();
+            CancelTranscription(draft);
             return;
         }
 
-        if (_isTranscribing && _activeTranscriptionDraft != draft)
+        if (IsDraftQueued(draft))
         {
-            StatusTextBlock.Text = "Transkription laeuft bereits.";
-            return;
+            MoveDraftToFrontOfTranscriptionQueue(draft);
         }
 
-        await StartTranscriptionAsync(draft);
+        await StartTranscriptionAsync(draft).ConfigureAwait(false);
     }
 
     private async void TranscriptionQueuePrioritizeButton_Click(object sender, RoutedEventArgs e)
@@ -765,11 +813,7 @@ public partial class MainWindow
         }
 
         MoveDraftToFrontOfTranscriptionQueue(draft);
-
-        if (!_isTranscribing)
-        {
-            await StartTranscriptionAsync(draft);
-        }
+        await StartTranscriptionAsync(draft).ConfigureAwait(false);
     }
 
     private void TranscriptionQueueSkipButton_Click(object sender, RoutedEventArgs e)
@@ -788,7 +832,7 @@ public partial class MainWindow
     {
         if (_isFastFillRunning)
         {
-            StatusTextBlock.Text = "Fast Fill laeuft bereits.";
+            _ui.Run(() => StatusTextBlock.Text = "Fast Fill laeuft bereits.");
             return;
         }
 
@@ -800,55 +844,62 @@ public partial class MainWindow
 
         if (_activeDraft != draft)
         {
-            SetActiveDraft(draft);
+            _ui.Run(() => SetActiveDraft(draft));
         }
 
         var button = sender as Button;
         _isFastFillRunning = true;
         if (button is not null)
         {
-            button.IsEnabled = false;
+            _ui.Run(() => button.IsEnabled = false);
         }
 
         try
         {
-            await FastFillSuggestionsAsync(draft);
+            await FastFillSuggestionsAsync(draft).ConfigureAwait(false);
         }
         finally
         {
             _isFastFillRunning = false;
             if (button is not null)
             {
-                button.IsEnabled = true;
+                _ui.Run(() => button.IsEnabled = true);
             }
         }
     }
 
     private async Task FastFillSuggestionsAsync(UploadDraft draft)
     {
-        if (!_uploadDrafts.Contains(draft))
+        var draftAvailable = await _ui.RunAsync(() => _uploadDrafts.Contains(draft)).ConfigureAwait(false);
+        if (!draftAvailable)
         {
             return;
         }
 
-        CloseSuggestionPopup();
-        _settings.Persona ??= new ChannelPersona();
-
-        if (string.IsNullOrWhiteSpace(draft.Transcript))
+        await _ui.RunAsync(() =>
         {
-            StatusTextBlock.Text = "Fast Fill: Transkription starten...";
-            await TryTranscribeForFastFillAsync(draft);
+            CloseSuggestionPopup();
+            _settings.Persona ??= new ChannelPersona();
+        }).ConfigureAwait(false);
+
+        var transcriptText = await _ui.RunAsync(() => draft.Transcript).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(transcriptText))
+        {
+            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Transkription starten...").ConfigureAwait(false);
+            await TryTranscribeForFastFillAsync(draft).ConfigureAwait(false);
+            transcriptText = await _ui.RunAsync(() => draft.Transcript).ConfigureAwait(false);
         }
 
-        var project = BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft);
+        var project = await _ui.RunAsync(
+            () => BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft)).ConfigureAwait(false);
         ApplySuggestionLanguage(project);
-        if (!string.IsNullOrWhiteSpace(draft.Transcript))
+        if (!string.IsNullOrWhiteSpace(transcriptText))
         {
-            project.TranscriptText = draft.Transcript;
+            project.TranscriptText = transcriptText;
         }
 
         var cancellationToken = GetNewLlmCancellationToken();
-        StatusTextBlock.Text = "Fast Fill: Generiere Titel...";
+        await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Generiere Titel...").ConfigureAwait(false);
 
         try
         {
@@ -856,57 +907,59 @@ public partial class MainWindow
                 () => _contentSuggestionService.SuggestTitlesAsync(project, _settings.Persona, cancellationToken),
                 desiredCount: 1,
                 maxRetries: 2,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (titles.Count > 0)
             {
-                UploadView.TitleTextBox.Text = titles[0];
                 project.Title = titles[0];
+                await _ui.RunAsync(() => UploadView.TitleTextBox.Text = titles[0]).ConfigureAwait(false);
             }
 
-            StatusTextBlock.Text = "Fast Fill: Generiere Beschreibung...";
+            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Generiere Beschreibung...").ConfigureAwait(false);
             var descriptions = await CollectSuggestionsAsync(
                 () => _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona, cancellationToken),
                 desiredCount: 1,
                 maxRetries: 2,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (descriptions.Count > 0)
             {
-                ApplyGeneratedDescription(descriptions[0]);
+                await _ui.RunAsync(() => ApplyGeneratedDescription(descriptions[0])).ConfigureAwait(false);
             }
 
-            project = BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft);
+            project = await _ui.RunAsync(
+                () => BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft)).ConfigureAwait(false);
             ApplySuggestionLanguage(project);
-            StatusTextBlock.Text = "Fast Fill: Generiere Tags...";
+            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Generiere Tags...").ConfigureAwait(false);
             var tags = await _contentSuggestionService.SuggestTagsAsync(
                 project,
                 _settings.Persona,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (tags is not null && tags.Count > 0)
             {
                 var suggestions = BuildTagSuggestionSets(tags, 1);
                 if (suggestions.Count > 0)
                 {
-                    UploadView.TagsTextBox.Text = suggestions[0];
+                    await _ui.RunAsync(() => UploadView.TagsTextBox.Text = suggestions[0]).ConfigureAwait(false);
                 }
             }
 
-            StatusTextBlock.Text = "Fast Fill: Fertig.";
+            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Fertig.").ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = "Fast Fill: Abgebrochen.";
+            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Abgebrochen.").ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = $"Fast Fill: Fehler - {ex.Message}";
+            await _ui.RunAsync(() => StatusTextBlock.Text = $"Fast Fill: Fehler - {ex.Message}")
+                .ConfigureAwait(false);
             _logger.Error($"Fast Fill failed: {ex.Message}", LlmLogSource, ex);
         }
         finally
         {
-            UpdateLogLinkIndicator();
+            _ui.Run(UpdateLogLinkIndicator);
         }
     }
 
@@ -918,25 +971,31 @@ public partial class MainWindow
 
     private async Task TryTranscribeForFastFillAsync(UploadDraft draft)
     {
-        if (string.IsNullOrWhiteSpace(draft.VideoPath) || !File.Exists(draft.VideoPath))
+        var videoPath = await _ui.RunAsync(() => draft.VideoPath).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
-            return;
-        }
-
-        if (_isTranscribing && _activeTranscriptionDraft != draft)
-        {
-            StatusTextBlock.Text = "Fast Fill: Transkription laeuft bereits.";
+            await _ui.RunAsync(
+                () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo"))
+                .ConfigureAwait(false);
             return;
         }
 
         if (_transcriptionService is null)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.ServiceUnavailable");
+            await _ui.RunAsync(
+                () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.ServiceUnavailable"))
+                .ConfigureAwait(false);
             return;
         }
 
-        await StartTranscriptionAsync(draft);
+        var isRunning = await _ui.RunAsync(() => IsDraftTranscribing(draft)).ConfigureAwait(false);
+        if (isRunning)
+        {
+            await WaitForTranscriptionCompletionAsync(draft).ConfigureAwait(false);
+            return;
+        }
+
+        await StartTranscriptionAsync(draft, allowQueue: false).ConfigureAwait(false);
     }
 
     private void SetActiveDraft(UploadDraft? draft)
@@ -977,6 +1036,7 @@ public partial class MainWindow
         }
 
         UpdateDraftActionStates();
+        UpdateTranscriptionProgressUiForActiveDraft();
     }
 
     private void ClearActiveDraftView()
@@ -990,7 +1050,7 @@ public partial class MainWindow
         UploadView.TitleTextBox.Text = string.Empty;
         UploadView.DescriptionTextBox.Text = string.Empty;
         UploadView.TagsTextBox.Text = string.Empty;
-        UploadView.CategoryIdTextBox.Text = string.Empty;
+        UploadView.SelectCategoryById(null);
         UploadView.SelectLanguageByCode(null);
         UploadView.SetMadeForKids(MadeForKidsSetting.Default);
         UploadView.SetCommentStatus(CommentStatusSetting.Default);
@@ -1176,9 +1236,8 @@ public partial class MainWindow
             draft.PlaylistTitle = null;
         }
 
-        draft.CategoryId = string.IsNullOrWhiteSpace(UploadView.CategoryIdTextBox.Text)
-            ? null
-            : UploadView.CategoryIdTextBox.Text.Trim();
+        var categoryId = UploadView.GetSelectedCategoryId();
+        draft.CategoryId = string.IsNullOrWhiteSpace(categoryId) ? null : categoryId.Trim();
         draft.Language = UploadView.GetSelectedLanguageCode();
         draft.MadeForKids = GetSelectedMadeForKidsFromUi();
         draft.CommentStatus = GetSelectedCommentStatusFromUi();
@@ -1220,8 +1279,10 @@ public partial class MainWindow
         ApplyDraftPresetSelection(draft.PresetId);
         UploadView.SetDefaultVisibility(draft.Visibility);
         ApplyDraftPlaylistSelection(draft.PlaylistId);
-        UploadView.CategoryIdTextBox.Text = draft.CategoryId ?? string.Empty;
-        UploadView.SelectLanguageByCode(draft.Language);
+        
+        _categoryManager?.SelectById(draft.CategoryId);
+        _languageManager?.SelectById(draft.Language);
+        
         UploadView.SetMadeForKids(draft.MadeForKids);
         UploadView.SetCommentStatus(draft.CommentStatus);
 
@@ -2432,33 +2493,27 @@ public partial class MainWindow
         ScheduleDraftPersistenceDebounced();
     }
 
-    private void CategoryIdTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void CategoryManager_SelectionChanged(object? sender, CategoryOption? selected)
     {
-        if (_isLoadingDraft)
-        {
-            return;
-        }
+        if (_isLoadingDraft) return;
 
         if (_activeDraft is not null)
         {
-            _activeDraft.CategoryId = string.IsNullOrWhiteSpace(UploadView.CategoryIdTextBox.Text)
-                ? null
-                : UploadView.CategoryIdTextBox.Text.Trim();
+            var categoryId = selected?.Id;
+            _activeDraft.CategoryId = string.IsNullOrWhiteSpace(categoryId) ? null : categoryId.Trim();
         }
 
-        ScheduleDraftPersistenceDebounced();
+        ScheduleDraftPersistence();
     }
 
-    private void UploadLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void UploadLanguageManager_SelectionChanged(object? sender, LanguageOption? selected)
     {
-        if (_isLoadingDraft || _isUploadLanguageInitializing)
-        {
-            return;
-        }
+        if (_isLoadingDraft) return;
 
         if (_activeDraft is not null)
         {
-            _activeDraft.Language = UploadView.GetSelectedLanguageCode();
+            var code = selected?.Code;
+            _activeDraft.Language = string.IsNullOrWhiteSpace(code) ? null : code;
         }
 
         ScheduleDraftPersistence();
@@ -2935,7 +2990,7 @@ public partial class MainWindow
             }
         }
 
-        await UploadDraftAsync(_activeDraft);
+        await UploadDraftAsync(_activeDraft).ConfigureAwait(false);
     }
 
     private bool ConfirmUpload(string message)
@@ -2960,21 +3015,24 @@ public partial class MainWindow
     {
         if (draft is null || !draft.HasVideo)
         {
-            StatusTextBlock.Text = "Bitte zuerst ein Video auswaehlen.";
+            _ui.Run(() => StatusTextBlock.Text = "Bitte zuerst ein Video auswaehlen.");
             return;
         }
 
         if (_activeDraft != draft)
         {
-            SetActiveDraft(draft);
+            _ui.Run(() => SetActiveDraft(draft));
         }
 
-        var project = BuildUploadProjectFromUi(includeScheduling: true, draftOverride: draft);
+        var project = await _ui.RunAsync(
+            () => BuildUploadProjectFromUi(includeScheduling: true, draftOverride: draft)).ConfigureAwait(false);
 
         if (!string.IsNullOrWhiteSpace(project.ThumbnailPath) &&
             !File.Exists(project.ThumbnailPath))
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ThumbnailNotFound");
+            await _ui.RunAsync(
+                () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ThumbnailNotFound"))
+                .ConfigureAwait(false);
             _logger.Warning(
                 LocalizationHelper.Format("Log.Upload.ThumbnailMissing", project.ThumbnailPath ?? string.Empty),
                 UploadLogSource);
@@ -2985,7 +3043,9 @@ public partial class MainWindow
             var fileInfo = new FileInfo(project.ThumbnailPath);
             if (fileInfo.Length > Constants.MaxThumbnailSizeBytes)
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ThumbnailTooLarge");
+                await _ui.RunAsync(
+                    () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ThumbnailTooLarge"))
+                    .ConfigureAwait(false);
                 var thumbnailSizeMb = fileInfo.Length / (1024.0 * 1024.0);
                 _logger.Warning(
                     LocalizationHelper.Format("Log.Upload.ThumbnailTooLarge", thumbnailSizeMb),
@@ -3001,35 +3061,46 @@ public partial class MainWindow
         catch (Exception ex)
         {
             var validationText = LocalizationHelper.Format("Status.Upload.ValidationFailed", ex.Message);
-            UpdateUploadStatus(draft, UploadDraftUploadState.Failed, validationText);
+            await _ui.RunAsync(() =>
+            {
+                UpdateUploadStatus(draft, UploadDraftUploadState.Failed, validationText);
+                ScheduleDraftPersistence();
+            }).ConfigureAwait(false);
             _logger.Warning(
                 LocalizationHelper.Format("Log.Upload.ValidationFailed", ex.Message),
                 UploadLogSource);
-            ScheduleDraftPersistence();
             return;
         }
 
         if (project.Platform == PlatformType.YouTube && !_youTubeClient.IsConnected)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ConnectYouTube");
+            await _ui.RunAsync(
+                () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.ConnectYouTube"))
+                .ConfigureAwait(false);
             return;
         }
 
         var uploadCts = new CancellationTokenSource();
-        _activeUploadCts = uploadCts;
-        _activeUploadDraft = draft;
-        _isUploading = true;
-        UpdateUploadButtonState();
+        await _ui.RunAsync(() =>
+        {
+            _activeUploadCts = uploadCts;
+            _activeUploadDraft = draft;
+            _isUploading = true;
+            UpdateUploadButtonState();
+        }).ConfigureAwait(false);
         var cancellationToken = uploadCts.Token;
 
         var preparingText = LocalizationHelper.Get("Status.Upload.Preparing");
-        UpdateUploadStatus(
-            draft,
-            UploadDraftUploadState.Uploading,
-            preparingText,
-            isProgressIndeterminate: true,
-            progressPercent: 0);
-        ScheduleDraftPersistence();
+        await _ui.RunAsync(() =>
+        {
+            UpdateUploadStatus(
+                draft,
+                UploadDraftUploadState.Uploading,
+                preparingText,
+                isProgressIndeterminate: true,
+                progressPercent: 0);
+            ScheduleDraftPersistence();
+        }).ConfigureAwait(false);
 
         _logger.Info(
             LocalizationHelper.Format("Log.Upload.Started", project.Title),
@@ -3039,44 +3110,52 @@ public partial class MainWindow
         var progressReporter = new Progress<UploadProgressInfo>(info =>
         {
             ReportUploadProgress(info);
-            if (!string.IsNullOrWhiteSpace(info.Message))
+            _ui.Run(() =>
             {
-                draft.UploadStatus = info.Message;
-            }
+                if (!string.IsNullOrWhiteSpace(info.Message))
+                {
+                    draft.UploadStatus = info.Message;
+                }
 
-            var percent = info.IsIndeterminate
-                ? 0
-                : (double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100));
+                var percent = info.IsIndeterminate
+                    ? 0
+                    : (double.IsNaN(info.Percent) ? 0 : Math.Clamp(info.Percent, 0, 100));
 
-            draft.IsUploadProgressIndeterminate = info.IsIndeterminate;
-            draft.UploadProgress = percent;
-            ScheduleDraftPersistence();
+                draft.IsUploadProgressIndeterminate = info.IsIndeterminate;
+                draft.UploadProgress = percent;
+                ScheduleDraftPersistence();
+            });
         });
 
         try
         {
-            UploadPreset? selectedPreset = null;
-            if (!string.IsNullOrWhiteSpace(draft.PresetId))
+            var selectedPreset = await _ui.RunAsync(() =>
             {
-                selectedPreset = _loadedPresets.FirstOrDefault(p =>
+                if (string.IsNullOrWhiteSpace(draft.PresetId))
+                {
+                    return null;
+                }
+
+                return _loadedPresets.FirstOrDefault(p =>
                     string.Equals(p.Id, draft.PresetId, StringComparison.OrdinalIgnoreCase));
-            }
+            }).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = await _uploadService.UploadAsync(
                 project,
                 selectedPreset,
                 progressReporter,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
-            await Task.Run(() => _uploadHistoryService.AddEntry(project, result));
-            await LoadUploadHistoryAsync();
+            await Task.Run(() => _uploadHistoryService.AddEntry(project, result)).ConfigureAwait(false);
+            await LoadUploadHistoryAsync().ConfigureAwait(false);
 
             if (result.Success)
             {
                 var videoUrlText = result.VideoUrl?.ToString() ?? string.Empty;
                 var successText = LocalizationHelper.Format("Status.Upload.Success", videoUrlText);
-                UpdateUploadStatus(draft, UploadDraftUploadState.Completed, successText);
+                await _ui.RunAsync(() => UpdateUploadStatus(draft, UploadDraftUploadState.Completed, successText))
+                    .ConfigureAwait(false);
                 _logger.Info(
                     LocalizationHelper.Format("Log.Upload.Success", videoUrlText),
                     UploadLogSource);
@@ -3096,75 +3175,93 @@ public partial class MainWindow
                     }
                 }
 
-                TryAutoRemoveDraft(draft);
-                ScheduleDraftPersistence();
+                await _ui.RunAsync(() =>
+                {
+                    TryAutoRemoveDraft(draft);
+                    ScheduleDraftPersistence();
+                }).ConfigureAwait(false);
             }
             else
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     var canceledText = LocalizationHelper.Get("Status.Upload.Canceled");
-                    UpdateUploadStatus(
-                        draft,
-                        UploadDraftUploadState.Pending,
-                        canceledText,
-                        isProgressIndeterminate: false,
-                        progressPercent: 0);
+                    await _ui.RunAsync(() =>
+                    {
+                        UpdateUploadStatus(
+                            draft,
+                            UploadDraftUploadState.Pending,
+                            canceledText,
+                            isProgressIndeterminate: false,
+                            progressPercent: 0);
+                        ScheduleDraftPersistence();
+                    }).ConfigureAwait(false);
                     _logger.Info("Upload canceled.", UploadLogSource);
-                    ScheduleDraftPersistence();
                     return;
                 }
 
                 var errorText = result.ErrorMessage ?? string.Empty;
                 var failure = LocalizationHelper.Format("Status.Upload.Failed", errorText);
-                UpdateUploadStatus(draft, UploadDraftUploadState.Failed, failure);
+                await _ui.RunAsync(() =>
+                {
+                    UpdateUploadStatus(draft, UploadDraftUploadState.Failed, failure);
+                    ScheduleDraftPersistence();
+                }).ConfigureAwait(false);
                 _logger.Error(
                     LocalizationHelper.Format("Log.Upload.Failed", errorText),
                     UploadLogSource);
-                ScheduleDraftPersistence();
             }
         }
         catch (OperationCanceledException)
         {
             var canceledText = LocalizationHelper.Get("Status.Upload.Canceled");
-            UpdateUploadStatus(
-                draft,
-                UploadDraftUploadState.Pending,
-                canceledText,
-                isProgressIndeterminate: false,
-                progressPercent: 0);
+            await _ui.RunAsync(() =>
+            {
+                UpdateUploadStatus(
+                    draft,
+                    UploadDraftUploadState.Pending,
+                    canceledText,
+                    isProgressIndeterminate: false,
+                    progressPercent: 0);
+                ScheduleDraftPersistence();
+            }).ConfigureAwait(false);
             _logger.Info("Upload canceled.", UploadLogSource);
-            ScheduleDraftPersistence();
         }
         catch (Exception ex)
         {
             var unexpected = LocalizationHelper.Format("Status.Upload.UnexpectedError", ex.Message);
-            UpdateUploadStatus(draft, UploadDraftUploadState.Failed, unexpected);
+            await _ui.RunAsync(() =>
+            {
+                UpdateUploadStatus(draft, UploadDraftUploadState.Failed, unexpected);
+                ScheduleDraftPersistence();
+            }).ConfigureAwait(false);
             _logger.Error(
                 LocalizationHelper.Format("Log.Upload.UnexpectedError", ex.Message),
                 UploadLogSource,
                 ex);
-            ScheduleDraftPersistence();
         }
         finally
         {
-            if (ReferenceEquals(_activeUploadCts, uploadCts))
+            await _ui.RunAsync(() =>
             {
-                _activeUploadCts = null;
-            }
+                if (ReferenceEquals(_activeUploadCts, uploadCts))
+                {
+                    _activeUploadCts = null;
+                }
+
+                if (_activeUploadDraft == draft)
+                {
+                    _activeUploadDraft = null;
+                }
+
+                _isUploading = false;
+                HideUploadProgress();
+                UpdateUploadButtonState();
+                UpdateLogLinkIndicator();
+                ScheduleDraftPersistence();
+            }).ConfigureAwait(false);
 
             uploadCts.Dispose();
-
-            if (_activeUploadDraft == draft)
-            {
-                _activeUploadDraft = null;
-            }
-
-            _isUploading = false;
-            HideUploadProgress();
-            UpdateUploadButtonState();
-            UpdateLogLinkIndicator();
-            ScheduleDraftPersistence();
         }
     }
 
@@ -3374,7 +3471,7 @@ public partial class MainWindow
         UploadView.TitleTextBox.Text = draft.Title;
         UploadView.TagsTextBox.Text = draft.TagsCsv;
         UploadView.SetDefaultVisibility(draft.Visibility);
-        UploadView.CategoryIdTextBox.Text = draft.CategoryId ?? string.Empty;
+        UploadView.SelectCategoryById(draft.CategoryId);
         UploadView.SelectLanguageByCode(draft.Language);
         UploadView.SetMadeForKids(draft.MadeForKids);
         UploadView.SetCommentStatus(draft.CommentStatus);
@@ -3500,7 +3597,7 @@ public partial class MainWindow
         }
         else
         {
-            categoryId = UploadView.CategoryIdTextBox.Text;
+            categoryId = UploadView.GetSelectedCategoryId();
             language = UploadView.GetSelectedLanguageCode();
             madeForKidsSetting = GetSelectedMadeForKidsFromUi();
             commentStatusSetting = GetSelectedCommentStatusFromUi();

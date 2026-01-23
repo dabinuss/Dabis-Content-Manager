@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using DCM.App.Events;
+using DCM.App.Infrastructure;
 using DCM.Core.Models;
 
 namespace DCM.App;
@@ -22,15 +23,21 @@ public partial class MainWindow
             var entries = await Task.Run(() => _uploadHistoryService
                 .GetAll()
                 .OrderByDescending(e => e.DateTime)
-                .ToList());
+                .ToList()).ConfigureAwait(false);
 
-            _allHistoryEntries = entries;
-            UpdateYouTubeStatsFromHistory();
-            ApplyHistoryFilter();
+            await _ui.RunAsync(() =>
+            {
+                _allHistoryEntries = entries;
+                UpdateYouTubeStatsFromHistory();
+                ApplyHistoryFilter();
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.History.LoadFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.History.LoadFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
             _logger.Error(
                 LocalizationHelper.Format("Log.History.LoadFailed", ex.Message),
                 HistoryLogSource,

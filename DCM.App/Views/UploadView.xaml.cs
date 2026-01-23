@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,9 @@ public partial class UploadView : UserControl
         InitializeComponent();
         _ui = new UiDispatcher(Dispatcher);
     }
+
+    public ComboBox CategoryComboBoxControl => CategoryComboBox;
+    public ComboBox LanguageComboBoxControl => LanguageComboBox;
 
     public event DragEventHandler? VideoDropDragOver;
     public event DragEventHandler? VideoDropDragLeave;
@@ -69,7 +73,7 @@ public partial class UploadView : UserControl
     public event RoutedEventHandler? PlatformYouTubeToggleUnchecked;
     public event SelectionChangedEventHandler? VisibilitySelectionChanged;
     public event SelectionChangedEventHandler? PlaylistSelectionChanged;
-    public event TextChangedEventHandler? CategoryIdTextBoxTextChanged;
+    public event SelectionChangedEventHandler? CategorySelectionChanged;
     public event SelectionChangedEventHandler? LanguageSelectionChanged;
     public event SelectionChangedEventHandler? MadeForKidsSelectionChanged;
     public event SelectionChangedEventHandler? CommentStatusSelectionChanged;
@@ -198,17 +202,75 @@ public partial class UploadView : UserControl
     private void PlaylistComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         PlaylistSelectionChanged?.Invoke(sender, e);
 
-    private void CategoryIdTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
-        CategoryIdTextBoxTextChanged?.Invoke(sender, e);
+    private void CategoryComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        CategorySelectionChanged?.Invoke(sender, e);
 
     private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         LanguageSelectionChanged?.Invoke(sender, e);
+
+    public void SetCategoryOptions(IEnumerable<CategoryOption> categories)
+    {
+        var list = categories?.ToList() ?? new List<CategoryOption>();
+        list.Insert(0, new CategoryOption(string.Empty, LocalizationHelper.Get("Presets.Option.None")));
+        CategoryComboBox.ItemsSource = new ObservableCollection<CategoryOption>(list);
+    }
+
+    public string? GetSelectedCategoryId()
+    {
+        var id = (CategoryComboBox.SelectedItem as CategoryOption)?.Id;
+        return string.IsNullOrWhiteSpace(id) ? null : id;
+    }
+
+    public void SelectCategoryById(string? categoryId)
+    {
+        if (CategoryComboBox is null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(categoryId))
+        {
+            CategoryComboBox.SelectedItem = CategoryComboBox.Items
+                .OfType<CategoryOption>()
+                .FirstOrDefault(c => string.IsNullOrWhiteSpace(c.Id));
+            return;
+        }
+
+        var list = CategoryComboBox.ItemsSource as IList<CategoryOption>;
+        if (list is not null)
+        {
+            var match = list.FirstOrDefault(item =>
+                string.Equals(item.Id, categoryId, StringComparison.OrdinalIgnoreCase));
+            if (match is not null)
+            {
+                CategoryComboBox.SelectedItem = match;
+                return;
+            }
+
+            var fallback = new CategoryOption(categoryId, categoryId);
+            list.Add(fallback);
+            CategoryComboBox.SelectedItem = fallback;
+            return;
+        }
+
+        foreach (var item in CategoryComboBox.Items)
+        {
+            if (item is CategoryOption category &&
+                string.Equals(category.Id, categoryId, StringComparison.OrdinalIgnoreCase))
+            {
+                CategoryComboBox.SelectedItem = category;
+                return;
+            }
+        }
+
+        CategoryComboBox.SelectedItem = null;
+    }
 
     public void SetLanguageOptions(IEnumerable<LanguageOption> languages)
     {
         var list = languages?.ToList() ?? new List<LanguageOption>();
         list.Insert(0, new LanguageOption(string.Empty, LocalizationHelper.Get("Presets.Option.None")));
-        LanguageComboBox.ItemsSource = list;
+        LanguageComboBox.ItemsSource = new ObservableCollection<LanguageOption>(list);
     }
 
     public string? GetSelectedLanguageCode()
@@ -288,6 +350,30 @@ public partial class UploadView : UserControl
 
     private void SuggestionCloseButton_Click(object sender, RoutedEventArgs e) =>
         SuggestionCloseButtonClicked?.Invoke(this, e);
+
+    public void SetTranscribeAllActionState(bool isCancel)
+    {
+        _ui.Run(() =>
+        {
+            if (TranscribeAllActionLabel is null || TranscribeAllActionIcon is null || TranscribeActionBorder is null)
+            {
+                return;
+            }
+
+            if (isCancel)
+            {
+                TranscribeAllActionLabel.Text = "Transkribieren abbrechen";
+                TranscribeAllActionIcon.Text = char.ConvertFromUtf32(0xE5C9);
+                TranscribeActionBorder.ToolTip = "Alle Transkriptionen abbrechen";
+            }
+            else
+            {
+                TranscribeAllActionLabel.Text = "Alle transkribieren";
+                TranscribeAllActionIcon.Text = char.ConvertFromUtf32(0xE048);
+                TranscribeActionBorder.ToolTip = "Alle transkribieren";
+            }
+        }, UiUpdatePolicy.StatusPriority);
+    }
 
     public void ShowTitleSuggestionsLoading(string title, int expectedCount)
     {

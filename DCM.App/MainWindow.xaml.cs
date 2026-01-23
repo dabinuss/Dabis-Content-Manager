@@ -78,8 +78,10 @@ public partial class MainWindow : Window
     private readonly List<IDisposable> _eventSubscriptions = new();
     private SuggestionTarget _activeSuggestionTarget = SuggestionTarget.None;
     private bool _isThemeInitializing;
-    private bool _isUploadLanguageInitializing;
     private readonly ObservableCollection<UploadDraft> _uploadDrafts = new();
+    
+    private SelectionManager<CategoryOption>? _categoryManager;
+    private SelectionManager<LanguageOption>? _languageManager;
     private readonly List<Guid> _transcriptionQueue = new();
     private UploadDraft? _activeDraft;
     private bool _isLoadingDraft;
@@ -297,8 +299,7 @@ public partial class MainWindow : Window
         UploadPageView.PlatformYouTubeToggleUnchecked += PlatformYouTubeToggle_Unchecked;
         UploadPageView.VisibilitySelectionChanged += VisibilityComboBox_SelectionChanged;
         UploadPageView.PlaylistSelectionChanged += PlaylistComboBox_SelectionChanged;
-        UploadPageView.CategoryIdTextBoxTextChanged += CategoryIdTextBox_TextChanged;
-        UploadPageView.LanguageSelectionChanged += UploadLanguageComboBox_SelectionChanged;
+
         UploadPageView.MadeForKidsSelectionChanged += MadeForKidsComboBox_SelectionChanged;
         UploadPageView.CommentStatusSelectionChanged += CommentStatusComboBox_SelectionChanged;
         UploadPageView.ScheduleCheckBoxChecked += ScheduleCheckBox_Checked;
@@ -526,15 +527,18 @@ public partial class MainWindow : Window
         // Event-Handler für Log-Updates registrieren (nach UI-Initialisierung)
         _logger.EntryAdded += OnLogEntryAdded;
 
-        await InitializeHeavyUiAsync().ConfigureAwait(true); // OPTIMIZATION: Keep UI context
+        await InitializeHeavyUiAsync().ConfigureAwait(false);
 
         if (_settings.AutoConnectYouTube)
         {
-            await TryAutoConnectYouTubeAsync().ConfigureAwait(true); // OPTIMIZATION: Keep UI context
+            await TryAutoConnectYouTubeAsync().ConfigureAwait(false);
         }
 
-        UpdateLlmStatusText();
-        UpdateLogLinkIndicator();
+        _ui.Run(() =>
+        {
+            UpdateLlmStatusText();
+            UpdateLogLinkIndicator();
+        }, UiUpdatePolicy.StatusPriority);
     }
 
     private async Task InitializeHeavyUiAsync()
@@ -544,15 +548,18 @@ public partial class MainWindow : Window
             await Task.WhenAll(
                 LoadPresetsAsync(),
                 InitializeTranscriptionServiceAsync(),
-                LoadUploadHistoryAsync()).ConfigureAwait(true); // OPTIMIZATION: Keep UI context
+                LoadUploadHistoryAsync()).ConfigureAwait(false);
 
-            await RefreshDraftVideoInfoAsync().ConfigureAwait(true);
-            await RefreshDraftVideoPreviewAsync().ConfigureAwait(true);
+            await RefreshDraftVideoInfoAsync().ConfigureAwait(false);
+            await RefreshDraftVideoPreviewAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.Error(LocalizationHelper.Format("Log.MainWindow.InitializationFailed", ex.Message), MainWindowLogSource, ex);
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.InitializationFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.InitializationFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -633,7 +640,7 @@ public partial class MainWindow : Window
         UpdatePageHeader(_currentPageIndex);
         _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
 
-        await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(true);
+        await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(false);
     }
 
     #endregion
@@ -853,6 +860,20 @@ public partial class MainWindow : Window
 
     private void InitializePresetOptions()
     {
+        _categoryManager = new SelectionManager<CategoryOption>(
+            UploadView.CategoryComboBoxControl,
+            c => c.Id,
+            id => new CategoryOption(id, id)
+        );
+        _categoryManager.SelectionChanged += CategoryManager_SelectionChanged;
+
+        _languageManager = new SelectionManager<LanguageOption>(
+            UploadView.LanguageComboBoxControl,
+            l => l.Code,
+            code => new LanguageOption(code, code)
+        );
+        _languageManager.SelectionChanged += UploadLanguageManager_SelectionChanged;
+
         ApplyCachedYouTubeOptions();
     }
 
@@ -861,22 +882,12 @@ public partial class MainWindow : Window
         LoadCachedYouTubeOptions();
         PresetsPageView?.SetCategoryOptions(_youTubeCategories);
         PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
-        ApplyUploadLanguageOptions(_youTubeLanguages);
+        
+        _categoryManager?.UpdateOptions(_youTubeCategories, _activeDraft?.CategoryId);
+        _languageManager?.UpdateOptions(_youTubeLanguages, _activeDraft?.Language);
     }
 
-    private void ApplyUploadLanguageOptions(IEnumerable<LanguageOption> languages)
-    {
-        _isUploadLanguageInitializing = true;
-        try
-        {
-            UploadView.SetLanguageOptions(languages);
-            UploadView.SelectLanguageByCode(_activeDraft?.Language);
-        }
-        finally
-        {
-            _isUploadLanguageInitializing = false;
-        }
-    }
+
 
     private void LoadCachedYouTubeOptions()
     {
@@ -1010,14 +1021,17 @@ public partial class MainWindow : Window
     {
         try
         {
-            await GenerateTitleAsync().ConfigureAwait(true); // Keep UI context
+            await GenerateTitleAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.Error($"Unexpected error in title generation: {ex.Message}", LlmLogSource, ex);
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleError", ex.Message);
-            UploadView.GenerateTitleButton.IsEnabled = true;
-            UpdateLogLinkIndicator();
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TitleError", ex.Message);
+                UploadView.GenerateTitleButton.IsEnabled = true;
+                UpdateLogLinkIndicator();
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -1084,7 +1098,7 @@ public partial class MainWindow : Window
             onNoSuggestions: () =>
             {
                 UploadView.TitleTextBox.Text = LocalizationHelper.Get("Llm.TitlePlaceholder.NoSuggestions");
-            }).ConfigureAwait(true); // Keep UI context
+            }).ConfigureAwait(false);
     }
 
     // OPTIMIZATION: Extracted async logic to separate method with proper exception handling
@@ -1092,14 +1106,17 @@ public partial class MainWindow : Window
     {
         try
         {
-            await GenerateDescriptionAsync().ConfigureAwait(true); // Keep UI context
+            await GenerateDescriptionAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.Error($"Unexpected error in description generation: {ex.Message}", LlmLogSource, ex);
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.DescriptionError", ex.Message);
-            UploadView.GenerateDescriptionButton.IsEnabled = true;
-            UpdateLogLinkIndicator();
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.DescriptionError", ex.Message);
+                UploadView.GenerateDescriptionButton.IsEnabled = true;
+                UpdateLogLinkIndicator();
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -1150,7 +1167,7 @@ public partial class MainWindow : Window
                     ShowSuggestionPopup(SuggestionTarget.Description, trimmed, LocalizationHelper.Get("Upload.Fields.Description"));
                     StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateDescription");
                 }
-            }).ConfigureAwait(true); // Keep UI context
+            }).ConfigureAwait(false);
     }
 
     // OPTIMIZATION: Extracted async logic to separate method with proper exception handling
@@ -1158,14 +1175,17 @@ public partial class MainWindow : Window
     {
         try
         {
-            await GenerateTagsAsync().ConfigureAwait(true); // Keep UI context
+            await GenerateTagsAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.Error($"Unexpected error in tags generation: {ex.Message}", LlmLogSource, ex);
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsError", ex.Message);
-            UploadView.GenerateTagsButton.IsEnabled = true;
-            UpdateLogLinkIndicator();
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsError", ex.Message);
+                UploadView.GenerateTagsButton.IsEnabled = true;
+                UpdateLogLinkIndicator();
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -1212,7 +1232,7 @@ public partial class MainWindow : Window
                     ShowSuggestionPopup(SuggestionTarget.Tags, suggestions, LocalizationHelper.Get("Upload.Fields.Tags"));
                     StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.TagsInserted", tags.Count);
                 }
-            }).ConfigureAwait(true); // Keep UI context
+            }).ConfigureAwait(false);
     }
 
     private async void GenerateChaptersButton_Click(object sender, RoutedEventArgs e)
@@ -1225,14 +1245,17 @@ public partial class MainWindow : Window
 
         try
         {
-            await GenerateChaptersAsync().ConfigureAwait(true); // Keep UI context
+            await GenerateChaptersAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.Error($"Unexpected error in chapters generation: {ex.Message}", LlmLogSource, ex);
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.ChaptersError", ex.Message);
-            SetChaptersGenerationState(false);
-            UpdateLogLinkIndicator();
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.ChaptersError", ex.Message);
+                SetChaptersGenerationState(false);
+                UpdateLogLinkIndicator();
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -1245,18 +1268,27 @@ public partial class MainWindow : Window
         var transcript = project.TranscriptText ?? string.Empty;
         if (string.IsNullOrWhiteSpace(transcript))
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersMissingTranscript");
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersMissingTranscript");
+            }, UiUpdatePolicy.StatusPriority);
             return;
         }
 
         if (!TryParseDurationSeconds(_activeDraft?.VideoDuration, out var durationSeconds))
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersMissingDuration");
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersMissingDuration");
+            }, UiUpdatePolicy.StatusPriority);
             return;
         }
 
-        SetChaptersGenerationState(true);
-        StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateChapters");
+        _ui.Run(() =>
+        {
+            SetChaptersGenerationState(true);
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.GenerateChapters");
+        }, UiUpdatePolicy.StatusPriority);
 
         var timeoutSeconds = GetChapterTimeoutSeconds(transcript);
         var cancellationToken = GetNewLlmCancellationToken(timeoutSeconds);
@@ -1268,11 +1300,14 @@ public partial class MainWindow : Window
             var topics = await _contentSuggestionService.SuggestChaptersAsync(
                 project,
                 _settings.Persona,
-                cancellationToken).ConfigureAwait(true); // Keep UI context
+                cancellationToken).ConfigureAwait(false);
 
             if (topics is null || topics.Count == 0)
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoChapters");
+                _ui.Run(() =>
+                {
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoChapters");
+                }, UiUpdatePolicy.StatusPriority);
                 _logger.Warning("Kapitel: Keine Vorschlaege erhalten", LlmLogSource);
                 return;
             }
@@ -1280,31 +1315,46 @@ public partial class MainWindow : Window
             var maxChapters = GetMaxChapters(durationSeconds);
             var chapterText = await Task.Run(
                 () => BuildChapterMarkersText(topics, transcript, durationSeconds, maxChapters, cancellationToken),
-                cancellationToken).ConfigureAwait(true);
+                cancellationToken).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(chapterText))
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoChapters");
+                _ui.Run(() =>
+                {
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.NoChapters");
+                }, UiUpdatePolicy.StatusPriority);
                 return;
             }
 
-            ApplyGeneratedChapters(chapterText);
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersInserted");
+            await _ui.RunAsync(() =>
+            {
+                ApplyGeneratedChapters(chapterText);
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersInserted");
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersCanceled");
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.LLM.ChaptersCanceled");
+            }, UiUpdatePolicy.StatusPriority);
             _logger.Debug("Kapitelgenerierung abgebrochen", LlmLogSource);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.ChaptersError", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.LLM.ChaptersError", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
             _logger.Error($"Kapitelgenerierung fehlgeschlagen: {ex.Message}", LlmLogSource, ex);
         }
         finally
         {
-            SetChaptersGenerationState(false);
-            UpdateLogLinkIndicator();
+            _ui.Run(() =>
+            {
+                SetChaptersGenerationState(false);
+                UpdateLogLinkIndicator();
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -2193,56 +2243,73 @@ public partial class MainWindow : Window
         Action<T, List<string>> handleResults,
         Action? onNoSuggestions = null)
     {
-        CloseSuggestionPopup();
+        await _ui.RunAsync(() =>
+        {
+            CloseSuggestionPopup();
+            StatusTextBlock.Text = statusGenerating;
+            triggerButton.IsEnabled = false;
 
-        StatusTextBlock.Text = statusGenerating;
-        triggerButton.IsEnabled = false;
+            if (desiredCount > 1)
+            {
+                ShowSuggestionLoading(target, fieldLabel, desiredCount);
+            }
+        }, UiUpdatePolicy.StatusPriority);
 
         var cancellationToken = GetNewLlmCancellationToken();
-
-        if (desiredCount > 1)
-        {
-            ShowSuggestionLoading(target, fieldLabel, desiredCount);
-        }
 
         logStarted();
 
         try
         {
-            var result = await producer(cancellationToken).ConfigureAwait(true); // Keep UI context
+            var result = await producer(cancellationToken).ConfigureAwait(false);
             var suggestions = suggestionSelector(result) ?? new List<string>();
 
             if (suggestions.Count == 0)
             {
-                StatusTextBlock.Text = statusNoSuggestions;
                 logNoSuggestions();
-                onNoSuggestions?.Invoke();
-                CloseSuggestionPopup();
+                await _ui.RunAsync(() =>
+                {
+                    StatusTextBlock.Text = statusNoSuggestions;
+                    onNoSuggestions?.Invoke();
+                    CloseSuggestionPopup();
+                }, UiUpdatePolicy.StatusPriority);
                 return;
             }
 
-            handleResults(result, suggestions);
+            await _ui.RunAsync(() =>
+            {
+                handleResults(result, suggestions);
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (OperationCanceledException)
         {
-            StatusTextBlock.Text = statusCanceled;
             logCanceled();
-            CloseSuggestionPopup();
+            await _ui.RunAsync(() =>
+            {
+                StatusTextBlock.Text = statusCanceled;
+                CloseSuggestionPopup();
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = statusError(ex);
             logError(ex);
-            CloseSuggestionPopup();
+            await _ui.RunAsync(() =>
+            {
+                StatusTextBlock.Text = statusError(ex);
+                CloseSuggestionPopup();
+            }, UiUpdatePolicy.StatusPriority);
         }
         finally
         {
-            triggerButton.IsEnabled = true;
-            UpdateLogLinkIndicator();
-            if (desiredCount <= 1)
+            await _ui.RunAsync(() =>
             {
-                CloseSuggestionPopup();
-            }
+                triggerButton.IsEnabled = true;
+                UpdateLogLinkIndicator();
+                if (desiredCount <= 1)
+                {
+                    CloseSuggestionPopup();
+                }
+            }, UiUpdatePolicy.ButtonPriority);
         }
     }
 
@@ -2577,7 +2644,7 @@ public partial class MainWindow : Window
 
     private async void CheckUpdatesHyperlink_Click(object sender, RoutedEventArgs e)
     {
-        await CheckForUpdatesAsync().ConfigureAwait(true); // OPTIMIZATION: Keep UI context
+        await CheckForUpdatesAsync().ConfigureAwait(false);
     }
 
     #endregion

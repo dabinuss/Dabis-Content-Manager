@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using DCM.Core;
 using DCM.Core.Configuration;
@@ -17,10 +18,26 @@ namespace DCM.App;
 public partial class MainWindow
 {
     private const string TranscriptionLogSource = "Transcription";
+    private const int MaxParallelTranscriptions = 2;
+    private readonly SemaphoreSlim _transcriptionSlots = new(MaxParallelTranscriptions, MaxParallelTranscriptions);
+    private readonly SemaphoreSlim _dependencyEnsureLock = new(1, 1);
+    private readonly Dictionary<Guid, TranscriptionJob> _activeTranscriptions = new();
+    private readonly Dictionary<Guid, TaskCompletionSource<bool>> _transcriptionCompletionSources = new();
+    private readonly Stack<ITranscriptionService> _transcriptionServicePool = new();
     private ITranscriptionService? _transcriptionService;
-    private CancellationTokenSource? _transcriptionCts;
-    private bool _isTranscribing;
-    private UploadDraft? _activeTranscriptionDraft;
+    private bool _isTranscribeAllActive;
+
+    private sealed class TranscriptionJob
+    {
+        public TranscriptionJob(UploadDraft draft, CancellationTokenSource cancellationTokenSource)
+        {
+            Draft = draft ?? throw new ArgumentNullException(nameof(draft));
+            CancellationTokenSource = cancellationTokenSource ?? throw new ArgumentNullException(nameof(cancellationTokenSource));
+        }
+
+        public UploadDraft Draft { get; }
+        public CancellationTokenSource CancellationTokenSource { get; }
+    }
 
     #region Transcription Initialization
 
@@ -28,33 +45,50 @@ public partial class MainWindow
     {
         try
         {
-            var service = await Task.Run(() => new TranscriptionService());
+            var service = await Task.Run(() => new TranscriptionService()).ConfigureAwait(false);
             _transcriptionService = service;
             _logger.Debug(LocalizationHelper.Get("Log.Transcription.ServiceInitialized"), TranscriptionLogSource);
-            UpdateTranscriptionButtonState();
-            UpdateTranscriptionStatusDisplay();
-            await StartNextQueuedAutoTranscriptionCoreAsync();
+            _ui.Run(() =>
+            {
+                UpdateTranscriptionButtonState();
+                UpdateTranscriptionStatusDisplay();
+            }, UiUpdatePolicy.StatusPriority);
+            await _ui.RunAsync(
+                () => StartNextQueuedAutoTranscriptionCoreAsync(ignoreAutoSetting: false),
+                UiUpdatePolicy.StatusPriority);
         }
         catch (Exception ex)
         {
             _logger.Error(LocalizationHelper.Format("Log.Transcription.ServiceInitFailed", ex.Message), TranscriptionLogSource, ex);
             _transcriptionService = null;
-            UpdateTranscriptionStatusDisplay();
+            _ui.Run(UpdateTranscriptionStatusDisplay, UiUpdatePolicy.StatusPriority);
         }
     }
 
     private void DisposeTranscriptionService()
     {
-        CancelTranscription();
+        CancelAllTranscriptions();
 
         // Temporäre Dateien aufräumen
         CleanupTranscriptionTempFolder();
 
-        if (_transcriptionService is IDisposable disposable)
+        var servicesToDispose = new List<ITranscriptionService>();
+        lock (_transcriptionServicePool)
+        {
+            servicesToDispose.AddRange(_transcriptionServicePool);
+            _transcriptionServicePool.Clear();
+        }
+
+        if (_transcriptionService is not null && !servicesToDispose.Contains(_transcriptionService))
+        {
+            servicesToDispose.Add(_transcriptionService);
+        }
+
+        foreach (var service in servicesToDispose.OfType<IDisposable>())
         {
             try
             {
-                disposable.Dispose();
+                service.Dispose();
             }
             catch
             {
@@ -98,17 +132,22 @@ public partial class MainWindow
 
     private async void TranscribeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_isTranscribing)
-        {
-            CancelTranscription();
-            return;
-        }
-
         var draft = _activeDraft;
         if (draft is null)
         {
             StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
             return;
+        }
+
+        if (IsDraftTranscribing(draft))
+        {
+            CancelTranscription(draft);
+            return;
+        }
+
+        if (IsDraftQueued(draft))
+        {
+            MoveDraftToFrontOfTranscriptionQueue(draft);
         }
 
         var videoPath = draft.VideoPath;
@@ -118,140 +157,289 @@ public partial class MainWindow
             return;
         }
 
-        await StartTranscriptionAsync(draft);
+        await StartTranscriptionAsync(draft).ConfigureAwait(false);
     }
 
-    private async Task StartTranscriptionAsync(UploadDraft draft)
+    private async Task StartTranscriptionAsync(UploadDraft draft, bool allowQueue = true)
     {
         if (_transcriptionService is null)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.ServiceUnavailable");
+            _ui.Run(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.ServiceUnavailable"));
             return;
         }
 
-        if (!_uploadDrafts.Contains(draft))
+        var draftAvailable = await _ui.RunAsync(() => _uploadDrafts.Contains(draft)).ConfigureAwait(false);
+        if (!draftAvailable)
         {
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(draft.VideoPath) || !File.Exists(draft.VideoPath))
+        var alreadyRunning = await _ui.RunAsync(() => IsDraftTranscribing(draft)).ConfigureAwait(false);
+        if (alreadyRunning)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo");
             return;
         }
 
-        RemoveDraftFromTranscriptionQueue(draft.Id, persist: false);
+        if (allowQueue)
+        {
+            if (!await _transcriptionSlots.WaitAsync(0).ConfigureAwait(false))
+            {
+                await _ui.RunAsync(() =>
+                {
+                    QueueDraftForTranscription(draft);
+                    UpdateTranscriptionButtonState();
+                    UpdateTranscriptionProgressUiForActiveDraft();
+                }).ConfigureAwait(false);
+                return;
+            }
+        }
+        else
+        {
+            await _transcriptionSlots.WaitAsync().ConfigureAwait(false);
+        }
 
-        _isTranscribing = true;
-        _transcriptionCts = new CancellationTokenSource();
-        var cancellationToken = _transcriptionCts.Token;
-        _activeTranscriptionDraft = draft;
-        var initializingText = LocalizationHelper.Get("Transcription.Phase.Initializing");
-        UpdateTranscriptionStatus(
-            draft,
-            UploadDraftTranscriptionState.Running,
-            initializingText,
-            isProgressIndeterminate: true,
-            progressPercent: 0,
-            updateStatusText: false);
-        ScheduleDraftPersistence();
+        var becameRunning = await _ui.RunAsync(() => IsDraftTranscribing(draft)).ConfigureAwait(false);
+        if (becameRunning)
+        {
+            _transcriptionSlots.Release();
+            if (!allowQueue)
+            {
+                await WaitForTranscriptionCompletionAsync(draft).ConfigureAwait(false);
+            }
+            return;
+        }
 
-        UpdateTranscriptionButtonState();
-        ShowTranscriptionProgress();
+        var transcriptionCts = new CancellationTokenSource();
+        var cancellationToken = transcriptionCts.Token;
+        var job = new TranscriptionJob(draft, transcriptionCts);
+
+        var videoPath = await _ui.RunAsync(() => draft.VideoPath).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
+        {
+            await _ui.RunAsync(
+                () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.SelectVideo"))
+                .ConfigureAwait(false);
+            transcriptionCts.Dispose();
+            _transcriptionSlots.Release();
+            return;
+        }
+
+        await _ui.RunAsync(() =>
+        {
+            RemoveDraftFromTranscriptionQueue(draft.Id, persist: false);
+
+            _activeTranscriptions[draft.Id] = job;
+            _transcriptionCompletionSources[draft.Id] =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var initializingText = LocalizationHelper.Get("Transcription.Phase.Initializing");
+            UpdateTranscriptionStatus(
+                draft,
+                UploadDraftTranscriptionState.Running,
+                initializingText,
+                isProgressIndeterminate: true,
+                progressPercent: 0,
+                updateStatusText: ReferenceEquals(draft, _activeDraft));
+            ScheduleDraftPersistence();
+
+            UpdateTranscriptionButtonState();
+            UpdateTranscriptionProgressUiForActiveDraft();
+        }).ConfigureAwait(false);
 
         _logger.Info(
-            LocalizationHelper.Format("Log.Transcription.Started", Path.GetFileName(draft.VideoPath)),
+            LocalizationHelper.Format("Log.Transcription.Started", Path.GetFileName(videoPath)),
             TranscriptionLogSource);
 
+        ITranscriptionService? worker = null;
         try
         {
             // Dependencies sicherstellen
             var modelSize = _settings.Transcription?.ModelSize ?? WhisperModelSize.Small;
 
-            if (!_transcriptionService.IsReady)
+            var dependenciesReady = await EnsureTranscriptionDependenciesAsync(draft, modelSize, cancellationToken)
+                .ConfigureAwait(false);
+            if (!dependenciesReady)
             {
-                UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.LoadingDependencies"));
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.LoadDependencies");
-
-                var dependencyProgress = new Progress<DependencyDownloadProgress>(ReportDependencyProgress);
-                var dependenciesReady = await _transcriptionService.EnsureDependenciesAsync(
-                    modelSize,
-                    dependencyProgress,
-                    cancellationToken);
-
-                if (!dependenciesReady)
+                await _ui.RunAsync(() =>
                 {
-                    StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DependenciesFailed");
-                    _logger.Warning(LocalizationHelper.Get("Log.Transcription.DependenciesMissing"), TranscriptionLogSource);
-                    return;
-                }
+                    UpdateTranscriptionStatus(
+                        draft,
+                        UploadDraftTranscriptionState.Failed,
+                        LocalizationHelper.Get("Status.Transcription.DependenciesFailed"),
+                        updateStatusText: ReferenceEquals(draft, _activeDraft));
+                    ScheduleDraftPersistence();
+                    UpdateTranscriptionProgressUiForActiveDraft();
+                }).ConfigureAwait(false);
+                _logger.Warning(LocalizationHelper.Get("Log.Transcription.DependenciesMissing"), TranscriptionLogSource);
+                return;
             }
 
+            worker = await AcquireTranscriptionServiceAsync().ConfigureAwait(false);
+            var workerReady = await worker.EnsureDependenciesAsync(
+                modelSize,
+                progress: null,
+                cancellationToken).ConfigureAwait(false);
+            if (!workerReady)
+            {
+                await _ui.RunAsync(() =>
+                {
+                    UpdateTranscriptionStatus(
+                        draft,
+                        UploadDraftTranscriptionState.Failed,
+                        LocalizationHelper.Get("Status.Transcription.DependenciesFailed"),
+                        updateStatusText: ReferenceEquals(draft, _activeDraft));
+                    ScheduleDraftPersistence();
+                    UpdateTranscriptionProgressUiForActiveDraft();
+                }).ConfigureAwait(false);
+                _logger.Warning(LocalizationHelper.Get("Log.Transcription.DependenciesMissing"), TranscriptionLogSource);
+                return;
+            }
             // Transkription starten
-            var language = ResolveTranscriptionLanguage(draft);
-            var transcriptionProgress = new Progress<TranscriptionProgress>(ReportTranscriptionProgress);
+            var language = await _ui.RunAsync(() => ResolveTranscriptionLanguage(draft)).ConfigureAwait(false);
+            var transcriptionProgress = new Progress<TranscriptionProgress>(progress =>
+                ReportTranscriptionProgress(draft, progress));
 
-                var result = await _transcriptionService.TranscribeAsync(
-                    draft.VideoPath,
-                    language,
-                    transcriptionProgress,
-                    cancellationToken);
+            var result = await worker.TranscribeAsync(
+                videoPath,
+                language,
+                transcriptionProgress,
+                cancellationToken).ConfigureAwait(false);
 
             // Ergebnis verarbeiten
-            OnTranscriptionCompleted(draft, result);
+            if (!result.Success && cancellationToken.IsCancellationRequested)
+            {
+                await _ui.RunAsync(() => MarkTranscriptionCancelled(draft, result.Duration))
+                    .ConfigureAwait(false);
+                return;
+            }
+
+            await _ui.RunAsync(() => OnTranscriptionCompleted(draft, result)).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
-            var canceledStatus = LocalizationHelper.Get("Status.Transcription.Canceled");
-            UpdateTranscriptionStatus(draft, UploadDraftTranscriptionState.Failed, canceledStatus);
-            UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceled"));
+            await _ui.RunAsync(() => MarkTranscriptionCancelled(draft, duration: default))
+                .ConfigureAwait(false);
             _logger.Debug(LocalizationHelper.Get("Log.Transcription.Canceled"), TranscriptionLogSource);
         }
         catch (Exception ex)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                await _ui.RunAsync(() => MarkTranscriptionCancelled(draft, duration: default))
+                    .ConfigureAwait(false);
+                _logger.Debug(LocalizationHelper.Get("Log.Transcription.Canceled"), TranscriptionLogSource);
+                return;
+            }
+
             var errorStatus = LocalizationHelper.Format("Status.Transcription.Error", ex.Message);
-            UpdateTranscriptionStatus(draft, UploadDraftTranscriptionState.Failed, errorStatus);
-            UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.Error", ex.Message));
+            await _ui.RunAsync(() =>
+            {
+                UpdateTranscriptionStatus(draft, UploadDraftTranscriptionState.Failed, errorStatus);
+                if (ReferenceEquals(draft, _activeDraft))
+                {
+                    UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.Error", ex.Message));
+                }
+            }).ConfigureAwait(false);
             _logger.Error(LocalizationHelper.Format("Log.Transcription.Failed", ex.Message), TranscriptionLogSource, ex);
         }
         finally
         {
-            _isTranscribing = false;
-            _transcriptionCts?.Dispose();
-            _transcriptionCts = null;
-            if (draft.TranscriptionState == UploadDraftTranscriptionState.Running)
+            TaskCompletionSource<bool>? completionSource = null;
+            var completed = false;
+            await _ui.RunAsync(() =>
             {
-                var failedPhaseText = LocalizationHelper.Get("Transcription.Phase.Failed");
-                UpdateTranscriptionStatus(
-                    draft,
-                    UploadDraftTranscriptionState.Failed,
-                    failedPhaseText,
-                    updateStatusText: false);
-            }
+                _activeTranscriptions.Remove(draft.Id);
+                if (_transcriptionCompletionSources.TryGetValue(draft.Id, out var source))
+                {
+                    _transcriptionCompletionSources.Remove(draft.Id);
+                    completionSource = source;
+                }
 
-            HideTranscriptionProgress();
-            UpdateTranscriptionButtonState();
-            UpdateLogLinkIndicator();
-            if (ReferenceEquals(_activeTranscriptionDraft, draft))
+                completed = draft.TranscriptionState == UploadDraftTranscriptionState.Completed;
+                if (draft.TranscriptionState == UploadDraftTranscriptionState.Running)
+                {
+                    var failedPhaseText = LocalizationHelper.Get("Transcription.Phase.Failed");
+                    UpdateTranscriptionStatus(
+                        draft,
+                        UploadDraftTranscriptionState.Failed,
+                        failedPhaseText,
+                        updateStatusText: false);
+                }
+
+                UpdateTranscriptionButtonState();
+                UpdateLogLinkIndicator();
+                UpdateTranscriptionProgressUiForActiveDraft();
+                UpdateTranscribeAllState();
+            }).ConfigureAwait(false);
+
+            transcriptionCts.Dispose();
+            if (worker is not null)
             {
-                _activeTranscriptionDraft = null;
+                ReleaseTranscriptionService(worker);
             }
-
-            _ = StartNextQueuedAutoTranscriptionAsync();
+            _transcriptionSlots.Release();
+            completionSource?.TrySetResult(completed);
+            _ = StartNextQueuedAutoTranscriptionAsync(ignoreAutoSetting: _isTranscribeAllActive);
         }
     }
 
-    private void CancelTranscription()
+    private async Task<bool> EnsureTranscriptionDependenciesAsync(
+        UploadDraft draft,
+        WhisperModelSize modelSize,
+        CancellationToken cancellationToken)
     {
-        if (_transcriptionCts is null || !_isTranscribing)
+        if (_transcriptionService is null)
+        {
+            return false;
+        }
+
+        if (_transcriptionService.IsReady)
+        {
+            return true;
+        }
+
+        await _dependencyEnsureLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (_transcriptionService.IsReady)
+            {
+                return true;
+            }
+
+            await _ui.RunAsync(() =>
+            {
+                if (ReferenceEquals(draft, _activeDraft))
+                {
+                    UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.LoadingDependencies"));
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.LoadDependencies");
+                }
+            }).ConfigureAwait(false);
+
+            var dependencyProgress = new Progress<DependencyDownloadProgress>(ReportDependencyProgress);
+            return await _transcriptionService.EnsureDependenciesAsync(
+                modelSize,
+                dependencyProgress,
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _dependencyEnsureLock.Release();
+        }
+    }
+
+    private void CancelTranscription(UploadDraft draft)
+    {
+        if (!_activeTranscriptions.TryGetValue(draft.Id, out var job))
         {
             return;
         }
 
         try
         {
-            _transcriptionCts.Cancel();
-            UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceling"));
+            job.CancellationTokenSource.Cancel();
+            if (ReferenceEquals(draft, _activeDraft))
+            {
+                UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceling"));
+            }
             _logger.Debug(LocalizationHelper.Get("Log.Transcription.Canceling"), TranscriptionLogSource);
         }
         catch
@@ -279,7 +467,10 @@ public partial class MainWindow
                 completedStatus,
                 isProgressIndeterminate: false,
                 progressPercent: 100);
-            UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.CompletedIn", result.Duration.TotalSeconds));
+            if (ReferenceEquals(draft, _activeDraft))
+            {
+                UpdateTranscriptionPhaseText(LocalizationHelper.Format("Transcription.Phase.CompletedIn", result.Duration.TotalSeconds));
+            }
             _logger.Info(
                 LocalizationHelper.Format("Log.Transcription.Success", result.Text.Length, result.Duration.TotalSeconds),
                 TranscriptionLogSource);
@@ -298,7 +489,10 @@ public partial class MainWindow
                 failureStatus,
                 isProgressIndeterminate: false,
                 progressPercent: 0);
-            UpdateTranscriptionPhaseText(result.ErrorMessage ?? LocalizationHelper.Get("Transcription.Phase.Failed"));
+            if (ReferenceEquals(draft, _activeDraft))
+            {
+                UpdateTranscriptionPhaseText(result.ErrorMessage ?? LocalizationHelper.Get("Transcription.Phase.Failed"));
+            }
             _logger.Warning(
                 LocalizationHelper.Format("Log.Transcription.Failed", result.ErrorMessage ?? string.Empty),
                 TranscriptionLogSource);
@@ -337,7 +531,8 @@ public partial class MainWindow
             {
                 _ui.Run(() =>
                 {
-                    if (!_isTranscribing)
+                    var activeDraft = _activeDraft;
+                    if (activeDraft is null || !IsDraftTranscribing(activeDraft))
                     {
                         UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Collapsed;
                     }
@@ -350,6 +545,11 @@ public partial class MainWindow
     {
         _ui.Run(() =>
         {
+            if (_activeDraft is null || !IsDraftTranscribing(_activeDraft))
+            {
+                return;
+            }
+
             UploadView.TranscriptionPhaseTextBlock.Text = text;
             UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         }, UiUpdatePolicy.ProgressPriority);
@@ -382,26 +582,72 @@ public partial class MainWindow
         UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
         StatusTextBlock.Text = progress.Message ?? message;
 
-        if (_activeTranscriptionDraft is not null)
+        if (_activeDraft is not null && IsDraftTranscribing(_activeDraft))
         {
-            _activeTranscriptionDraft.IsTranscriptionProgressIndeterminate = false;
-            _activeTranscriptionDraft.TranscriptionProgress = Math.Clamp(progress.Percent, 0, 100);
-            _activeTranscriptionDraft.TranscriptionStatus = message;
+            _activeDraft.IsTranscriptionProgressIndeterminate = false;
+            _activeDraft.TranscriptionProgress = Math.Clamp(progress.Percent, 0, 100);
+            _activeDraft.TranscriptionStatus = message;
         }
     }
 
-    private void ReportTranscriptionProgress(TranscriptionProgress progress)
+    private void MarkTranscriptionCancelled(UploadDraft draft, TimeSpan duration)
     {
-        _transcriptionProgressThrottle.Post(() => ApplyTranscriptionProgress(progress));
+        var canceledStatus = LocalizationHelper.Get("Status.Transcription.Canceled");
+        UpdateTranscriptionStatus(
+            draft,
+            UploadDraftTranscriptionState.Cancelled,
+            canceledStatus,
+            isProgressIndeterminate: false,
+            progressPercent: 0);
+
+        if (ReferenceEquals(draft, _activeDraft))
+        {
+            UpdateTranscriptionPhaseText(LocalizationHelper.Get("Transcription.Phase.Canceled"));
+        }
+
+        ScheduleDraftPersistence();
     }
 
-    private void ApplyTranscriptionProgress(TranscriptionProgress progress)
+    private void ReportTranscriptionProgress(UploadDraft draft, TranscriptionProgress progress)
     {
-        // Alle UI-Updates hier sind jetzt sicher auf dem UI-Thread
+        _ui.Run(() => UpdateDraftTranscriptionProgress(draft, progress), UiUpdatePolicy.ProgressPriority);
+        if (ReferenceEquals(draft, _activeDraft))
+        {
+            _transcriptionProgressThrottle.Post(() => ApplyTranscriptionProgress(draft, progress));
+        }
+    }
+
+    private void ApplyTranscriptionProgress(UploadDraft draft, TranscriptionProgress progress)
+    {
+        if (!ReferenceEquals(draft, _activeDraft))
+        {
+            return;
+        }
+
         UploadView.TranscriptionProgressBar.IsIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
         UploadView.TranscriptionProgressBar.Value = progress.Percent;
 
-        var phaseText = progress.Phase switch
+        var phaseText = BuildTranscriptionPhaseText(progress);
+
+        UploadView.TranscriptionPhaseTextBlock.Text = phaseText;
+        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+        StatusTextBlock.Text = progress.Message ?? phaseText;
+    }
+
+    private void UpdateDraftTranscriptionProgress(UploadDraft draft, TranscriptionProgress progress)
+    {
+        var percent = Math.Clamp(progress.Percent, 0, 100);
+        var isIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
+        var phaseText = BuildTranscriptionPhaseText(progress);
+
+        draft.IsTranscriptionProgressIndeterminate = isIndeterminate;
+        draft.TranscriptionProgress = percent;
+        draft.TranscriptionStatus = phaseText;
+    }
+
+    private static string BuildTranscriptionPhaseText(TranscriptionProgress progress)
+    {
+        return progress.Phase switch
         {
             TranscriptionPhase.Initializing => LocalizationHelper.Get("Transcription.Phase.Initializing"),
             TranscriptionPhase.ExtractingAudio => LocalizationHelper.Format("Transcription.Phase.ExtractingAudio", progress.Percent),
@@ -410,19 +656,146 @@ public partial class MainWindow
             TranscriptionPhase.Failed => progress.Message ?? LocalizationHelper.Get("Transcription.Phase.Failed"),
             _ => progress.Message ?? progress.Phase.ToString()
         };
+    }
 
-        UploadView.TranscriptionPhaseTextBlock.Text = phaseText;
-        UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
-        StatusTextBlock.Text = progress.Message ?? phaseText;
-
-        if (_activeTranscriptionDraft is not null)
+    private void UpdateTranscriptionProgressUiForActiveDraft()
+    {
+        _transcriptionProgressThrottle.CancelPending();
+        if (_activeDraft is null || _activeDraft.TranscriptionState != UploadDraftTranscriptionState.Running)
         {
-            var percent = Math.Clamp(progress.Percent, 0, 100);
-            var isIndeterminate = progress.Phase == TranscriptionPhase.Initializing;
-            _activeTranscriptionDraft.IsTranscriptionProgressIndeterminate = isIndeterminate;
-            _activeTranscriptionDraft.TranscriptionProgress = percent;
-            _activeTranscriptionDraft.TranscriptionStatus = phaseText;
+            HideTranscriptionProgress();
+            return;
         }
+
+        _ui.Run(() =>
+        {
+            UploadView.TranscriptionProgressBar.Visibility = Visibility.Visible;
+            UploadView.TranscriptionProgressBar.IsIndeterminate = _activeDraft.IsTranscriptionProgressIndeterminate;
+            UploadView.TranscriptionProgressBar.Value = _activeDraft.TranscriptionProgress;
+
+            var phaseText = string.IsNullOrWhiteSpace(_activeDraft.TranscriptionStatus)
+                ? LocalizationHelper.Get("Transcription.Phase.Initializing")
+                : _activeDraft.TranscriptionStatus;
+            UploadView.TranscriptionPhaseTextBlock.Text = phaseText;
+            UploadView.TranscriptionPhaseTextBlock.Visibility = Visibility.Visible;
+        }, UiUpdatePolicy.ProgressPriority);
+    }
+
+    private async Task<ITranscriptionService> AcquireTranscriptionServiceAsync()
+    {
+        lock (_transcriptionServicePool)
+        {
+            if (_transcriptionServicePool.Count > 0)
+            {
+                return _transcriptionServicePool.Pop();
+            }
+        }
+
+        return await Task.Run(() => (ITranscriptionService)new TranscriptionService()).ConfigureAwait(false);
+    }
+
+    private void ReleaseTranscriptionService(ITranscriptionService service)
+    {
+        if (service is null)
+        {
+            return;
+        }
+
+        lock (_transcriptionServicePool)
+        {
+            if (!_transcriptionServicePool.Contains(service))
+            {
+                _transcriptionServicePool.Push(service);
+            }
+        }
+    }
+
+    private bool IsDraftTranscribing(UploadDraft draft)
+        => _activeTranscriptions.ContainsKey(draft.Id);
+
+    private bool IsDraftQueued(UploadDraft draft)
+        => _transcriptionQueue.Contains(draft.Id);
+
+    private int ActiveTranscriptionCount => _activeTranscriptions.Count;
+
+    private void CancelAllTranscriptions()
+    {
+        foreach (var job in _activeTranscriptions.Values.ToList())
+        {
+            try
+            {
+                job.CancellationTokenSource.Cancel();
+            }
+            catch
+            {
+                // Ignorieren
+            }
+        }
+    }
+
+    private void CancelQueuedTranscriptions()
+    {
+        if (_transcriptionQueue.Count == 0)
+        {
+            return;
+        }
+
+        var queuedIds = _transcriptionQueue.ToList();
+        _transcriptionQueue.Clear();
+
+        foreach (var draftId in queuedIds)
+        {
+            var draft = _uploadDrafts.FirstOrDefault(d => d.Id == draftId);
+            if (draft is null || IsDraftTranscribing(draft))
+            {
+                continue;
+            }
+
+            ResetTranscriptionState(draft);
+        }
+
+        ScheduleDraftPersistence();
+        UpdateTranscriptionButtonState();
+        UpdateTranscriptionProgressUiForActiveDraft();
+    }
+
+    private void UpdateTranscribeAllState()
+    {
+        if (!_isTranscribeAllActive)
+        {
+            return;
+        }
+
+        if (_activeTranscriptions.Count == 0 && _transcriptionQueue.Count == 0)
+        {
+            _isTranscribeAllActive = false;
+            UpdateTranscribeAllActionUi();
+        }
+    }
+
+    private void UpdateTranscribeAllActionUi()
+    {
+        if (UploadView is null)
+        {
+            return;
+        }
+
+        UploadView.SetTranscribeAllActionState(_isTranscribeAllActive);
+    }
+
+    private async Task<bool> WaitForTranscriptionCompletionAsync(UploadDraft draft)
+    {
+        var waitTask = await _ui.RunAsync(() =>
+        {
+            if (_transcriptionCompletionSources.TryGetValue(draft.Id, out var source))
+            {
+                return source.Task;
+            }
+
+            return Task.FromResult(draft.TranscriptionState == UploadDraftTranscriptionState.Completed);
+        }).ConfigureAwait(false);
+
+        return await waitTask.ConfigureAwait(false);
     }
 
     private static string FormatTranscribingProgress(TranscriptionProgress progress)
@@ -464,7 +837,8 @@ public partial class MainWindow
     private void UpdateTranscriptionButtonState()
     {
         var hasVideo = _activeDraft?.HasVideo == true;
-        SetButtonState(UploadView.TranscribeButton, _isTranscribing, _isTranscribing || hasVideo);
+        var isActiveDraftTranscribing = _activeDraft is not null && IsDraftTranscribing(_activeDraft);
+        SetButtonState(UploadView.TranscribeButton, isActiveDraftTranscribing, isActiveDraftTranscribing || hasVideo);
     }
 
     #endregion
@@ -474,24 +848,34 @@ public partial class MainWindow
     private async Task TryAutoTranscribeAsync(UploadDraft draft)
     {
         // Kleine Verzögerung um UI-Thread Zeit zu geben
-        await Task.Delay(100);
+        await Task.Delay(100).ConfigureAwait(false);
 
         if (_transcriptionService is null)
         {
             return;
         }
 
-        if (!_uploadDrafts.Contains(draft))
+        var canAutoTranscribe = await _ui.RunAsync(() =>
         {
-            return;
-        }
+            if (!_uploadDrafts.Contains(draft))
+            {
+                return false;
+            }
 
-        if (_settings.Transcription?.AutoTranscribeOnVideoSelect != true)
-        {
-            return;
-        }
+            if (_settings.Transcription?.AutoTranscribeOnVideoSelect != true)
+            {
+                return false;
+            }
 
-        if (!draft.HasVideo)
+            if (!draft.HasVideo)
+            {
+                return false;
+            }
+
+            return true;
+        }).ConfigureAwait(false);
+
+        if (!canAutoTranscribe)
         {
             return;
         }
@@ -502,26 +886,38 @@ public partial class MainWindow
             return;
         }
 
-        // Prüfung muss auf UI-Thread sein
-        await _ui.RunAsync(() => TryAutoTranscribeAsync(draft));
-
-        if (_isTranscribing)
+        var shouldStart = await _ui.RunAsync(() =>
         {
-            QueueDraftForTranscription(draft);
-            return;
-        }
+            if (IsDraftTranscribing(draft))
+            {
+                return false;
+            }
 
-        // Nur wenn das Transkript-Feld leer ist
-        var transcriptText = draft == _activeDraft
-            ? UploadView.TranscriptTextBox.Text
-            : draft.Transcript;
-        if (!string.IsNullOrWhiteSpace(transcriptText))
+            if (ActiveTranscriptionCount >= MaxParallelTranscriptions)
+            {
+                QueueDraftForTranscription(draft);
+                return false;
+            }
+
+            // Nur wenn das Transkript-Feld leer ist
+            var transcriptText = draft == _activeDraft
+                ? UploadView.TranscriptTextBox.Text
+                : draft.Transcript;
+            if (!string.IsNullOrWhiteSpace(transcriptText))
+            {
+                return false;
+            }
+
+            return true;
+        }).ConfigureAwait(false);
+
+        if (!shouldStart)
         {
             return;
         }
 
         _logger.Debug(LocalizationHelper.Get("Log.Transcription.AutoStarted"), TranscriptionLogSource);
-        await StartTranscriptionAsync(draft);
+        await StartTranscriptionAsync(draft).ConfigureAwait(false);
     }
 
     private void QueueDraftForTranscription(UploadDraft draft)
@@ -540,69 +936,96 @@ public partial class MainWindow
         ScheduleDraftPersistence();
     }
 
-    private Task StartNextQueuedAutoTranscriptionAsync()
+    private Task StartNextQueuedAutoTranscriptionAsync(bool ignoreAutoSetting = false)
     {
-        return _ui.RunAsync(StartNextQueuedAutoTranscriptionCoreAsync);
+        return _ui.RunAsync(() => StartNextQueuedAutoTranscriptionCoreAsync(ignoreAutoSetting));
     }
 
-    private async Task StartNextQueuedAutoTranscriptionCoreAsync()
+    private async Task StartNextQueuedAutoTranscriptionCoreAsync(bool ignoreAutoSetting)
     {
-        if (_settings.Transcription?.AutoTranscribeOnVideoSelect != true)
+        if (!ignoreAutoSetting && _settings.Transcription?.AutoTranscribeOnVideoSelect != true)
         {
             return;
         }
 
-        if (_isTranscribing)
+        var draftsToStart = await _ui.RunAsync(() =>
         {
-            return;
-        }
-
-        UploadDraft? nextDraft = null;
-        var queueChanged = false;
-
-        while (_transcriptionQueue.Count > 0 && nextDraft is null)
-        {
-            var nextId = _transcriptionQueue[0];
-            RemoveDraftFromTranscriptionQueue(nextId, persist: false);
-            queueChanged = true;
-            nextDraft = _uploadDrafts.FirstOrDefault(d =>
-                d.Id == nextId &&
-                d.HasVideo &&
-                string.IsNullOrWhiteSpace(d.Transcript));
-        }
-
-        if (nextDraft is null)
-        {
-            var candidate = _uploadDrafts
-                .FirstOrDefault(d =>
-                    d.HasVideo &&
-                    string.IsNullOrWhiteSpace(d.Transcript) &&
-                    (d.TranscriptionState == UploadDraftTranscriptionState.Pending ||
-                     d.TranscriptionState == UploadDraftTranscriptionState.None));
-
-            if (candidate is null)
+            var availableSlots = Math.Max(0, MaxParallelTranscriptions - ActiveTranscriptionCount);
+            if (availableSlots == 0)
             {
-                if (queueChanged)
-                {
-                    ScheduleDraftPersistence();
-                }
-
-                return;
+                return new List<UploadDraft>();
             }
 
-            var wasQueued = _transcriptionQueue.Contains(candidate.Id);
-            RemoveDraftFromTranscriptionQueue(candidate.Id, persist: false);
-            if (wasQueued)
+            var queueChanged = false;
+            var toStart = new List<UploadDraft>(availableSlots);
+            var visitedIds = new HashSet<Guid>();
+
+            while (_transcriptionQueue.Count > 0 && toStart.Count < availableSlots)
             {
+                var nextId = _transcriptionQueue[0];
+                RemoveDraftFromTranscriptionQueue(nextId, persist: false);
                 queueChanged = true;
+                visitedIds.Add(nextId);
+
+                var candidate = _uploadDrafts.FirstOrDefault(d =>
+                    d.Id == nextId &&
+                    d.HasVideo &&
+                    string.IsNullOrWhiteSpace(d.Transcript));
+
+                if (candidate is not null && !IsDraftTranscribing(candidate))
+                {
+                    toStart.Add(candidate);
+                }
             }
 
-            nextDraft = candidate;
+            if (toStart.Count < availableSlots)
+            {
+                foreach (var candidate in _uploadDrafts)
+                {
+                    if (toStart.Count >= availableSlots)
+                    {
+                        break;
+                    }
+
+                    if (!candidate.HasVideo ||
+                        !string.IsNullOrWhiteSpace(candidate.Transcript) ||
+                        (candidate.TranscriptionState != UploadDraftTranscriptionState.Pending &&
+                         candidate.TranscriptionState != UploadDraftTranscriptionState.None &&
+                         candidate.TranscriptionState != UploadDraftTranscriptionState.Cancelled) ||
+                        IsDraftTranscribing(candidate) ||
+                        visitedIds.Contains(candidate.Id))
+                    {
+                        continue;
+                    }
+
+                    var wasQueued = _transcriptionQueue.Contains(candidate.Id);
+                    RemoveDraftFromTranscriptionQueue(candidate.Id, persist: false);
+                    if (wasQueued)
+                    {
+                        queueChanged = true;
+                    }
+
+                    toStart.Add(candidate);
+                }
+            }
+
+            if (queueChanged)
+            {
+                ScheduleDraftPersistence();
+            }
+
+            return toStart;
+        }).ConfigureAwait(false);
+
+        if (draftsToStart.Count == 0)
+        {
+            return;
         }
 
-        ScheduleDraftPersistence();
-
-        await StartTranscriptionAsync(nextDraft);
+        foreach (var draft in draftsToStart)
+        {
+            _ = StartTranscriptionAsync(draft).ConfigureAwait(false);
+        }
     }
 
     private void MoveDraftToFrontOfTranscriptionQueue(UploadDraft draft)
@@ -651,7 +1074,7 @@ public partial class MainWindow
             draft.TranscriptionProgress = progressPercent.Value;
         }
 
-        if (updateStatusText)
+        if (updateStatusText && ReferenceEquals(draft, _activeDraft))
         {
             StatusTextBlock.Text = statusText;
         }
@@ -857,7 +1280,7 @@ public partial class MainWindow
             var success = await _transcriptionService.EnsureDependenciesAsync(
                 modelSize,
                 progress,
-                CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
 
             if (success)
             {
@@ -866,25 +1289,34 @@ public partial class MainWindow
                     _transcriptionService.RemoveOtherModels(modelSize);
                 }
 
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DownloadSuccess");
+                await _ui.RunAsync(
+                    () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DownloadSuccess"))
+                    .ConfigureAwait(false);
                 _logger.Info(LocalizationHelper.Get("Log.Transcription.DependenciesLoaded"), TranscriptionLogSource);
             }
             else
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DownloadFailed");
+                await _ui.RunAsync(
+                    () => StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.DownloadFailed"))
+                    .ConfigureAwait(false);
                 _logger.Warning(LocalizationHelper.Get("Log.Transcription.DownloadFailed"), TranscriptionLogSource);
             }
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.DownloadError", ex.Message);
+            await _ui.RunAsync(
+                () => StatusTextBlock.Text = LocalizationHelper.Format("Status.Transcription.DownloadError", ex.Message))
+                .ConfigureAwait(false);
             _logger.Error(LocalizationHelper.Format("Log.Transcription.DownloadError", ex.Message), TranscriptionLogSource, ex);
         }
         finally
         {
             _dependencyDownloadThrottle.CancelPending();
-            GeneralSettingsPageView?.SetTranscriptionDownloadState(false);
-            UpdateTranscriptionStatusDisplay();
+            _ui.Run(() =>
+            {
+                GeneralSettingsPageView?.SetTranscriptionDownloadState(false);
+                UpdateTranscriptionStatusDisplay();
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
     /*

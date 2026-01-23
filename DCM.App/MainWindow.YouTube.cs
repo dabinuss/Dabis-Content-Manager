@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows.Controls;
 using DCM.App.Models;
+using DCM.App.Infrastructure;
 using DCM.YouTube;
 
 namespace DCM.App;
@@ -16,41 +17,65 @@ public partial class MainWindow
         {
             if (_youTubeClient.IsConnected)
             {
-                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnecting");
-                await _youTubeClient.DisconnectAsync();
+                _ui.Run(() =>
+                {
+                    StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnecting");
+                }, UiUpdatePolicy.StatusPriority);
+                await _youTubeClient.DisconnectAsync().ConfigureAwait(false);
             }
 
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connecting");
-            await _youTubeClient.ConnectAsync(System.Threading.CancellationToken.None);
-            UpdateYouTubeStatusText();
-            await RefreshYouTubePlaylistsAsync();
-            await RefreshYouTubeMetadataOptionsAsync();
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connected");
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connecting");
+            }, UiUpdatePolicy.StatusPriority);
+            await _youTubeClient.ConnectAsync(System.Threading.CancellationToken.None).ConfigureAwait(false);
+            await _ui.RunAsync(UpdateYouTubeStatusText, UiUpdatePolicy.StatusPriority);
+            await RefreshYouTubePlaylistsAsync().ConfigureAwait(false);
+            await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(false);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Connected");
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.ConnectFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.ConnectFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
     private async void YouTubeDisconnectButton_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnecting");
+        _ui.Run(() =>
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnecting");
+        }, UiUpdatePolicy.StatusPriority);
 
         try
         {
-            await _youTubeClient.DisconnectAsync();
-            UpdateYouTubeStatusText();
-            _youTubePlaylists.Clear();
-            AccountsPageView?.ClearYouTubePlaylists();
-            UploadView.PlaylistComboBox.ItemsSource = null;
-            PresetsPageView?.SetPlaylistOptions(Array.Empty<YouTubePlaylistInfo>());
-            await RefreshYouTubeMetadataOptionsAsync();
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnected");
+            await _youTubeClient.DisconnectAsync().ConfigureAwait(false);
+            await _ui.RunAsync(() =>
+            {
+                UpdateYouTubeStatusText();
+                _youTubePlaylists.Clear();
+                AccountsPageView?.ClearYouTubePlaylists();
+                UploadView.PlaylistComboBox.ItemsSource = null;
+                PresetsPageView?.SetPlaylistOptions(Array.Empty<YouTubePlaylistInfo>());
+            }, UiUpdatePolicy.StatusPriority);
+            await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(false);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnected");
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.DisconnectFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.DisconnectFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -58,22 +83,34 @@ public partial class MainWindow
     {
         if (!_youTubeClient.IsConnected)
         {
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnected");
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Disconnected");
+            }, UiUpdatePolicy.StatusPriority);
             return;
         }
 
-        StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Refreshing");
+        _ui.Run(() =>
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Refreshing");
+        }, UiUpdatePolicy.StatusPriority);
 
         try
         {
-            await RefreshYouTubePlaylistsAsync();
-            await RefreshYouTubeMetadataOptionsAsync();
-            UpdateYouTubeStatsFromHistory();
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.RefreshComplete");
+            await RefreshYouTubePlaylistsAsync().ConfigureAwait(false);
+            await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(false);
+            await _ui.RunAsync(() =>
+            {
+                UpdateYouTubeStatsFromHistory();
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.RefreshComplete");
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.RefreshFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.RefreshFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -118,40 +155,50 @@ public partial class MainWindow
     {
         if (!_youTubeClient.IsConnected)
         {
-            _youTubePlaylists.Clear();
-            AccountsPageView?.ClearYouTubePlaylists();
-            UploadView.PlaylistComboBox.ItemsSource = null;
-            PresetsPageView?.SetPlaylistOptions(Array.Empty<YouTubePlaylistInfo>());
+            await _ui.RunAsync(() =>
+            {
+                _youTubePlaylists.Clear();
+                AccountsPageView?.ClearYouTubePlaylists();
+                UploadView.PlaylistComboBox.ItemsSource = null;
+                PresetsPageView?.SetPlaylistOptions(Array.Empty<YouTubePlaylistInfo>());
+            }, UiUpdatePolicy.StatusPriority);
             return;
         }
 
         try
         {
-            var playlists = await _youTubeClient.GetPlaylistsAsync(System.Threading.CancellationToken.None);
+            var playlists = await _youTubeClient.GetPlaylistsAsync(System.Threading.CancellationToken.None)
+                .ConfigureAwait(false);
 
-            _youTubePlaylists.Clear();
-            _youTubePlaylists.AddRange(playlists);
-
-            AccountsPageView?.SetYouTubePlaylists(_youTubePlaylists, _settings.DefaultPlaylistId);
-            UploadView.PlaylistComboBox.ItemsSource = _youTubePlaylists;
-            PresetsPageView?.SetPlaylistOptions(_youTubePlaylists);
-
-            if (!string.IsNullOrWhiteSpace(_settings.DefaultPlaylistId))
+            await _ui.RunAsync(() =>
             {
-                var selected = _youTubePlaylists.FirstOrDefault(i => i.Id == _settings.DefaultPlaylistId);
-                if (selected is not null)
-                {
-                    UploadView.PlaylistComboBox.SelectedItem = selected;
-                }
-            }
+                _youTubePlaylists.Clear();
+                _youTubePlaylists.AddRange(playlists);
 
-            _settings.YouTubeLastSyncUtc = DateTime.UtcNow;
-            AccountsPageView?.SetYouTubeLastSync(_settings.YouTubeLastSyncUtc);
-            ScheduleSettingsSave();
+                AccountsPageView?.SetYouTubePlaylists(_youTubePlaylists, _settings.DefaultPlaylistId);
+                UploadView.PlaylistComboBox.ItemsSource = _youTubePlaylists;
+                PresetsPageView?.SetPlaylistOptions(_youTubePlaylists);
+
+                if (!string.IsNullOrWhiteSpace(_settings.DefaultPlaylistId))
+                {
+                    var selected = _youTubePlaylists.FirstOrDefault(i => i.Id == _settings.DefaultPlaylistId);
+                    if (selected is not null)
+                    {
+                        UploadView.PlaylistComboBox.SelectedItem = selected;
+                    }
+                }
+
+                _settings.YouTubeLastSyncUtc = DateTime.UtcNow;
+                AccountsPageView?.SetYouTubeLastSync(_settings.YouTubeLastSyncUtc);
+                ScheduleSettingsSave();
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.LoadPlaylistsFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.LoadPlaylistsFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -159,16 +206,20 @@ public partial class MainWindow
     {
         var (localeKey, hl, region) = GetYouTubeLocaleInfo();
 
-        _settings.YouTubeOptionsLocale = localeKey;
-        _settings.YouTubeCategoryOptions.Clear();
-        _settings.YouTubeLanguageOptions.Clear();
-        _youTubeCategories.Clear();
-        _youTubeLanguages.Clear();
-        PresetsPageView?.SetCategoryOptions(_youTubeCategories);
-        PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
-        ApplyUploadLanguageOptions(_youTubeLanguages);
-        ScheduleSettingsSave();
-        AccountsPageView?.SetYouTubeLocale(_settings.YouTubeOptionsLocale);
+        await _ui.RunAsync(() =>
+        {
+            _settings.YouTubeOptionsLocale = localeKey;
+            _settings.YouTubeCategoryOptions.Clear();
+            _settings.YouTubeLanguageOptions.Clear();
+            _youTubeCategories.Clear();
+            _youTubeLanguages.Clear();
+            PresetsPageView?.SetCategoryOptions(_youTubeCategories);
+            PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
+            _categoryManager?.UpdateOptions(_youTubeCategories, _activeDraft?.CategoryId);
+            _languageManager?.UpdateOptions(_youTubeLanguages, _activeDraft?.Language);
+            ScheduleSettingsSave();
+            AccountsPageView?.SetYouTubeLocale(_settings.YouTubeOptionsLocale);
+        }, UiUpdatePolicy.StatusPriority);
 
         if (!_youTubeClient.IsConnected)
         {
@@ -177,36 +228,48 @@ public partial class MainWindow
 
         try
         {
-            var categories = await _youTubeClient.GetVideoCategoriesAsync(region, hl, System.Threading.CancellationToken.None);
-            var languages = await _youTubeClient.GetI18nLanguagesAsync(hl, System.Threading.CancellationToken.None);
+            var categories = await _youTubeClient.GetVideoCategoriesAsync(region, hl, System.Threading.CancellationToken.None)
+                .ConfigureAwait(false);
+            var languages = await _youTubeClient.GetI18nLanguagesAsync(hl, System.Threading.CancellationToken.None)
+                .ConfigureAwait(false);
 
-            _settings.YouTubeCategoryOptions = categories.ToList();
-            _settings.YouTubeLanguageOptions = languages.ToList();
 
-            foreach (var option in _settings.YouTubeCategoryOptions)
+            await _ui.RunAsync(() =>
             {
-                if (!string.IsNullOrWhiteSpace(option.Code))
-                {
-                    _youTubeCategories.Add(new CategoryOption(option.Code, option.Name));
-                }
-            }
+                _settings.YouTubeCategoryOptions = categories.ToList();
+                _settings.YouTubeLanguageOptions = languages.ToList();
 
-            foreach (var option in _settings.YouTubeLanguageOptions)
-            {
-                if (!string.IsNullOrWhiteSpace(option.Code))
+                foreach (var option in _settings.YouTubeCategoryOptions)
                 {
-                    _youTubeLanguages.Add(new LanguageOption(option.Code, option.Name));
+                    if (!string.IsNullOrWhiteSpace(option.Code))
+                    {
+                        _youTubeCategories.Add(new CategoryOption(option.Code, option.Name));
+                    }
                 }
-            }
 
-            PresetsPageView?.SetCategoryOptions(_youTubeCategories);
-            PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
-            ApplyUploadLanguageOptions(_youTubeLanguages);
-            ScheduleSettingsSave();
+                foreach (var option in _settings.YouTubeLanguageOptions)
+                {
+                    if (!string.IsNullOrWhiteSpace(option.Code))
+                    {
+                        _youTubeLanguages.Add(new LanguageOption(option.Code, option.Name));
+                    }
+                }
+
+                PresetsPageView?.SetCategoryOptions(_youTubeCategories);
+                PresetsPageView?.SetLanguageOptions(_youTubeLanguages);
+                
+                _categoryManager?.UpdateOptions(_youTubeCategories, _activeDraft?.CategoryId);
+                _languageManager?.UpdateOptions(_youTubeLanguages, _activeDraft?.Language);
+                
+                ScheduleSettingsSave();
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (System.Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.LoadOptionsFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.YouTube.LoadOptionsFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 
@@ -214,16 +277,20 @@ public partial class MainWindow
     {
         try
         {
-            var connected = await _youTubeClient.TryConnectSilentAsync(System.Threading.CancellationToken.None);
+            var connected = await _youTubeClient.TryConnectSilentAsync(System.Threading.CancellationToken.None)
+                .ConfigureAwait(false);
             if (!connected)
             {
                 return;
             }
 
-            UpdateYouTubeStatusText();
-            await RefreshYouTubePlaylistsAsync();
-            await RefreshYouTubeMetadataOptionsAsync();
-            StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Restored");
+            await _ui.RunAsync(UpdateYouTubeStatusText, UiUpdatePolicy.StatusPriority);
+            await RefreshYouTubePlaylistsAsync().ConfigureAwait(false);
+            await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(false);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.YouTube.Restored");
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch
         {

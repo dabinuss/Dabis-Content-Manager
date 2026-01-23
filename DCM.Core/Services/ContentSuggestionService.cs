@@ -156,7 +156,7 @@ public sealed partial class ContentSuggestionService : IContentSuggestionService
 
                 return result;
             }
-        }, cancellationToken);
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     private static PromptLanguage ResolvePromptLanguage(UploadProject project, ChannelPersona persona)

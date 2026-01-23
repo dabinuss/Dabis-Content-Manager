@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using DCM.App.Infrastructure;
 using DCM.Core.Models;
 
 namespace DCM.App;
@@ -14,25 +15,31 @@ public partial class MainWindow
     {
         try
         {
-            var presets = await Task.Run(() => _presetRepository.Load().ToList());
+            var presets = await Task.Run(() => _presetRepository.Load().ToList()).ConfigureAwait(false);
 
-            _loadedPresets.Clear();
-            _loadedPresets.AddRange(presets);
-
-            var defaultPreset = GetDefaultPreset(PlatformType.YouTube);
-
-            PresetsPageView?.BindPresets(_loadedPresets, defaultPreset);
-            LoadPresetIntoEditor(defaultPreset);
-
-            UploadView.PresetComboBox.ItemsSource = _loadedPresets;
-            if (defaultPreset is not null)
+            await _ui.RunAsync(() =>
             {
-                UploadView.PresetComboBox.SelectedItem = defaultPreset;
-            }
+                _loadedPresets.Clear();
+                _loadedPresets.AddRange(presets);
+
+                var defaultPreset = GetDefaultPreset(PlatformType.YouTube);
+
+                PresetsPageView?.BindPresets(_loadedPresets, defaultPreset);
+                LoadPresetIntoEditor(defaultPreset);
+
+                UploadView.PresetComboBox.ItemsSource = _loadedPresets;
+                if (defaultPreset is not null)
+                {
+                    UploadView.PresetComboBox.SelectedItem = defaultPreset;
+                }
+            }, UiUpdatePolicy.StatusPriority);
         }
         catch (Exception ex)
         {
-            StatusTextBlock.Text = LocalizationHelper.Format("Status.Presets.LoadFailed", ex.Message);
+            _ui.Run(() =>
+            {
+                StatusTextBlock.Text = LocalizationHelper.Format("Status.Presets.LoadFailed", ex.Message);
+            }, UiUpdatePolicy.StatusPriority);
         }
     }
 

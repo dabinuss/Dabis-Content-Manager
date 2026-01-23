@@ -571,5 +571,6 @@ public enum UploadDraftTranscriptionState
     Pending,
     Running,
     Completed,
-    Failed
+    Failed,
+    Cancelled
 }

@@ -123,11 +123,13 @@
                 </Style>
               </Border.Style>
               <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource IconL}"
+                <TextBlock x:Name="TranscribeAllActionIcon"
+                           Style="{StaticResource IconL}"
                            Text="&#xe048;"
                            Foreground="{StaticResource TextPrimaryBrush}"
                            Margin="0,0,6,0"/>
-                <TextBlock Text="Alle transkribieren"
+                <TextBlock x:Name="TranscribeAllActionLabel"
+                           Text="Alle transkribieren"
                            FontSize="{StaticResource FontSizeS}"
                            Foreground="{StaticResource TextPrimaryBrush}"
                            VerticalAlignment="Center">
@@ -556,6 +558,13 @@
                                           Value="{StaticResource DangerBrush}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Cancelled}">
+                                  <Setter Property="Text"
+                                          Value="&#xe5c9;"/>
+                                  <Setter Property="Foreground"
+                                          Value="{StaticResource TextMutedBrush}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
                                              Value="{x:Static models:UploadDraftTranscriptionState.Pending}">
                                   <Setter Property="Text"
                                           Value="&#xe8b5;"/>
@@ -584,6 +593,11 @@
                                              Value="{x:Static models:UploadDraftTranscriptionState.Failed}">
                                   <Setter Property="Text"
                                           Value="FEHLER"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding TranscriptionState}"
+                                             Value="{x:Static models:UploadDraftTranscriptionState.Cancelled}">
+                                  <Setter Property="Text"
+                                          Value="ABGEBROCHEN"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding TranscriptionState}"
                                              Value="{x:Static models:UploadDraftTranscriptionState.Pending}">
@@ -1720,10 +1734,11 @@
                            Text="{DynamicResource Upload.Fields.Category}"
                            VerticalAlignment="Center"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
-                <TextBox x:Name="CategoryIdTextBox"
-                         Grid.Row="0"
-                         Grid.Column="2"
-                         TextChanged="CategoryIdTextBox_TextChanged"/>
+                <ComboBox x:Name="CategoryComboBox"
+                          Grid.Row="0"
+                          Grid.Column="2"
+                          DisplayMemberPath="DisplayName"
+                          SelectionChanged="CategoryComboBox_SelectionChanged"/>
 
                 <TextBlock Grid.Row="2"
                            Grid.Column="0"
