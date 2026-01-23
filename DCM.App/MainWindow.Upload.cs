@@ -117,6 +117,8 @@ public partial class MainWindow
                 _uploadDrafts.Select(d => d.Id).ToHashSet(),
                 maxAge: TimeSpan.FromDays(30));
 
+            _ = Task.Run(CleanupDraftAssetCaches);
+
             var storedQueue = _settings.PendingTranscriptionQueue ?? new List<Guid>();
             foreach (var draftId in storedQueue)
             {
@@ -153,6 +155,172 @@ public partial class MainWindow
         finally
         {
             _isRestoringDrafts = false;
+        }
+    }
+
+    private void CleanupDraftAssetCaches()
+    {
+        try
+        {
+            var drafts = _uploadDrafts.ToList();
+            var protectedThumbnailPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var protectedPreviewPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var protectedThumbnailIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var draft in drafts)
+            {
+                protectedThumbnailIds.Add(draft.Id.ToString("N"));
+
+                if (!string.IsNullOrWhiteSpace(draft.ThumbnailPath))
+                {
+                    TryAddFullPath(protectedThumbnailPaths, draft.ThumbnailPath);
+                }
+
+                if (draft.HasVideo && !string.IsNullOrWhiteSpace(draft.VideoPath))
+                {
+                    try
+                    {
+                        var previewPath = BuildVideoPreviewPath(draft.VideoPath);
+                        protectedPreviewPaths.Add(previewPath);
+                    }
+                    catch
+                    {
+                        // Ignore invalid paths.
+                    }
+                }
+            }
+
+            CleanupFolder(
+                Constants.ThumbnailsFolder,
+                protectedThumbnailPaths,
+                protectedThumbnailIds,
+                TimeSpan.FromDays(Constants.ThumbnailRetentionDays),
+                Constants.ThumbnailCacheMaxBytes);
+
+            CleanupFolder(
+                Constants.VideoPreviewFolder,
+                protectedPreviewPaths,
+                protectedIds: null,
+                TimeSpan.FromDays(Constants.VideoPreviewRetentionDays),
+                Constants.VideoPreviewCacheMaxBytes);
+        }
+        catch
+        {
+            // Cleanup is best-effort.
+        }
+    }
+
+    private static void TryAddFullPath(HashSet<string> target, string path)
+    {
+        try
+        {
+            var fullPath = Path.GetFullPath(path);
+            target.Add(fullPath);
+        }
+        catch
+        {
+            // Ignore invalid paths.
+        }
+    }
+
+    private static void CleanupFolder(
+        string folder,
+        HashSet<string> protectedPaths,
+        HashSet<string>? protectedIds,
+        TimeSpan maxAge,
+        long maxBytes)
+    {
+        if (!Directory.Exists(folder))
+        {
+            return;
+        }
+
+        var threshold = DateTimeOffset.UtcNow - maxAge;
+        var orphanInfos = new List<FileInfo>();
+
+        foreach (var file in Directory.EnumerateFiles(folder))
+        {
+            var fullPath = file;
+            try
+            {
+                fullPath = Path.GetFullPath(file);
+            }
+            catch
+            {
+                // Ignore invalid paths.
+            }
+
+            if (protectedPaths.Contains(fullPath))
+            {
+                continue;
+            }
+
+            if (protectedIds is not null)
+            {
+                var name = Path.GetFileNameWithoutExtension(fullPath);
+                if (!string.IsNullOrWhiteSpace(name) && protectedIds.Contains(name))
+                {
+                    continue;
+                }
+            }
+
+            FileInfo info;
+            try
+            {
+                info = new FileInfo(fullPath);
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (!info.Exists)
+            {
+                continue;
+            }
+
+            if (info.LastWriteTimeUtc < threshold.UtcDateTime)
+            {
+                try
+                {
+                    info.Delete();
+                }
+                catch
+                {
+                    // Ignore delete failures.
+                }
+                continue;
+            }
+
+            orphanInfos.Add(info);
+        }
+
+        if (maxBytes <= 0)
+        {
+            return;
+        }
+
+        var totalBytes = orphanInfos.Sum(i => i.Length);
+        if (totalBytes <= maxBytes)
+        {
+            return;
+        }
+
+        foreach (var info in orphanInfos.OrderBy(i => i.LastWriteTimeUtc))
+        {
+            try
+            {
+                info.Delete();
+                totalBytes -= info.Length;
+                if (totalBytes <= maxBytes)
+                {
+                    break;
+                }
+            }
+            catch
+            {
+                // Ignore delete failures.
+            }
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -143,12 +144,63 @@ public sealed class AppLogger : IAppLogger, IDisposable
         {
             lock (_fileLock)
             {
+                RotateLogsIfNeeded();
                 File.AppendAllText(_logFilePath, line + Environment.NewLine, Encoding.UTF8);
             }
         }
         catch
         {
             // File-Logging-Fehler ignorieren
+        }
+    }
+
+    private void RotateLogsIfNeeded()
+    {
+        try
+        {
+            if (Constants.LogFileMaxBytes <= 0 || Constants.LogFileMaxCount <= 1)
+            {
+                return;
+            }
+
+            if (!File.Exists(_logFilePath))
+            {
+                return;
+            }
+
+            var info = new FileInfo(_logFilePath);
+            if (!info.Exists || info.Length < Constants.LogFileMaxBytes)
+            {
+                return;
+            }
+
+            for (var i = Constants.LogFileMaxCount - 1; i >= 1; i--)
+            {
+                var source = $"{_logFilePath}.{i}";
+                var target = $"{_logFilePath}.{i + 1}";
+
+                if (File.Exists(target))
+                {
+                    File.Delete(target);
+                }
+
+                if (File.Exists(source))
+                {
+                    File.Move(source, target);
+                }
+            }
+
+            var first = $"{_logFilePath}.1";
+            if (File.Exists(first))
+            {
+                File.Delete(first);
+            }
+
+            File.Move(_logFilePath, first);
+        }
+        catch
+        {
+            // Rotation ist best-effort.
         }
     }
 
@@ -177,3 +229,4 @@ public sealed class AppLogger : IAppLogger, IDisposable
         }
     }
 }
+

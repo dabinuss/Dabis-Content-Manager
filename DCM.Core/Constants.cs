@@ -38,6 +38,16 @@ public static class Constants
     public const string LogFileName = "app.log";
 
     /// <summary>
+    /// Maximale Größe einer einzelnen Log-Datei (Rotation).
+    /// </summary>
+    public static readonly long LogFileMaxBytes = 10 * 1024 * 1024;
+
+    /// <summary>
+    /// Anzahl an Log-Dateien, die rotiert aufbewahrt werden.
+    /// </summary>
+    public static readonly int LogFileMaxCount = 5;
+
+    /// <summary>
     /// Ordnername für YouTube-Tokens.
     /// </summary>
     public const string YouTubeTokensFolderName = "youtube_tokens";
@@ -66,6 +76,26 @@ public static class Constants
     /// Ordnername fr Video-Vorschauen.
     /// </summary>
     public const string VideoPreviewFolderName = "video_previews";
+
+    /// <summary>
+    /// Maximale Cache-Größe für Thumbnails.
+    /// </summary>
+    public const long ThumbnailCacheMaxBytes = 1024L * 1024 * 1024;
+
+    /// <summary>
+    /// Maximale Cache-Größe für Video-Previews.
+    /// </summary>
+    public const long VideoPreviewCacheMaxBytes = 512L * 1024 * 1024;
+
+    /// <summary>
+    /// Aufbewahrungstage für verwaiste Thumbnails.
+    /// </summary>
+    public const int ThumbnailRetentionDays = 90;
+
+    /// <summary>
+    /// Aufbewahrungstage für verwaiste Video-Previews.
+    /// </summary>
+    public const int VideoPreviewRetentionDays = 30;
 
     /// <summary>
     /// Ordnername für ausgelagerte Transkripte der Upload-Drafts.
