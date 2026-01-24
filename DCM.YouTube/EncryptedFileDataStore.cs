@@ -11,6 +11,7 @@ internal sealed class EncryptedFileDataStore : IDataStore
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     private readonly string _folder;
     private readonly DataProtectionScope _scope;
+    private readonly object _migrationLock = new object();
 
     public EncryptedFileDataStore(string folder)
     {
@@ -37,7 +38,11 @@ internal sealed class EncryptedFileDataStore : IDataStore
             payload = ProtectedData.Protect(payload, optionalEntropy: null, _scope);
         }
 
-        File.WriteAllBytes(path, payload);
+        // Atomic write: write to temp file, then move
+        var tempPath = path + ".tmp";
+        File.WriteAllBytes(tempPath, payload);
+        File.Move(tempPath, path, overwrite: true);
+
         return Task.CompletedTask;
     }
 
@@ -51,46 +56,100 @@ internal sealed class EncryptedFileDataStore : IDataStore
         var path = GetPath(key);
         if (File.Exists(path))
         {
-            File.Delete(path);
+            try
+            {
+                File.Delete(path);
+            }
+            catch (IOException)
+            {
+                // File might be in use or already deleted
+            }
         }
 
         return Task.CompletedTask;
     }
 
-    public Task<T> GetAsync<T>(string key)
+    public async Task<T?> GetAsync<T>(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
         {
-            return Task.FromResult(default(T)!);
+            return default(T);
         }
 
         var path = GetPath(key);
+        var legacyPath = Path.Combine(Path.GetDirectoryName(path)!, Path.GetFileNameWithoutExtension(path) + ".json");
+
+        // Migrate from legacy plaintext file if it exists (thread-safe)
+        if (File.Exists(legacyPath))
+        {
+            lock (_migrationLock)
+            {
+                // Double-check after acquiring lock
+                if (File.Exists(legacyPath))
+                {
+                    try
+                    {
+                        var json = File.ReadAllText(legacyPath, Utf8NoBom);
+                        var value = JsonConvert.DeserializeObject<T>(json);
+                        if (value is not null)
+                        {
+                            // Store in new format (encrypted on Windows)
+                            StoreAsync(key, value).Wait();
+
+                            // Delete legacy file after successful migration
+                            try
+                            {
+                                File.Delete(legacyPath);
+                            }
+                            catch (IOException)
+                            {
+                                // Already deleted by another thread, that's fine
+                            }
+
+                            return value;
+                        }
+                    }
+                    catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
+                    {
+                        // Ignore migration errors and proceed to the default path
+                    }
+                }
+            }
+        }
+
         if (!File.Exists(path))
         {
-            return Task.FromResult(default(T)!);
+            return default(T);
         }
 
         try
         {
-            var bytes = File.ReadAllBytes(path);
-            var json = TryUnprotect(bytes) ?? Utf8NoBom.GetString(bytes);
+            var bytes = await File.ReadAllBytesAsync(path);
+            var json = TryUnprotect(bytes);
+
+            if (json is null)
+            {
+                // File is plaintext
+                json = Utf8NoBom.GetString(bytes);
+            }
+
             var value = JsonConvert.DeserializeObject<T>(json);
             if (value is null)
             {
-                return Task.FromResult(default(T)!);
+                return default(T);
             }
 
-            // Falls wir eine alte Klartext-Datei geladen haben, umgehend verschlüsselt speichern.
-            if (OperatingSystem.IsWindows())
+            // If we loaded a plaintext file from the primary path, encrypt it in-place
+            if (TryUnprotect(bytes) is null && OperatingSystem.IsWindows())
             {
-                _ = StoreAsync(key, value);
+                await StoreAsync(key, value);
             }
 
-            return Task.FromResult(value);
+            return value;
         }
-        catch
+        catch (Exception ex) when (ex is IOException or JsonException or CryptographicException or UnauthorizedAccessException)
         {
-            return Task.FromResult(default(T)!);
+            return default(T);
         }
     }
 
@@ -107,9 +166,13 @@ internal sealed class EncryptedFileDataStore : IDataStore
             {
                 File.Delete(file);
             }
-            catch
+            catch (IOException)
             {
-                // Ignore cleanup failures.
+                // File might be in use, ignore
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // No permissions, ignore
             }
         }
 
@@ -123,7 +186,15 @@ internal sealed class EncryptedFileDataStore : IDataStore
             return Task.FromResult(false);
         }
 
-        return Task.FromResult(File.Exists(GetPath(key)));
+        var path = GetPath(key);
+        if (File.Exists(path))
+        {
+            return Task.FromResult(true);
+        }
+
+        // Also check legacy path for completeness
+        var legacyPath = Path.Combine(Path.GetDirectoryName(path)!, Path.GetFileNameWithoutExtension(path) + ".json");
+        return Task.FromResult(File.Exists(legacyPath));
     }
 
     private string GetPath(string key)
@@ -148,7 +219,7 @@ internal sealed class EncryptedFileDataStore : IDataStore
             var raw = ProtectedData.Unprotect(payload, optionalEntropy: null, _scope);
             return Utf8NoBom.GetString(raw);
         }
-        catch
+        catch (CryptographicException)
         {
             return null;
         }
