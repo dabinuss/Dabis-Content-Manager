@@ -129,6 +129,10 @@ internal sealed class EncryptedFileDataStore : IDataStore
     private string GetPath(string key)
     {
         var safeKey = key.Trim();
+        if (safeKey.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) >= 0)
+        {
+            throw new ArgumentException("Key contains invalid path characters.", nameof(key));
+        }
         return Path.Combine(_folder, $"{safeKey}.bin");
     }
 

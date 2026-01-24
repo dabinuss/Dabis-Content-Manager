@@ -2827,7 +2827,9 @@ public partial class MainWindow
 
         var videoPath = draft.VideoPath;
         var baseName = Path.GetFileNameWithoutExtension(videoPath);
-        if (string.IsNullOrWhiteSpace(baseName))
+        if (string.IsNullOrWhiteSpace(baseName) ||
+            baseName.Contains("..") ||
+            baseName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
         {
             return false;
         }
