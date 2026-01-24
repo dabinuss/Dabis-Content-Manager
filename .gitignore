@@ -77,3 +77,6 @@ docs/
 
 # Scripts
 *.ps1
+
+# Agents
+.claude/
