@@ -2769,9 +2769,22 @@ public partial class MainWindow
             }
 
             var extension = Path.GetExtension(fullPath);
-            var fileName = targetDraft is not null
-                ? $"{targetDraft.Id}{extension}"
-                : Path.GetFileName(fullPath);
+            string fileName;
+        
+            if (targetDraft is not null)
+            {
+                fileName = $"{targetDraft.Id}{extension}";
+            }
+            else
+            {
+                fileName = Path.GetFileName(fullPath);
+                // Sanitize file name to prevent any path traversal issues from weird file names.
+                if (string.IsNullOrWhiteSpace(fileName) || fileName.Contains("..") || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                {
+                    _logger.Warning($"Invalid characters detected in thumbnail file name '{fileName}'. Using a random name.", UploadLogSource);
+                    fileName = $"{Guid.NewGuid():N}{extension}";
+                }
+            }
 
             var targetPath = Path.Combine(storageFolder, fileName);
             File.Copy(fullPath, targetPath, overwrite: true);

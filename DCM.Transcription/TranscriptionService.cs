@@ -996,10 +996,21 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         Directory.CreateDirectory(tempFolder);
 
         var outputPaths = new List<string>(chunks.Count);
-        var arguments = new StringBuilder();
-        arguments.Append("-hide_banner -loglevel error -y -i ");
-        arguments.Append(QuotePath(audioFilePath));
-        arguments.Append(' ');
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = ffmpegPath,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        
+        startInfo.ArgumentList.Add("-hide_banner");
+        startInfo.ArgumentList.Add("-loglevel");
+        startInfo.ArgumentList.Add("error");
+        startInfo.ArgumentList.Add("-y");
+        startInfo.ArgumentList.Add("-i");
+        startInfo.ArgumentList.Add(audioFilePath);
 
         foreach (var chunk in chunks)
         {
@@ -1010,11 +1021,21 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
             var durationSeconds = Math.Max(0.01, chunk.Duration.TotalSeconds);
             var offsetArgument = offsetSeconds.ToString(CultureInfo.InvariantCulture);
             var durationArgument = durationSeconds.ToString(CultureInfo.InvariantCulture);
-
-            arguments.Append("-ss ").Append(offsetArgument).Append(' ');
-            arguments.Append("-t ").Append(durationArgument).Append(' ');
-            arguments.Append("-map 0:a:0 -acodec pcm_s16le -ac 1 -ar 16000 -vn ");
-            arguments.Append(QuotePath(outputPath)).Append(' ');
+            
+            startInfo.ArgumentList.Add("-ss");
+            startInfo.ArgumentList.Add(offsetArgument);
+            startInfo.ArgumentList.Add("-t");
+            startInfo.ArgumentList.Add(durationArgument);
+            startInfo.ArgumentList.Add("-map");
+            startInfo.ArgumentList.Add("0:a:0");
+            startInfo.ArgumentList.Add("-acodec");
+            startInfo.ArgumentList.Add("pcm_s16le");
+            startInfo.ArgumentList.Add("-ac");
+            startInfo.ArgumentList.Add("1");
+            startInfo.ArgumentList.Add("-ar");
+            startInfo.ArgumentList.Add("16000");
+            startInfo.ArgumentList.Add("-vn");
+            startInfo.ArgumentList.Add(outputPath);
         }
 
         const int maxAttempts = 2;
@@ -1023,18 +1044,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         {
             try
             {
-                using var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = ffmpegPath,
-                        Arguments = arguments.ToString(),
-                        RedirectStandardError = true,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
+                using var process = new Process { StartInfo = startInfo };
 
                 if (!process.Start())
                 {
@@ -1107,9 +1117,6 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
         return null;
     }
-
-    private static string QuotePath(string path)
-        => $"\"{path.Replace("\"", "\\\"")}\"";
 
     private WhisperFactory? GetOrCreateWhisperFactory()
     {
