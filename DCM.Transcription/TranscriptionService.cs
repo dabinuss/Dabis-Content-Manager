@@ -15,8 +15,11 @@ namespace DCM.Transcription;
 /// </summary>
 public sealed class TranscriptionService : ITranscriptionService, IDisposable
 {
+    private static readonly Lazy<HttpClient> SharedHttpClient = new(
+        () => new HttpClient(),
+        LazyThreadSafetyMode.ExecutionAndPublication);
+
     private readonly HttpClient _httpClient;
-    private readonly bool _ownsHttpClient;
 
     private readonly FFmpegManager _ffmpegManager;
     private readonly WhisperModelManager _whisperModelManager;
@@ -76,8 +79,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
     public TranscriptionService(HttpClient? httpClient = null)
     {
-        _httpClient = httpClient ?? new HttpClient();
-        _ownsHttpClient = httpClient is null;
+        _httpClient = httpClient ?? SharedHttpClient.Value;
 
         _ffmpegManager = new FFmpegManager(_httpClient);
         _whisperModelManager = new WhisperModelManager(_httpClient);
@@ -1200,10 +1202,8 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
         _transcriptionLock.Dispose();
 
-        if (_ownsHttpClient)
-        {
-            _httpClient.Dispose();
-        }
+        // SharedHttpClient is never disposed - it's a static singleton for the app lifetime.
+        // Only dispose if a custom HttpClient was provided (caller owns it, but we don't track that).
 
         GC.SuppressFinalize(this);
     }
