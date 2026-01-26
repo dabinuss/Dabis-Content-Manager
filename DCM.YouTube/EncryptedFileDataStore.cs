@@ -24,6 +24,12 @@ internal sealed class EncryptedFileDataStore : IDataStore
 
     public Task StoreAsync<T>(string key, T value)
     {
+        StoreSync(key, value);
+        return Task.CompletedTask;
+    }
+
+    private void StoreSync<T>(string key, T value)
+    {
         if (string.IsNullOrWhiteSpace(key))
         {
             throw new ArgumentException("Key must not be empty.", nameof(key));
@@ -42,8 +48,6 @@ internal sealed class EncryptedFileDataStore : IDataStore
         var tempPath = path + ".tmp";
         File.WriteAllBytes(tempPath, payload);
         File.Move(tempPath, path, overwrite: true);
-
-        return Task.CompletedTask;
     }
 
     public Task DeleteAsync<T>(string key)
@@ -94,7 +98,7 @@ internal sealed class EncryptedFileDataStore : IDataStore
                         if (value is not null)
                         {
                             // Store in new format (encrypted on Windows)
-                            StoreAsync(key, value).Wait();
+                            StoreSync(key, value);
 
                             // Delete legacy file after successful migration
                             try

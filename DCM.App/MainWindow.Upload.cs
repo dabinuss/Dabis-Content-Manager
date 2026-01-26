@@ -1880,8 +1880,6 @@ public partial class MainWindow
                 return false;
             }
 
-            var stderrTask = process.StandardError.ReadToEndAsync();
-
             if (!process.WaitForExit(8000))
             {
                 try
@@ -1896,7 +1894,8 @@ public partial class MainWindow
                 return false;
             }
 
-            _ = stderrTask.GetAwaiter().GetResult();
+            // Read stderr synchronously after WaitForExit - stream is complete at this point
+            _ = process.StandardError.ReadToEnd();
             return process.ExitCode == 0;
         }
         catch
@@ -1967,7 +1966,7 @@ public partial class MainWindow
 
             if (process.ExitCode != 0)
             {
-                var stderr = errorTask.Result;
+                var stderr = await errorTask.ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(stderr))
                 {
                     _logger.Debug($"ffprobe failed: {stderr}", UploadLogSource);
@@ -1975,7 +1974,7 @@ public partial class MainWindow
                 return null;
             }
 
-            var json = outputTask.Result;
+            var json = await outputTask.ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(json))
             {
                 return null;
