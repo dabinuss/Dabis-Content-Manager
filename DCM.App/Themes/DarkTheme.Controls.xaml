@@ -890,17 +890,6 @@
                       Property="BorderBrush"
                       Value="{StaticResource BorderStrongBrush}"/>
             </Trigger>
-
-            <!-- 2) FOCUS IM INHALT (TextBox, ComboBox, etc.) -->
-            <Trigger Property="IsKeyboardFocusWithin"
-                     Value="True">
-              <Setter TargetName="PART_Border"
-                      Property="BorderBrush"
-                      Value="{StaticResource PrimaryBrush}"/>
-              <Setter TargetName="PART_Border"
-                      Property="BorderThickness"
-                      Value="1"/>
-            </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
