@@ -173,7 +173,7 @@
                       </Border.Style>
                       <StackPanel Orientation="Horizontal">
                         <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
-                                   FontSize="14"
+                                   FontSize="{StaticResource FontSizeM}"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    Margin="0,0,4,0">
                           <TextBlock.Style>
@@ -246,7 +246,7 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
                        Text="&#xe001;"
-                       FontSize="14"
+                       FontSize="{StaticResource FontSizeM}"
                        Foreground="{StaticResource TextSecondaryBrush}"
                        Margin="0,0,4,0"/>
             <TextBlock Text="{DynamicResource Presets.Badge.Unsaved}"

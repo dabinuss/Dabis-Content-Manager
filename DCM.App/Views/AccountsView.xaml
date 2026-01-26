@@ -4,11 +4,8 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <UserControl.Resources>
-    <SolidColorBrush x:Key="UploadItemSelectedBrush"
-                     Color="#2A3448"/>
-    <CornerRadius x:Key="UploadItemCardCornerRadius">6,0,0,6</CornerRadius>
-    <SolidColorBrush x:Key="UploadListDividerBrush"
-                     Color="#4D596F"/>
+    <!-- Local resources removed - now using centralized theme resources:
+         ListItemSelectedBrush, ListItemSelectedCornerRadius, ListDividerBrush -->
 
     <Style x:Key="ServiceCardToggleButton"
            TargetType="ToggleButton">
@@ -50,13 +47,13 @@
                        Value="True">
                 <Setter TargetName="CardBorder"
                         Property="Background"
-                        Value="{StaticResource UploadItemSelectedBrush}"/>
+                        Value="{StaticResource ListItemSelectedBrush}"/>
                 <Setter TargetName="CardBorder"
                         Property="BorderBrush"
                         Value="{StaticResource BorderStrongBrush}"/>
                 <Setter TargetName="CardBorder"
                         Property="CornerRadius"
-                        Value="{StaticResource UploadItemCardCornerRadius}"/>
+                        Value="{StaticResource ListItemSelectedCornerRadius}"/>
                 <Setter TargetName="CardBorder"
                         Property="Margin"
                         Value="0"/>
@@ -104,7 +101,7 @@
                        Value="True">
                 <Setter TargetName="AutoConnectBorder"
                         Property="Background"
-                        Value="#264CAF50"/>
+                        Value="{StaticResource SuccessSubtleBrush}"/>
                 <Setter TargetName="AutoConnectBorder"
                         Property="BorderBrush"
                         Value="{StaticResource SuccessBrush}"/>
@@ -137,7 +134,7 @@
           <ControlTemplate TargetType="ToggleButton">
             <Grid>
               <Border x:Name="AutoConnectTrack"
-                      Background="#505765"
+                      Background="{StaticResource ToggleTrackBrush}"
                       BorderThickness="0"
                       CornerRadius="0,0,6,6"
                       Height="20"
@@ -152,7 +149,7 @@
                         Grid.ColumnSpan="2"
                         Width="28"
                         Height="16"
-                        Background="#BEBEBE"
+                        Background="{StaticResource ToggleThumbOffBrush}"
                         BorderThickness="0"
                         CornerRadius="2,2,4,4"
                         HorizontalAlignment="Left"
@@ -160,9 +157,9 @@
                         Margin="2,0">
                   <TextBlock x:Name="AutoConnectThumbText"
                              Text="{TemplateBinding Content}"
-                             FontSize="8"
+                             FontSize="{StaticResource FontSizeXXS}"
                              FontWeight="SemiBold"
-                             Foreground="#2B2B2B"
+                             Foreground="{StaticResource ToggleThumbTextBrush}"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"/>
                 </Border>
@@ -313,7 +310,7 @@
     </Grid.ColumnDefinitions>
 
     <Border Grid.Column="1"
-            Background="{StaticResource UploadListDividerBrush}"
+            Background="{StaticResource ListDividerBrush}"
             VerticalAlignment="Stretch"
             HorizontalAlignment="Stretch"
             Margin="0,8"

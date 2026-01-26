@@ -7,16 +7,12 @@
              xmlns:conv="clr-namespace:DCM.App.Infrastructure.Converters"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <UserControl.Resources>
+    <!-- IsStringToVisibilityConverter is defined centrally in DarkTheme.Controls.xaml -->
+    <!-- View-specific converters: -->
     <conv:HeightToWidthConverter x:Key="HeightToWidth16x9"
                                  Ratio="1.7777777777777777"/>
-    <conv:IsStringToVisibilityConverter x:Key="IsStringToVisibilityConverter"/>
     <conv:AnyStringToVisibilityConverter x:Key="AnyStringToVisibilityConverter"/>
     <conv:ExtractDurationFromStatusConverter x:Key="ExtractDurationFromStatusConverter"/>
-    <SolidColorBrush x:Key="UploadItemSelectedBrush"
-                     Color="#2A3448"/>
-    <CornerRadius x:Key="UploadItemCardCornerRadius">6,0,0,6</CornerRadius>
-    <SolidColorBrush x:Key="UploadListDividerBrush"
-                     Color="#4D596F"/>
   </UserControl.Resources>
   <Grid x:Name="RootGrid"
       Margin="0,0,8,0">
@@ -50,7 +46,7 @@
 
         <Border x:Name="UploadListDivider"
                 Grid.Column="1"
-                Background="{StaticResource UploadListDividerBrush}"
+                Background="{StaticResource ListDividerBrush}"
                 VerticalAlignment="Stretch"
                 HorizontalAlignment="Stretch"
                 SnapsToDevicePixels="True"/>
@@ -192,7 +188,7 @@
 
           <Border Grid.Row="2"
                   Height="1"
-                  Background="#6A768C"
+                  Background="{StaticResource SectionDividerBrush}"
                   Margin="0,8,8,10"
                   HorizontalAlignment="Stretch"
                   VerticalAlignment="Center"
@@ -274,11 +270,11 @@
                       <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}"
                                    Value="True">
                         <Setter Property="Background"
-                                Value="{StaticResource UploadItemSelectedBrush}"/>
+                                Value="{StaticResource ListItemSelectedBrush}"/>
                         <Setter Property="BorderBrush"
                                 Value="{StaticResource BorderStrongBrush}"/>
                         <Setter Property="CornerRadius"
-                                Value="{StaticResource UploadItemCardCornerRadius}"/>
+                                Value="{StaticResource ListItemSelectedCornerRadius}"/>
                         <Setter Property="Margin"
                                 Value="0"/>
                       </DataTrigger>

@@ -12,6 +12,7 @@
   </FontFamily>
 
   <!-- Font Sizes -->
+  <sys:Double x:Key="FontSizeXXS">8</sys:Double>
   <sys:Double x:Key="FontSizeXS">10</sys:Double>
   <sys:Double x:Key="FontSizeS">12</sys:Double>
   <sys:Double x:Key="FontSizeM">14</sys:Double>
@@ -171,6 +172,44 @@
                    Color="{StaticResource ScrollBarTrackColor}"/>
   <SolidColorBrush x:Key="ScrollBarThumbBrush"
                    Color="{StaticResource ScrollBarThumbColor}"/>
+
+  <!-- Master-Detail List Colors (used by Upload, Accounts, Presets views) -->
+  <Color x:Key="ListItemSelectedColor">#2A3448</Color>
+  <Color x:Key="ListDividerColor">#4D596F</Color>
+
+  <SolidColorBrush x:Key="ListItemSelectedBrush"
+                   Color="{StaticResource ListItemSelectedColor}"/>
+  <SolidColorBrush x:Key="ListDividerBrush"
+                   Color="{StaticResource ListDividerColor}"/>
+
+  <!-- Master-Detail List Corner Radius -->
+  <CornerRadius x:Key="ListItemSelectedCornerRadius">6,0,0,6</CornerRadius>
+
+  <!-- Toggle Switch Colors (used by Accounts auto-connect toggle) -->
+  <Color x:Key="ToggleTrackColor">#505765</Color>
+  <Color x:Key="ToggleThumbOffColor">#BEBEBE</Color>
+  <Color x:Key="ToggleThumbTextColor">#2B2B2B</Color>
+  <Color x:Key="SuccessSubtleColor">#264CAF50</Color>
+  <Color x:Key="SuccessOverlayColor">#2000FF00</Color>
+  <Color x:Key="SuccessSelectedColor">#1A4CAF50</Color>
+
+  <SolidColorBrush x:Key="ToggleTrackBrush"
+                   Color="{StaticResource ToggleTrackColor}"/>
+  <SolidColorBrush x:Key="ToggleThumbOffBrush"
+                   Color="{StaticResource ToggleThumbOffColor}"/>
+  <SolidColorBrush x:Key="ToggleThumbTextBrush"
+                   Color="{StaticResource ToggleThumbTextColor}"/>
+  <SolidColorBrush x:Key="SuccessSubtleBrush"
+                   Color="{StaticResource SuccessSubtleColor}"/>
+  <SolidColorBrush x:Key="SuccessOverlayBrush"
+                   Color="{StaticResource SuccessOverlayColor}"/>
+  <SolidColorBrush x:Key="SuccessSelectedBrush"
+                   Color="{StaticResource SuccessSelectedColor}"/>
+
+  <!-- Section Divider (lighter than ListDivider) -->
+  <Color x:Key="SectionDividerColor">#6A768C</Color>
+  <SolidColorBrush x:Key="SectionDividerBrush"
+                   Color="{StaticResource SectionDividerColor}"/>
 
   <!-- TEXT STYLES                                                      -->
 

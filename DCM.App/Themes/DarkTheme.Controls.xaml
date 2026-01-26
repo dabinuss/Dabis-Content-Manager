@@ -521,7 +521,7 @@
               <ContentPresenter HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
               <Border x:Name="CheckOverlay"
-                      Background="#2000FF00"
+                      Background="{StaticResource SuccessOverlayBrush}"
                       CornerRadius="{StaticResource RadiusM}"
                       Visibility="Collapsed">
                 <TextBlock Text="OK"
@@ -542,7 +542,7 @@
                       Value="{StaticResource SuccessBrush}"/>
               <Setter TargetName="PlatformBorder"
                       Property="Background"
-                      Value="#1A4CAF50"/>
+                      Value="{StaticResource SuccessSelectedBrush}"/>
               <Setter TargetName="CheckOverlay"
                       Property="Visibility"
                       Value="Visible"/>
