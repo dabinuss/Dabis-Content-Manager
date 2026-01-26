@@ -85,6 +85,10 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        DispatcherUnhandledException -= OnDispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+        TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
+
         base.OnExit(e);
         AppLogger.Instance.Dispose();
     }

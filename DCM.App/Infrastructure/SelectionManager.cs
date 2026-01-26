@@ -14,17 +14,18 @@ namespace DCM.App.Infrastructure;
 /// and ensuring fallback values are displayed correctly.
 /// </summary>
 /// <typeparam name="T">The type of the option (e.g. CategoryOption)</typeparam>
-public sealed class SelectionManager<T> where T : class
+public sealed class SelectionManager<T> : IDisposable where T : class
 {
     private readonly ComboBox _comboBox;
     private readonly Func<T, string> _idSelector;
     private readonly Func<string, T> _fallbackFactory;
     private bool _isUpdating;
+    private bool _disposed;
 
     public event EventHandler<T?>? SelectionChanged;
 
     public SelectionManager(
-        ComboBox comboBox, 
+        ComboBox comboBox,
         Func<T, string> idSelector,
         Func<string, T> fallbackFactory)
     {
@@ -33,6 +34,18 @@ public sealed class SelectionManager<T> where T : class
         _fallbackFactory = fallbackFactory ?? throw new ArgumentNullException(nameof(fallbackFactory));
 
         _comboBox.SelectionChanged += OnComboBoxSelectionChanged;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _comboBox.SelectionChanged -= OnComboBoxSelectionChanged;
+        SelectionChanged = null;
+        _disposed = true;
     }
 
     private void OnComboBoxSelectionChanged(object sender, SelectionChangedEventArgs e)

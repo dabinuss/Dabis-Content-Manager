@@ -374,20 +374,31 @@ public partial class MainWindow : Window
             return;
         }
 
-        HistoryPageView.HistoryFilterChanged += (_, __) =>
-            _eventAggregator.Publish(new HistoryFilterChangedEvent());
+        HistoryPageView.HistoryFilterChanged += HistoryView_FilterChanged;
+        HistoryPageView.HistoryClearButtonClicked += HistoryView_ClearButtonClicked;
+        HistoryPageView.HistoryDataGridMouseDoubleClick += HistoryView_DataGridMouseDoubleClick;
+        HistoryPageView.OpenUrlInBrowserRequested += HistoryView_OpenUrlInBrowserRequested;
+    }
 
-        HistoryPageView.HistoryClearButtonClicked += (_, __) =>
-            _eventAggregator.Publish(new HistoryClearRequestedEvent());
+    private void HistoryView_FilterChanged(object? sender, EventArgs e)
+    {
+        _eventAggregator.Publish(new HistoryFilterChangedEvent());
+    }
 
-        HistoryPageView.HistoryDataGridMouseDoubleClick += (_, __) =>
-            _eventAggregator.Publish(new HistoryEntryOpenRequestedEvent(HistoryPageView.SelectedEntry));
+    private void HistoryView_ClearButtonClicked(object? sender, EventArgs e)
+    {
+        _eventAggregator.Publish(new HistoryClearRequestedEvent());
+    }
 
-        HistoryPageView.OpenUrlInBrowserRequested += (_, args) =>
-        {
-            _eventAggregator.Publish(new HistoryLinkOpenRequestedEvent(args.Uri));
-            args.Handled = true;
-        };
+    private void HistoryView_DataGridMouseDoubleClick(object? sender, EventArgs e)
+    {
+        _eventAggregator.Publish(new HistoryEntryOpenRequestedEvent(HistoryPageView?.SelectedEntry));
+    }
+
+    private void HistoryView_OpenUrlInBrowserRequested(object? sender, RequestNavigateEventArgs args)
+    {
+        _eventAggregator.Publish(new HistoryLinkOpenRequestedEvent(args.Uri));
+        args.Handled = true;
     }
 
     private void AttachSettingsViewEvents()
@@ -439,13 +450,20 @@ public partial class MainWindow : Window
         _transcriptionProgressThrottle.Dispose();
         _dependencyProgressThrottle.Dispose();
         _dependencyDownloadThrottle.Dispose();
+        _categoryManager?.Dispose();
+        _languageManager?.Dispose();
         DisposeEventSubscriptions();
 
         // Fensterzustand speichern
         WindowStateManager.Save(this);
         _draftPersistence.FlushIfDirty();
-        _settingsSaveTimer?.Stop();
-        _settingsSaveTimer = null;
+        _draftPersistence.Dispose();
+        if (_settingsSaveTimer is not null)
+        {
+            _settingsSaveTimer.Stop();
+            _settingsSaveTimer.Tick -= SettingsSaveTimer_Tick;
+            _settingsSaveTimer = null;
+        }
         if (_settingsSaveDirty)
         {
             _settingsSaveDirty = false;

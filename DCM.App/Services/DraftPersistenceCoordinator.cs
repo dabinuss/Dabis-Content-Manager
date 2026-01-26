@@ -3,7 +3,7 @@ using System.Windows.Threading;
 
 namespace DCM.App.Services;
 
-internal sealed class DraftPersistenceCoordinator
+internal sealed class DraftPersistenceCoordinator : IDisposable
 {
     private readonly DispatcherTimer _persistTimer;
     private readonly DispatcherTimer _debounceTimer;
@@ -12,6 +12,7 @@ internal sealed class DraftPersistenceCoordinator
     private readonly Action _persistAction;
     private bool _dirty;
     private bool _debouncePending;
+    private bool _disposed;
 
     public DraftPersistenceCoordinator(
         Dispatcher dispatcher,
@@ -68,6 +69,20 @@ internal sealed class DraftPersistenceCoordinator
     {
         _persistTimer.Stop();
         _debounceTimer.Stop();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _persistTimer.Stop();
+        _persistTimer.Tick -= PersistTimer_Tick;
+        _debounceTimer.Stop();
+        _debounceTimer.Tick -= DebounceTimer_Tick;
+        _disposed = true;
     }
 
     public void FlushIfDirty()
