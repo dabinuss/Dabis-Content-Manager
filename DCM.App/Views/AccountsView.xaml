@@ -310,11 +310,7 @@
     </Grid.ColumnDefinitions>
 
     <Border Grid.Column="1"
-            Background="{StaticResource ListDividerBrush}"
-            VerticalAlignment="Stretch"
-            HorizontalAlignment="Stretch"
-            Margin="0,8"
-            SnapsToDevicePixels="True"/>
+            Style="{StaticResource MasterDetailDivider}"/>
 
     <!-- SERVICE-LISTE LINKS -->
     <StackPanel Grid.Column="0"

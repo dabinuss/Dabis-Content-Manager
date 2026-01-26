@@ -46,10 +46,7 @@
 
         <Border x:Name="UploadListDivider"
                 Grid.Column="1"
-                Background="{StaticResource ListDividerBrush}"
-                VerticalAlignment="Stretch"
-                HorizontalAlignment="Stretch"
-                SnapsToDevicePixels="True"/>
+                Style="{StaticResource MasterDetailDivider}"/>
 
         <Grid x:Name="UploadListPanel"
               Grid.Column="0"

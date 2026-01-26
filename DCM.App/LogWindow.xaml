@@ -89,7 +89,7 @@
           <DataTemplate>
             <TextBlock Text="{Binding FormattedMessage}"
                        FontFamily="{StaticResource LogFont}"
-                       FontSize="12"
+                       FontSize="{StaticResource FontSizeS}"
                        Padding="4,2"
                        TextWrapping="NoWrap">
               <TextBlock.Style>

@@ -4,7 +4,7 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
-  <Grid>
+  <Grid Margin="0,0,8,0">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>

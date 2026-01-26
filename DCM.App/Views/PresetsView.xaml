@@ -6,17 +6,12 @@
   <Grid Margin="0,0,8,0">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="320"/>
-      <ColumnDefinition Width="{StaticResource SpacingL}"/>
+      <ColumnDefinition Width="1"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
     <Border Grid.Column="1"
-            Background="{StaticResource BorderBrush}"
-            Width="1"
-            VerticalAlignment="Stretch"
-            HorizontalAlignment="Center"
-            Margin="0,8"
-            SnapsToDevicePixels="True"/>
+            Style="{StaticResource MasterDetailDivider}"/>
 
     <Grid Grid.Column="0"
           Margin="8,8,0,8">
