@@ -2608,17 +2608,9 @@ public partial class MainWindow : Window
 
             if (result == MessageBoxResult.Yes && !string.IsNullOrWhiteSpace(htmlUrl))
             {
-                try
+                if (!SafeProcessHelper.TryOpenUrl(htmlUrl))
                 {
-                    Process.Start(new ProcessStartInfo(htmlUrl)
-                    {
-                        UseShellExecute = true
-                    });
-                }
-                catch (Exception ex)
-                {
-                    // OPTIMIZATION: Added logging
-                    _logger.Debug($"Failed to open browser: {ex.Message}", UpdatesLogSource);
+                    _logger.Debug($"Failed to open browser for URL: {htmlUrl}", UpdatesLogSource);
                 }
             }
         }
@@ -2918,17 +2910,9 @@ public partial class MainWindow : Window
 
     private void OpenUrlInBrowser(object sender, RequestNavigateEventArgs e)
     {
-        try
+        if (!SafeProcessHelper.TryOpenUrl(e.Uri))
         {
-            Process.Start(new ProcessStartInfo(e.Uri.ToString())
-            {
-                UseShellExecute = true
-            });
-        }
-        catch (Exception ex)
-        {
-            // OPTIMIZATION: Added logging
-            _logger.Debug($"Failed to open URL in browser: {ex.Message}", MainWindowLogSource);
+            _logger.Debug($"Failed to open URL in browser: {e.Uri}", MainWindowLogSource);
         }
 
         e.Handled = true;

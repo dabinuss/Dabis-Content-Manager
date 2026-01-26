@@ -248,18 +248,11 @@ public partial class LogWindow : Window
 
         if (File.Exists(logPath))
         {
-            try
-            {
-                Process.Start(new ProcessStartInfo(logPath)
-                {
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception ex)
+            if (!SafeProcessHelper.TryOpenFile(logPath))
             {
                 MessageBox.Show(
                     this,
-                    LocalizationHelper.Format("Dialog.Log.OpenFile.Text", logPath, ex.Message),
+                    LocalizationHelper.Format("Dialog.Log.OpenFile.Text", logPath, "Failed to open file"),
                     LocalizationHelper.Get("Dialog.Log.OpenFile.Title"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);

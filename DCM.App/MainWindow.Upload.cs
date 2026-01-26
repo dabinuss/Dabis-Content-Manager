@@ -3177,17 +3177,7 @@ public partial class MainWindow
 
                 if (_settings.OpenBrowserAfterUpload && result.VideoUrl is not null)
                 {
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo(result.VideoUrl.ToString())
-                        {
-                            UseShellExecute = true
-                        });
-                    }
-                    catch
-                    {
-                        // Browser oeffnen ist Komfort
-                    }
+                    SafeProcessHelper.TryOpenUrl(result.VideoUrl);
                 }
 
                 await _ui.RunAsync(() =>

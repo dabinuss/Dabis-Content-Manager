@@ -114,33 +114,13 @@ public partial class MainWindow
     {
         if (entry?.VideoUrl is not null)
         {
-            try
-            {
-                Process.Start(new ProcessStartInfo(entry.VideoUrl.ToString())
-                {
-                    UseShellExecute = true
-                });
-            }
-            catch
-            {
-                // Fehler ignorieren
-            }
+            SafeProcessHelper.TryOpenUrl(entry.VideoUrl);
         }
     }
 
     private void OnHistoryLinkOpenRequested(Uri uri)
     {
-        try
-        {
-            Process.Start(new ProcessStartInfo(uri.ToString())
-            {
-                UseShellExecute = true
-            });
-        }
-        catch
-        {
-            // Fehler ignorieren
-        }
+        SafeProcessHelper.TryOpenUrl(uri);
     }
 
     private void HistoryClearAction_Click(object sender, RoutedEventArgs e) => OnHistoryClearRequested();
