@@ -121,24 +121,29 @@ public partial class MainWindow
             _ = Task.Run(CleanupDraftAssetCaches);
 
             var storedQueue = _settings.PendingTranscriptionQueue ?? new List<Guid>();
-            foreach (var draftId in storedQueue)
+            if (storedQueue.Count > 0)
             {
-                var candidate = _uploadDrafts.FirstOrDefault(d => d.Id == draftId);
-                if (candidate is null ||
-                    !candidate.HasVideo ||
-                    !string.IsNullOrWhiteSpace(candidate.Transcript))
-                {
-                    continue;
-                }
+                // Build dictionary for O(1) lookup instead of O(n) per iteration
+                var draftsById = _uploadDrafts.ToDictionary(d => d.Id);
 
-                if (!_transcriptionQueue.Contains(draftId))
+                foreach (var draftId in storedQueue)
                 {
-                    _transcriptionQueue.Add(draftId);
-                }
+                    if (!draftsById.TryGetValue(draftId, out var candidate) ||
+                        !candidate.HasVideo ||
+                        !string.IsNullOrWhiteSpace(candidate.Transcript))
+                    {
+                        continue;
+                    }
 
-                if (candidate.TranscriptionState == UploadDraftTranscriptionState.None)
-                {
-                    MarkDraftQueued(candidate);
+                    if (!_transcriptionQueue.Contains(draftId))
+                    {
+                        _transcriptionQueue.Add(draftId);
+                    }
+
+                    if (candidate.TranscriptionState == UploadDraftTranscriptionState.None)
+                    {
+                        MarkDraftQueued(candidate);
+                    }
                 }
             }
 

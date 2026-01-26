@@ -766,10 +766,12 @@ public partial class MainWindow
         var queuedIds = _transcriptionQueue.ToList();
         _transcriptionQueue.Clear();
 
+        // Build dictionary for O(1) lookup instead of O(n) per iteration
+        var draftsById = _uploadDrafts.ToDictionary(d => d.Id);
+
         foreach (var draftId in queuedIds)
         {
-            var draft = _uploadDrafts.FirstOrDefault(d => d.Id == draftId);
-            if (draft is null || IsDraftTranscribing(draft))
+            if (!draftsById.TryGetValue(draftId, out var draft) || IsDraftTranscribing(draft))
             {
                 continue;
             }
@@ -983,6 +985,9 @@ public partial class MainWindow
             var toStart = new List<UploadDraft>(availableSlots);
             var visitedIds = new HashSet<Guid>();
 
+            // Build dictionary for O(1) lookup instead of O(n) per iteration
+            var draftsById = _uploadDrafts.ToDictionary(d => d.Id);
+
             while (_transcriptionQueue.Count > 0 && toStart.Count < availableSlots)
             {
                 var nextId = _transcriptionQueue[0];
@@ -990,12 +995,10 @@ public partial class MainWindow
                 queueChanged = true;
                 visitedIds.Add(nextId);
 
-                var candidate = _uploadDrafts.FirstOrDefault(d =>
-                    d.Id == nextId &&
-                    d.HasVideo &&
-                    string.IsNullOrWhiteSpace(d.Transcript));
-
-                if (candidate is not null && !IsDraftTranscribing(candidate))
+                if (draftsById.TryGetValue(nextId, out var candidate) &&
+                    candidate.HasVideo &&
+                    string.IsNullOrWhiteSpace(candidate.Transcript) &&
+                    !IsDraftTranscribing(candidate))
                 {
                     toStart.Add(candidate);
                 }
