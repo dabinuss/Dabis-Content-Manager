@@ -105,13 +105,19 @@ public partial class MainWindow : Window
     // OPTIMIZATION: Cached theme dictionary for faster theme switching
     private ResourceDictionary? _currentThemeDictionary;
     private readonly UiDispatcher _ui;
-    private static readonly TimeSpan UiProgressThrottleInterval = TimeSpan.FromMilliseconds(150);
-    private static readonly TimeSpan UiLogThrottleInterval = TimeSpan.FromMilliseconds(150);
+    private static readonly TimeSpan UiProgressThrottleInterval = TimeSpan.FromMilliseconds(350);
+    private static readonly TimeSpan UiLogThrottleInterval = TimeSpan.FromMilliseconds(500);
     private readonly UiThrottledAction _logIndicatorThrottle;
     private readonly UiThrottledAction _uploadProgressThrottle;
     private readonly UiThrottledAction _transcriptionProgressThrottle;
     private readonly UiThrottledAction _dependencyProgressThrottle;
     private readonly UiThrottledAction _dependencyDownloadThrottle;
+
+    // Progress coalescing: only update UI when progress changes by at least this amount
+    private const double ProgressCoalesceThreshold = 1.0;
+    private double _lastUploadProgressPercent = -1;
+    private double _lastTranscriptionProgressPercent = -1;
+    private double _lastDependencyProgressPercent = -1;
 
     public MainWindow()
     {

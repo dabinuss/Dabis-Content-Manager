@@ -3289,6 +3289,17 @@ public partial class MainWindow
 
     private void ReportUploadProgress(UploadProgressInfo info)
     {
+        // Progress coalescing: skip updates if progress hasn't changed significantly
+        if (!info.IsIndeterminate)
+        {
+            var currentPercent = double.IsNaN(info.Percent) ? 0 : info.Percent;
+            if (Math.Abs(currentPercent - _lastUploadProgressPercent) < ProgressCoalesceThreshold)
+            {
+                return;
+            }
+            _lastUploadProgressPercent = currentPercent;
+        }
+
         _uploadProgressThrottle.Post(() => ApplyUploadProgress(info));
     }
 
@@ -3315,6 +3326,7 @@ public partial class MainWindow
     private void HideUploadProgress()
     {
         _uploadProgressThrottle.CancelPending();
+        _lastUploadProgressPercent = -1; // Reset coalescing state
         _ui.Run(() =>
         {
             UploadProgressBar.Visibility = Visibility.Collapsed;

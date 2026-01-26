@@ -520,6 +520,8 @@ public partial class MainWindow
     {
         _dependencyProgressThrottle.CancelPending();
         _transcriptionProgressThrottle.CancelPending();
+        _lastTranscriptionProgressPercent = -1; // Reset coalescing state
+        _lastDependencyProgressPercent = -1;
         _ui.Run(() =>
         {
             UploadView.TranscriptionProgressBar.Visibility = Visibility.Collapsed;
@@ -557,6 +559,13 @@ public partial class MainWindow
 
     private void ReportDependencyProgress(DependencyDownloadProgress progress)
     {
+        // Progress coalescing: skip updates if progress hasn't changed significantly
+        if (Math.Abs(progress.Percent - _lastDependencyProgressPercent) < ProgressCoalesceThreshold)
+        {
+            return;
+        }
+        _lastDependencyProgressPercent = progress.Percent;
+
         _dependencyProgressThrottle.Post(() => ApplyDependencyProgress(progress));
     }
 
@@ -610,6 +619,20 @@ public partial class MainWindow
 
     private void ReportTranscriptionProgress(UploadDraft draft, TranscriptionProgress progress)
     {
+        // Progress coalescing: skip updates if progress hasn't changed significantly
+        // Always update for phase changes (Initializing has Percent=0, Completed has Percent=100)
+        var currentPercent = progress.Percent;
+        var isSignificantChange = progress.Phase == TranscriptionPhase.Initializing
+            || progress.Phase == TranscriptionPhase.Completed
+            || progress.Phase == TranscriptionPhase.Failed
+            || Math.Abs(currentPercent - _lastTranscriptionProgressPercent) >= ProgressCoalesceThreshold;
+
+        if (!isSignificantChange)
+        {
+            return;
+        }
+        _lastTranscriptionProgressPercent = currentPercent;
+
         _ui.Run(() => UpdateDraftTranscriptionProgress(draft, progress), UiUpdatePolicy.ProgressPriority);
         if (ReferenceEquals(draft, _activeDraft))
         {
@@ -1163,6 +1186,13 @@ public partial class MainWindow
 
     private void QueueDependencyDownloadProgress(DependencyDownloadProgress progress)
     {
+        // Progress coalescing: skip updates if progress hasn't changed significantly
+        if (Math.Abs(progress.Percent - _lastDependencyProgressPercent) < ProgressCoalesceThreshold)
+        {
+            return;
+        }
+        _lastDependencyProgressPercent = progress.Percent;
+
         _dependencyDownloadThrottle.Post(() => ApplyDependencyDownloadProgress(progress));
     }
 
