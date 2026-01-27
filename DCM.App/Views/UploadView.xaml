@@ -1567,57 +1567,11 @@
                        Style="{StaticResource SectionHeader}"
                        Margin="0,0,0,8"/>
 
-            <Border Style="{StaticResource UploadSectionCard}">
+            <Border Style="{StaticResource UploadSectionCard}"
+                    Margin="0,16,0,0">
               <StackPanel>
-                <TextBlock Text="{DynamicResource Upload.Fields.Platform}"
-                           Style="{StaticResource UploadSectionTitle}"/>
-                <WrapPanel>
-                  <!-- YouTube Button -->
-                  <ToggleButton x:Name="PlatformYouTubeToggle"
-                                IsChecked="True"
-                                Style="{StaticResource PlatformToggleButton}"
-                                Checked="PlatformYouTubeToggle_Checked"
-                                Unchecked="PlatformYouTubeToggle_Unchecked">
-                    <StackPanel VerticalAlignment="Center"
-                                HorizontalAlignment="Center">
-                      <TextBlock Style="{StaticResource IconXXL}"
-                                 Text="&#xe038;"
-                                 Margin="0,0,24,0"/>
-                      <TextBlock Text="{DynamicResource Upload.Fields.Platform.YouTube}"
-                                 FontSize="{StaticResource FontSizeS}"
-                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                 HorizontalAlignment="Center"/>
-                    </StackPanel>
-                  </ToggleButton>
-
-                  <!-- TikTok Button (deaktiviert) -->
-                  <ToggleButton IsEnabled="False"
-                                Style="{StaticResource PlatformToggleButton}"
-                                ToolTip="{DynamicResource Upload.Tooltip.ComingSoon}">
-                    <StackPanel VerticalAlignment="Center"
-                                HorizontalAlignment="Center">
-                      <Border Width="36"
-                              Height="26"
-                              CornerRadius="{StaticResource RadiusM}"
-                              Background="Black"
-                              Margin="0,0,0,8">
-                        <TextBlock Text=""
-                                   Foreground="White"
-                                   FontSize="{StaticResource FontSizeM}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-                      </Border>
-                      <TextBlock Text="{DynamicResource Upload.Fields.Platform.TikTok}"
-                                 FontSize="{StaticResource FontSizeS}"
-                                 Foreground="{StaticResource TextMutedBrush}"
-                                 HorizontalAlignment="Center"/>
-                    </StackPanel>
-                  </ToggleButton>
-                </WrapPanel>
-
                 <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail}"
-                           Style="{StaticResource UploadSectionTitle}"
-                           Margin="0,12,0,8"/>
+                           Style="{StaticResource UploadSectionHeader}"/>
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -1691,13 +1645,13 @@
                   <StackPanel Grid.Row="2"
                               Orientation="Horizontal"
                               Visibility="{Binding Visibility, ElementName=ThumbnailPreviewState}">
-                  <TextBlock x:Name="ThumbnailFileNameTextBlock"
-                             FontSize="{StaticResource FontSizeS}"
-                             Foreground="{StaticResource TextMutedBrush}"
-                             VerticalAlignment="Center"
-                             Margin="{StaticResource SpacingHorizontalM}"
-                             MaxWidth="200"
-                             TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="ThumbnailFileNameTextBlock"
+                               FontSize="{StaticResource FontSizeS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center"
+                               Margin="{StaticResource SpacingHorizontalM}"
+                               MaxWidth="200"
+                               TextTrimming="CharacterEllipsis"/>
                     <Button x:Name="ThumbnailClearButton"
                             Content="{DynamicResource Common.Remove}"
                             Style="{StaticResource SecondaryButton}"
@@ -1718,8 +1672,22 @@
               <StackPanel>
                 <TextBlock Text="{DynamicResource Section.Upload.VisibilityPlanning}"
                            Style="{StaticResource UploadSectionHeader}"/>
+                <TextBlock Text="{DynamicResource Upload.Fields.Paylists}"
+                           Style="{StaticResource UploadSectionTitle}"
+                           Margin="0,0,0,8"/>
+                <ComboBox x:Name="PlaylistComboBox"
+                          DisplayMemberPath="Title"
+                          ToolTip="{DynamicResource Upload.Tooltip.Playlist}"
+                          SelectionChanged="PlaylistComboBox_SelectionChanged"/>
+                <Border Height="1"
+                        Background="{StaticResource BorderBrush}"
+                        Margin="-14,12,-14,12"
+                        HorizontalAlignment="Stretch"
+                        SnapsToDevicePixels="True"/>
+
                 <TextBlock Text="{DynamicResource Upload.Fields.Visibility}"
-                           Style="{StaticResource UploadSectionTitle}"/>
+                           Style="{StaticResource UploadSectionTitle}"
+                           Margin="0,12,0,0"/>
                 <ComboBox x:Name="VisibilityComboBox"
                           SelectionChanged="VisibilityComboBox_SelectionChanged">
                   <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
@@ -1771,9 +1739,9 @@
                                Text="{DynamicResource Upload.Fields.Publication.Time}"
                                VerticalAlignment="Center"
                                Foreground="{StaticResource TextSecondaryBrush}"/>
-                  <TextBox x:Name="ScheduleTimeTextBox"
-                           Grid.Column="6"
-                           TextChanged="ScheduleTimeTextBox_TextChanged"/>
+                    <TextBox x:Name="ScheduleTimeTextBox"
+                             Grid.Column="6"
+                             TextChanged="ScheduleTimeTextBox_TextChanged"/>
                   </Grid>
                 </Grid>
               </StackPanel>
@@ -1860,21 +1828,6 @@
                 </Grid>
               </StackPanel>
             </Border>
-
-            <Border Style="{StaticResource UploadSectionCard}"
-                    Margin="0,16,0,0">
-              <StackPanel>
-                <TextBlock Text="{DynamicResource Section.Upload.Options}"
-                           Style="{StaticResource UploadSectionHeader}"/>
-                <TextBlock Text="{DynamicResource Upload.Fields.Paylists}"
-                           Style="{StaticResource UploadSectionTitle}"
-                           Margin="0,0,0,8"/>
-                <ComboBox x:Name="PlaylistComboBox"
-                          DisplayMemberPath="Title"
-                          ToolTip="{DynamicResource Upload.Tooltip.Playlist}"
-                          SelectionChanged="PlaylistComboBox_SelectionChanged"/>
-              </StackPanel>
-            </Border>
           </StackPanel>
 
 
@@ -1888,6 +1841,13 @@
     <TextBox x:Name="VideoPathTextBox"
              Grid.Row="2"
              Visibility="Collapsed"/>
+    <!-- Platform selection currently fixed to YouTube -->
+    <ToggleButton x:Name="PlatformYouTubeToggle"
+                  Grid.Row="2"
+                  Visibility="Collapsed"
+                  IsChecked="True"
+                  Checked="PlatformYouTubeToggle_Checked"
+                  Unchecked="PlatformYouTubeToggle_Unchecked"/>
   </Grid>
 </UserControl>
 
