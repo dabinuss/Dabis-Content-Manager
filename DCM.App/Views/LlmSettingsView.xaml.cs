@@ -189,11 +189,14 @@ public partial class LlmSettingsView : UserControl
 
     private static int GetSelectedSuggestionCount(ComboBox comboBox, int fallback)
     {
-        if (comboBox.SelectedItem is ComboBoxItem item &&
-            int.TryParse(item.Content?.ToString(), out var parsed) &&
-            parsed is >= 1 and <= 5)
+        switch (comboBox.SelectedItem)
         {
-            return parsed;
+            case int intValue when intValue is >= 1 and <= 5:
+                return intValue;
+            case string strValue when int.TryParse(strValue, out var parsed) && parsed is >= 1 and <= 5:
+                return parsed;
+            case ComboBoxItem item when int.TryParse(item.Content?.ToString(), out var parsed) && parsed is >= 1 and <= 5:
+                return parsed;
         }
 
         return fallback;
@@ -202,18 +205,46 @@ public partial class LlmSettingsView : UserControl
     private static void SetSelectedSuggestionCount(ComboBox comboBox, int value, int fallback)
     {
         var target = Math.Clamp(value, 1, 5);
-        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        foreach (var item in comboBox.Items)
         {
-            if (int.TryParse(item.Content?.ToString(), out var parsed) && parsed == target)
+            if (item is int intValue && intValue == target)
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+
+            if (item is string strValue && int.TryParse(strValue, out var parsedString) && parsedString == target)
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+
+            if (item is ComboBoxItem comboItem &&
+                int.TryParse(comboItem.Content?.ToString(), out var parsedItem) &&
+                parsedItem == target)
             {
                 comboBox.SelectedItem = item;
                 return;
             }
         }
 
-        foreach (var item in comboBox.Items.OfType<ComboBoxItem>())
+        foreach (var item in comboBox.Items)
         {
-            if (int.TryParse(item.Content?.ToString(), out var parsed) && parsed == fallback)
+            if (item is int intValue && intValue == fallback)
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+
+            if (item is string strValue && int.TryParse(strValue, out var parsedString) && parsedString == fallback)
+            {
+                comboBox.SelectedItem = item;
+                return;
+            }
+
+            if (item is ComboBoxItem comboItem &&
+                int.TryParse(comboItem.Content?.ToString(), out var parsedItem) &&
+                parsedItem == fallback)
             {
                 comboBox.SelectedItem = item;
                 return;

@@ -701,7 +701,7 @@ public partial class MainWindow : Window
         ApplyTheme(selectedTheme);
         ScheduleSettingsSave();
 
-        StatusTextBlock.Text = $"Theme switched to {selectedTheme}.";
+        StatusTextBlock.Text = LocalizationHelper.Format("Status.Settings.ThemeChanged", selectedTheme);
     }
 
     private void ApplyTheme(string? themeName)

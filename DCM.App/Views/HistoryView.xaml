@@ -60,7 +60,7 @@
         </ComboBox>
 
         <Button Grid.Column="8"
-                Content="Filter zuruecksetzen"
+                Content="{DynamicResource History.Filter.Reset}"
                 Click="HistoryResetFilters_Click"
                 ap:ButtonIcon.Glyph="&#xe5d5;"
                 Style="{StaticResource SecondaryButton}"

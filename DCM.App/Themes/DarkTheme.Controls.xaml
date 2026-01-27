@@ -375,61 +375,63 @@
 
   <!-- DROP ZONE STYLES -->
 
-  <!-- Video Drop Zone Style (mit echtem dashed Rahmen, nicht skaliert) -->
-  <Style x:Key="VideoDropZoneStyle"
+  <Style x:Key="DropZoneBaseStyle"
          TargetType="ContentControl">
-    <Setter Property="Background"
-            Value="{StaticResource InputFocusBrush}"/>
-    <Setter Property="MinHeight"
-            Value="120"/>
-    <Setter Property="Cursor"
-            Value="Hand"/>
-    <Setter Property="AllowDrop"
-            Value="True"/>
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="ContentControl">
-          <Grid SnapsToDevicePixels="True">
-
-            <!-- Hintergrund + CornerRadius -->
-            <Border Background="{TemplateBinding Background}"
-                    CornerRadius="{StaticResource RadiusL}">
-              <ContentPresenter/>
-            </Border>
-
-            <!-- Dashed Overlay Border -->
-            <Rectangle IsHitTestVisible="False"
-                       Margin="1"
-                       RadiusX="8"
-                       RadiusY="8"
-                       Stroke="{StaticResource BorderBrush}"
-                       StrokeThickness="2"
-                       StrokeDashArray="6 4"
-                       SnapsToDevicePixels="True"/>
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
-  <!-- Thumbnail Drop Zone Style -->
-  <Style x:Key="ThumbnailDropZoneStyle"
-         TargetType="Border">
     <Setter Property="Background"
             Value="{StaticResource InputFocusBrush}"/>
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
             Value="2"/>
-    <Setter Property="CornerRadius"
-            Value="{StaticResource RadiusM}"/>
-    <Setter Property="HorizontalAlignment"
-            Value="Stretch"/>
     <Setter Property="Cursor"
             Value="Hand"/>
     <Setter Property="AllowDrop"
             Value="True"/>
+    <Setter Property="SnapsToDevicePixels"
+            Value="True"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ContentControl">
+          <Border x:Name="DropZoneSurface"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{StaticResource RadiusL}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter TargetName="DropZoneSurface"
+                      Property="Background"
+                      Value="{StaticResource SurfaceHoverBrush}"/>
+              <Setter Property="BorderBrush"
+                      Value="{StaticResource BorderHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled"
+                     Value="False">
+              <Setter Property="Opacity"
+                      Value="0.6"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
   </Style>
+
+  <!-- Video Drop Zone Style -->
+  <Style x:Key="VideoDropZoneStyle"
+         TargetType="ContentControl"
+         BasedOn="{StaticResource DropZoneBaseStyle}">
+    <Setter Property="MinHeight"
+            Value="120"/>
+  </Style>
+
+  <!-- Thumbnail Drop Zone Style -->
+  <Style x:Key="ThumbnailDropZoneStyle"
+         TargetType="ContentControl"
+         BasedOn="{StaticResource DropZoneBaseStyle}"/>
 
   <!-- =================================================================== -->
   <!-- SUGGESTION OVERLAY (UploadView)                                      -->
@@ -541,7 +543,7 @@
                       Background="{StaticResource SuccessOverlayBrush}"
                       CornerRadius="{StaticResource RadiusM}"
                       Visibility="Collapsed">
-                <TextBlock Text="OK"
+                <TextBlock Text="{DynamicResource Common.OK}"
                            FontSize="{StaticResource FontSizeL}"
                            FontWeight="Bold"
                            Foreground="{StaticResource SuccessBrush}"
@@ -1405,7 +1407,7 @@
                           VerticalAlignment="Center"
                           Margin="{TemplateBinding Padding}"/>
             <TextBlock x:Name="PART_Watermark"
-                       Text="Datum waehlen..."
+                       Text="{DynamicResource Common.DatePicker.Placeholder}"
                        Foreground="{StaticResource TextMutedBrush}"
                        Visibility="Collapsed"
                        VerticalAlignment="Center"

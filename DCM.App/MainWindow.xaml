@@ -445,14 +445,14 @@
                              FontSize="{StaticResource FontSizeM}"
                              Cursor="Hand"
                              MouseLeftButtonDown="LogLink_Click"
-                             ToolTip="Anwendungs-Log anzeigen"
+                             ToolTip="{DynamicResource Log.Link.Tooltip}"
                              Margin="14,0,0,0">
                     <TextBlock.Style>
                       <Style TargetType="TextBlock">
                         <Setter Property="Foreground"
                                 Value="{StaticResource TextMutedBrush}"/>
                         <Setter Property="Text"
-                                Value="?? Log"/>
+                                Value="{DynamicResource Log.Link.Default}"/>
                         <Style.Triggers>
                           <Trigger Property="IsMouseOver"
                                    Value="True">
@@ -498,13 +498,13 @@
                         Orientation="Horizontal"
                         Visibility="Visible">
               <Button x:Name="AddVideosActionButton"
-                      Content="Videos hinzufuegen"
+                      Content="{DynamicResource Upload.Actions.AddVideos}"
                       Style="{StaticResource SecondaryButton}"
                       ap:ButtonIcon.Glyph="&#xe145;"
                       Click="AddVideosButton_Click"
                       Margin="0,0,8,0"/>
               <Button x:Name="UploadAllActionButton"
-                      Content="Alle hochladen"
+                      Content="{DynamicResource Upload.Actions.UploadAll}"
                       Style="{StaticResource PrimaryButton}"
                       ap:ButtonIcon.Glyph="&#xeb9b;"
                       Click="UploadAllButton_Click"

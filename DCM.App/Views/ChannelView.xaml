@@ -53,7 +53,7 @@
                  x:Name="ChannelPersonaNameTextBox"
                  Margin="0,0,0,4"/>
         <TextBlock Grid.Row="2"
-                   Text="z. B. Dabis"
+                   Text="{DynamicResource Channel.Example.Name}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
                    Margin="0,0,0,8"/>
@@ -65,7 +65,7 @@
                  x:Name="ChannelPersonaChannelNameTextBox"
                  Margin="0,0,0,4"/>
         <TextBlock Grid.Row="5"
-                   Text="z. B. DabisContent"
+                   Text="{DynamicResource Channel.Example.ChannelName}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"/>
       </Grid>
@@ -100,10 +100,10 @@
                   IsTextSearchEnabled="True"
                   StaysOpenOnEdit="True"
                   MinWidth="200"
-                  ToolTip="z. B. de-DE oder deutsch"
+                  ToolTip="{DynamicResource Channel.Example.Language}"
                   Margin="0,0,0,4"/>
         <TextBlock Grid.Row="2"
-                   Text="z. B. de-DE oder deutsch"
+                   Text="{DynamicResource Channel.Example.Language}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
                    Margin="0,0,0,8"/>
@@ -113,10 +113,10 @@
                    Margin="0,0,0,8"/>
         <TextBox Grid.Row="4"
                  x:Name="ChannelPersonaToneOfVoiceTextBox"
-                 ToolTip="z. B. locker, sarkastisch, informativ"
+                 ToolTip="{DynamicResource Channel.Example.Tone}"
                  Margin="0,0,0,4"/>
         <TextBlock Grid.Row="5"
-                   Text="z. B. locker, sachlich, informativ"
+                   Text="{DynamicResource Channel.Example.Tone}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
                    Margin="0,0,0,8"/>
@@ -126,10 +126,10 @@
                    Margin="0,0,0,8"/>
         <TextBox Grid.Row="7"
                  x:Name="ChannelPersonaContentTypeTextBox"
-                 ToolTip="z. B. Gaming Highlights, IRL, Tutorials"
+                 ToolTip="{DynamicResource Channel.Example.ContentType}"
                  Margin="0,0,0,4"/>
         <TextBlock Grid.Row="8"
-                   Text="z. B. Gaming Highlights, Tutorials"
+                   Text="{DynamicResource Channel.Example.ContentType}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
                    Margin="0,0,0,8"/>
@@ -139,10 +139,10 @@
                    Margin="0,0,0,8"/>
         <TextBox Grid.Row="10"
                  x:Name="ChannelPersonaTargetAudienceTextBox"
-                 ToolTip="z. B. Casual Gamer 18-34"
+                 ToolTip="{DynamicResource Channel.Example.TargetAudience}"
                  Margin="0,0,0,4"/>
         <TextBlock Grid.Row="11"
-                   Text="z. B. Casual Gamer 18-34"
+                   Text="{DynamicResource Channel.Example.TargetAudience}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"/>
       </Grid>

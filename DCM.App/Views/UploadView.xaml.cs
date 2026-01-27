@@ -18,11 +18,16 @@ public partial class UploadView : UserControl
 {
     private bool _suppressBringIntoView;
     private readonly UiDispatcher _ui;
+    private readonly ObservableCollection<string> _tagChips = new();
+    private bool _isSyncingTagsText;
+    private bool _isSyncingTagChips;
+    private bool _isSyncingTagInput;
 
     public UploadView()
     {
         InitializeComponent();
         _ui = new UiDispatcher(Dispatcher);
+        TagsChipItemsControl.ItemsSource = _tagChips;
     }
 
     public ComboBox CategoryComboBoxControl => CategoryComboBox;
@@ -130,8 +135,15 @@ public partial class UploadView : UserControl
     private void TranscriptionExportButton_Click(object sender, RoutedEventArgs e) =>
         TranscriptionExportButtonClicked?.Invoke(sender, e);
 
-    private void TagsTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+    private void TagsTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_isSyncingTagsText)
+        {
+            SyncTagChipsFromTextBox();
+        }
+
         TagsTextBoxTextChanged?.Invoke(sender, e);
+    }
 
     private void TranscriptTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
         TranscriptTextBoxTextChanged?.Invoke(sender, e);
@@ -355,22 +367,22 @@ public partial class UploadView : UserControl
     {
         _ui.Run(() =>
         {
-            if (TranscribeAllActionLabel is null || TranscribeAllActionIcon is null || TranscribeActionBorder is null)
+            if (TranscribeAllActionLabel is null || TranscribeAllActionIcon is null || ActionTranscribeButton is null)
             {
                 return;
             }
 
             if (isCancel)
             {
-                TranscribeAllActionLabel.Text = "Transkribieren abbrechen";
+                TranscribeAllActionLabel.Text = LocalizationHelper.Get("Upload.Actions.TranscribeAll.Cancel");
                 TranscribeAllActionIcon.Text = char.ConvertFromUtf32(0xE5C9);
-                TranscribeActionBorder.ToolTip = "Alle Transkriptionen abbrechen";
+                ActionTranscribeButton.ToolTip = LocalizationHelper.Get("Upload.Tooltip.TranscribeAll.Cancel");
             }
             else
             {
-                TranscribeAllActionLabel.Text = "Alle transkribieren";
+                TranscribeAllActionLabel.Text = LocalizationHelper.Get("Upload.Actions.TranscribeAll");
                 TranscribeAllActionIcon.Text = char.ConvertFromUtf32(0xE048);
-                TranscribeActionBorder.ToolTip = "Alle transkribieren";
+                ActionTranscribeButton.ToolTip = LocalizationHelper.Get("Upload.Tooltip.TranscribeAll");
             }
         }, UiUpdatePolicy.StatusPriority);
     }
@@ -454,7 +466,7 @@ public partial class UploadView : UserControl
 
     public FrameworkElement? GetDescriptionSuggestionAnchor() => DescriptionTextBox;
 
-    public FrameworkElement? GetTagsSuggestionAnchor() => TagsTextBox;
+    public FrameworkElement? GetTagsSuggestionAnchor() => TagInputTextBox;
 
     public void SetUploadItemsSource(IEnumerable? source)
     {
@@ -502,6 +514,181 @@ public partial class UploadView : UserControl
             e.Handled = true;
         }
     }
+
+    private void TagsInputBorder_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        TagInputTextBox.Focus();
+        TagInputTextBox.CaretIndex = TagInputTextBox.Text?.Length ?? 0;
+    }
+
+    private void TagInputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter || e.Key == Key.OemComma || e.Key == Key.OemSemicolon)
+        {
+            CommitTagInput();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Back && string.IsNullOrWhiteSpace(TagInputTextBox.Text))
+        {
+            RemoveLastTagChip();
+            e.Handled = true;
+        }
+    }
+
+    private void TagInputTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isSyncingTagInput)
+        {
+            return;
+        }
+
+        var text = TagInputTextBox.Text ?? string.Empty;
+        if (!text.Contains(',') && !text.Contains(';'))
+        {
+            return;
+        }
+
+        var parts = text.Split(new[] { ',', ';' }, StringSplitOptions.None);
+        if (parts.Length == 0)
+        {
+            return;
+        }
+
+        var hasTrailingSeparator = text.EndsWith(",") || text.EndsWith(";");
+        var toCommit = hasTrailingSeparator ? parts : parts.Take(parts.Length - 1);
+        AddTagChips(toCommit);
+
+        var remaining = hasTrailingSeparator ? string.Empty : parts.LastOrDefault() ?? string.Empty;
+        _isSyncingTagInput = true;
+        TagInputTextBox.Text = remaining.TrimStart();
+        TagInputTextBox.CaretIndex = TagInputTextBox.Text.Length;
+        _isSyncingTagInput = false;
+    }
+
+    private void TagInputTextBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        CommitTagInput();
+    }
+
+    private void TagChipRemoveButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string tag)
+        {
+            RemoveTagChip(tag);
+        }
+    }
+
+    private void CommitTagInput()
+    {
+        if (string.IsNullOrWhiteSpace(TagInputTextBox.Text))
+        {
+            return;
+        }
+
+        var input = TagInputTextBox.Text ?? string.Empty;
+        AddTagChips(input.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries));
+        TagInputTextBox.Text = string.Empty;
+    }
+
+    private void SyncTagChipsFromTextBox()
+    {
+        if (_isSyncingTagChips)
+        {
+            return;
+        }
+
+        _isSyncingTagChips = true;
+        var tags = ParseTagsCsv(TagsTextBox.Text);
+        _tagChips.Clear();
+        foreach (var tag in tags)
+        {
+            _tagChips.Add(tag);
+        }
+        TagInputTextBox.Text = string.Empty;
+        _isSyncingTagChips = false;
+    }
+
+    private void AddTagChips(IEnumerable<string> tags)
+    {
+        var existing = new HashSet<string>(_tagChips, StringComparer.OrdinalIgnoreCase);
+        var addedAny = false;
+
+        foreach (var raw in tags)
+        {
+            var tag = NormalizeTag(raw);
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                continue;
+            }
+
+            if (existing.Add(tag))
+            {
+                _tagChips.Add(tag);
+                addedAny = true;
+            }
+        }
+
+        if (addedAny)
+        {
+            UpdateTagsTextBox();
+        }
+    }
+
+    private void RemoveTagChip(string tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            return;
+        }
+
+        var index = _tagChips
+            .Select((value, i) => new { value, i })
+            .FirstOrDefault(item => string.Equals(item.value, tag, StringComparison.OrdinalIgnoreCase))
+            ?.i ?? -1;
+
+        if (index >= 0)
+        {
+            _tagChips.RemoveAt(index);
+            UpdateTagsTextBox();
+        }
+    }
+
+    private void RemoveLastTagChip()
+    {
+        if (_tagChips.Count == 0)
+        {
+            return;
+        }
+
+        _tagChips.RemoveAt(_tagChips.Count - 1);
+        UpdateTagsTextBox();
+    }
+
+    private void UpdateTagsTextBox()
+    {
+        _isSyncingTagsText = true;
+        TagsTextBox.Text = string.Join(", ", _tagChips);
+        _isSyncingTagsText = false;
+    }
+
+    private static IEnumerable<string> ParseTagsCsv(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv))
+        {
+            return Array.Empty<string>();
+        }
+
+        return csv
+            .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(NormalizeTag)
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static string NormalizeTag(string raw) => raw.Trim();
 
     private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
     {

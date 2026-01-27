@@ -252,7 +252,7 @@ public partial class LogWindow : Window
             {
                 MessageBox.Show(
                     this,
-                    LocalizationHelper.Format("Dialog.Log.OpenFile.Text", logPath, "Failed to open file"),
+                    LocalizationHelper.Format("Dialog.Log.OpenFile.Text", logPath, LocalizationHelper.Get("Dialog.Log.OpenFile.Error")),
                     LocalizationHelper.Get("Dialog.Log.OpenFile.Title"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);

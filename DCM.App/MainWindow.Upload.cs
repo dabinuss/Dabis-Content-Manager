@@ -581,7 +581,7 @@ public partial class MainWindow
 
             var draft = new UploadDraft
             {
-                UploadStatus = "Bereit",
+                UploadStatus = LocalizationHelper.Get("Upload.Status.Ready"),
                 TranscriptionStatus = string.Empty
             };
 
@@ -659,14 +659,14 @@ public partial class MainWindow
         {
             _ui.Run(() =>
             {
-                StatusTextBlock.Text = "Bitte zuerst ein Video auswaehlen.";
+                StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.SelectVideo");
             }, UiUpdatePolicy.StatusPriority);
             return;
         }
 
         if (_settings.ConfirmBeforeUpload)
         {
-            var confirmMessage = $"Sollen alle {readyDrafts.Count} Videos hochgeladen werden?";
+            var confirmMessage = LocalizationHelper.Format("Dialog.Upload.ConfirmAll.Text", readyDrafts.Count);
             if (!ConfirmUpload(confirmMessage))
             {
                 return;
@@ -739,7 +739,7 @@ public partial class MainWindow
         _ui.Run(() =>
         {
             UpdateTranscribeAllActionUi();
-            StatusTextBlock.Text = "Transkriptionen gestartet (max. 2 parallel).";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Transcription.AllStarted");
         }, UiUpdatePolicy.StatusPriority);
         _ = StartNextQueuedAutoTranscriptionAsync(ignoreAutoSetting: true);
     }
@@ -837,7 +837,7 @@ public partial class MainWindow
     {
         if (_isFastFillRunning)
         {
-            _ui.Run(() => StatusTextBlock.Text = "Fast Fill laeuft bereits.");
+            _ui.Run(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.FastFill.AlreadyRunning"));
             return;
         }
 
@@ -890,7 +890,7 @@ public partial class MainWindow
         var transcriptText = await _ui.RunAsync(() => draft.Transcript).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(transcriptText))
         {
-            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Transkription starten...").ConfigureAwait(false);
+            await _ui.RunAsync(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.FastFill.StartTranscription")).ConfigureAwait(false);
             await TryTranscribeForFastFillAsync(draft).ConfigureAwait(false);
             transcriptText = await _ui.RunAsync(() => draft.Transcript).ConfigureAwait(false);
         }
@@ -904,7 +904,7 @@ public partial class MainWindow
         }
 
         var cancellationToken = GetNewLlmCancellationToken();
-        await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Generiere Titel...").ConfigureAwait(false);
+        await _ui.RunAsync(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.FastFill.GenerateTitle")).ConfigureAwait(false);
 
         try
         {
@@ -920,7 +920,7 @@ public partial class MainWindow
                 await _ui.RunAsync(() => UploadView.TitleTextBox.Text = titles[0]).ConfigureAwait(false);
             }
 
-            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Generiere Beschreibung...").ConfigureAwait(false);
+            await _ui.RunAsync(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.FastFill.GenerateDescription")).ConfigureAwait(false);
             var descriptions = await CollectSuggestionsAsync(
                 () => _contentSuggestionService.SuggestDescriptionAsync(project, _settings.Persona, cancellationToken),
                 desiredCount: 1,
@@ -935,7 +935,7 @@ public partial class MainWindow
             project = await _ui.RunAsync(
                 () => BuildUploadProjectFromUi(includeScheduling: false, draftOverride: draft)).ConfigureAwait(false);
             ApplySuggestionLanguage(project);
-            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Generiere Tags...").ConfigureAwait(false);
+            await _ui.RunAsync(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.FastFill.GenerateTags")).ConfigureAwait(false);
             var tags = await _contentSuggestionService.SuggestTagsAsync(
                 project,
                 _settings.Persona,
@@ -950,15 +950,15 @@ public partial class MainWindow
                 }
             }
 
-            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Fertig.").ConfigureAwait(false);
+            await _ui.RunAsync(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.FastFill.Done")).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
-            await _ui.RunAsync(() => StatusTextBlock.Text = "Fast Fill: Abgebrochen.").ConfigureAwait(false);
+            await _ui.RunAsync(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.FastFill.Canceled")).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            await _ui.RunAsync(() => StatusTextBlock.Text = $"Fast Fill: Fehler - {ex.Message}")
+            await _ui.RunAsync(() => StatusTextBlock.Text = LocalizationHelper.Format("Status.FastFill.Error", ex.Message))
                 .ConfigureAwait(false);
             _logger.Error($"Fast Fill failed: {ex.Message}", LlmLogSource, ex);
         }
@@ -2997,7 +2997,7 @@ public partial class MainWindow
     {
         if (_activeDraft is null)
         {
-            StatusTextBlock.Text = "Bitte zuerst ein Video auswaehlen.";
+            StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.SelectVideo");
             return;
         }
 
@@ -3034,7 +3034,7 @@ public partial class MainWindow
     {
         if (draft is null || !draft.HasVideo)
         {
-            _ui.Run(() => StatusTextBlock.Text = "Bitte zuerst ein Video auswaehlen.");
+            _ui.Run(() => StatusTextBlock.Text = LocalizationHelper.Get("Status.Upload.SelectVideo"));
             return;
         }
 

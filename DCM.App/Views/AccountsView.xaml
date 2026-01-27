@@ -347,7 +347,7 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6,6,0,0">
-              <TextBlock Text="YT"
+              <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
                          Foreground="White"
                          FontSize="{StaticResource FontSizeL}"
                          FontWeight="Bold"
@@ -449,7 +449,7 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6,6,0,0">
-              <TextBlock Text="TT"
+              <TextBlock Text="{DynamicResource Accounts.TikTok.Short}"
                          Foreground="White"
                          FontSize="{StaticResource FontSizeL}"
                          FontWeight="Bold"
@@ -540,7 +540,7 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="6,6,0,0">
-              <TextBlock Text="IG"
+              <TextBlock Text="{DynamicResource Accounts.Instagram.Short}"
                          Foreground="White"
                          FontSize="{StaticResource FontSizeL}"
                          FontWeight="Bold"
@@ -866,7 +866,7 @@
                     <TextBlock x:Name="YouTubeUploads7DaysTextBlock"
                                Grid.Row="0"
                                Grid.Column="1"
-                               Text="0"
+                               Text="{DynamicResource Accounts.Stats.Zero}"
                                Foreground="{StaticResource TextPrimaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
 
@@ -879,7 +879,7 @@
                     <TextBlock x:Name="YouTubeUploads30DaysTextBlock"
                                Grid.Row="1"
                                Grid.Column="1"
-                               Text="0"
+                               Text="{DynamicResource Accounts.Stats.Zero}"
                                Foreground="{StaticResource TextPrimaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
 

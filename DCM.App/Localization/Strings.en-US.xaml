@@ -16,6 +16,7 @@
   <sys:String x:Key="Status.Ready">Status:</sys:String>
   <sys:String x:Key="Status.Main.InitializationFailed">Initialization failed: {0}</sys:String>
   <sys:String x:Key="Status.Main.LanguageChanged">Language changed: {0}</sys:String>
+  <sys:String x:Key="Status.Settings.ThemeChanged">Theme switched to {0}.</sys:String>
   <sys:String x:Key="Status.LLM.GenerateTitles">Generating title suggestions...</sys:String>
   <sys:String x:Key="Status.LLM.NoTitles">No title suggestions received.</sys:String>
   <sys:String x:Key="Status.LLM.TitleInserted">Title suggestion inserted. ({0} suggestions)</sys:String>
@@ -32,6 +33,14 @@
   <sys:String x:Key="Status.LLM.TagsCanceled">Tag generation canceled.</sys:String>
   <sys:String x:Key="Status.LLM.TagsError">Tag generation failed: {0}</sys:String>
   <sys:String x:Key="Status.LLM.GenerateChapters">Generating chapter markers...</sys:String>
+  <sys:String x:Key="Status.FastFill.AlreadyRunning">Fast Fill is already running.</sys:String>
+  <sys:String x:Key="Status.FastFill.StartTranscription">Fast Fill: Starting transcription...</sys:String>
+  <sys:String x:Key="Status.FastFill.GenerateTitle">Fast Fill: Generating title...</sys:String>
+  <sys:String x:Key="Status.FastFill.GenerateDescription">Fast Fill: Generating description...</sys:String>
+  <sys:String x:Key="Status.FastFill.GenerateTags">Fast Fill: Generating tags...</sys:String>
+  <sys:String x:Key="Status.FastFill.Done">Fast Fill: Done.</sys:String>
+  <sys:String x:Key="Status.FastFill.Canceled">Fast Fill: Canceled.</sys:String>
+  <sys:String x:Key="Status.FastFill.Error">Fast Fill: Error - {0}</sys:String>
   <sys:String x:Key="Status.LLM.ChaptersInserted">Chapter markers inserted.</sys:String>
   <sys:String x:Key="Status.LLM.NoChapters">No chapter markers available.</sys:String>
   <sys:String x:Key="Status.LLM.ChaptersCanceled">Chapter generation canceled.</sys:String>
@@ -48,6 +57,8 @@
   <sys:String x:Key="Status.Transcription.ExportSuccess">Transcript exported: {0}</sys:String>
   <sys:String x:Key="Status.Transcription.ExportFailed">Transcript could not be exported: {0}</sys:String>
   <sys:String x:Key="Status.Transcription.SelectVideo">Please select a video first.</sys:String>
+  <sys:String x:Key="Status.Upload.SelectVideo">Please select a video first.</sys:String>
+  <sys:String x:Key="Status.Transcription.AllStarted">Transcriptions started (max 2 in parallel).</sys:String>
   <sys:String x:Key="Status.Transcription.ServiceUnavailable">Transcription service not available.</sys:String>
   <sys:String x:Key="Status.Transcription.LoadDependencies">Loading transcription dependencies...</sys:String>
   <sys:String x:Key="Status.Transcription.DependenciesFailed">Transcription dependencies could not be loaded.</sys:String>
@@ -82,6 +93,11 @@
   <sys:String x:Key="Transcription.Dependency.Progress.Bytes">{0}: {1:F1} / {2:F1} MB</sys:String>
   <sys:String x:Key="Transcription.Status.ServiceUnavailable">Service unavailable</sys:String>
   <sys:String x:Key="Transcription.Status.Ready">✓ Ready (Model: {0})</sys:String>
+  <sys:String x:Key="Transcription.Status.CompletedShort">TRANSCRIBED</sys:String>
+  <sys:String x:Key="Transcription.Status.RunningShort">TRANSCRIBING</sys:String>
+  <sys:String x:Key="Transcription.Status.FailedShort">FAILED</sys:String>
+  <sys:String x:Key="Transcription.Status.CancelledShort">CANCELED</sys:String>
+  <sys:String x:Key="Transcription.Status.PendingShort">PENDING</sys:String>
   <sys:String x:Key="Transcription.Status.Missing">✗ Missing: {0}</sys:String>
   <sys:String x:Key="Log.Transcription.ServiceInitialized">Transcription service initialized</sys:String>
   <sys:String x:Key="Log.Transcription.ServiceInitFailed">Transcription service could not be initialized: {0}</sys:String>
@@ -150,8 +166,21 @@
   <sys:String x:Key="Language.Name.en">English</sys:String>
   <sys:String x:Key="Log.Link.Default">📋 Log</sys:String>
   <sys:String x:Key="Log.Link.WithErrors">📋 Log ({0} ⚠)</sys:String>
+  <sys:String x:Key="Log.Link.Tooltip">Open application log</sys:String>
   <sys:String x:Key="Dialog.LogWindow.OpenFailed.Title">Error</sys:String>
   <sys:String x:Key="Dialog.LogWindow.OpenFailed.Text">Log window could not be opened:\n{0}</sys:String>
+  <sys:String x:Key="Dialog.Log.OpenFile.Error">Failed to open file</sys:String>
+  <sys:String x:Key="Dialog.Upload.ConfirmAll.Text">Upload all {0} videos?</sys:String>
+  <sys:String x:Key="LogWindow.Title">Application Log</sys:String>
+  <sys:String x:Key="LogWindow.FilterLabel">Filter:</sys:String>
+  <sys:String x:Key="LogWindow.Filter.Debug">Debug</sys:String>
+  <sys:String x:Key="LogWindow.Filter.Info">Info</sys:String>
+  <sys:String x:Key="LogWindow.Filter.Warning">Warning</sys:String>
+  <sys:String x:Key="LogWindow.Filter.Error">Error</sys:String>
+  <sys:String x:Key="LogWindow.AutoScroll">Auto-scroll</sys:String>
+  <sys:String x:Key="LogWindow.EntryCountPlaceholder">0 entries</sys:String>
+  <sys:String x:Key="LogWindow.Clear">Clear</sys:String>
+  <sys:String x:Key="LogWindow.OpenFile">Open log file</sys:String>
 
   <!-- Platforms -->
   <sys:String x:Key="Platform">Platform</sys:String>
@@ -177,6 +206,7 @@
   <sys:String x:Key="Common.Apply">Apply</sys:String>
   <sys:String x:Key="Common.Save">Save</sys:String>
   <sys:String x:Key="Common.Upload">Upload</sys:String>
+  <sys:String x:Key="Common.DatePicker.Placeholder">Select date...</sys:String>
   <sys:String x:Key="Common.Download">Download</sys:String>
   <sys:String x:Key="Common.Open">Open</sys:String>
   <sys:String x:Key="Common.Export">Export</sys:String>
@@ -185,6 +215,8 @@
   <sys:String x:Key="Common.Unknown">Unknown</sys:String>
   <sys:String x:Key="Common.On">On</sys:String>
   <sys:String x:Key="Common.Off">Off</sys:String>
+  <sys:String x:Key="Common.Separator.Pipe"> | </sys:String>
+  <sys:String x:Key="Common.Unit.Fps"> FPS</sys:String>
 
   <!-- Navigation -->
   <sys:String x:Key="Nav.Uploads">Uploads</sys:String>
@@ -216,15 +248,27 @@
   <sys:String x:Key="Section.HistoryList">Upload list</sys:String>
   <sys:String x:Key="Section.Metadata">Metadata</sys:String>
   <sys:String x:Key="Section.Publishing">Publishing</sys:String>
+  <sys:String x:Key="Section.Upload.VisibilityPlanning">Visibility &amp; Scheduling</sys:String>
+  <sys:String x:Key="Section.Upload.Options">Additional Options</sys:String>
+  <sys:String x:Key="Section.Upload.Actions">Actions</sys:String>
 
   <!-- Upload -->
   <sys:String x:Key="Upload">New Upload</sys:String>
+  <sys:String x:Key="Upload.AddVideos">Select videos</sys:String>
+  <sys:String x:Key="Upload.AddVideos.Formats">MP4, MOV, MKV, AVI</sys:String>
   <sys:String x:Key="Upload.DropVideo">Drag video here</sys:String>
   <sys:String x:Key="Upload.DropVideo.Descr">or click to select</sys:String>
   <sys:String x:Key="Upload.DropVideo.AllowedFiles">MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
   <sys:String x:Key="Upload.Empty.Title">No video selected</sys:String>
   <sys:String x:Key="Upload.Empty.Formats">Supported formats: MP4, MKV, AVI, MOV, WMV, FLV, WEBM</sys:String>
   <sys:String x:Key="Upload.StartUpload">Start Upload</sys:String>
+  <sys:String x:Key="Upload.VideoPreview.Placeholder">PREVIEW</sys:String>
+  <sys:String x:Key="Upload.Suggestions.Header">Suggestions</sys:String>
+  <sys:String x:Key="Upload.Suggestions.Loading">Generating...</sys:String>
+  <sys:String x:Key="Upload.Status.Ready">READY</sys:String>
+  <sys:String x:Key="Upload.Status.Uploading">UPLOADING</sys:String>
+  <sys:String x:Key="Upload.Status.Failed">FAILED</sys:String>
+  <sys:String x:Key="Upload.Status.Pending">PENDING</sys:String>
   <sys:String x:Key="Upload.Fields.Title">Title (required)</sys:String>
   <sys:String x:Key="Upload.Fields.Suggest">Suggest</sys:String>
   <sys:String x:Key="Upload.Fields.Description">Description</sys:String>
@@ -237,6 +281,21 @@
   <sys:String x:Key="Upload.Fields.Chapters.Generate">Generate chapters</sys:String>
   <sys:String x:Key="Upload.Fields.Transcripe">Transcribe</sys:String>
   <sys:String x:Key="Upload.Fields.Platform">Platform</sys:String>
+  <sys:String x:Key="Upload.Actions.FillAll">Fill all</sys:String>
+  <sys:String x:Key="Upload.Actions.ApplyPreset">Apply preset</sys:String>
+  <sys:String x:Key="Upload.Actions.AddVideos">Add videos</sys:String>
+  <sys:String x:Key="Upload.Actions.UploadAll">Upload all</sys:String>
+  <sys:String x:Key="Upload.Actions.TranscribeAll">Transcribe all</sys:String>
+  <sys:String x:Key="Upload.Actions.TranscribeAll.Cancel">Cancel transcription</sys:String>
+  <sys:String x:Key="Upload.Tooltip.TranscribeAll">Transcribe all</sys:String>
+  <sys:String x:Key="Upload.Tooltip.TranscribeAll.Cancel">Cancel all transcriptions</sys:String>
+  <sys:String x:Key="Upload.Tooltip.GenerateSuggestion">Generate AI suggestion</sys:String>
+  <sys:String x:Key="Upload.Tooltip.TagsInput">Tags, comma-separated (e.g. lets play, gaming, english)</sys:String>
+  <sys:String x:Key="Upload.Tooltip.TranscribeVideo">Transcribe video automatically</sys:String>
+  <sys:String x:Key="Upload.Tooltip.ExportTranscript">Export transcript as text file</sys:String>
+  <sys:String x:Key="Upload.Tooltip.ComingSoon">Coming soon</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Preset">Preset for upload metadata</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Playlist">Playlist to add the video to</sys:String>
   <sys:String x:Key="Upload.Fields.Platform.YouTube">YouTube</sys:String>
   <sys:String x:Key="Upload.Fields.Platform.TikTok">TikTok</sys:String>
   <sys:String x:Key="Upload.Fields.Thumbnail">Thumbnail</sys:String>
@@ -346,6 +405,7 @@
   </sys:String>
   <sys:String x:Key="Accounts.NotAvailable">Not Available</sys:String>
   <sys:String x:Key="Accounts.Stats.EmptyDate">--</sys:String>
+  <sys:String x:Key="Accounts.Stats.Zero">0</sys:String>
   <sys:String x:Key="Accounts.YouTube.StatusTitle">Account status</sys:String>
   <sys:String x:Key="Accounts.YouTube.StatusHint">Connection state and sync details.</sys:String>
   <sys:String x:Key="Accounts.YouTube.Status.Label">Status</sys:String>
@@ -377,6 +437,8 @@
   <sys:String x:Key="Accounts.YouTube.Test">test</sys:String>
   <sys:String x:Key="Accounts.YouTube">YouTube Account</sys:String>
   <sys:String x:Key="Accounts.YouTube.Short">YT</sys:String>
+  <sys:String x:Key="Accounts.TikTok.Short">TT</sys:String>
+  <sys:String x:Key="Accounts.Instagram.Short">IG</sys:String>
   <sys:String x:Key="Accounts.YouTube.Connect">Connect</sys:String>
   <sys:String x:Key="Accounts.YouTube.Disconnect">Disconnect</sys:String>
   <sys:String x:Key="Accounts.YouTube.Playlists">YouTube Playlists</sys:String>
@@ -401,6 +463,12 @@
   <sys:String x:Key="Channel.Fields.ContentType">Content Type</sys:String>
   <sys:String x:Key="Channel.Fields.TargetAudience">Target Audience</sys:String>
   <sys:String x:Key="Channel.Fields.AdditionalInstructions">Additional Instructions</sys:String>
+  <sys:String x:Key="Channel.Example.Name">e.g. Dabis</sys:String>
+  <sys:String x:Key="Channel.Example.ChannelName">e.g. DabisContent</sys:String>
+  <sys:String x:Key="Channel.Example.Language">e.g. en-US or English</sys:String>
+  <sys:String x:Key="Channel.Example.Tone">e.g. casual, informative, friendly</sys:String>
+  <sys:String x:Key="Channel.Example.ContentType">e.g. Gaming Highlights, Tutorials</sys:String>
+  <sys:String x:Key="Channel.Example.TargetAudience">e.g. Casual Gamer 18-34</sys:String>
 
   <!-- Templates -->
   <sys:String x:Key="Templates">Templates</sys:String>
@@ -486,6 +554,7 @@
   <sys:String x:Key="History">History</sys:String>
   <sys:String x:Key="History.Filter.Status">Status:</sys:String>
   <sys:String x:Key="History.Filter.All">All</sys:String>
+  <sys:String x:Key="History.Filter.Reset">Reset filters</sys:String>
   <sys:String x:Key="History.Success">Success</sys:String>
   <sys:String x:Key="History.Error">Error</sys:String>
   <sys:String x:Key="History.List.DateTime">Date/Time</sys:String>
@@ -567,8 +636,11 @@
   <sys:String x:Key="Status.LLM.Unknown">Status unknown</sys:String>
   <sys:String x:Key="Status.LLM.ClientMissing">Client not configured</sys:String>
   <sys:String x:Key="Settings.LLM.Parameters">Generation Parameters</sys:String>
+  <sys:String x:Key="Settings.LLM.PathToModel.Tooltip">Path to the GGUF model file</sys:String>
   <sys:String x:Key="Settings.LLM.Parameters.MaxToken">Maximum Tokens</sys:String>
   <sys:String x:Key="Settings.LLM.Parameters.Temperature">Temperature</sys:String>
+  <sys:String x:Key="Settings.LLM.Parameters.MaxToken.Default">256</sys:String>
+  <sys:String x:Key="Settings.LLM.Parameters.Temperature.Default">0.3</sys:String>
   <sys:String x:Key="Settings.LLM.Prompts">AI Instructions</sys:String>
   <sys:String x:Key="Settings.LLM.Prompts.Title">Title Instructions</sys:String>
   <sys:String x:Key="Settings.LLM.Prompts.Description">Description Instructions</sys:String>
