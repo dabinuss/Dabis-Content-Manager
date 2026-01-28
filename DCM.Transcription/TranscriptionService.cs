@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using System.Text;
 using DCM.Core;
 using DCM.Core.Configuration;
@@ -16,7 +17,20 @@ namespace DCM.Transcription;
 public sealed class TranscriptionService : ITranscriptionService, IDisposable
 {
     private static readonly Lazy<HttpClient> SharedHttpClient = new(
-        () => new HttpClient(),
+        () =>
+        {
+            var handler = new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            };
+
+            var client = new HttpClient(handler)
+            {
+                Timeout = Timeout.InfiniteTimeSpan
+            };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("DabisContentManager/1.0");
+            return client;
+        },
         LazyThreadSafetyMode.ExecutionAndPublication);
 
     private readonly HttpClient _httpClient;

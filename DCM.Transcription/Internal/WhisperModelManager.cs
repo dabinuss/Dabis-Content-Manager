@@ -155,44 +155,46 @@ internal sealed class WhisperModelManager
             var totalBytes = response.Content.Headers.ContentLength ?? expectedBytes;
             var downloadedBytes = 0L;
 
-            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            await using var fileStream = new FileStream(
+            await using (var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false))
+            await using (var fileStream = new FileStream(
                 tempPath,
                 FileMode.Create,
                 FileAccess.Write,
                 FileShare.None,
                 bufferSize: 81920,
-                useAsync: true);
-
-            var buffer = new byte[81920];
-            int bytesRead;
-
-            // Progress nur alle ~100ms reporten
-            var throttle = Stopwatch.StartNew();
-            long lastReportMs = 0;
-
-            while ((bytesRead = await contentStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false)) > 0)
+                useAsync: true))
             {
-                await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
-                downloadedBytes += bytesRead;
+                var buffer = new byte[81920];
+                int bytesRead;
 
-                var nowMs = throttle.ElapsedMilliseconds;
-                if (nowMs - lastReportMs > 100)
+                // Progress nur alle ~100ms reporten
+                var throttle = Stopwatch.StartNew();
+                long lastReportMs = 0;
+
+                while ((bytesRead = await contentStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false)) > 0)
                 {
-                    var percent = totalBytes > 0 ? (double)downloadedBytes / totalBytes * 100 : 0;
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
+                    downloadedBytes += bytesRead;
 
-                    progress?.Report(new DependencyDownloadProgress(
-                        DependencyType.WhisperModel,
-                        percent,
-                        $"Whisper-Modell ({size.GetSizeDescription()}) wird heruntergeladen...",
-                        downloadedBytes,
-                        totalBytes));
+                    var nowMs = throttle.ElapsedMilliseconds;
+                    if (nowMs - lastReportMs > 100)
+                    {
+                        var percent = totalBytes > 0 ? (double)downloadedBytes / totalBytes * 100 : 0;
 
-                    lastReportMs = nowMs;
+                        progress?.Report(new DependencyDownloadProgress(
+                            DependencyType.WhisperModel,
+                            percent,
+                            $"Whisper-Modell ({size.GetSizeDescription()}) wird heruntergeladen...",
+                            downloadedBytes,
+                            totalBytes));
+
+                        lastReportMs = nowMs;
+                    }
                 }
-            }
 
-            await fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                await fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            // FileStream is now closed, safe to move the file
 
             // Sanity-Check: Datei sollte weitgehend vollständig sein.
             try

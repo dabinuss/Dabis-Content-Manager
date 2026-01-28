@@ -139,18 +139,58 @@ public static class Constants
 
 #if DCM_PORTABLE
             var baseDir = AppContext.BaseDirectory ?? string.Empty;
-            _appDataFolder = Path.Combine(baseDir, AppDataFolderName);
+            var portablePath = Path.Combine(baseDir, AppDataFolderName);
 #else
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            _appDataFolder = Path.Combine(appData, AppDataFolderName);
+            var appDataPath = Path.Combine(appData, AppDataFolderName);
 #endif
 
-            if (!Directory.Exists(_appDataFolder))
+            if (!TryEnsureWritableFolder(
+#if DCM_PORTABLE
+                    portablePath
+#else
+                    appDataPath
+#endif
+                ))
             {
-                Directory.CreateDirectory(_appDataFolder);
+                throw new InvalidOperationException(
+#if DCM_PORTABLE
+                    $"Portable mode requires write access to the app folder: {portablePath}"
+#else
+                    $"App data folder is not writable: {appDataPath}"
+#endif
+                );
             }
 
+            _appDataFolder =
+#if DCM_PORTABLE
+                portablePath;
+#else
+                appDataPath;
+#endif
             return _appDataFolder;
+        }
+    }
+
+    private static bool TryEnsureWritableFolder(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            var testPath = Path.Combine(path, ".write-test");
+            using var stream = new FileStream(
+                testPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 1,
+                FileOptions.DeleteOnClose);
+            stream.WriteByte(0);
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 

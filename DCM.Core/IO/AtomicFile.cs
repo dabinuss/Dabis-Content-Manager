@@ -39,7 +39,35 @@ internal static class AtomicFile
 
             if (File.Exists(path))
             {
-                File.Replace(tempPath, path, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                // Try File.Replace first, fall back to Delete+Move if it fails
+                try
+                {
+                    File.Replace(tempPath, path, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                }
+                catch (IOException)
+                {
+                    // File.Replace can fail if target is locked - retry with Delete+Move
+                    for (var attempt = 0; attempt < 3; attempt++)
+                    {
+                        try
+                        {
+                            if (attempt > 0)
+                            {
+                                Thread.Sleep(50 * attempt);
+                            }
+
+                            File.Delete(path);
+                            File.Move(tempPath, path);
+                            return;
+                        }
+                        catch (IOException) when (attempt < 2)
+                        {
+                            // Retry
+                        }
+                    }
+
+                    throw;
+                }
             }
             else
             {
