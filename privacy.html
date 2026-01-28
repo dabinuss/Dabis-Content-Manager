@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Dabis Content Manager</title>
+    <meta name="description" content="Privacy Policy for Dabis Content Manager. Local-only app with no tracking.">
+    <style>
+        :root {
+            --bg: #050609;
+            --bg-elevated: #111319;
+            --bg-elevated-soft: #161923;
+            --accent: #ff3d00;
+            --accent-soft: #ff5722;
+            --border-subtle: #252837;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1f2933 0, var(--bg) 55%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+
+        .shell {
+            width: 100%;
+            max-width: 960px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.5)),
+                        var(--bg-elevated);
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 28px 22px 26px;
+            backdrop-filter: blur(18px);
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--accent);
+            box-shadow: 0 0 10px rgba(255, 61, 0, 0.8);
+        }
+
+        .top-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .top-links a {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 999px;
+            padding: 6px 10px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(15, 23, 42, 0.7);
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .top-links a:hover {
+            color: var(--text-main);
+            border-color: var(--accent);
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 8px 18px;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 2.2vw + 1.2rem, 2.4rem);
+        }
+
+        header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .legal-card {
+            background: rgba(15, 23, 42, 0.55);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            padding: 22px 20px;
+        }
+
+        .legal-card h2 {
+            margin: 0 0 8px;
+            font-size: 1.1rem;
+        }
+
+        .legal-card h3 {
+            margin: 16px 0 6px;
+            font-size: 0.95rem;
+        }
+
+        .legal-card p,
+        .legal-card ul {
+            margin: 0 0 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .legal-card ul {
+            padding-left: 18px;
+        }
+
+        .legal-card strong {
+            color: var(--text-main);
+        }
+
+        footer {
+            margin-top: 26px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(31, 41, 55, 0.8);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <div class="top-bar">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                <span>Windows · .NET 9 · Local &amp; Offline</span>
+            </div>
+            <div class="top-links">
+                <a href="index.html">Home</a>
+                <a href="terms.html">Terms of Use</a>
+                <a href="https://github.com/dabinuss/Dabis-Content-Manager" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+
+        <header>
+            <h1>Privacy Policy</h1>
+            <p>Effective date: January 2026</p>
+        </header>
+
+        <section class="legal-card" aria-label="Privacy Policy">
+            <h2>1. Controller</h2>
+            <p>Dabis Content Manager (desktop application). Controller under applicable data protection law: <strong>[Add name / company]</strong></p>
+
+            <h3>2. Core principle</h3>
+            <p>The app runs fully locally on your computer. We do not operate any servers that receive your content or metadata. No tracking, no analytics, no ads.</p>
+
+            <h3>3. Local storage</h3>
+            <ul>
+                <li>The app stores settings, templates, channel profile, upload history, and tokens/keys <strong>locally</strong> on your device.</li>
+                <li>These data remain under your control and are not automatically sent to third parties.</li>
+            </ul>
+
+            <h3>4. YouTube API / Google</h3>
+            <p>For uploads, the app uses the YouTube Data API. The app communicates directly with Google/YouTube servers only when you authenticate and start an upload.</p>
+            <p>Google/YouTube privacy terms also apply. Tokens and client secrets are stored locally to avoid repeated logins.</p>
+
+            <h3>5. User content</h3>
+            <p>Processed content (e.g., video files, titles, descriptions, tags) is used only to complete your uploads and is not stored or analyzed outside your device.</p>
+
+            <h3>6. Deletion</h3>
+            <p>You can delete all locally stored data at any time by removing the app data or deleting the stored files in the app directory.</p>
+
+            <h3>7. Contact</h3>
+            <p>For privacy questions: <strong>[Add email address]</strong></p>
+        </section>
+
+        <footer>
+            <span>© 2025 dabinuss</span>
+            <span>
+                <a href="privacy.html">Privacy Policy</a> ·
+                <a href="terms.html">Terms of Use</a> ·
+                <a href="https://github.com/dabinuss/Dabis-Content-Manager" target="_blank" rel="noopener">GitHub: dabinuss/Dabis-Content-Manager</a>
+            </span>
+        </footer>
+    </main>
+</body>
+</html>
