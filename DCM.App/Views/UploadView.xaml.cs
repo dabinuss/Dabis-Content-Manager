@@ -22,12 +22,14 @@ public partial class UploadView : UserControl
     private bool _isSyncingTagsText;
     private bool _isSyncingTagChips;
     private bool _isSyncingTagInput;
+    private bool _isSyncingScheduleTime;
 
     public UploadView()
     {
         InitializeComponent();
         _ui = new UiDispatcher(Dispatcher);
         TagsChipItemsControl.ItemsSource = _tagChips;
+        InitializeScheduleTimeSelectors();
     }
 
     public ComboBox CategoryComboBoxControl => CategoryComboBox;
@@ -346,11 +348,487 @@ public partial class UploadView : UserControl
     private void ScheduleCheckBox_Unchecked(object sender, RoutedEventArgs e) =>
         ScheduleCheckBoxUnchecked?.Invoke(sender, e);
 
-    private void ScheduleDatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e) =>
+    private void ScheduleDatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ClampScheduleDateToToday();
         ScheduleDateChanged?.Invoke(sender, e);
+    }
 
-    private void ScheduleTimeTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+    private void ScheduleTodayLink_Click(object sender, RoutedEventArgs e)
+    {
+        var today = DateTime.Today;
+
+        if (ScheduleDatePicker is not null)
+        {
+            ScheduleDatePicker.SelectedDate = today;
+        }
+
+        if (ScheduleCalendar is not null)
+        {
+            ScheduleCalendar.SelectedDate = today;
+            ScheduleCalendar.DisplayDate = today;
+        }
+
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void ScheduleTimeTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        SyncScheduleSelectorsFromTextBox();
         ScheduleTimeTextChanged?.Invoke(sender, e);
+    }
+
+    private const int ScheduleTimeRowCount = 7;
+    private const int ScheduleTimeCenterIndex = ScheduleTimeRowCount / 2;
+    private const int ScheduleMinuteStep = 5;
+
+    private int _selectedHour;
+    private int _selectedMinute;
+
+    private void InitializeScheduleTimeSelectors()
+    {
+        // Set default to now + 1 hour
+        var defaultTime = DateTime.Now.AddHours(1);
+        SetScheduleDateBlackoutPast();
+
+        if (ScheduleDatePicker is not null)
+        {
+            ScheduleDatePicker.SelectedDate = defaultTime.Date;
+        }
+
+        if (ScheduleCalendar is not null)
+        {
+            ScheduleCalendar.SelectedDate = defaultTime.Date;
+            ScheduleCalendar.DisplayDate = defaultTime.Date;
+        }
+
+        _selectedHour = defaultTime.Hour;
+        _selectedMinute = NormalizeMinute(defaultTime.Minute);
+        UpdateTimeDisplays();
+
+        _isSyncingScheduleTime = true;
+        if (ScheduleTimeTextBox is not null)
+        {
+            ScheduleTimeTextBox.Text = $"{_selectedHour:00}:{_selectedMinute:00}";
+        }
+        _isSyncingScheduleTime = false;
+    }
+
+    private void UpdateTimeDisplays()
+    {
+        UpdateScheduleTimeRows();
+    }
+
+    private void UpdateScheduleTimeTextFromSelectors()
+    {
+        if (_isSyncingScheduleTime || ScheduleTimeTextBox is null)
+        {
+            return;
+        }
+
+        _isSyncingScheduleTime = true;
+        ScheduleTimeTextBox.Text = $"{_selectedHour:00}:{_selectedMinute:00}";
+        _isSyncingScheduleTime = false;
+    }
+
+    private void HourUpButton_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedHour = (_selectedHour + 1) % 24;
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void HourDownButton_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedHour = (_selectedHour - 1 + 24) % 24;
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void MinuteUpButton_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedMinute = (_selectedMinute + ScheduleMinuteStep) % 60;
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void MinuteDownButton_Click(object sender, RoutedEventArgs e)
+    {
+        _selectedMinute = (_selectedMinute - ScheduleMinuteStep + 60) % 60;
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void SyncScheduleSelectorsFromTextBox()
+    {
+        if (_isSyncingScheduleTime || ScheduleTimeTextBox is null)
+        {
+            return;
+        }
+
+        if (!TimeSpan.TryParse(ScheduleTimeTextBox.Text, out var time))
+        {
+            return;
+        }
+
+        _selectedHour = time.Hours;
+        _selectedMinute = NormalizeMinute(time.Minutes);
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+    }
+
+    private void ScheduleNowLink_Click(object sender, RoutedEventArgs e)
+    {
+        var now = RoundUpToMinuteStep(DateTime.Now);
+        _selectedHour = now.Hour;
+        _selectedMinute = now.Minute;
+
+        if (ScheduleDatePicker is not null)
+        {
+            ScheduleDatePicker.SelectedDate = now.Date;
+        }
+
+        if (ScheduleCalendar is not null)
+        {
+            ScheduleCalendar.SelectedDate = now.Date;
+            ScheduleCalendar.DisplayDate = now.Date;
+        }
+
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void ScheduleHourRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button)
+        {
+            return;
+        }
+
+        if (!int.TryParse(button.Content?.ToString(), out var value))
+        {
+            return;
+        }
+
+        _selectedHour = value;
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void ScheduleMinuteRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button)
+        {
+            return;
+        }
+
+        if (!int.TryParse(button.Content?.ToString(), out var value))
+        {
+            return;
+        }
+
+        _selectedMinute = NormalizeMinute(value);
+        ClampScheduleToNow();
+        UpdateTimeDisplays();
+        UpdateScheduleTimeTextFromSelectors();
+    }
+
+    private void UpdateScheduleTimeRows()
+    {
+        UpdateScheduleTimeRows(
+            new[]
+            {
+                ScheduleHourRow0,
+                ScheduleHourRow1,
+                ScheduleHourRow2,
+                ScheduleHourRow3,
+                ScheduleHourRow4,
+                ScheduleHourRow5,
+                ScheduleHourRow6
+            },
+            _selectedHour,
+            24,
+            1);
+
+        UpdateScheduleTimeRows(
+            new[]
+            {
+                ScheduleMinuteRow0,
+                ScheduleMinuteRow1,
+                ScheduleMinuteRow2,
+                ScheduleMinuteRow3,
+                ScheduleMinuteRow4,
+                ScheduleMinuteRow5,
+                ScheduleMinuteRow6
+            },
+            _selectedMinute,
+            60,
+            ScheduleMinuteStep);
+
+        UpdateScheduleTimeRowEnabledStates();
+    }
+
+    private static void UpdateScheduleTimeRows(Button?[] buttons, int selectedValue, int modulus, int step)
+    {
+        for (var i = 0; i < ScheduleTimeRowCount; i++)
+        {
+            var button = buttons[i];
+            if (button is null)
+            {
+                continue;
+            }
+
+            var offset = (i - ScheduleTimeCenterIndex) * step;
+            var value = (selectedValue + offset) % modulus;
+            if (value < 0)
+            {
+                value += modulus;
+            }
+
+            button.Content = value.ToString("00");
+            button.Tag = i == ScheduleTimeCenterIndex ? "Selected" : null;
+        }
+    }
+
+    private void UpdateScheduleTimeRowEnabledStates()
+    {
+        var selectedDate = ScheduleDatePicker?.SelectedDate?.Date;
+        if (selectedDate is null)
+        {
+            SetButtonsEnabled(new[]
+            {
+                ScheduleHourRow0,
+                ScheduleHourRow1,
+                ScheduleHourRow2,
+                ScheduleHourRow3,
+                ScheduleHourRow4,
+                ScheduleHourRow5,
+                ScheduleHourRow6
+            }, true);
+
+            SetButtonsEnabled(new[]
+            {
+                ScheduleMinuteRow0,
+                ScheduleMinuteRow1,
+                ScheduleMinuteRow2,
+                ScheduleMinuteRow3,
+                ScheduleMinuteRow4,
+                ScheduleMinuteRow5,
+                ScheduleMinuteRow6
+            }, true);
+            return;
+        }
+
+        var minSchedule = RoundUpToMinuteStep(DateTime.Now);
+        if (selectedDate > minSchedule.Date)
+        {
+            SetButtonsEnabled(new[]
+            {
+                ScheduleHourRow0,
+                ScheduleHourRow1,
+                ScheduleHourRow2,
+                ScheduleHourRow3,
+                ScheduleHourRow4,
+                ScheduleHourRow5,
+                ScheduleHourRow6
+            }, true);
+
+            SetButtonsEnabled(new[]
+            {
+                ScheduleMinuteRow0,
+                ScheduleMinuteRow1,
+                ScheduleMinuteRow2,
+                ScheduleMinuteRow3,
+                ScheduleMinuteRow4,
+                ScheduleMinuteRow5,
+                ScheduleMinuteRow6
+            }, true);
+            return;
+        }
+
+        var minHour = minSchedule.Hour;
+        var minMinute = minSchedule.Minute;
+
+        SetButtonsEnabled(new[]
+        {
+            ScheduleHourRow0,
+            ScheduleHourRow1,
+            ScheduleHourRow2,
+            ScheduleHourRow3,
+            ScheduleHourRow4,
+            ScheduleHourRow5,
+            ScheduleHourRow6
+        }, button =>
+        {
+            if (!int.TryParse(button.Content?.ToString(), out var hour))
+            {
+                return false;
+            }
+
+            return hour > minHour || (hour == minHour && _selectedMinute >= minMinute);
+        });
+
+        SetButtonsEnabled(new[]
+        {
+            ScheduleMinuteRow0,
+            ScheduleMinuteRow1,
+            ScheduleMinuteRow2,
+            ScheduleMinuteRow3,
+            ScheduleMinuteRow4,
+            ScheduleMinuteRow5,
+            ScheduleMinuteRow6
+        }, button =>
+        {
+            if (!int.TryParse(button.Content?.ToString(), out var minute))
+            {
+                return false;
+            }
+
+            if (_selectedHour > minHour)
+            {
+                return true;
+            }
+
+            if (_selectedHour < minHour)
+            {
+                return false;
+            }
+
+            return minute >= minMinute;
+        });
+    }
+
+    private static void SetButtonsEnabled(Button?[] buttons, bool isEnabled)
+    {
+        foreach (var button in buttons)
+        {
+            if (button is null)
+            {
+                continue;
+            }
+
+            button.IsEnabled = isEnabled;
+        }
+    }
+
+    private static void SetButtonsEnabled(Button?[] buttons, Func<Button, bool> isEnabled)
+    {
+        foreach (var button in buttons)
+        {
+            if (button is null)
+            {
+                continue;
+            }
+
+            button.IsEnabled = isEnabled(button);
+        }
+    }
+
+    private static int NormalizeMinute(int minute)
+    {
+        if (minute < 0)
+        {
+            minute = 0;
+        }
+
+        minute %= 60;
+        return (minute / ScheduleMinuteStep) * ScheduleMinuteStep;
+    }
+
+    private void ClampScheduleToNow()
+    {
+        var minSchedule = RoundUpToMinuteStep(DateTime.Now);
+        var selectedDate = ScheduleDatePicker?.SelectedDate?.Date ?? minSchedule.Date;
+        var selectedDateTime = new DateTime(
+            selectedDate.Year,
+            selectedDate.Month,
+            selectedDate.Day,
+            _selectedHour,
+            _selectedMinute,
+            0);
+
+        if (selectedDateTime >= minSchedule)
+        {
+            return;
+        }
+
+        _selectedHour = minSchedule.Hour;
+        _selectedMinute = minSchedule.Minute;
+
+        if (ScheduleDatePicker is not null)
+        {
+            ScheduleDatePicker.SelectedDate = minSchedule.Date;
+        }
+
+        if (ScheduleCalendar is not null)
+        {
+            ScheduleCalendar.SelectedDate = minSchedule.Date;
+            ScheduleCalendar.DisplayDate = minSchedule.Date;
+        }
+    }
+
+    private static DateTime RoundUpToMinuteStep(DateTime time)
+    {
+        var roundedMinute = ((time.Minute + ScheduleMinuteStep - 1) / ScheduleMinuteStep) * ScheduleMinuteStep;
+        if (roundedMinute >= 60)
+        {
+            time = time.AddHours(1);
+            roundedMinute = 0;
+        }
+
+        return new DateTime(time.Year, time.Month, time.Day, time.Hour, roundedMinute, 0);
+    }
+
+    private void SetScheduleDateBlackoutPast()
+    {
+        var today = DateTime.Today;
+        var blackoutEnd = today.AddDays(-1);
+        if (blackoutEnd < DateTime.MinValue.AddDays(1))
+        {
+            return;
+        }
+
+        if (ScheduleDatePicker is not null)
+        {
+            ScheduleDatePicker.BlackoutDates.Clear();
+            ScheduleDatePicker.BlackoutDates.Add(new CalendarDateRange(DateTime.MinValue, blackoutEnd));
+        }
+
+        if (ScheduleCalendar is not null)
+        {
+            ScheduleCalendar.BlackoutDates.Clear();
+            ScheduleCalendar.BlackoutDates.Add(new CalendarDateRange(DateTime.MinValue, blackoutEnd));
+        }
+    }
+
+    private void ClampScheduleDateToToday()
+    {
+        var today = DateTime.Today;
+        var selectedDate = ScheduleDatePicker?.SelectedDate?.Date;
+        if (selectedDate is null || selectedDate >= today)
+        {
+            return;
+        }
+
+        if (ScheduleDatePicker is not null)
+        {
+            ScheduleDatePicker.SelectedDate = today;
+        }
+
+        if (ScheduleCalendar is not null)
+        {
+            ScheduleCalendar.SelectedDate = today;
+            ScheduleCalendar.DisplayDate = today;
+        }
+    }
 
     private void SuggestionItemButton_Click(object sender, RoutedEventArgs e)
     {
