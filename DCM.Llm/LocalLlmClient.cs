@@ -615,8 +615,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         var gateAcquired = false;
         try
         {
-            _inferenceGate.Wait();
-            gateAcquired = true;
+            gateAcquired = _inferenceGate.Wait(TimeSpan.FromSeconds(5));
         }
         catch
         {
@@ -634,6 +633,10 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
                 {
                     // Ignorieren
                 }
+            }
+            else
+            {
+                _logger.Warning("Dispose: Inferenz-Gate nicht innerhalb des Timeouts erhalten.", "LocalLlm");
             }
         }
 

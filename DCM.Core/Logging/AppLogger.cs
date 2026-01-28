@@ -24,6 +24,7 @@ public sealed class AppLogger : IAppLogger, IDisposable
     private bool _disposed;
 
     private const int MaxEntriesInMemory = 1000;
+    private const int MaxFileQueueSize = 5000;
 
     public event Action<LogEntry>? EntryAdded;
 
@@ -111,11 +112,26 @@ public sealed class AppLogger : IAppLogger, IDisposable
     {
         try
         {
+            TrimFileQueueIfNeeded();
             _fileQueue.Add(line, _writerCts.Token);
         }
         catch
         {
             // Logger wird vermutlich beendet
+        }
+    }
+
+    private void TrimFileQueueIfNeeded()
+    {
+        // Best-effort: avoid unbounded memory if disk is slow or blocked.
+        if (_fileQueue.Count <= MaxFileQueueSize)
+        {
+            return;
+        }
+
+        while (_fileQueue.Count > MaxFileQueueSize && _fileQueue.TryTake(out _))
+        {
+            // Drop oldest entries to keep memory bounded.
         }
     }
 

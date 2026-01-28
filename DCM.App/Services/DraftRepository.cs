@@ -108,7 +108,8 @@ internal sealed class DraftRepository
                 else
                 {
                     snapshot.TranscriptPath = null;
-                    snapshot.Transcript = null;
+                    // Preserve transcript as fallback if persistence fails.
+                    snapshot.Transcript = transcript;
                 }
 
                 if (string.IsNullOrWhiteSpace(transcript) || !string.IsNullOrWhiteSpace(transcriptPath))

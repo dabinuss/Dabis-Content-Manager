@@ -118,7 +118,8 @@ public partial class MainWindow
                 _uploadDrafts.Select(d => d.Id).ToHashSet(),
                 maxAge: TimeSpan.FromDays(30));
 
-            _ = Task.Run(CleanupDraftAssetCaches);
+            var draftSnapshot = _uploadDrafts.ToList();
+            _ = Task.Run(() => CleanupDraftAssetCaches(draftSnapshot));
 
             var storedQueue = _settings.PendingTranscriptionQueue ?? new List<Guid>();
             if (storedQueue.Count > 0)
@@ -164,11 +165,16 @@ public partial class MainWindow
         }
     }
 
-    private void CleanupDraftAssetCaches()
+    private void CleanupDraftAssetCaches(IReadOnlyList<UploadDraft> draftsSnapshot)
     {
         try
         {
-            var drafts = _uploadDrafts.ToList();
+            if (draftsSnapshot is null || draftsSnapshot.Count == 0)
+            {
+                return;
+            }
+
+            var drafts = draftsSnapshot.ToList();
             var protectedThumbnailPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var protectedPreviewPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var protectedThumbnailIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
