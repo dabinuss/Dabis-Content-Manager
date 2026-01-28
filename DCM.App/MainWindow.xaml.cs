@@ -118,6 +118,8 @@ public partial class MainWindow : Window
     private double _lastUploadProgressPercent = -1;
     private double _lastTranscriptionProgressPercent = -1;
     private double _lastDependencyProgressPercent = -1;
+    private int _llmActiveOperations;
+    private int _whisperDependencyOperations;
 
     public MainWindow()
     {
@@ -561,6 +563,9 @@ public partial class MainWindow : Window
         _ui.Run(() =>
         {
             UpdateLlmStatusText();
+            UpdateWhisperHeaderStatus();
+            UpdateLlmHeaderStatus();
+            UpdateHeaderLanguageSelection(_settings.Language ?? LocalizationManager.Instance.CurrentLanguage);
             UpdateLogLinkIndicator();
         }, UiUpdatePolicy.StatusPriority);
     }
@@ -636,6 +641,11 @@ public partial class MainWindow : Window
         var languages = LocalizationManager.Instance.AvailableLanguages;
         var currentLang = _settings.Language ?? LocalizationManager.Instance.CurrentLanguage;
         GeneralSettingsPageView?.SetLanguageOptions(languages, currentLang);
+        if (HeaderLanguageComboBox is not null)
+        {
+            HeaderLanguageComboBox.ItemsSource = languages;
+            UpdateHeaderLanguageSelection(currentLang);
+        }
 
         _isLanguageInitializing = false;
     }
@@ -653,18 +663,64 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Sprache wechseln
-        LocalizationManager.Instance.SetLanguage(selectedLang.Code);
+        await ApplyLanguageSelectionAsync(selectedLang).ConfigureAwait(false);
+    }
 
-        // In Settings speichern
-        _settings.Language = selectedLang.Code;
-        ScheduleSettingsSave();
+    private async void HeaderLanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLanguageInitializing)
+        {
+            return;
+        }
 
-        StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.LanguageChanged", selectedLang.DisplayName);
-        UpdatePageHeader(_currentPageIndex);
-        _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
+        if (HeaderLanguageComboBox?.SelectedItem is not LanguageInfo selectedLang)
+        {
+            return;
+        }
+
+        await ApplyLanguageSelectionAsync(selectedLang).ConfigureAwait(false);
+    }
+
+    private async Task ApplyLanguageSelectionAsync(LanguageInfo selectedLang)
+    {
+        _isLanguageInitializing = true;
+        try
+        {
+            LocalizationManager.Instance.SetLanguage(selectedLang.Code);
+
+            _settings.Language = selectedLang.Code;
+            ScheduleSettingsSave();
+
+            StatusTextBlock.Text = LocalizationHelper.Format("Status.Main.LanguageChanged", selectedLang.DisplayName);
+            UpdatePageHeader(_currentPageIndex);
+            _logger.Info(LocalizationHelper.Format("Log.Settings.LanguageChanged", selectedLang.Code), SettingsLogSource);
+
+            GeneralSettingsPageView?.SetLanguageOptions(LocalizationManager.Instance.AvailableLanguages, selectedLang.Code);
+            UpdateHeaderLanguageSelection(selectedLang.Code);
+        }
+        finally
+        {
+            _isLanguageInitializing = false;
+        }
 
         await RefreshYouTubeMetadataOptionsAsync().ConfigureAwait(false);
+    }
+
+    private void UpdateHeaderLanguageSelection(string? languageCode)
+    {
+        if (HeaderLanguageComboBox?.ItemsSource is not IEnumerable<LanguageInfo> languages)
+        {
+            return;
+        }
+
+        var selected = languages.FirstOrDefault(l =>
+            string.Equals(l.Code, languageCode, StringComparison.OrdinalIgnoreCase))
+            ?? languages.FirstOrDefault();
+
+        if (selected is not null)
+        {
+            HeaderLanguageComboBox.SelectedItem = selected;
+        }
     }
 
     #endregion
@@ -742,6 +798,171 @@ public partial class MainWindow : Window
         }
 
         return -1;
+    }
+
+    #endregion
+
+    #region Header Status
+
+    private void WhisperHeaderNotInstalled_Click(object sender, RoutedEventArgs e) =>
+        NavigateToSettingsPage(4, NavSettingsGeneral);
+
+    private void LlmHeaderNotInstalled_Click(object sender, RoutedEventArgs e) =>
+        NavigateToSettingsPage(5, NavSettingsLlm);
+
+    private void NavigateToSettingsPage(int pageIndex, RadioButton? targetButton)
+    {
+        if (MainNavSettings is not null)
+        {
+            MainNavSettings.IsChecked = true;
+        }
+
+        if (targetButton is not null)
+        {
+            targetButton.IsChecked = true;
+        }
+
+        ShowPage(pageIndex);
+    }
+
+    private void UpdateWhisperHeaderStatus()
+    {
+        var status = _transcriptionService?.GetDependencyStatus() ?? DependencyStatus.None;
+        var isReady = _transcriptionService is not null && status.AllAvailable;
+        var isWorking = IsWhisperWorking();
+        var label = LocalizationHelper.Get("Header.Whisper");
+
+        _ui.Run(() =>
+        {
+            if (WhisperHeaderStatusTextBlock is null ||
+                WhisperHeaderStatusLinkTextBlock is null ||
+                WhisperHeaderLabelRun is null ||
+                WhisperHeaderStatusLinkRun is null)
+            {
+                return;
+            }
+
+        if (isWorking)
+        {
+            WhisperHeaderStatusTextBlock.Text = $"{label}: {LocalizationHelper.Get("Header.Status.Working")}";
+            WhisperHeaderStatusTextBlock.Visibility = Visibility.Visible;
+            WhisperHeaderStatusLinkTextBlock.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        if (isReady)
+        {
+            WhisperHeaderStatusTextBlock.Text = $"{label}: {LocalizationHelper.Get("Header.Status.Ready")}";
+            WhisperHeaderStatusTextBlock.Visibility = Visibility.Visible;
+            WhisperHeaderStatusLinkTextBlock.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+            WhisperHeaderLabelRun.Text = label;
+            WhisperHeaderStatusLinkRun.Text = LocalizationHelper.Get("Header.Status.NotInstalled");
+            WhisperHeaderStatusTextBlock.Visibility = Visibility.Collapsed;
+            WhisperHeaderStatusLinkTextBlock.Visibility = Visibility.Visible;
+        }, UiUpdatePolicy.StatusPriority);
+    }
+
+    private void UpdateLlmHeaderStatus()
+    {
+        var isWorking = _llmActiveOperations > 0;
+        var isReady = IsLlmReady();
+        var label = LocalizationHelper.Get("Header.Llm");
+
+        _ui.Run(() =>
+        {
+            if (LlmHeaderStatusTextBlock is null ||
+                LlmHeaderStatusLinkTextBlock is null ||
+                LlmHeaderLabelRun is null ||
+                LlmHeaderStatusLinkRun is null)
+            {
+                return;
+            }
+
+            if (isWorking)
+            {
+                LlmHeaderStatusTextBlock.Text = $"{label}: {LocalizationHelper.Get("Header.Status.Working")}";
+                LlmHeaderStatusTextBlock.Visibility = Visibility.Visible;
+                LlmHeaderStatusLinkTextBlock.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            if (isReady)
+            {
+                LlmHeaderStatusTextBlock.Text = $"{label}: {LocalizationHelper.Get("Header.Status.Ready")}";
+                LlmHeaderStatusTextBlock.Visibility = Visibility.Visible;
+                LlmHeaderStatusLinkTextBlock.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            LlmHeaderLabelRun.Text = label;
+            LlmHeaderStatusLinkRun.Text = LocalizationHelper.Get("Header.Status.NotInstalled");
+            LlmHeaderStatusTextBlock.Visibility = Visibility.Collapsed;
+            LlmHeaderStatusLinkTextBlock.Visibility = Visibility.Visible;
+        }, UiUpdatePolicy.StatusPriority);
+    }
+
+    private bool IsWhisperWorking() =>
+        _activeTranscriptions.Count > 0 || _whisperDependencyOperations > 0;
+
+    private bool IsLlmReady()
+    {
+        var llm = _settings.Llm ?? new LlmSettings();
+        if (llm.IsOff || !llm.IsLocalMode)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(llm.LocalModelPath) || !File.Exists(llm.LocalModelPath))
+        {
+            return false;
+        }
+
+        if (_llmClient is LocalLlmClient localClient)
+        {
+            if (localClient.IsReady)
+            {
+                return true;
+            }
+
+            return string.IsNullOrWhiteSpace(localClient.InitializationError);
+        }
+
+        return false;
+    }
+
+    private void SetLlmActivity(bool isActive)
+    {
+        if (isActive)
+        {
+            Interlocked.Increment(ref _llmActiveOperations);
+        }
+        else
+        {
+            var value = Interlocked.Decrement(ref _llmActiveOperations);
+            if (value < 0)
+            {
+                Interlocked.Exchange(ref _llmActiveOperations, 0);
+            }
+        }
+
+        UpdateLlmHeaderStatus();
+    }
+
+    private void SetWhisperDependencyActivity(bool isActive)
+    {
+        if (isActive)
+        {
+            _whisperDependencyOperations++;
+        }
+        else if (_whisperDependencyOperations > 0)
+        {
+            _whisperDependencyOperations--;
+        }
+
+        UpdateWhisperHeaderStatus();
     }
 
     #endregion
@@ -1384,7 +1605,13 @@ public partial class MainWindow : Window
 
     private void SetChaptersGenerationState(bool isRunning)
     {
+        if (_isChaptersGenerationRunning == isRunning)
+        {
+            return;
+        }
+
         _isChaptersGenerationRunning = isRunning;
+        SetLlmActivity(isRunning);
         if (UploadView?.GenerateChaptersButton is not null)
         {
             UploadView.GenerateChaptersButton.Tag = isRunning ? "active" : "default";
@@ -2267,6 +2494,7 @@ public partial class MainWindow : Window
         Action<T, List<string>> handleResults,
         Action? onNoSuggestions = null)
     {
+        SetLlmActivity(true);
         await _ui.RunAsync(() =>
         {
             CloseSuggestionPopup();
@@ -2334,6 +2562,7 @@ public partial class MainWindow : Window
                     CloseSuggestionPopup();
                 }
             }, UiUpdatePolicy.ButtonPriority);
+            SetLlmActivity(false);
         }
     }
 

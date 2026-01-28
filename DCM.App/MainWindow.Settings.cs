@@ -295,24 +295,28 @@ public partial class MainWindow
         if (llm.IsOff)
         {
             LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Deactivated"), System.Windows.Media.Brushes.Gray);
+            UpdateLlmHeaderStatus();
             return;
         }
 
         if (!llm.IsLocalMode)
         {
             LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.UnknownMode"), System.Windows.Media.Brushes.Orange);
+            UpdateLlmHeaderStatus();
             return;
         }
 
         if (string.IsNullOrWhiteSpace(llm.LocalModelPath))
         {
             LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.NoPath"), System.Windows.Media.Brushes.Orange);
+            UpdateLlmHeaderStatus();
             return;
         }
 
         if (!File.Exists(llm.LocalModelPath))
         {
             LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.FileMissing"), System.Windows.Media.Brushes.Red);
+            UpdateLlmHeaderStatus();
             return;
         }
 
@@ -324,6 +328,7 @@ public partial class MainWindow
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
                 LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Configured", fileName, modelTypeInfo), System.Windows.Media.Brushes.DarkGreen);
+                UpdateLlmHeaderStatus();
                 return;
             }
 
@@ -331,19 +336,23 @@ public partial class MainWindow
             {
                 var fileName = Path.GetFileName(llm.LocalModelPath);
                 LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Ready", fileName, modelTypeInfo), System.Windows.Media.Brushes.Green);
+                UpdateLlmHeaderStatus();
             }
             else if (!string.IsNullOrWhiteSpace(localClient.InitializationError))
             {
                 LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Error", localClient.InitializationError), System.Windows.Media.Brushes.Red);
+                UpdateLlmHeaderStatus();
             }
             else
             {
                 LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.Unknown"), System.Windows.Media.Brushes.Orange);
+                UpdateLlmHeaderStatus();
             }
         }
         else
         {
             LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.ClientMissing"), System.Windows.Media.Brushes.Gray);
+            UpdateLlmHeaderStatus();
         }
     }
 

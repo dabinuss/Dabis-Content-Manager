@@ -97,6 +97,7 @@ public partial class MainWindow
         }
 
         _transcriptionService = null;
+        UpdateWhisperHeaderStatus();
     }
 
     private static void CleanupTranscriptionTempFolder()
@@ -243,6 +244,7 @@ public partial class MainWindow
 
             UpdateTranscriptionButtonState();
             UpdateTranscriptionProgressUiForActiveDraft();
+            UpdateWhisperHeaderStatus();
         }).ConfigureAwait(false);
 
         _logger.Info(
@@ -369,6 +371,7 @@ public partial class MainWindow
                 UpdateLogLinkIndicator();
                 UpdateTranscriptionProgressUiForActiveDraft();
                 UpdateTranscribeAllState();
+                UpdateWhisperHeaderStatus();
             }).ConfigureAwait(false);
 
             transcriptionCts.Dispose();
@@ -414,6 +417,7 @@ public partial class MainWindow
                 }
             }).ConfigureAwait(false);
 
+            SetWhisperDependencyActivity(true);
             var dependencyProgress = new Progress<DependencyDownloadProgress>(ReportDependencyProgress);
             return await _transcriptionService.EnsureDependenciesAsync(
                 modelSize,
@@ -422,6 +426,7 @@ public partial class MainWindow
         }
         finally
         {
+            SetWhisperDependencyActivity(false);
             _dependencyEnsureLock.Release();
         }
     }
@@ -1139,6 +1144,7 @@ public partial class MainWindow
         {
             GeneralSettingsPageView?.SetTranscriptionStatus(LocalizationHelper.Get("Transcription.Status.ServiceUnavailable"), System.Windows.Media.Brushes.Red);
             GeneralSettingsPageView?.SetTranscriptionDownloadAvailability(false);
+            UpdateWhisperHeaderStatus();
             return;
         }
 
@@ -1159,6 +1165,7 @@ public partial class MainWindow
         }
 
         UpdateTranscriptionDownloadAvailability(status);
+        UpdateWhisperHeaderStatus();
     }
 
     private void UpdateTranscriptionDownloadAvailability()
@@ -1304,6 +1311,7 @@ public partial class MainWindow
         }
 
         GeneralSettingsPageView?.SetTranscriptionDownloadState(true);
+        SetWhisperDependencyActivity(true);
 
         try
         {
@@ -1348,6 +1356,7 @@ public partial class MainWindow
             _dependencyDownloadThrottle.CancelPending();
             _ui.Run(() =>
             {
+                SetWhisperDependencyActivity(false);
                 GeneralSettingsPageView?.SetTranscriptionDownloadState(false);
                 UpdateTranscriptionStatusDisplay();
             }, UiUpdatePolicy.StatusPriority);

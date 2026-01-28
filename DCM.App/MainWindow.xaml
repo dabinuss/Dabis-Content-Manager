@@ -5,6 +5,7 @@
         xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
         xmlns:views="clr-namespace:DCM.App.Views"
         xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties"
+        xmlns:conv="clr-namespace:DCM.App.Infrastructure.Converters"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="{DynamicResource App.WindowTitle}"
         Height="900"
@@ -25,6 +26,7 @@
   </WindowChrome.WindowChrome>
 
   <Window.Resources>
+    <conv:LanguageCodeToFlagEmojiConverter x:Key="LanguageCodeToFlagEmojiConverter"/>
     <ControlTemplate x:Key="TitleBarButtonTemplate"
                      TargetType="Button">
       <Border Background="{TemplateBinding Background}"
@@ -129,6 +131,14 @@
       <Setter Property="TextWrapping"
               Value="Wrap"/>
     </Style>
+
+    <Style x:Key="HeaderStatusTextStyle"
+           TargetType="TextBlock">
+      <Setter Property="FontSize"
+              Value="{StaticResource FontSizeS}"/>
+      <Setter Property="Foreground"
+              Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
   </Window.Resources>
 
   <Border BorderBrush="{StaticResource BorderBrush}"
@@ -222,9 +232,10 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0"
-                  Margin="0,4,0,0">
+                  Margin="0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
 
@@ -285,10 +296,71 @@
                 </RadioButton>
               </StackPanel>
 
-              <StackPanel Grid.Column="1"
+              <Border Grid.Column="1"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Right"
+                      Margin="0,0,16,0"
+                      Padding="14,16"
+                      CornerRadius="{StaticResource RadiusS}">
+                <StackPanel Orientation="Vertical">
+                  <TextBlock x:Name="WhisperHeaderStatusTextBlock"
+                             Style="{StaticResource HeaderStatusTextStyle}"/>
+                  <TextBlock x:Name="WhisperHeaderStatusLinkTextBlock"
+                             Style="{StaticResource HeaderStatusTextStyle}"
+                             Visibility="Collapsed">
+                    <Run x:Name="WhisperHeaderLabelRun"
+                         Text=""/>
+                    <Run Text=": "/>
+                    <Hyperlink Click="WhisperHeaderNotInstalled_Click"
+                               Foreground="{StaticResource TextPrimaryBrush}">
+                      <Run x:Name="WhisperHeaderStatusLinkRun"
+                           Text=""/>
+                    </Hyperlink>
+                  </TextBlock>
+
+                  <TextBlock x:Name="LlmHeaderStatusTextBlock"
+                             Style="{StaticResource HeaderStatusTextStyle}"
+                             Margin="0,4,0,0"/>
+                  <TextBlock x:Name="LlmHeaderStatusLinkTextBlock"
+                             Style="{StaticResource HeaderStatusTextStyle}"
+                             Visibility="Collapsed"
+                             Margin="0,4,0,0">
+                    <Run x:Name="LlmHeaderLabelRun"
+                         Text=""/>
+                    <Run Text=": "/>
+                    <Hyperlink Click="LlmHeaderNotInstalled_Click"
+                               Foreground="{StaticResource TextPrimaryBrush}">
+                      <Run x:Name="LlmHeaderStatusLinkRun"
+                           Text=""/>
+                    </Hyperlink>
+                  </TextBlock>
+
+                  <ComboBox x:Name="HeaderLanguageComboBox"
+                            Width="140"
+                            Height="26"
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Right"
+                            SelectionChanged="HeaderLanguageComboBox_SelectionChanged">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                          <Image Source="{Binding Code, Converter={StaticResource LanguageCodeToFlagEmojiConverter}}"
+                                 Width="18"
+                                 Height="12"
+                                 Margin="0,0,6,0"/>
+                          <TextBlock Text="{Binding DisplayName}"
+                                     FontSize="{StaticResource FontSizeS}"/>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+              </Border>
+
+              <StackPanel Grid.Column="2"
                           Orientation="Horizontal"
-                          VerticalAlignment="Center"
-                          Margin="0,0,12,0">
+                          VerticalAlignment="Top"
+                          Margin="0,12,12,0">
                 <Button x:Name="MinimizeButton"
                         Style="{StaticResource TitleBarButtonStyle}"
                         Margin="0"

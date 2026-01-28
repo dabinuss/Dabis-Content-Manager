@@ -3,6 +3,50 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Application.Resources>
     <ResourceDictionary>
+      <DrawingImage x:Key="Flag.DE">
+        <DrawingImage.Drawing>
+          <DrawingGroup>
+            <GeometryDrawing Brush="#000000"
+                             Geometry="M0,0 L18,0 18,4 0,4 Z"/>
+            <GeometryDrawing Brush="#DD0000"
+                             Geometry="M0,4 L18,4 18,8 0,8 Z"/>
+            <GeometryDrawing Brush="#FFCE00"
+                             Geometry="M0,8 L18,8 18,12 0,12 Z"/>
+          </DrawingGroup>
+        </DrawingImage.Drawing>
+      </DrawingImage>
+      <DrawingImage x:Key="Flag.US">
+        <DrawingImage.Drawing>
+          <DrawingGroup>
+            <GeometryDrawing Brush="#FFFFFF"
+                             Geometry="M0,0 L18,0 18,12 0,12 Z"/>
+            <GeometryDrawing Brush="#B22234"
+                             Geometry="M0,0 L18,0 18,1.0 0,1.0 Z"/>
+            <GeometryDrawing Brush="#B22234"
+                             Geometry="M0,2.0 L18,2.0 18,3.0 0,3.0 Z"/>
+            <GeometryDrawing Brush="#B22234"
+                             Geometry="M0,4.0 L18,4.0 18,5.0 0,5.0 Z"/>
+            <GeometryDrawing Brush="#B22234"
+                             Geometry="M0,6.0 L18,6.0 18,7.0 0,7.0 Z"/>
+            <GeometryDrawing Brush="#B22234"
+                             Geometry="M0,8.0 L18,8.0 18,9.0 0,9.0 Z"/>
+            <GeometryDrawing Brush="#B22234"
+                             Geometry="M0,10.0 L18,10.0 18,11.0 0,11.0 Z"/>
+            <GeometryDrawing Brush="#3C3B6E"
+                             Geometry="M0,0 L7.5,0 7.5,5.5 0,5.5 Z"/>
+          </DrawingGroup>
+        </DrawingImage.Drawing>
+      </DrawingImage>
+      <DrawingImage x:Key="Flag.World">
+        <DrawingImage.Drawing>
+          <DrawingGroup>
+            <GeometryDrawing Brush="#9AA3B2"
+                             Geometry="M0,0 L18,0 18,12 0,12 Z"/>
+            <GeometryDrawing Brush="#6B7788"
+                             Geometry="M4,2 L14,2 14,10 4,10 Z"/>
+          </DrawingGroup>
+        </DrawingImage.Drawing>
+      </DrawingImage>
       <ResourceDictionary.MergedDictionaries>
         <!-- Localization -->
         <ResourceDictionary Source="Localization/Strings.xaml"/>

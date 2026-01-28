@@ -14,6 +14,11 @@
   <!-- Status -->
   <sys:String x:Key="Status">Status:</sys:String>
   <sys:String x:Key="Status.Ready">Status:</sys:String>
+  <sys:String x:Key="Header.Whisper">Whisper</sys:String>
+  <sys:String x:Key="Header.Llm">LLM</sys:String>
+  <sys:String x:Key="Header.Status.Ready">Bereit</sys:String>
+  <sys:String x:Key="Header.Status.Working">Arbeitet</sys:String>
+  <sys:String x:Key="Header.Status.NotInstalled">Nicht installiert</sys:String>
   <sys:String x:Key="Status.Main.InitializationFailed">Initialisierung fehlgeschlagen: {0}</sys:String>
   <sys:String x:Key="Status.Main.LanguageChanged">Sprache geändert: {0}</sys:String>
   <sys:String x:Key="Status.Settings.ThemeChanged">Theme gewechselt zu {0}.</sys:String>
