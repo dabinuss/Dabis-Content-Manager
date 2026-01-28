@@ -5,7 +5,8 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
              xmlns:conv="clr-namespace:DCM.App.Infrastructure.Converters"
-             xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
+             xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties"
+             xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework">
   <UserControl.Resources>
     <!-- IsStringToVisibilityConverter is defined centrally in DarkTheme.Controls.xaml -->
     <!-- View-specific converters: -->
@@ -24,7 +25,9 @@
       <Setter Property="CornerRadius"
               Value="{StaticResource RadiusM}"/>
       <Setter Property="Padding"
-              Value="14"/>
+              Value="16"/>
+      <Setter Property="Margin"
+              Value="0,16,0,0"/>
     </Style>
     <Style x:Key="UploadSectionHeader"
            TargetType="TextBlock">
@@ -35,7 +38,7 @@
       <Setter Property="Foreground"
               Value="{StaticResource TextPrimaryBrush}"/>
       <Setter Property="Margin"
-              Value="0,0,0,12"/>
+              Value="0,0,0,10"/>
     </Style>
     <Style x:Key="UploadSectionTitle"
            TargetType="TextBlock">
@@ -149,6 +152,70 @@
       <Setter Property="VerticalAlignment"
               Value="Center"/>
     </Style>
+    <Style x:Key="CalendarDayButtonStyle"
+           TargetType="{x:Type primitives:CalendarDayButton}"
+           BasedOn="{StaticResource CalendarDayButtonStyle}">
+      <Setter Property="MinWidth"
+              Value="42"/>
+      <Setter Property="MinHeight"
+              Value="42"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type primitives:CalendarDayButton}">
+            <Grid>
+              <Border x:Name="Background"
+                      Background="{TemplateBinding Background}"
+                      CornerRadius="{StaticResource RadiusS}"/>
+              <Border x:Name="TodayHighlight"
+                      BorderBrush="{StaticResource PrimaryBrush}"
+                      BorderThickness="1"
+                      CornerRadius="{StaticResource RadiusS}"
+                      Visibility="Collapsed"/>
+              <ContentPresenter x:Name="Content"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Margin="1"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsToday" Value="True">
+                <Setter TargetName="TodayHighlight" Property="Visibility" Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Background" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+              </Trigger>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Background" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+              </Trigger>
+              <MultiTrigger>
+                <MultiTrigger.Conditions>
+                  <Condition Property="IsSelected" Value="True"/>
+                  <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter TargetName="Background" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+              </MultiTrigger>
+              <Trigger Property="IsInactive" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+              </Trigger>
+              <Trigger Property="IsBlackedOut" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
+                <Setter TargetName="Background" Property="Background" Value="Transparent"/>
+                <Setter Property="Opacity" Value="0.35"/>
+                <Setter Property="Cursor" Value="Arrow"/>
+                <Setter Property="IsEnabled" Value="False"/>
+              </Trigger>
+              <MultiTrigger>
+                <MultiTrigger.Conditions>
+                  <Condition Property="IsBlackedOut" Value="True"/>
+                  <Condition Property="IsMouseOver" Value="True"/>
+                </MultiTrigger.Conditions>
+                <Setter TargetName="Background" Property="Background" Value="Transparent"/>
+              </MultiTrigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </UserControl.Resources>
   <Grid x:Name="RootGrid"
       Margin="0,0,8,0">
@@ -186,7 +253,7 @@
 
         <Grid x:Name="UploadListPanel"
               Grid.Column="0"
-              Margin="8,8,0,0">
+              Margin="10,12,0,0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -267,7 +334,7 @@
           <ListBox.ItemContainerStyle>
             <Style TargetType="ListBoxItem">
               <Setter Property="Margin"
-                      Value="0,0,0,8"/>
+                      Value="0,0,0,12"/>
               <Setter Property="Padding"
                       Value="0"/>
               <Setter Property="HorizontalContentAlignment"
@@ -299,7 +366,7 @@
           <ListBox.ItemTemplate>
             <DataTemplate>
               <Border x:Name="UploadItemCard"
-                      Padding="8,8,4,8">
+                      Padding="6,6,4,6">
                 <Border.Style>
                   <Style TargetType="Border">
                     <Setter Property="Background"
@@ -375,7 +442,7 @@
                              Grid.Column="2"
                              Text="{Binding DisplayName}"
                              FontWeight="SemiBold"
-                             FontSize="{StaticResource FontSizeM}"
+                             FontSize="{StaticResource FontSizeL}"
                              Foreground="{StaticResource TextPrimaryBrush}"
                              TextTrimming="CharacterEllipsis"
                              Margin="0,0,8,0"/>
@@ -409,23 +476,23 @@
                               Orientation="Horizontal"
                               Margin="0,4,0,0">
                     <TextBlock Text="{Binding VideoResolution, TargetNullValue='-', Mode=OneWay}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
                     <TextBlock Text="{DynamicResource Common.Separator.Pipe}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
                     <TextBlock Text="{Binding VideoFps, TargetNullValue='-', Mode=OneWay}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
                     <TextBlock Text="{DynamicResource Common.Unit.Fps}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"
                                Visibility="{Binding VideoFps, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                     <TextBlock Text="{DynamicResource Common.Separator.Pipe}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
                     <TextBlock Text="{Binding FileSizeDisplay, TargetNullValue='-', Mode=OneWay}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
                   </StackPanel>
 
@@ -440,15 +507,15 @@
                       </MultiBinding>
                     </StackPanel.Visibility>
                     <TextBlock Text="{Binding VideoDuration}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{StaticResource TextMutedBrush}"
                                FontSize="{StaticResource FontSizeXS}"
                                Visibility="{Binding VideoDuration, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                     <TextBlock Text="{DynamicResource Common.Separator.Pipe}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{StaticResource TextMutedBrush}"
                                FontSize="{StaticResource FontSizeXS}"
                                Visibility="{Binding VideoDuration, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                     <TextBlock Text="{Binding VideoCodec}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{StaticResource TextMutedBrush}"
                                FontSize="{StaticResource FontSizeXS}"
                                Visibility="{Binding VideoCodec, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                   </StackPanel>
@@ -1674,8 +1741,7 @@
                        Style="{StaticResource SectionHeader}"
                        Margin="0,0,0,8"/>
 
-            <Border Style="{StaticResource UploadSectionCard}"
-                    Margin="0,16,0,0">
+            <Border Style="{StaticResource UploadSectionCard}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail}"
                            Style="{StaticResource UploadSectionHeader}"/>
@@ -1774,14 +1840,12 @@
               </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource UploadSectionCard}"
-                    Margin="0,16,0,0">
+            <Border Style="{StaticResource UploadSectionCard}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Section.Upload.VisibilityPlanning}"
                            Style="{StaticResource UploadSectionHeader}"/>
                 <TextBlock Text="{DynamicResource Upload.Fields.Paylists}"
-                           Style="{StaticResource UploadSectionTitle}"
-                           Margin="0,0,0,8"/>
+                           Style="{StaticResource UploadSectionTitle}"/>
                 <ComboBox x:Name="PlaylistComboBox"
                           DisplayMemberPath="Title"
                           ToolTip="{DynamicResource Upload.Tooltip.Playlist}"
@@ -1793,8 +1857,7 @@
                         SnapsToDevicePixels="True"/>
 
                 <TextBlock Text="{DynamicResource Upload.Fields.Visibility}"
-                           Style="{StaticResource UploadSectionTitle}"
-                           Margin="0,12,0,8"/>
+                           Style="{StaticResource UploadSectionTitle}"/>
                 <ComboBox x:Name="VisibilityComboBox"
                           SelectionChanged="VisibilityComboBox_SelectionChanged">
                   <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
@@ -1812,8 +1875,7 @@
                         SnapsToDevicePixels="True"/>
 
                 <TextBlock Text="{DynamicResource Upload.Fields.Publication}"
-                           Style="{StaticResource UploadSectionTitle}"
-                           Margin="0,12,0,8"/>
+                           Style="{StaticResource UploadSectionTitle}"/>
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -1857,7 +1919,7 @@
                             BorderBrush="{StaticResource BorderBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusS}"
-                            Padding="4">
+                            Padding="0">
                       <Grid>
                         <Grid.RowDefinitions>
                           <RowDefinition Height="*"/>
@@ -1870,7 +1932,7 @@
                                   Background="Transparent"
                                   Foreground="{StaticResource TextPrimaryBrush}"
                                   BorderThickness="0"
-                                  FontSize="{StaticResource FontSizeM}"
+                                  FontSize="{StaticResource FontSizeS}"
                                   SelectedDate="{Binding SelectedDate, ElementName=ScheduleDatePicker, Mode=TwoWay}"
                                   DisplayDate="{Binding SelectedDate, ElementName=ScheduleDatePicker, Mode=TwoWay}"
                                   FirstDayOfWeek="Monday"/>
@@ -2114,8 +2176,7 @@
               </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource UploadSectionCard}"
-                    Margin="0,16,0,0">
+            <Border Style="{StaticResource UploadSectionCard}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Upload.Fields.Metadata}"
                            Style="{StaticResource UploadSectionHeader}"/>
@@ -2130,7 +2191,7 @@
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="130"/>
                     <ColumnDefinition Width="{StaticResource SpacingM}"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>

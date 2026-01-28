@@ -534,7 +534,7 @@
                   Width="90"
                   Height="60"
                   CornerRadius="{StaticResource RadiusM}"
-                  BorderThickness="2"
+                  BorderThickness="1"
                   BorderBrush="{StaticResource BorderBrush}"
                   Background="{StaticResource SurfaceBrush}">
             <Grid>
@@ -1971,7 +1971,7 @@
                     CornerRadius="{StaticResource RadiusS}"/>
             <Border x:Name="TodayHighlight"
                     BorderBrush="{StaticResource PrimaryBrush}"
-                    BorderThickness="2"
+                    BorderThickness="1"
                     CornerRadius="{StaticResource RadiusS}"
                     Visibility="Collapsed"/>
             <ContentPresenter x:Name="Content"
