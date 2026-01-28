@@ -289,6 +289,7 @@
   <sys:String x:Key="Upload.Actions.TranscribeAll.Cancel">Cancel transcription</sys:String>
   <sys:String x:Key="Upload.Tooltip.TranscribeAll">Transcribe all</sys:String>
   <sys:String x:Key="Upload.Tooltip.TranscribeAll.Cancel">Cancel all transcriptions</sys:String>
+  <sys:String x:Key="Upload.Tooltip.TranscribeDraft.Cancel">Cancel transcription</sys:String>
   <sys:String x:Key="Upload.Tooltip.GenerateSuggestion">Generate AI suggestion</sys:String>
   <sys:String x:Key="Upload.Tooltip.TagsInput">Tags, comma-separated (e.g. lets play, gaming, english)</sys:String>
   <sys:String x:Key="Upload.Tooltip.TranscribeVideo">Transcribe video automatically</sys:String>

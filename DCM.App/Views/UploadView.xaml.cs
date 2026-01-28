@@ -845,22 +845,37 @@ public partial class UploadView : UserControl
     {
         _ui.Run(() =>
         {
-            if (TranscribeAllActionLabel is null || TranscribeAllActionIcon is null || ActionTranscribeButton is null)
+            if (TranscribeAllActionLinkLabel is null)
+            {
+                return;
+            }
+
+            TranscribeAllActionLinkLabel.Text = isCancel
+                ? LocalizationHelper.Get("Upload.Actions.TranscribeAll.Cancel")
+                : LocalizationHelper.Get("Upload.Actions.TranscribeAll");
+        }, UiUpdatePolicy.StatusPriority);
+    }
+
+    public void SetTranscribeDraftActionState(bool isCancel)
+    {
+        _ui.Run(() =>
+        {
+            if (ActionTranscribeDraftLabel is null || ActionTranscribeDraftIcon is null || ActionTranscribeButton is null)
             {
                 return;
             }
 
             if (isCancel)
             {
-                TranscribeAllActionLabel.Text = LocalizationHelper.Get("Upload.Actions.TranscribeAll.Cancel");
-                TranscribeAllActionIcon.Text = char.ConvertFromUtf32(0xE5C9);
-                ActionTranscribeButton.ToolTip = LocalizationHelper.Get("Upload.Tooltip.TranscribeAll.Cancel");
+                ActionTranscribeDraftLabel.Text = LocalizationHelper.Get("Common.Cancel");
+                ActionTranscribeDraftIcon.Text = char.ConvertFromUtf32(0xE5C9);
+                ActionTranscribeButton.ToolTip = LocalizationHelper.Get("Upload.Tooltip.TranscribeDraft.Cancel");
             }
             else
             {
-                TranscribeAllActionLabel.Text = LocalizationHelper.Get("Upload.Actions.TranscribeAll");
-                TranscribeAllActionIcon.Text = char.ConvertFromUtf32(0xE048);
-                ActionTranscribeButton.ToolTip = LocalizationHelper.Get("Upload.Tooltip.TranscribeAll");
+                ActionTranscribeDraftLabel.Text = LocalizationHelper.Get("Upload.Fields.Transcripe");
+                ActionTranscribeDraftIcon.Text = char.ConvertFromUtf32(0xE048);
+                ActionTranscribeButton.ToolTip = LocalizationHelper.Get("Upload.Tooltip.TranscribeVideo");
             }
         }, UiUpdatePolicy.StatusPriority);
     }

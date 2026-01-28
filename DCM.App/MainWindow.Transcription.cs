@@ -864,6 +864,7 @@ public partial class MainWindow
         var hasVideo = _activeDraft?.HasVideo == true;
         var isActiveDraftTranscribing = _activeDraft is not null && IsDraftTranscribing(_activeDraft);
         SetButtonState(UploadView.TranscribeButton, isActiveDraftTranscribing, isActiveDraftTranscribing || hasVideo);
+        UploadView.SetTranscribeDraftActionState(isActiveDraftTranscribing);
     }
 
     #endregion

@@ -190,6 +190,7 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
 
@@ -235,7 +236,16 @@
                   VerticalAlignment="Center"
                   SnapsToDevicePixels="True"/>
 
-          <Border Grid.Row="2"
+          <TextBlock Grid.Row="2"
+                     Margin="0,0,8,8"
+                     HorizontalAlignment="Left">
+            <Hyperlink Click="TranscribeAllButton_Click">
+              <Run x:Name="TranscribeAllActionLinkLabel"
+                   Text="{DynamicResource Upload.Actions.TranscribeAll}"/>
+            </Hyperlink>
+          </TextBlock>
+
+          <Border Grid.Row="3"
                   Padding="0">
             <ListBox x:Name="UploadItemsListBox"
                      BorderThickness="0"
@@ -971,16 +981,17 @@
                         Margin="0,0,8,0"/>
                 <Button x:Name="ActionTranscribeButton"
                         Style="{StaticResource SecondaryButton}"
-                        Click="TranscribeAllButton_Click"
-                        Margin="0,0,8,0">
+                        Click="TranscribeDraftButton_Click"
+                        Margin="0,0,8,0"
+                        ToolTip="{DynamicResource Upload.Tooltip.TranscribeVideo}">
                   <StackPanel Orientation="Horizontal">
-                    <TextBlock x:Name="TranscribeAllActionIcon"
+                    <TextBlock x:Name="ActionTranscribeDraftIcon"
                                Style="{StaticResource IconL}"
                                Text="&#xe048;"
                                Foreground="{StaticResource TextPrimaryBrush}"
                                Margin="0,0,6,0"/>
-                    <TextBlock x:Name="TranscribeAllActionLabel"
-                               Text="{DynamicResource Upload.Actions.TranscribeAll}"
+                    <TextBlock x:Name="ActionTranscribeDraftLabel"
+                               Text="{DynamicResource Upload.Fields.Transcripe}"
                                FontSize="{StaticResource FontSizeS}"
                                Foreground="{StaticResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>

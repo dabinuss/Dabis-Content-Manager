@@ -289,6 +289,7 @@
   <sys:String x:Key="Upload.Actions.TranscribeAll.Cancel">Transkribieren abbrechen</sys:String>
   <sys:String x:Key="Upload.Tooltip.TranscribeAll">Alle transkribieren</sys:String>
   <sys:String x:Key="Upload.Tooltip.TranscribeAll.Cancel">Alle Transkriptionen abbrechen</sys:String>
+  <sys:String x:Key="Upload.Tooltip.TranscribeDraft.Cancel">Transkription abbrechen</sys:String>
   <sys:String x:Key="Upload.Tooltip.GenerateSuggestion">KI-Vorschlag generieren</sys:String>
   <sys:String x:Key="Upload.Tooltip.TagsInput">Tags, kommagetrennt (z. B. lets play, gaming, deutsch)</sys:String>
   <sys:String x:Key="Upload.Tooltip.TranscribeVideo">Video automatisch transkribieren</sys:String>
