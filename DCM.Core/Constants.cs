@@ -137,8 +137,13 @@ public static class Constants
                 return _appDataFolder;
             }
 
+#if DCM_PORTABLE
+            var baseDir = AppContext.BaseDirectory ?? string.Empty;
+            _appDataFolder = Path.Combine(baseDir, AppDataFolderName);
+#else
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             _appDataFolder = Path.Combine(appData, AppDataFolderName);
+#endif
 
             if (!Directory.Exists(_appDataFolder))
             {

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using DCM.Core;
 
 namespace DCM.App;
 
@@ -18,10 +19,7 @@ internal static class WindowStateManager
 
     private static string GetStoragePath()
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var folder = Path.Combine(appData, "DabisContentManager");
-
-        Directory.CreateDirectory(folder);
+        var folder = Constants.AppDataFolder;
         return Path.Combine(folder, "window-state.json");
     }
 
