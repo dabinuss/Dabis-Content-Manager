@@ -324,6 +324,10 @@
   <sys:String x:Key="Upload.Fields.Publication.Plan">Geplante Veröffentlichung</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Date">Datum:</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Time">Zeit:</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.Today">Heute</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.Now">Jetzt</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.HourShort">H</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.MinuteShort">M</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Hour">Stunden</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.Minute">Minuten</sys:String>
   <sys:String x:Key="Upload.Section.Details">Datei-Infos</sys:String>

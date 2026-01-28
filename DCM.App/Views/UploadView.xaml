@@ -1867,7 +1867,9 @@
                                    Margin="8,0,0,0"
                                    HorizontalAlignment="Left"
                                    VerticalAlignment="Center">
-                          <Hyperlink Click="ScheduleTodayLink_Click">Heute</Hyperlink>
+                          <Hyperlink Click="ScheduleTodayLink_Click">
+                            <Run Text="{DynamicResource Upload.Fields.Publication.Today}"/>
+                          </Hyperlink>
                         </TextBlock>
                       </Grid>
                     </Border>
@@ -1907,7 +1909,7 @@
 
                         <TextBlock Grid.Row="0"
                                    Grid.Column="0"
-                                   Text="H"
+                                   Text="{DynamicResource Upload.Fields.Publication.HourShort}"
                                    FontSize="{StaticResource FontSizeM}"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource TextMutedBrush}"
@@ -1915,7 +1917,7 @@
                                    Margin="0,4,0,8"/>
                         <TextBlock Grid.Row="0"
                                    Grid.Column="2"
-                                   Text="M"
+                                   Text="{DynamicResource Upload.Fields.Publication.MinuteShort}"
                                    FontSize="{StaticResource FontSizeM}"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource TextMutedBrush}"
@@ -2082,7 +2084,9 @@
                                    Margin="8,0,0,0"
                                    HorizontalAlignment="Left"
                                    VerticalAlignment="Center">
-                          <Hyperlink Click="ScheduleNowLink_Click">Jetzt</Hyperlink>
+                          <Hyperlink Click="ScheduleNowLink_Click">
+                            <Run Text="{DynamicResource Upload.Fields.Publication.Now}"/>
+                          </Hyperlink>
                         </TextBlock>
                       </Grid>
                     </Border>
