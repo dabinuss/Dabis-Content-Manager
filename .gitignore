@@ -61,6 +61,7 @@ TestResult*/
 
 # Anything related to local secrets
 secrets.json
+youtube_client_secrets.json
 
 # Local tooling
 *.jfm
