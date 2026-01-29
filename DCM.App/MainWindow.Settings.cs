@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -254,9 +255,155 @@ public partial class MainWindow
 
     #region LLM-Einstellungen Events
 
+    private LlmModelManager? _llmModelManager;
+    private CancellationTokenSource? _llmDownloadCts;
+
     private void LlmModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateLlmControlsEnabled();
+    }
+
+    private void LlmModelPresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateLlmDownloadButtonState();
+    }
+
+    private void LlmModelDownloadButton_Click(object sender, RoutedEventArgs e)
+    {
+        var action = LlmSettingsPageView?.GetDownloadButtonAction();
+
+        switch (action)
+        {
+            case "Download":
+                StartLlmModelDownload();
+                break;
+            case "Cancel":
+                CancelLlmModelDownload();
+                break;
+            case "Remove":
+                RemoveLlmModel();
+                break;
+        }
+    }
+
+    private async void StartLlmModelDownload()
+    {
+        var preset = LlmSettingsPageView?.GetSelectedPreset() ?? LlmModelPreset.Phi3Mini4kQ4;
+
+        if (preset == LlmModelPreset.Custom)
+        {
+            return;
+        }
+
+        _llmModelManager ??= new LlmModelManager(new HttpClient(), _logger);
+        _llmDownloadCts = new CancellationTokenSource();
+
+        LlmSettingsPageView?.SetDownloadButtonState(isDownloading: true, isAvailable: false);
+        LlmSettingsPageView?.SetDownloadProgress(0, LocalizationHelper.Get("Settings.LLM.Download.Downloading"));
+
+        var progress = new Progress<LlmModelDownloadProgress>(p =>
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (p.IsError)
+                {
+                    LlmSettingsPageView?.HideDownloadProgress();
+                    LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: false);
+                    StatusTextBlock.Text = p.Message ?? "Download fehlgeschlagen";
+                }
+                else
+                {
+                    var sizeInfo = p.TotalBytes > 0
+                        ? $"{p.BytesDownloaded / 1024 / 1024} / {p.TotalBytes / 1024 / 1024} MB"
+                        : $"{p.BytesDownloaded / 1024 / 1024} MB";
+                    LlmSettingsPageView?.SetDownloadProgress(p.Percent, $"{p.Percent:F0}% - {sizeInfo}");
+                }
+            });
+        });
+
+        try
+        {
+            var success = await _llmModelManager.DownloadAsync(preset, progress, _llmDownloadCts.Token);
+
+            LlmSettingsPageView?.HideDownloadProgress();
+
+            if (success)
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Settings.LLM.Download.Available");
+                LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: true);
+
+                // Settings aktualisieren und LLM-Client neu erstellen
+                _settings.Llm ??= new LlmSettings();
+                _settings.Llm.ModelPreset = preset;
+                SaveSettings();
+                RecreateLlmClient();
+                UpdateLlmStatusText();
+            }
+            else
+            {
+                LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            LlmSettingsPageView?.HideDownloadProgress();
+            LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: false);
+            StatusTextBlock.Text = "Download abgebrochen";
+        }
+        catch (Exception ex)
+        {
+            LlmSettingsPageView?.HideDownloadProgress();
+            LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: false);
+            StatusTextBlock.Text = $"Download-Fehler: {ex.Message}";
+            _logger.Error($"LLM-Download fehlgeschlagen: {ex.Message}", "Settings", ex);
+        }
+        finally
+        {
+            _llmDownloadCts?.Dispose();
+            _llmDownloadCts = null;
+        }
+    }
+
+    private void CancelLlmModelDownload()
+    {
+        _llmDownloadCts?.Cancel();
+    }
+
+    private void RemoveLlmModel()
+    {
+        var preset = LlmSettingsPageView?.GetSelectedPreset() ?? LlmModelPreset.Phi3Mini4kQ4;
+
+        if (preset == LlmModelPreset.Custom)
+        {
+            return;
+        }
+
+        _llmModelManager ??= new LlmModelManager(new HttpClient(), _logger);
+
+        if (_llmModelManager.RemoveModel(preset))
+        {
+            LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: false);
+            StatusTextBlock.Text = LocalizationHelper.Get("Settings.LLM.Download.NotAvailable");
+
+            // Settings speichern und LLM-Client neu erstellen
+            SaveSettings();
+            RecreateLlmClient();
+            UpdateLlmStatusText();
+        }
+    }
+
+    private void UpdateLlmDownloadButtonState()
+    {
+        var preset = LlmSettingsPageView?.GetSelectedPreset() ?? LlmModelPreset.Phi3Mini4kQ4;
+
+        if (preset == LlmModelPreset.Custom)
+        {
+            return;
+        }
+
+        _llmModelManager ??= new LlmModelManager(new HttpClient(), _logger);
+        var isAvailable = _llmModelManager.CheckAvailability(preset);
+        LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: isAvailable);
     }
 
     private void LlmModelPathBrowseButton_Click(object sender, RoutedEventArgs e)
@@ -286,6 +433,7 @@ public partial class MainWindow
     {
         var isLocalMode = LlmSettingsPageView?.IsLocalLlmModeSelected() ?? false;
         LlmSettingsPageView?.SetLlmLocalModeControlsEnabled(isLocalMode);
+        UpdateLlmDownloadButtonState();
     }
 
     private void UpdateLlmStatusText()
@@ -306,14 +454,16 @@ public partial class MainWindow
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(llm.LocalModelPath))
+        var effectivePath = llm.GetEffectiveModelPath();
+
+        if (string.IsNullOrWhiteSpace(effectivePath))
         {
             LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.NoPath"), System.Windows.Media.Brushes.Orange);
             UpdateLlmHeaderStatus();
             return;
         }
 
-        if (!File.Exists(llm.LocalModelPath))
+        if (!File.Exists(effectivePath))
         {
             LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Get("Status.LLM.FileMissing"), System.Windows.Media.Brushes.Red);
             UpdateLlmHeaderStatus();
@@ -322,11 +472,11 @@ public partial class MainWindow
 
         if (_llmClient is LocalLlmClient localClient)
         {
-            var modelTypeInfo = GetLocalizedModelTypeName(llm.ModelType);
+            var modelTypeInfo = GetLocalizedModelTypeName(llm.GetEffectiveModelType());
 
             if (!localClient.IsReady && string.IsNullOrEmpty(localClient.InitializationError))
             {
-                var fileName = Path.GetFileName(llm.LocalModelPath);
+                var fileName = Path.GetFileName(effectivePath);
                 LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Configured", fileName, modelTypeInfo), System.Windows.Media.Brushes.DarkGreen);
                 UpdateLlmHeaderStatus();
                 return;
@@ -334,7 +484,7 @@ public partial class MainWindow
 
             if (localClient.IsReady)
             {
-                var fileName = Path.GetFileName(llm.LocalModelPath);
+                var fileName = Path.GetFileName(effectivePath);
                 LlmSettingsPageView?.SetLlmStatus(LocalizationHelper.Format("Status.LLM.Ready", fileName, modelTypeInfo), System.Windows.Media.Brushes.Green);
                 UpdateLlmHeaderStatus();
             }

@@ -426,7 +426,9 @@ public partial class MainWindow : Window
         {
             LlmSettingsPageView.SettingsSaveButtonClicked += SettingsSaveButton_Click;
             LlmSettingsPageView.LlmModeComboBoxSelectionChanged += LlmModeComboBox_SelectionChanged;
+            LlmSettingsPageView.LlmModelPresetComboBoxSelectionChanged += LlmModelPresetComboBox_SelectionChanged;
             LlmSettingsPageView.LlmModelPathBrowseButtonClicked += LlmModelPathBrowseButton_Click;
+            LlmSettingsPageView.LlmModelDownloadButtonClicked += LlmModelDownloadButton_Click;
         }
     }
 
@@ -1027,7 +1029,8 @@ public partial class MainWindow : Window
 
     private ILlmClient CreateLlmClient(LlmSettings settings)
     {
-        if (settings.IsLocalMode && !string.IsNullOrWhiteSpace(settings.LocalModelPath))
+        var effectivePath = settings.GetEffectiveModelPath();
+        if (settings.IsLocalMode && !string.IsNullOrWhiteSpace(effectivePath))
         {
             return new LocalLlmClient(settings, _logger);
         }

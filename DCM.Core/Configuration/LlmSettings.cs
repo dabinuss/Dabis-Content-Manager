@@ -1,4 +1,6 @@
-﻿namespace DCM.Core.Configuration;
+﻿using DCM.Core;
+
+namespace DCM.Core.Configuration;
 
 /// <summary>
 /// Definiert die verfügbaren LLM-Modi.
@@ -47,7 +49,12 @@ public sealed class LlmSettings
     public LlmMode Mode { get; set; } = LlmMode.Off;
 
     /// <summary>
-    /// Pfad zur lokalen GGUF-Modelldatei (für Mode == Local).
+    /// Ausgewähltes Modell-Preset für automatischen Download.
+    /// </summary>
+    public LlmModelPreset ModelPreset { get; set; } = LlmModelPreset.Phi3Mini4kQ4;
+
+    /// <summary>
+    /// Pfad zur lokalen GGUF-Modelldatei (für ModelPreset == Custom).
     /// </summary>
     public string? LocalModelPath { get; set; }
 
@@ -103,4 +110,36 @@ public sealed class LlmSettings
     /// Gibt an, ob LLM-Funktionen deaktiviert sind.
     /// </summary>
     public bool IsOff => Mode == LlmMode.Off;
+
+    /// <summary>
+    /// Gibt den effektiven Modellpfad zurück (Custom-Pfad oder Preset-Pfad).
+    /// </summary>
+    public string? GetEffectiveModelPath()
+    {
+        if (ModelPreset == LlmModelPreset.Custom)
+        {
+            return LocalModelPath;
+        }
+
+        var fileName = ModelPreset.GetFileName();
+        if (fileName is null)
+        {
+            return LocalModelPath;
+        }
+
+        return System.IO.Path.Combine(Constants.LlmModelsFolder, fileName);
+    }
+
+    /// <summary>
+    /// Gibt den effektiven Modelltyp zurück (Preset-Typ oder konfigurierten Typ).
+    /// </summary>
+    public LlmModelType GetEffectiveModelType()
+    {
+        if (ModelPreset != LlmModelPreset.Custom)
+        {
+            return ModelPreset.GetModelType();
+        }
+
+        return ModelType;
+    }
 }

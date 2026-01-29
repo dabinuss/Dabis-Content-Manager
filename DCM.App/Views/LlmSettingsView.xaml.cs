@@ -18,7 +18,9 @@ public partial class LlmSettingsView : UserControl
 
     public event RoutedEventHandler? SettingsSaveButtonClicked;
     public event SelectionChangedEventHandler? LlmModeComboBoxSelectionChanged;
+    public event SelectionChangedEventHandler? LlmModelPresetComboBoxSelectionChanged;
     public event RoutedEventHandler? LlmModelPathBrowseButtonClicked;
+    public event RoutedEventHandler? LlmModelDownloadButtonClicked;
     public event RoutedPropertyChangedEventHandler<double>? LlmTemperatureSliderValueChanged;
 
     private void SettingsSaveButton_Click(object sender, RoutedEventArgs e) =>
@@ -27,8 +29,17 @@ public partial class LlmSettingsView : UserControl
     private void LlmModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         LlmModeComboBoxSelectionChanged?.Invoke(sender, e);
 
+    private void LlmModelPresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        UpdateCustomPathVisibility();
+        LlmModelPresetComboBoxSelectionChanged?.Invoke(sender, e);
+    }
+
     private void LlmModelPathBrowseButton_Click(object sender, RoutedEventArgs e) =>
         LlmModelPathBrowseButtonClicked?.Invoke(sender, e);
+
+    private void LlmModelDownloadButton_Click(object sender, RoutedEventArgs e) =>
+        LlmModelDownloadButtonClicked?.Invoke(sender, e);
 
     private void LlmTemperatureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
@@ -67,6 +78,7 @@ public partial class LlmSettingsView : UserControl
     public void ApplyLlmSettings(LlmSettings settings)
     {
         SelectComboBoxItemByTag(LlmModeComboBox, settings.Mode.ToString());
+        SelectComboBoxItemByTag(LlmModelPresetComboBox, settings.ModelPreset.ToString());
         SelectComboBoxItemByTag(LlmModelTypeComboBox, settings.ModelType.ToString());
 
         LlmModelPathTextBox.Text = settings.LocalModelPath ?? string.Empty;
@@ -77,6 +89,8 @@ public partial class LlmSettingsView : UserControl
         LlmTitleCustomPromptTextBox.Text = settings.TitleCustomPrompt ?? string.Empty;
         LlmDescriptionCustomPromptTextBox.Text = settings.DescriptionCustomPrompt ?? string.Empty;
         LlmTagsCustomPromptTextBox.Text = settings.TagsCustomPrompt ?? string.Empty;
+
+        UpdateCustomPathVisibility();
     }
 
     public void ApplySuggestionSettings(AppSettings settings)
@@ -93,6 +107,13 @@ public partial class LlmSettingsView : UserControl
             Enum.TryParse(modeTag, ignoreCase: true, out LlmMode mode))
         {
             settings.Mode = mode;
+        }
+
+        if (LlmModelPresetComboBox.SelectedItem is ComboBoxItem presetItem &&
+            presetItem.Tag is string presetTag &&
+            Enum.TryParse(presetTag, ignoreCase: true, out LlmModelPreset preset))
+        {
+            settings.ModelPreset = preset;
         }
 
         if (LlmModelTypeComboBox.SelectedItem is ComboBoxItem typeItem &&
@@ -149,8 +170,85 @@ public partial class LlmSettingsView : UserControl
 
     public void SetLlmLocalModeControlsEnabled(bool isLocalMode)
     {
+        LlmModelPresetComboBox.IsEnabled = isLocalMode;
+        LlmModelDownloadButton.IsEnabled = isLocalMode;
         LlmModelPathTextBox.IsEnabled = isLocalMode;
         LlmModelPathBrowseButton.IsEnabled = isLocalMode;
+        LlmModelTypeComboBox.IsEnabled = isLocalMode;
+        UpdateCustomPathVisibility();
+    }
+
+    public void UpdateCustomPathVisibility()
+    {
+        var isCustom = IsCustomPresetSelected();
+        var visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
+
+        LlmCustomPathLabel.Visibility = visibility;
+        LlmCustomPathPanel.Visibility = visibility;
+        LlmModelTypeLabel.Visibility = visibility;
+        LlmModelTypeComboBox.Visibility = visibility;
+
+        // Download-Button nur für Presets (nicht Custom) anzeigen
+        LlmModelDownloadButton.Visibility = isCustom ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    public bool IsCustomPresetSelected()
+    {
+        if (LlmModelPresetComboBox.SelectedItem is ComboBoxItem presetItem &&
+            presetItem.Tag is string presetTag)
+        {
+            return string.Equals(presetTag, "Custom", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
+
+    public LlmModelPreset GetSelectedPreset()
+    {
+        if (LlmModelPresetComboBox.SelectedItem is ComboBoxItem presetItem &&
+            presetItem.Tag is string presetTag &&
+            Enum.TryParse(presetTag, ignoreCase: true, out LlmModelPreset preset))
+        {
+            return preset;
+        }
+
+        return LlmModelPreset.Phi3Mini4kQ4;
+    }
+
+    public void SetDownloadProgress(double percent, string? message = null)
+    {
+        LlmDownloadProgressPanel.Visibility = Visibility.Visible;
+        LlmDownloadProgressBar.Value = percent;
+        LlmDownloadProgressText.Text = message ?? $"{percent:F0}%";
+    }
+
+    public void HideDownloadProgress()
+    {
+        LlmDownloadProgressPanel.Visibility = Visibility.Collapsed;
+    }
+
+    public void SetDownloadButtonState(bool isDownloading, bool isAvailable)
+    {
+        if (isDownloading)
+        {
+            LlmModelDownloadButton.Content = FindResource("Settings.LLM.Download.Cancel");
+            LlmModelDownloadButton.Tag = "Cancel";
+        }
+        else if (isAvailable)
+        {
+            LlmModelDownloadButton.Content = FindResource("Settings.LLM.Download.Remove");
+            LlmModelDownloadButton.Tag = "Remove";
+        }
+        else
+        {
+            LlmModelDownloadButton.Content = FindResource("Settings.LLM.Download");
+            LlmModelDownloadButton.Tag = "Download";
+        }
+    }
+
+    public string? GetDownloadButtonAction()
+    {
+        return LlmModelDownloadButton.Tag as string;
     }
 
     public void SetLlmStatus(string text, Brush brush)

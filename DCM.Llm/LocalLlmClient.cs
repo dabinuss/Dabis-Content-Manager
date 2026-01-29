@@ -93,6 +93,11 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
         ValidateModelPath();
     }
 
+    /// <summary>
+    /// Gibt den effektiven Modellpfad zurück (berücksichtigt Preset vs Custom).
+    /// </summary>
+    private string? EffectiveModelPath => _settings.GetEffectiveModelPath();
+
     public bool IsReady
     {
         get
@@ -129,19 +134,28 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
     private LlmModelType DetectModelType()
     {
+        // Bei Preset den bekannten Modelltyp verwenden
+        if (_settings.ModelPreset != LlmModelPreset.Custom)
+        {
+            var presetType = _settings.ModelPreset.GetModelType();
+            _logger.Info($"Verwende Modellprofil aus Preset: {presetType}", "LocalLlm");
+            return presetType;
+        }
+
         if (_settings.ModelType != LlmModelType.Auto)
         {
             _logger.Info($"Verwende konfiguriertes Modellprofil: {_settings.ModelType}", "LocalLlm");
             return _settings.ModelType;
         }
 
-        if (string.IsNullOrWhiteSpace(_settings.LocalModelPath))
+        var effectivePath = EffectiveModelPath;
+        if (string.IsNullOrWhiteSpace(effectivePath))
         {
             _logger.Debug("Kein Modellpfad für Auto-Erkennung, verwende Phi3 als Standard", "LocalLlm");
             return LlmModelType.Phi3;
         }
 
-        var fileName = Path.GetFileName(_settings.LocalModelPath).ToLowerInvariant();
+        var fileName = Path.GetFileName(effectivePath).ToLowerInvariant();
 
         if (fileName.Contains("mistral") || fileName.Contains("ministral"))
         {
@@ -220,23 +234,25 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
     private void ValidateModelPath()
     {
-        if (string.IsNullOrWhiteSpace(_settings.LocalModelPath))
+        var effectivePath = EffectiveModelPath;
+
+        if (string.IsNullOrWhiteSpace(effectivePath))
         {
             _initError = "Kein Modellpfad konfiguriert.";
             _logger.Warning(_initError, "LocalLlm");
             return;
         }
 
-        if (!File.Exists(_settings.LocalModelPath))
+        if (!File.Exists(effectivePath))
         {
             _initError = "Modelldatei nicht gefunden.";
-            _logger.Warning($"{_initError}: {_settings.LocalModelPath}", "LocalLlm");
+            _logger.Warning($"{_initError}: {effectivePath}", "LocalLlm");
             return;
         }
 
         try
         {
-            var fileInfo = new FileInfo(_settings.LocalModelPath);
+            var fileInfo = new FileInfo(effectivePath);
 
             if (fileInfo.Length < MinimumModelSizeBytes)
             {
@@ -245,7 +261,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
                 return;
             }
 
-            if (!IsValidGgufFile(_settings.LocalModelPath))
+            if (!IsValidGgufFile(effectivePath))
             {
                 _initError = "Keine gültige GGUF-Datei.";
                 _logger.Warning(_initError, "LocalLlm");
@@ -253,7 +269,7 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
             }
 
             _initError = null;
-            _logger.Debug($"Modellpfad validiert: {_settings.LocalModelPath}", "LocalLlm");
+            _logger.Debug($"Modellpfad validiert: {effectivePath}", "LocalLlm");
         }
         catch (Exception ex)
         {
@@ -339,12 +355,13 @@ public sealed class LocalLlmClient : ILlmClient, IDisposable
 
         try
         {
-            _logger.Info($"Lade LLM-Modell: {_settings.LocalModelPath} (Typ: {_detectedModelType})", "LocalLlm");
+            var effectivePath = EffectiveModelPath;
+            _logger.Info($"Lade LLM-Modell: {effectivePath} (Typ: {_detectedModelType})", "LocalLlm");
 
             var contextSize = _settings.ContextSize > 0 ? (uint)_settings.ContextSize : 4096u;
             var gpuLayerCount = GetGpuLayerCount();
 
-            _modelParams = new ModelParams(_settings.LocalModelPath!)
+            _modelParams = new ModelParams(effectivePath!)
             {
                 ContextSize = contextSize,
                 GpuLayerCount = gpuLayerCount,

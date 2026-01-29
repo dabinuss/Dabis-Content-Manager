@@ -63,6 +63,11 @@ public static class Constants
     public const string WhisperModelsFolderName = "whisper_models";
 
     /// <summary>
+    /// Ordnername für LLM-Modelle.
+    /// </summary>
+    public const string LlmModelsFolderName = "llm_models";
+
+    /// <summary>
     /// Ordnername für FFmpeg.
     /// </summary>
     public const string FFmpegFolderName = "ffmpeg";
@@ -203,6 +208,25 @@ public static class Constants
         get
         {
             var folder = Path.Combine(AppDataFolder, WhisperModelsFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum LLM-Modelle-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string LlmModelsFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, LlmModelsFolderName);
 
             if (!Directory.Exists(folder))
             {

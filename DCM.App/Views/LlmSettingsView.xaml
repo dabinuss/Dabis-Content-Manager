@@ -42,14 +42,17 @@
                     Header="{DynamicResource Settings.LLM.Mode}">
             <Grid>
               <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/> <!-- 0: Mode ComboBox -->
+                <RowDefinition Height="Auto"/> <!-- 1: Preset Label -->
+                <RowDefinition Height="Auto"/> <!-- 2: Preset ComboBox + Download -->
+                <RowDefinition Height="Auto"/> <!-- 3: Download Progress -->
+                <RowDefinition Height="Auto"/> <!-- 4: Custom Path Label -->
+                <RowDefinition Height="Auto"/> <!-- 5: Custom Path TextBox -->
+                <RowDefinition Height="Auto"/> <!-- 6: Model Type Label -->
+                <RowDefinition Height="Auto"/> <!-- 7: Model Type ComboBox -->
+                <RowDefinition Height="Auto"/> <!-- 8: System Prompt Label -->
+                <RowDefinition Height="Auto"/> <!-- 9: System Prompt TextBox -->
+                <RowDefinition Height="Auto"/> <!-- 10: Status -->
               </Grid.RowDefinitions>
               <ComboBox Grid.Row="0"
                         x:Name="LlmModeComboBox"
@@ -61,12 +64,69 @@
                               Tag="Local"/>
               </ComboBox>
 
+              <!-- Model Preset Selection -->
               <TextBlock Grid.Row="1"
-                         Text="{DynamicResource Settings.LLM.PathToModel}"
+                         Text="{DynamicResource Settings.LLM.ModelPreset}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          Margin="0,8,0,0"/>
               <Grid Grid.Row="2"
+                    Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="LlmModelPresetComboBox"
+                          Grid.Column="0"
+                          MinWidth="200"
+                          SelectionChanged="LlmModelPresetComboBox_SelectionChanged">
+                  <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelPreset.Phi3Mini}"
+                                Tag="Phi3Mini4kQ4"/>
+                  <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelPreset.Custom}"
+                                Tag="Custom"/>
+                </ComboBox>
+                <Button x:Name="LlmModelDownloadButton"
+                        Grid.Column="1"
+                        Content="{DynamicResource Settings.LLM.Download}"
+                        Style="{StaticResource SecondaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe2c4;"
+                        Margin="8,0,0,0"
+                        Click="LlmModelDownloadButton_Click"/>
+              </Grid>
+
+              <!-- Download Progress -->
+              <Grid Grid.Row="3"
+                    x:Name="LlmDownloadProgressPanel"
+                    Visibility="Collapsed"
+                    Margin="0,0,0,8">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ProgressBar Grid.Row="0"
+                             x:Name="LlmDownloadProgressBar"
+                             Height="8"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="0"/>
+                <TextBlock Grid.Row="1"
+                           x:Name="LlmDownloadProgressText"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           Margin="0,4,0,0"/>
+              </Grid>
+
+              <!-- Custom Model Path (only visible when Custom is selected) -->
+              <TextBlock Grid.Row="4"
+                         x:Name="LlmCustomPathLabel"
+                         Text="{DynamicResource Settings.LLM.PathToModel}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         Margin="0,8,0,0"
+                         Visibility="Collapsed"/>
+              <Grid Grid.Row="5"
+                    x:Name="LlmCustomPathPanel"
+                    Visibility="Collapsed"
                     Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
@@ -86,14 +146,18 @@
                         Click="LlmModelPathBrowseButton_Click"/>
               </Grid>
 
-              <TextBlock Grid.Row="3"
+              <!-- Model Type (only for Custom) -->
+              <TextBlock Grid.Row="6"
+                         x:Name="LlmModelTypeLabel"
                          Text="{DynamicResource Settings.LLM.ModelType}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"/>
-              <ComboBox Grid.Row="4"
+                         Margin="0,8,0,0"
+                         Visibility="Collapsed"/>
+              <ComboBox Grid.Row="7"
                         x:Name="LlmModelTypeComboBox"
-                        MinWidth="200">
+                        MinWidth="200"
+                        Visibility="Collapsed">
                 <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Detect}"
                               Tag="Auto"
                               IsSelected="True"/>
@@ -103,19 +167,19 @@
                               Tag="Mistral3"/>
               </ComboBox>
 
-              <TextBlock Grid.Row="5"
-                         Text="{DynamicResource Settings.LLM.ModelType.SystemPrompt}"
+              <TextBlock Grid.Row="8"
+                         Text="{DynamicResource Settings.LLM.SystemPrompt}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          Margin="0,8,0,0"/>
-              <TextBox Grid.Row="6"
+              <TextBox Grid.Row="9"
                        x:Name="LlmSystemPromptTextBox"
                        AcceptsReturn="True"
                        Height="80"
                        TextWrapping="Wrap"
                        VerticalScrollBarVisibility="Auto"/>
 
-              <Grid Grid.Row="7"
+              <Grid Grid.Row="10"
                     Margin="0,8,0,0">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
