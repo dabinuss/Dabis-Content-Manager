@@ -67,6 +67,7 @@ public sealed class AppSettings
             Llm = new LlmSettings
             {
                 Mode = llm.Mode,
+                ModelPreset = llm.ModelPreset,
                 LocalModelPath = llm.LocalModelPath,
                 ModelType = llm.ModelType,
                 SystemPrompt = llm.SystemPrompt,

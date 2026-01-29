@@ -630,6 +630,7 @@
   <sys:String x:Key="Settings.LLM.Download.Available">Available</sys:String>
   <sys:String x:Key="Settings.LLM.Download.NotAvailable">Not downloaded</sys:String>
   <sys:String x:Key="Settings.LLM.Download.Downloading">Downloading...</sys:String>
+  <sys:String x:Key="Settings.LLM.Download.AlreadyAvailable">Model is already downloaded</sys:String>
   <sys:String x:Key="Settings.LLM.PathToModel">Path to Model</sys:String>
   <sys:String x:Key="Settings.LLM.ModelType">Model Type</sys:String>
   <sys:String x:Key="Settings.LLM.ModelType.Detect">Detect Automatically</sys:String>

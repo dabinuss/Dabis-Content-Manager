@@ -90,6 +90,7 @@ public partial class MainWindow : Window
     private readonly DraftPersistenceCoordinator _draftPersistence;
     private DispatcherTimer? _settingsSaveTimer;
     private bool _settingsSaveDirty;
+    private bool _llmClientNeedsRecreate;
     private readonly SemaphoreSlim _settingsSaveGate = new(1, 1);
     private int _settingsSaveVersion;
     private int _settingsSaveWrittenVersion;
@@ -420,6 +421,8 @@ public partial class MainWindow : Window
             GeneralSettingsPageView.ThemeComboBoxSelectionChanged += ThemeComboBox_SelectionChanged;
             GeneralSettingsPageView.TranscriptionDownloadButtonClicked += TranscriptionDownloadButton_Click;
             GeneralSettingsPageView.TranscriptionModelSizeSelectionChanged += TranscriptionModelSizeComboBox_SelectionChanged;
+            GeneralSettingsPageView.SettingChanged += OnSettingChangedFromView;
+            GeneralSettingsPageView.SettingChangedImmediate += OnSettingChangedImmediateFromView;
         }
 
         if (LlmSettingsPageView is not null)
@@ -429,7 +432,76 @@ public partial class MainWindow : Window
             LlmSettingsPageView.LlmModelPresetComboBoxSelectionChanged += LlmModelPresetComboBox_SelectionChanged;
             LlmSettingsPageView.LlmModelPathBrowseButtonClicked += LlmModelPathBrowseButton_Click;
             LlmSettingsPageView.LlmModelDownloadButtonClicked += LlmModelDownloadButton_Click;
+            LlmSettingsPageView.SettingChanged += OnSettingChangedFromView;
+            LlmSettingsPageView.SettingChangedImmediate += OnSettingChangedImmediateFromView;
         }
+
+        if (ChannelProfilePageView is not null)
+        {
+            ChannelProfilePageView.SettingChanged += OnSettingChangedFromView;
+            ChannelProfilePageView.SettingChangedImmediate += OnSettingChangedImmediateFromView;
+        }
+    }
+
+    /// <summary>
+    /// Wird aufgerufen wenn sich eine Einstellung in einer View ändert (Text-Eingaben).
+    /// Sammelt die Werte aus der UI und plant das automatische Speichern mit Debounce.
+    /// </summary>
+    private void OnSettingChangedFromView(object? sender, EventArgs e)
+    {
+        // Werte aus der UI in Settings übertragen
+        CollectSettingsFromViews();
+
+        // Speichern planen (mit 2s Debounce)
+        // Bei LLM-Änderungen wird der Client im SettingsSaveTimer_Tick nach dem Speichern neu erstellt
+        ScheduleSettingsSave(recreateLlmClient: sender == LlmSettingsPageView);
+    }
+
+    /// <summary>
+    /// Wird aufgerufen wenn sich eine Einstellung durch Klick ändert (ComboBox, CheckBox).
+    /// Speichert sofort ohne Debounce.
+    /// </summary>
+    private void OnSettingChangedImmediateFromView(object? sender, EventArgs e)
+    {
+        // Werte aus der UI in Settings übertragen
+        CollectSettingsFromViews();
+
+        // Sofort speichern
+        SaveSettings();
+
+        // Bei LLM-Änderungen den Client sofort neu erstellen
+        if (sender == LlmSettingsPageView)
+        {
+            RecreateLlmClient();
+        }
+    }
+
+    /// <summary>
+    /// Sammelt alle Einstellungswerte aus den Views und überträgt sie in _settings.
+    /// </summary>
+    private void CollectSettingsFromViews()
+    {
+        // General Settings
+        GeneralSettingsPageView?.UpdateAppSettings(_settings);
+
+        var selectedLang = GeneralSettingsPageView?.GetSelectedLanguage();
+        if (selectedLang is not null)
+        {
+            _settings.Language = selectedLang.Code;
+        }
+
+        // Transcription Settings
+        _settings.Transcription ??= new TranscriptionSettings();
+        GeneralSettingsPageView?.UpdateTranscriptionSettings(_settings.Transcription);
+
+        // LLM Settings
+        _settings.Llm ??= new LlmSettings();
+        LlmSettingsPageView?.UpdateLlmSettings(_settings.Llm);
+        LlmSettingsPageView?.UpdateSuggestionSettings(_settings);
+
+        // Channel Persona
+        _settings.Persona ??= new ChannelPersona();
+        ChannelProfilePageView?.UpdatePersona(_settings.Persona);
     }
 
     private void RegisterEventSubscriptions()
@@ -3140,7 +3212,8 @@ public partial class MainWindow : Window
                 PageActionsAccounts.Visibility = Visibility.Visible;
                 break;
             case 6:
-                PageActionsChannelProfile.Visibility = Visibility.Visible;
+                // Auto-Save ist aktiv, kein manueller Save-Button nötig
+                // PageActionsChannelProfile.Visibility = Visibility.Visible;
                 break;
             case 2:
                 PageActionsPresets.Visibility = Visibility.Visible;
@@ -3149,10 +3222,12 @@ public partial class MainWindow : Window
                 PageActionsHistory.Visibility = Visibility.Visible;
                 break;
             case 4:
-                PageActionsGeneralSettings.Visibility = Visibility.Visible;
+                // Auto-Save ist aktiv, kein manueller Save-Button nötig
+                // PageActionsGeneralSettings.Visibility = Visibility.Visible;
                 break;
             case 5:
-                PageActionsLlmSettings.Visibility = Visibility.Visible;
+                // Auto-Save ist aktiv, kein manueller Save-Button nötig
+                // PageActionsLlmSettings.Visibility = Visibility.Visible;
                 break;
         }
     }

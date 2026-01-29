@@ -51,7 +51,8 @@
                    Margin="0,0,0,8"/>
         <TextBox Grid.Row="1"
                  x:Name="ChannelPersonaNameTextBox"
-                 Margin="0,0,0,4"/>
+                 Margin="0,0,0,4"
+                 TextChanged="OnSettingChanged"/>
         <TextBlock Grid.Row="2"
                    Text="{DynamicResource Channel.Example.Name}"
                    FontSize="{StaticResource FontSizeXS}"
@@ -63,7 +64,8 @@
                    Margin="0,0,0,8"/>
         <TextBox Grid.Row="4"
                  x:Name="ChannelPersonaChannelNameTextBox"
-                 Margin="0,0,0,4"/>
+                 Margin="0,0,0,4"
+                 TextChanged="OnSettingChanged"/>
         <TextBlock Grid.Row="5"
                    Text="{DynamicResource Channel.Example.ChannelName}"
                    FontSize="{StaticResource FontSizeXS}"
@@ -101,7 +103,8 @@
                   StaysOpenOnEdit="True"
                   MinWidth="200"
                   ToolTip="{DynamicResource Channel.Example.Language}"
-                  Margin="0,0,0,4"/>
+                  Margin="0,0,0,4"
+                  SelectionChanged="OnComboBoxSettingChanged"/>
         <TextBlock Grid.Row="2"
                    Text="{DynamicResource Channel.Example.Language}"
                    FontSize="{StaticResource FontSizeXS}"
@@ -114,7 +117,8 @@
         <TextBox Grid.Row="4"
                  x:Name="ChannelPersonaToneOfVoiceTextBox"
                  ToolTip="{DynamicResource Channel.Example.Tone}"
-                 Margin="0,0,0,4"/>
+                 Margin="0,0,0,4"
+                 TextChanged="OnSettingChanged"/>
         <TextBlock Grid.Row="5"
                    Text="{DynamicResource Channel.Example.Tone}"
                    FontSize="{StaticResource FontSizeXS}"
@@ -127,7 +131,8 @@
         <TextBox Grid.Row="7"
                  x:Name="ChannelPersonaContentTypeTextBox"
                  ToolTip="{DynamicResource Channel.Example.ContentType}"
-                 Margin="0,0,0,4"/>
+                 Margin="0,0,0,4"
+                 TextChanged="OnSettingChanged"/>
         <TextBlock Grid.Row="8"
                    Text="{DynamicResource Channel.Example.ContentType}"
                    FontSize="{StaticResource FontSizeXS}"
@@ -140,7 +145,8 @@
         <TextBox Grid.Row="10"
                  x:Name="ChannelPersonaTargetAudienceTextBox"
                  ToolTip="{DynamicResource Channel.Example.TargetAudience}"
-                 Margin="0,0,0,4"/>
+                 Margin="0,0,0,4"
+                 TextChanged="OnSettingChanged"/>
         <TextBlock Grid.Row="11"
                    Text="{DynamicResource Channel.Example.TargetAudience}"
                    FontSize="{StaticResource FontSizeXS}"
@@ -168,7 +174,8 @@
                  AcceptsReturn="True"
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Auto"
-                 Height="80"/>
+                 Height="80"
+                 TextChanged="OnSettingChanged"/>
       </Grid>
     </GroupBox>
 

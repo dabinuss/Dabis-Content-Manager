@@ -11,10 +11,22 @@ namespace DCM.App.Views;
 
 public partial class LlmSettingsView : UserControl
 {
+    private bool _isApplyingSettings;
+
     public LlmSettingsView()
     {
         InitializeComponent();
     }
+
+    /// <summary>
+    /// Wird ausgelöst wenn sich eine Einstellung ändert (für Auto-Save mit Debounce).
+    /// </summary>
+    public event EventHandler? SettingChanged;
+
+    /// <summary>
+    /// Wird ausgelöst wenn sich eine Einstellung durch Klick ändert (sofortige Speicherung).
+    /// </summary>
+    public event EventHandler? SettingChangedImmediate;
 
     public event RoutedEventHandler? SettingsSaveButtonClicked;
     public event SelectionChangedEventHandler? LlmModeComboBoxSelectionChanged;
@@ -26,13 +38,17 @@ public partial class LlmSettingsView : UserControl
     private void SettingsSaveButton_Click(object sender, RoutedEventArgs e) =>
         SettingsSaveButtonClicked?.Invoke(sender, e);
 
-    private void LlmModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
+    private void LlmModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
         LlmModeComboBoxSelectionChanged?.Invoke(sender, e);
+        NotifySettingChanged(immediate: true);
+    }
 
     private void LlmModelPresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateCustomPathVisibility();
         LlmModelPresetComboBoxSelectionChanged?.Invoke(sender, e);
+        NotifySettingChanged(immediate: true);
     }
 
     private void LlmModelPathBrowseButton_Click(object sender, RoutedEventArgs e) =>
@@ -49,6 +65,32 @@ public partial class LlmSettingsView : UserControl
         }
 
         LlmTemperatureSliderValueChanged?.Invoke(sender, e);
+        NotifySettingChanged();
+    }
+
+    private void OnSettingChanged(object sender, TextChangedEventArgs e)
+    {
+        NotifySettingChanged();
+    }
+
+    private void OnComboBoxSettingChanged(object sender, SelectionChangedEventArgs e)
+    {
+        NotifySettingChanged(immediate: true);
+    }
+
+    private void NotifySettingChanged(bool immediate = false)
+    {
+        if (!_isApplyingSettings)
+        {
+            if (immediate)
+            {
+                SettingChangedImmediate?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                SettingChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
 
     public string LlmModelPath
@@ -77,27 +119,43 @@ public partial class LlmSettingsView : UserControl
 
     public void ApplyLlmSettings(LlmSettings settings)
     {
-        SelectComboBoxItemByTag(LlmModeComboBox, settings.Mode.ToString());
-        SelectComboBoxItemByTag(LlmModelPresetComboBox, settings.ModelPreset.ToString());
-        SelectComboBoxItemByTag(LlmModelTypeComboBox, settings.ModelType.ToString());
+        _isApplyingSettings = true;
+        try
+        {
+            SelectComboBoxItemByTag(LlmModeComboBox, settings.Mode.ToString());
+            SelectComboBoxItemByTag(LlmModelPresetComboBox, settings.ModelPreset.ToString());
+            SelectComboBoxItemByTag(LlmModelTypeComboBox, settings.ModelType.ToString());
 
-        LlmModelPathTextBox.Text = settings.LocalModelPath ?? string.Empty;
-        LlmSystemPromptTextBox.Text = settings.SystemPrompt ?? string.Empty;
-        LlmMaxTokensTextBox.Text = settings.MaxTokens.ToString();
-        LlmTemperatureSlider.Value = settings.Temperature;
-        LlmTemperatureValueText.Text = settings.Temperature.ToString("F1", CultureInfo.InvariantCulture);
-        LlmTitleCustomPromptTextBox.Text = settings.TitleCustomPrompt ?? string.Empty;
-        LlmDescriptionCustomPromptTextBox.Text = settings.DescriptionCustomPrompt ?? string.Empty;
-        LlmTagsCustomPromptTextBox.Text = settings.TagsCustomPrompt ?? string.Empty;
+            LlmModelPathTextBox.Text = settings.LocalModelPath ?? string.Empty;
+            LlmSystemPromptTextBox.Text = settings.SystemPrompt ?? string.Empty;
+            LlmMaxTokensTextBox.Text = settings.MaxTokens.ToString();
+            LlmTemperatureSlider.Value = settings.Temperature;
+            LlmTemperatureValueText.Text = settings.Temperature.ToString("F1", CultureInfo.InvariantCulture);
+            LlmTitleCustomPromptTextBox.Text = settings.TitleCustomPrompt ?? string.Empty;
+            LlmDescriptionCustomPromptTextBox.Text = settings.DescriptionCustomPrompt ?? string.Empty;
+            LlmTagsCustomPromptTextBox.Text = settings.TagsCustomPrompt ?? string.Empty;
 
-        UpdateCustomPathVisibility();
+            UpdateCustomPathVisibility();
+        }
+        finally
+        {
+            _isApplyingSettings = false;
+        }
     }
 
     public void ApplySuggestionSettings(AppSettings settings)
     {
-        TitleSuggestionCount = Math.Max(1, settings.TitleSuggestionCount);
-        DescriptionSuggestionCount = Math.Max(1, settings.DescriptionSuggestionCount);
-        TagsSuggestionCount = Math.Max(1, settings.TagsSuggestionCount);
+        _isApplyingSettings = true;
+        try
+        {
+            TitleSuggestionCount = Math.Max(1, settings.TitleSuggestionCount);
+            DescriptionSuggestionCount = Math.Max(1, settings.DescriptionSuggestionCount);
+            TagsSuggestionCount = Math.Max(1, settings.TagsSuggestionCount);
+        }
+        finally
+        {
+            _isApplyingSettings = false;
+        }
     }
 
     public void UpdateLlmSettings(LlmSettings settings)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using DCM.Core.Models;
@@ -7,10 +8,22 @@ namespace DCM.App.Views;
 
 public partial class ChannelView : UserControl
 {
+    private bool _isApplyingSettings;
+
     public ChannelView()
     {
         InitializeComponent();
     }
+
+    /// <summary>
+    /// Wird ausgelöst wenn sich eine Einstellung ändert (für Auto-Save mit Debounce).
+    /// </summary>
+    public event EventHandler? SettingChanged;
+
+    /// <summary>
+    /// Wird ausgelöst wenn sich eine Einstellung durch Klick ändert (sofortige Speicherung).
+    /// </summary>
+    public event EventHandler? SettingChangedImmediate;
 
     public event RoutedEventHandler? ChannelProfileSaveButtonClicked;
 
@@ -21,14 +34,22 @@ public partial class ChannelView : UserControl
 
     public void LoadPersona(ChannelPersona persona)
     {
-        var data = persona ?? new ChannelPersona();
-        ChannelPersonaNameTextBox.Text = data.Name ?? string.Empty;
-        ChannelPersonaChannelNameTextBox.Text = data.ChannelName ?? string.Empty;
-        ChannelPersonaLanguageTextBox.Text = data.Language ?? string.Empty;
-        ChannelPersonaToneOfVoiceTextBox.Text = data.ToneOfVoice ?? string.Empty;
-        ChannelPersonaContentTypeTextBox.Text = data.ContentType ?? string.Empty;
-        ChannelPersonaTargetAudienceTextBox.Text = data.TargetAudience ?? string.Empty;
-        ChannelPersonaAdditionalInstructionsTextBox.Text = data.AdditionalInstructions ?? string.Empty;
+        _isApplyingSettings = true;
+        try
+        {
+            var data = persona ?? new ChannelPersona();
+            ChannelPersonaNameTextBox.Text = data.Name ?? string.Empty;
+            ChannelPersonaChannelNameTextBox.Text = data.ChannelName ?? string.Empty;
+            ChannelPersonaLanguageTextBox.Text = data.Language ?? string.Empty;
+            ChannelPersonaToneOfVoiceTextBox.Text = data.ToneOfVoice ?? string.Empty;
+            ChannelPersonaContentTypeTextBox.Text = data.ContentType ?? string.Empty;
+            ChannelPersonaTargetAudienceTextBox.Text = data.TargetAudience ?? string.Empty;
+            ChannelPersonaAdditionalInstructionsTextBox.Text = data.AdditionalInstructions ?? string.Empty;
+        }
+        finally
+        {
+            _isApplyingSettings = false;
+        }
     }
 
     public void UpdatePersona(ChannelPersona persona)
@@ -69,4 +90,20 @@ public partial class ChannelView : UserControl
 
     private void ChannelProfileSaveButton_Click(object sender, RoutedEventArgs e) =>
         ChannelProfileSaveButtonClicked?.Invoke(sender, e);
+
+    private void OnSettingChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_isApplyingSettings)
+        {
+            SettingChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void OnComboBoxSettingChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_isApplyingSettings)
+        {
+            SettingChangedImmediate?.Invoke(this, EventArgs.Empty);
+        }
+    }
 }

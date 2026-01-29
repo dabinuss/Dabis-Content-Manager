@@ -136,7 +136,8 @@
                          Grid.Column="0"
                          MinWidth="320"
                          HorizontalAlignment="Stretch"
-                         ToolTip="{DynamicResource Settings.LLM.PathToModel.Tooltip}"/>
+                         ToolTip="{DynamicResource Settings.LLM.PathToModel.Tooltip}"
+                         TextChanged="OnSettingChanged"/>
                 <Button x:Name="LlmModelPathBrowseButton"
                         Grid.Column="1"
                         Content="{DynamicResource Settings.ChoosePath}"
@@ -157,7 +158,8 @@
               <ComboBox Grid.Row="7"
                         x:Name="LlmModelTypeComboBox"
                         MinWidth="200"
-                        Visibility="Collapsed">
+                        Visibility="Collapsed"
+                        SelectionChanged="OnComboBoxSettingChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Detect}"
                               Tag="Auto"
                               IsSelected="True"/>
@@ -177,7 +179,8 @@
                        AcceptsReturn="True"
                        Height="80"
                        TextWrapping="Wrap"
-                       VerticalScrollBarVisibility="Auto"/>
+                       VerticalScrollBarVisibility="Auto"
+                       TextChanged="OnSettingChanged"/>
 
               <Grid Grid.Row="10"
                     Margin="0,8,0,0">
@@ -221,7 +224,8 @@
                   <TextBox x:Name="LlmMaxTokensTextBox"
                            Grid.Column="0"
                            Width="80"
-                           Text="{DynamicResource Settings.LLM.Parameters.MaxToken.Default}"/>
+                           Text="{DynamicResource Settings.LLM.Parameters.MaxToken.Default}"
+                           TextChanged="OnSettingChanged"/>
                   <TextBlock Grid.Column="1"
                              Text="{DynamicResource Settings.LLM.MaxTokensHint}"
                              FontSize="{StaticResource FontSizeS}"
@@ -292,7 +296,8 @@
                        Height="60"
                        TextWrapping="Wrap"
                        AcceptsReturn="True"
-                       VerticalScrollBarVisibility="Auto"/>
+                       VerticalScrollBarVisibility="Auto"
+                       TextChanged="OnSettingChanged"/>
 
               <TextBlock Grid.Row="2"
                          Text="{DynamicResource Settings.LLM.Prompts.Description}"
@@ -304,7 +309,8 @@
                        Height="60"
                        TextWrapping="Wrap"
                        AcceptsReturn="True"
-                       VerticalScrollBarVisibility="Auto"/>
+                       VerticalScrollBarVisibility="Auto"
+                       TextChanged="OnSettingChanged"/>
 
               <TextBlock Grid.Row="4"
                          Text="{DynamicResource Settings.LLM.Prompts.Tags}"
@@ -316,7 +322,8 @@
                        Height="60"
                        TextWrapping="Wrap"
                        AcceptsReturn="True"
-                       VerticalScrollBarVisibility="Auto"/>
+                       VerticalScrollBarVisibility="Auto"
+                       TextChanged="OnSettingChanged"/>
             </Grid>
           </GroupBox>
 
@@ -341,7 +348,8 @@
                 <ComboBox Grid.Column="1"
                           x:Name="TitleSuggestionCountComboBox"
                           Width="120"
-                          ItemsSource="{StaticResource SuggestionCountOptions}"/>
+                          ItemsSource="{StaticResource SuggestionCountOptions}"
+                          SelectionChanged="OnComboBoxSettingChanged"/>
               </Grid>
 
               <Grid Grid.Row="1"
@@ -356,7 +364,8 @@
                 <ComboBox Grid.Column="1"
                           x:Name="DescriptionSuggestionCountComboBox"
                           Width="120"
-                          ItemsSource="{StaticResource SuggestionCountOptions}"/>
+                          ItemsSource="{StaticResource SuggestionCountOptions}"
+                          SelectionChanged="OnComboBoxSettingChanged"/>
               </Grid>
 
               <Grid Grid.Row="2">
@@ -370,7 +379,8 @@
                 <ComboBox Grid.Column="1"
                           x:Name="TagsSuggestionCountComboBox"
                           Width="120"
-                          ItemsSource="{StaticResource SuggestionCountOptions}"/>
+                          ItemsSource="{StaticResource SuggestionCountOptions}"
+                          SelectionChanged="OnComboBoxSettingChanged"/>
               </Grid>
             </Grid>
           </GroupBox>

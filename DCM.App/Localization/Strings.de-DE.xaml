@@ -631,6 +631,7 @@
   <sys:String x:Key="Settings.LLM.Download.Available">Verfügbar</sys:String>
   <sys:String x:Key="Settings.LLM.Download.NotAvailable">Nicht heruntergeladen</sys:String>
   <sys:String x:Key="Settings.LLM.Download.Downloading">Wird heruntergeladen...</sys:String>
+  <sys:String x:Key="Settings.LLM.Download.AlreadyAvailable">Modell ist bereits heruntergeladen</sys:String>
   <sys:String x:Key="Settings.LLM.PathToModel">Pfad zum Model</sys:String>
   <sys:String x:Key="Settings.LLM.ModelType">Modeltyp</sys:String>
   <sys:String x:Key="Settings.LLM.ModelType.Detect">Automatisch erkennen</sys:String>

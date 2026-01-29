@@ -101,7 +101,7 @@ public partial class MainWindow
         });
     }
 
-    private void ScheduleSettingsSave()
+    private void ScheduleSettingsSave(bool recreateLlmClient = false)
     {
         if (_isClosing)
         {
@@ -110,6 +110,12 @@ public partial class MainWindow
         }
 
         _settingsSaveDirty = true;
+
+        // Merken, dass der LLM-Client nach dem Speichern neu erstellt werden soll
+        if (recreateLlmClient)
+        {
+            _llmClientNeedsRecreate = true;
+        }
 
         if (_settingsSaveTimer is null)
         {
@@ -132,6 +138,13 @@ public partial class MainWindow
         {
             _settingsSaveDirty = false;
             SaveSettings();
+
+            // LLM-Client neu erstellen wenn nötig (nach dem Speichern)
+            if (_llmClientNeedsRecreate)
+            {
+                _llmClientNeedsRecreate = false;
+                RecreateLlmClient();
+            }
         }
     }
 
@@ -296,6 +309,22 @@ public partial class MainWindow
         }
 
         _llmModelManager ??= new LlmModelManager(new HttpClient(), _logger);
+
+        // Prüfen ob das Modell bereits heruntergeladen wurde
+        if (_llmModelManager.CheckAvailability(preset))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Settings.LLM.Download.AlreadyAvailable");
+            LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: true);
+
+            // Settings aktualisieren und LLM-Client neu erstellen
+            _settings.Llm ??= new LlmSettings();
+            _settings.Llm.ModelPreset = preset;
+            SaveSettings();
+            RecreateLlmClient();
+            UpdateLlmStatusText();
+            return;
+        }
+
         _llmDownloadCts = new CancellationTokenSource();
 
         LlmSettingsPageView?.SetDownloadButtonState(isDownloading: true, isAvailable: false);

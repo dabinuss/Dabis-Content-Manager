@@ -16,11 +16,22 @@ public partial class GeneralSettingsView : UserControl
 {
     private bool _transcriptionDownloadButtonAvailable = true;
     private bool _isTranscriptionDownloadBusy;
+    private bool _isApplyingSettings;
 
     public GeneralSettingsView()
     {
         InitializeComponent();
     }
+
+    /// <summary>
+    /// Wird ausgelöst wenn sich eine Einstellung ändert (für Auto-Save mit Debounce).
+    /// </summary>
+    public event EventHandler? SettingChanged;
+
+    /// <summary>
+    /// Wird ausgelöst wenn sich eine Einstellung durch Klick ändert (sofortige Speicherung).
+    /// </summary>
+    public event EventHandler? SettingChangedImmediate;
 
     public event RoutedEventHandler? SettingsSaveButtonClicked;
     public event RoutedEventHandler? DefaultVideoFolderBrowseButtonClicked;
@@ -50,6 +61,30 @@ public partial class GeneralSettingsView : UserControl
 
     private void TranscriptionModelSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         TranscriptionModelSizeSelectionChanged?.Invoke(sender, e);
+
+    private void OnSettingChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_isApplyingSettings)
+        {
+            SettingChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void OnCheckBoxSettingChanged(object sender, RoutedEventArgs e)
+    {
+        if (!_isApplyingSettings)
+        {
+            SettingChangedImmediate?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void OnComboBoxSettingChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_isApplyingSettings)
+        {
+            SettingChangedImmediate?.Invoke(this, EventArgs.Empty);
+        }
+    }
 
     public string DefaultVideoFolder
     {
@@ -127,21 +162,29 @@ public partial class GeneralSettingsView : UserControl
 
     public void ApplyAppSettings(AppSettings settings)
     {
-        DefaultVideoFolder = settings.DefaultVideoFolder ?? string.Empty;
-        DefaultThumbnailFolder = settings.DefaultThumbnailFolder ?? string.Empty;
-        DefaultSchedulingTime = string.IsNullOrWhiteSpace(settings.DefaultSchedulingTime)
-            ? Constants.DefaultSchedulingTime
-            : settings.DefaultSchedulingTime;
+        _isApplyingSettings = true;
+        try
+        {
+            DefaultVideoFolder = settings.DefaultVideoFolder ?? string.Empty;
+            DefaultThumbnailFolder = settings.DefaultThumbnailFolder ?? string.Empty;
+            DefaultSchedulingTime = string.IsNullOrWhiteSpace(settings.DefaultSchedulingTime)
+                ? Constants.DefaultSchedulingTime
+                : settings.DefaultSchedulingTime;
 
-        SelectComboBoxItemByTag(DefaultVisibilityComboBox, settings.DefaultVisibility);
-        SetSelectedTheme(settings.Theme);
+            SelectComboBoxItemByTag(DefaultVisibilityComboBox, settings.DefaultVisibility);
+            SetSelectedTheme(settings.Theme);
 
-        ConfirmBeforeUploadCheckBox.IsChecked = settings.ConfirmBeforeUpload;
-        AutoApplyDefaultTemplateCheckBox.IsChecked = settings.AutoApplyDefaultTemplate;
-        OpenBrowserAfterUploadCheckBox.IsChecked = settings.OpenBrowserAfterUpload;
-        AutoConnectYouTubeCheckBox.IsChecked = settings.AutoConnectYouTube;
-        RememberDraftsBetweenSessions = settings.RememberDraftsBetweenSessions;
-        AutoCleanDrafts = settings.AutoRemoveCompletedDrafts;
+            ConfirmBeforeUploadCheckBox.IsChecked = settings.ConfirmBeforeUpload;
+            AutoApplyDefaultTemplateCheckBox.IsChecked = settings.AutoApplyDefaultTemplate;
+            OpenBrowserAfterUploadCheckBox.IsChecked = settings.OpenBrowserAfterUpload;
+            AutoConnectYouTubeCheckBox.IsChecked = settings.AutoConnectYouTube;
+            RememberDraftsBetweenSessions = settings.RememberDraftsBetweenSessions;
+            AutoCleanDrafts = settings.AutoRemoveCompletedDrafts;
+        }
+        finally
+        {
+            _isApplyingSettings = false;
+        }
     }
 
     public void UpdateAppSettings(AppSettings settings)
@@ -170,9 +213,17 @@ public partial class GeneralSettingsView : UserControl
 
     public void ApplyTranscriptionSettings(TranscriptionSettings settings)
     {
-        TranscriptionAutoCheckBox.IsChecked = settings.AutoTranscribeOnVideoSelect;
-        SelectComboBoxItemByTag(TranscriptionModelSizeComboBox, settings.ModelSize);
-        SelectComboBoxItemByTag(TranscriptionLanguageComboBox, settings.Language ?? "auto");
+        _isApplyingSettings = true;
+        try
+        {
+            TranscriptionAutoCheckBox.IsChecked = settings.AutoTranscribeOnVideoSelect;
+            SelectComboBoxItemByTag(TranscriptionModelSizeComboBox, settings.ModelSize);
+            SelectComboBoxItemByTag(TranscriptionLanguageComboBox, settings.Language ?? "auto");
+        }
+        finally
+        {
+            _isApplyingSettings = false;
+        }
     }
 
     public void UpdateTranscriptionSettings(TranscriptionSettings settings)
