@@ -71,6 +71,61 @@
   </ControlTemplate>
 
   <!-- =================================================================== -->
+  <!-- TOOLTIP STYLE (app-wide dark theme tooltip)                          -->
+  <!-- =================================================================== -->
+
+  <Style TargetType="ToolTip">
+    <Setter Property="Background"
+            Value="{StaticResource SurfaceElevatedBrush}"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextPrimaryBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="1"/>
+    <Setter Property="Padding"
+            Value="10,6"/>
+    <Setter Property="FontFamily"
+            Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeS}"/>
+    <Setter Property="MaxWidth"
+            Value="320"/>
+    <Setter Property="HasDropShadow"
+            Value="False"/>
+    <Setter Property="Placement"
+            Value="Mouse"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToolTip">
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{StaticResource RadiusS}"
+                  Padding="{TemplateBinding Padding}"
+                  SnapsToDevicePixels="True"
+                  IsHitTestVisible="False">
+            <TextBlock Text="{TemplateBinding Content}"
+                       Foreground="{TemplateBinding Foreground}"
+                       TextWrapping="Wrap"
+                       IsHitTestVisible="False"/>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ToolTipService defaults for faster tooltips -->
+  <Style TargetType="FrameworkElement">
+    <Setter Property="ToolTipService.InitialShowDelay"
+            Value="100"/>
+    <Setter Property="ToolTipService.ShowDuration"
+            Value="10000"/>
+    <Setter Property="ToolTipService.BetweenShowDelay"
+            Value="0"/>
+  </Style>
+
+  <!-- =================================================================== -->
   <!-- COMPONENT STYLES (reusable UI patterns)                               -->
   <!-- =================================================================== -->
 

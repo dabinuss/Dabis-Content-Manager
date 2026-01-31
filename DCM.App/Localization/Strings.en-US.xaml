@@ -231,7 +231,7 @@
   <sys:String x:Key="Nav.Channels">Channels</sys:String>
   <sys:String x:Key="Nav.ChannelProfile">Channel Profile</sys:String>
   <sys:String x:Key="Nav.Templates">Templates</sys:String>
-  <sys:String x:Key="Nav.Presets">Presets</sys:String>
+  <sys:String x:Key="Nav.Presets">Upload Presets</sys:String>
   <sys:String x:Key="Nav.History">History</sys:String>
   <sys:String x:Key="Nav.Settings">Settings</sys:String>
   <sys:String x:Key="Nav.Settings.General">General</sys:String>
@@ -507,8 +507,9 @@
   <sys:String x:Key="Status.Template.SaveFailed">Failed to save template: {0}</sys:String>
 
   <!-- Presets -->
-  <sys:String x:Key="Presets">Presets</sys:String>
+  <sys:String x:Key="Presets">Upload Presets</sys:String>
   <sys:String x:Key="Presets.Placeholders.Insert">Insert placeholders</sys:String>
+  <sys:String x:Key="Presets.DescriptionTemplate.Tooltip">Use placeholders like {{TITLE}}, {{TAGS}}, {{CHAPTERS}}, {{DATE}} for dynamic content.</sys:String>
   <sys:String x:Key="Presets.Header">Available Presets</sys:String>
   <sys:String x:Key="Presets.Edit">Edit Preset</sys:String>
   <sys:String x:Key="Presets.Section.Basic">Video Defaults</sys:String>

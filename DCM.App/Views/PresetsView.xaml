@@ -505,7 +505,8 @@
                      TextWrapping="Wrap"
                      MinHeight="96"
                      TextChanged="PresetEditorField_Changed"
-                     VerticalScrollBarVisibility="Auto"/>
+                     VerticalScrollBarVisibility="Auto"
+                     ToolTip="{DynamicResource Presets.DescriptionTemplate.Tooltip}"/>
 
             <Grid Grid.Row="4">
               <Grid.RowDefinitions>

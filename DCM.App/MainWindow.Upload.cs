@@ -1301,7 +1301,13 @@ public partial class MainWindow
 
         if (draft.ScheduledDate.HasValue)
         {
-            UploadView.ScheduleDatePicker.SelectedDate = draft.ScheduledDate.Value;
+            // Ensure scheduled date is not in the past (blackout dates would reject it)
+            var scheduledDate = draft.ScheduledDate.Value.Date;
+            if (scheduledDate < DateTime.Today)
+            {
+                scheduledDate = DateTime.Today;
+            }
+            UploadView.ScheduleDatePicker.SelectedDate = scheduledDate;
         }
         else if (UploadView.ScheduleDatePicker.SelectedDate is null)
         {
