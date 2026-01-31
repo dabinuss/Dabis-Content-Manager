@@ -17,7 +17,7 @@
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="*"
                         MinWidth="350"/>
-      <ColumnDefinition Width="{StaticResource SpacingL}"/>
+      <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
       <ColumnDefinition Width="*"
                         MinWidth="300"
                         MaxWidth="400"/>
@@ -26,7 +26,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <!-- obere Boxen -->
-      <RowDefinition Height="{StaticResource SpacingM}"/>
+      <RowDefinition Height="{StaticResource SpacingXL}"/>
       <!-- Abstand -->
       <RowDefinition Height="Auto"/>
       <!-- untere Box -->

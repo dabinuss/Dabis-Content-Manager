@@ -15,7 +15,7 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"
                           MinWidth="{StaticResource SettingsColumnMinWidth}"/>
-        <ColumnDefinition Width="{StaticResource SpacingL}"/>
+        <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
         <ColumnDefinition Width="*"
                           MinWidth="{StaticResource SettingsColumnMinWidth}"/>
       </Grid.ColumnDefinitions>
@@ -23,9 +23,9 @@
       <Grid Grid.Column="0">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="{StaticResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="{StaticResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <GroupBox Grid.Row="0"
@@ -124,9 +124,9 @@
       <Grid Grid.Column="2">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="{StaticResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="{StaticResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <GroupBox Grid.Row="0"

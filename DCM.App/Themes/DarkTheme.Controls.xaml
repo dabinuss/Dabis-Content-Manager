@@ -736,6 +736,20 @@
     </Style.Triggers>
   </Style>
 
+  <!-- Primary Button Large - for main actions like "Start Upload" -->
+  <Style x:Key="PrimaryButtonLarge"
+         TargetType="Button"
+         BasedOn="{StaticResource PrimaryButton}">
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeL}"/>
+    <Setter Property="Padding"
+            Value="24,10"/>
+    <Setter Property="MinHeight"
+            Value="44"/>
+    <Setter Property="MinWidth"
+            Value="160"/>
+  </Style>
+
   <!-- Secondary Button -->
   <Style x:Key="SecondaryButton"
          TargetType="Button"
@@ -785,6 +799,98 @@
                 Value="{StaticResource TextDisabledBrush}"/>
       </Trigger>
     </Style.Triggers>
+  </Style>
+
+  <!-- Tertiary Button - subtle, text-based button for secondary actions -->
+  <Style x:Key="TertiaryButton"
+         TargetType="Button"
+         BasedOn="{StaticResource ButtonBaseCommon}">
+    <Setter Property="HorizontalAlignment"
+            Value="Left"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeM}"/>
+    <Setter Property="Background"
+            Value="Transparent"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextSecondaryBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="0"/>
+    <Setter Property="Padding"
+            Value="8,4"/>
+    <Setter Property="MinHeight"
+            Value="28"/>
+    <Setter Property="HorizontalContentAlignment"
+            Value="Center"/>
+    <Setter Property="VerticalContentAlignment"
+            Value="Center"/>
+    <Setter Property="Template"
+            Value="{StaticResource ButtonTemplatePill}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource SurfaceHoverBrush}"/>
+        <Setter Property="Foreground"
+                Value="{StaticResource TextPrimaryBrush}"/>
+      </Trigger>
+      <Trigger Property="IsPressed"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource SurfacePressedBrush}"/>
+      </Trigger>
+      <Trigger Property="IsEnabled"
+               Value="False">
+        <Setter Property="Foreground"
+                Value="{StaticResource TextDisabledBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- Link Button - for text links -->
+  <Style x:Key="LinkButton"
+         TargetType="Button"
+         BasedOn="{StaticResource ButtonBaseCommon}">
+    <Setter Property="HorizontalAlignment"
+            Value="Left"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeM}"/>
+    <Setter Property="Background"
+            Value="Transparent"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource PrimaryBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="0"/>
+    <Setter Property="Padding"
+            Value="0"/>
+    <Setter Property="MinHeight"
+            Value="0"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <TextBlock x:Name="ContentText"
+                     Text="{TemplateBinding Content}"
+                     Foreground="{TemplateBinding Foreground}"
+                     TextDecorations="Underline"
+                     Padding="{TemplateBinding Padding}"/>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter TargetName="ContentText"
+                      Property="Foreground"
+                      Value="{StaticResource PrimaryHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled"
+                     Value="False">
+              <Setter TargetName="ContentText"
+                      Property="Foreground"
+                      Value="{StaticResource TextDisabledBrush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
   </Style>
 
   <!-- Danger Button -->

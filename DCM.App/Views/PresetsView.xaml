@@ -217,7 +217,7 @@
           Margin="8,8,8,8">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingM}"/>
+        <RowDefinition Height="{StaticResource SpacingXL}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
@@ -282,14 +282,14 @@
           </Grid.Style>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="{StaticResource SpacingL}"/>
+          <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="{StaticResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingM}"/>
+          <RowDefinition Height="{StaticResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 

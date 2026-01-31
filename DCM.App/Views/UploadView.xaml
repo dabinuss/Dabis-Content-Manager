@@ -1004,21 +1004,19 @@
             <StackPanel Grid.Column="2"
                         VerticalAlignment="Top"
                         Margin="8,8,8,8">
-              <Button x:Name="VideoChangeButton"
-                      Content="{DynamicResource Common.Change}"
-                      Style="{StaticResource SecondaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe3c9;"
-                      Click="VideoChangeButton_Click"
-                      Margin="0,0,0,8"
-                      MinWidth="140"/>
               <Button x:Name="UploadButton"
-                      Style="{StaticResource PrimaryButton}"
+                      Style="{StaticResource PrimaryButtonLarge}"
                       Click="UploadButton_Click"
                       IsEnabled="False"
-                      Padding="10,8"
-                      MinWidth="140"
                       ap:ButtonIcon.Glyph="&#xeb9b;"
-                      Content="{DynamicResource Upload.StartUpload}"/>
+                      Content="{DynamicResource Upload.StartUpload}"
+                      Margin="0,0,0,12"/>
+              <Button x:Name="VideoChangeButton"
+                      Content="{DynamicResource Common.Change}"
+                      Style="{StaticResource TertiaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe3c9;"
+                      Click="VideoChangeButton_Click"
+                      MinWidth="140"/>
             </StackPanel>
           </Grid>
           <Border Grid.Row="1"

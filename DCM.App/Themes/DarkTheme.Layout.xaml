@@ -19,6 +19,7 @@
   <GridLength x:Key="SpacingL">12</GridLength>
   <GridLength x:Key="SpacingXL">16</GridLength>
   <GridLength x:Key="SpacingXXL">24</GridLength>
+  <GridLength x:Key="SpacingXXXL">32</GridLength>
 
   <!-- Thickness presets for common margin/padding combinations -->
   <Thickness x:Key="SpacingAllXS">2</Thickness>
@@ -27,6 +28,7 @@
   <Thickness x:Key="SpacingAllL">12</Thickness>
   <Thickness x:Key="SpacingAllXL">16</Thickness>
   <Thickness x:Key="SpacingAllXXL">24</Thickness>
+  <Thickness x:Key="SpacingAllXXXL">32</Thickness>
 
   <!-- Horizontale Spacing -->
   <Thickness x:Key="SpacingHorizontalS">4,0</Thickness>
@@ -48,11 +50,12 @@
   <!-- Content Spacing -->
   <Thickness x:Key="ContentPadding">16</Thickness>
   <Thickness x:Key="HeaderPadding">16,8</Thickness>
-  <Thickness x:Key="GroupBoxPadding">8</Thickness>
-  <Thickness x:Key="GroupBoxMargin">0,0,0,8</Thickness>
+  <Thickness x:Key="GroupBoxPadding">12</Thickness>
+  <Thickness x:Key="GroupBoxMargin">0,0,0,16</Thickness>
   <sys:Double x:Key="SettingsContentMaxWidth">1040</sys:Double>
   <sys:Double x:Key="SettingsColumnMinWidth">350</sys:Double>
-  <Thickness x:Key="SettingsSectionSpacing">0,0,0,8</Thickness>
+  <sys:Double x:Key="SettingsColumnSpacing">24</sys:Double>
+  <Thickness x:Key="SettingsSectionSpacing">0,0,0,16</Thickness>
   <Thickness x:Key="SettingsSectionSpacingCompact">0,0,0,8</Thickness>
 
   <!-- =================================================================== -->

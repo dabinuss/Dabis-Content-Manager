@@ -614,7 +614,7 @@
           Margin="12,8,8,8">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingM}"/>
+        <RowDefinition Height="{StaticResource SpacingXL}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
@@ -677,7 +677,7 @@
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"
                                   MinWidth="320"/>
-                <ColumnDefinition Width="{StaticResource SpacingL}"/>
+                <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
                 <ColumnDefinition Width="*"
                                   MinWidth="260"/>
               </Grid.ColumnDefinitions>
@@ -686,7 +686,7 @@
               <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
-                  <RowDefinition Height="{StaticResource SpacingM}"/>
+                  <RowDefinition Height="{StaticResource SpacingXL}"/>
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -838,7 +838,7 @@
               <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
-                  <RowDefinition Height="{StaticResource SpacingM}"/>
+                  <RowDefinition Height="{StaticResource SpacingXL}"/>
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 

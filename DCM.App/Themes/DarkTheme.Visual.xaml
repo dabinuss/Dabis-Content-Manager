@@ -297,6 +297,36 @@
             Value="{StaticResource TextPrimaryBrush}"/>
   </Style>
 
+  <!-- Large Section Header - for main areas -->
+  <Style x:Key="SectionHeaderLarge"
+         TargetType="TextBlock">
+    <Setter Property="FontFamily"
+            Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize"
+            Value="{StaticResource FontSizeL}"/>
+    <Setter Property="FontWeight"
+            Value="{StaticResource FontWeightSemiBold}"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextPrimaryBrush}"/>
+    <Setter Property="Margin"
+            Value="0,0,0,12"/>
+  </Style>
+
+  <!-- Section Divider - horizontal line between sections -->
+  <Style x:Key="SectionDivider"
+         TargetType="Border">
+    <Setter Property="Height"
+            Value="1"/>
+    <Setter Property="Background"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="Margin"
+            Value="0,16,0,16"/>
+    <Setter Property="HorizontalAlignment"
+            Value="Stretch"/>
+    <Setter Property="SnapsToDevicePixels"
+            Value="True"/>
+  </Style>
+
   <!-- ICON STYLE                                                       -->
 
   <Style x:Key="NavIcon"
