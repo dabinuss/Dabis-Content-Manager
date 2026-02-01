@@ -290,7 +290,7 @@
               <Border Grid.Row="1"
                       Background="{StaticResource SurfaceBrush}"
                       BorderBrush="{StaticResource BorderBrush}"
-                      BorderThickness="1"
+                      BorderThickness="{StaticResource BorderThickness1}"
                       CornerRadius="0,0,12,12"
                       Padding="{StaticResource SpacingAllM}"
                       Margin="0,-1,0,0">
@@ -302,7 +302,7 @@
       </Setter>
     </Style>
   </UserControl.Resources>
-  <Grid Margin="0,0,8,0">
+  <Grid Margin="{StaticResource ViewRootMargin}">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="320"/>
       <ColumnDefinition Width="1"/>
@@ -326,7 +326,7 @@
                     Tag="YouTube"
                     Checked="AccountsServiceTab_Checked"
                     HorizontalContentAlignment="Stretch"
-                    MinHeight="88"
+                    MinHeight="{StaticResource CardMinHeightS}"
                     Margin="0,0,0,12">
         <Grid>
           <Grid.ColumnDefinitions>
@@ -341,11 +341,11 @@
                       Grid.Column="0"
                       VerticalAlignment="Center">
             <Border x:Name="YouTubeBadgeBorder"
-                    Width="72"
+                    Width="{StaticResource ThumbnailSizeM}"
                     Height="56"
                     Background="{StaticResource PlatformYouTubeBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1"
+                    BorderThickness="{StaticResource BorderThickness1}"
                     CornerRadius="6,6,0,0">
               <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
                          Foreground="White"
@@ -385,11 +385,11 @@
                         Margin="0,4,0,0"
                         VerticalAlignment="Center">
               <Border x:Name="YouTubeServiceChipBorder"
-                      Padding="6,2"
+                      Padding="{StaticResource PaddingCompact}"
                       CornerRadius="{StaticResource RadiusS}"
                       Background="{StaticResource SurfaceHoverBrush}"
                       BorderBrush="{StaticResource BorderBrush}"
-                      BorderThickness="1"
+                      BorderThickness="{StaticResource BorderThickness1}"
                       MaxWidth="200"
                       HorizontalAlignment="Left"
                       Margin="0,0,0,2">
@@ -430,7 +430,7 @@
                     Tag="TikTok"
                     Checked="AccountsServiceTab_Checked"
                     HorizontalContentAlignment="Stretch"
-                    MinHeight="80"
+                    MinHeight="{StaticResource CardMinHeightS}"
                     Margin="0,0,0,12">
         <Grid>
           <Grid.ColumnDefinitions>
@@ -443,11 +443,11 @@
           <StackPanel Grid.Row="0"
                       Grid.Column="0"
                       VerticalAlignment="Center">
-            <Border Width="72"
+            <Border Width="{StaticResource ThumbnailSizeM}"
                     Height="56"
                     Background="Black"
                     BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1"
+                    BorderThickness="{StaticResource BorderThickness1}"
                     CornerRadius="6,6,0,0">
               <TextBlock Text="{DynamicResource Accounts.TikTok.Short}"
                          Foreground="White"
@@ -458,7 +458,7 @@
             </Border>
             <ToggleButton Style="{StaticResource ServiceCardAutoConnectToggleButton}"
                           Margin="0"
-                          Width="72"/>
+                          Width="{StaticResource ThumbnailSizeM}"/>
             <TextBlock Text="{DynamicResource Accounts.YouTube.AutoConnect}"
                        FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
@@ -480,11 +480,11 @@
                         Orientation="Vertical"
                         Margin="0,4,0,0"
                         VerticalAlignment="Center">
-              <Border Padding="6,2"
+              <Border Padding="{StaticResource PaddingCompact}"
                       CornerRadius="{StaticResource RadiusS}"
                       Background="{StaticResource SurfaceHoverBrush}"
                       BorderBrush="{StaticResource BorderBrush}"
-                      BorderThickness="1"
+                      BorderThickness="{StaticResource BorderThickness1}"
                       MaxWidth="200"
                       HorizontalAlignment="Left"
                       Margin="0,0,0,2">
@@ -522,7 +522,7 @@
                     IsEnabled="False"
                     Tag="Instagram"
                     Checked="AccountsServiceTab_Checked"
-                    MinHeight="80">
+                    MinHeight="{StaticResource CardMinHeightS}">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="72"/>
@@ -534,11 +534,11 @@
           <StackPanel Grid.Row="0"
                       Grid.Column="0"
                       VerticalAlignment="Center">
-            <Border Width="72"
+            <Border Width="{StaticResource ThumbnailSizeM}"
                     Height="56"
                     Background="{StaticResource PlatformInstagramBrush}"
                     BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1"
+                    BorderThickness="{StaticResource BorderThickness1}"
                     CornerRadius="6,6,0,0">
               <TextBlock Text="{DynamicResource Accounts.Instagram.Short}"
                          Foreground="White"
@@ -549,7 +549,7 @@
             </Border>
             <ToggleButton Style="{StaticResource ServiceCardAutoConnectToggleButton}"
                           Margin="0"
-                          Width="72"/>
+                          Width="{StaticResource ThumbnailSizeM}"/>
             <TextBlock Text="{DynamicResource Accounts.YouTube.AutoConnect}"
                        FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
@@ -571,11 +571,11 @@
                         Orientation="Vertical"
                         Margin="0,4,0,0"
                         VerticalAlignment="Center">
-              <Border Padding="6,2"
+              <Border Padding="{StaticResource PaddingCompact}"
                       CornerRadius="{StaticResource RadiusS}"
                       Background="{StaticResource SurfaceHoverBrush}"
                       BorderBrush="{StaticResource BorderBrush}"
-                      BorderThickness="1"
+                      BorderThickness="{StaticResource BorderThickness1}"
                       MaxWidth="200"
                       HorizontalAlignment="Left"
                       Margin="0,0,0,2">

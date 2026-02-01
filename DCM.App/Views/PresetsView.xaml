@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
-  <Grid Margin="0,0,8,0">
+  <Grid Margin="{StaticResource ViewRootMargin}">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="320"/>
       <ColumnDefinition Width="1"/>
@@ -31,25 +31,25 @@
                 ap:ButtonIcon.Glyph="&#xe145;"
                 Click="PresetNewButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="96"/>
+                MinWidth="{StaticResource ButtonMinWidthM}"/>
         <Button Content="{DynamicResource Common.Edit}"
                 Style="{StaticResource SecondaryButton}"
                 ap:ButtonIcon.Glyph="&#xe3c9;"
                 Click="PresetEditButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="96"/>
+                MinWidth="{StaticResource ButtonMinWidthM}"/>
         <Button Content="{DynamicResource Common.Delete}"
                 Style="{StaticResource DangerButton}"
                 ap:ButtonIcon.Glyph="&#xe872;"
                 Click="PresetDeleteButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="96"/>
+                MinWidth="{StaticResource ButtonMinWidthM}"/>
         <Button Content="{DynamicResource Common.Save}"
                 Style="{StaticResource PrimaryButton}"
                 ap:ButtonIcon.Glyph="&#xe161;"
                 Click="PresetSaveButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="96"/>
+                MinWidth="{StaticResource ButtonMinWidthM}"/>
       </WrapPanel>
 
       <TextBlock Grid.Row="2"
@@ -145,11 +145,11 @@
                           CommandParameter="{Binding}"
                           PreviewMouseLeftButtonDown="PresetDefaultToggleButton_PreviewMouseLeftButtonDown"
                           Click="PresetDefaultToggleButton_Click">
-                    <Border Padding="6,2"
+                    <Border Padding="{StaticResource PaddingCompact}"
                             CornerRadius="{StaticResource RadiusS}"
                             Background="{StaticResource SurfaceHoverBrush}"
                             BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="1"
+                            BorderThickness="{StaticResource BorderThickness1}"
                             VerticalAlignment="Center">
                       <Border.Style>
                         <Style TargetType="Border">
@@ -230,12 +230,12 @@
                    Style="{StaticResource SectionHeader}"/>
         <Border x:Name="PresetDirtyBadge"
                 Grid.Column="1"
-                Padding="6,2"
+                Padding="{StaticResource PaddingCompact}"
                 Margin="8,0,0,0"
                 CornerRadius="{StaticResource RadiusS}"
                 Background="{StaticResource SurfaceHoverBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="1"
+                BorderThickness="{StaticResource BorderThickness1}"
                 VerticalAlignment="Center"
                 Visibility="Collapsed">
           <StackPanel Orientation="Horizontal">
@@ -503,7 +503,7 @@
                      Grid.Row="2"
                      AcceptsReturn="True"
                      TextWrapping="Wrap"
-                     MinHeight="96"
+                     MinHeight="{StaticResource CardMinHeightM}"
                      TextChanged="PresetEditorField_Changed"
                      VerticalScrollBarVisibility="Auto"
                      ToolTip="{DynamicResource Presets.DescriptionTemplate.Tooltip}"/>
@@ -560,7 +560,7 @@
               </Style.Triggers>
             </Style>
           </Border.Style>
-          <Grid MinHeight="360"
+          <Grid MinHeight="{StaticResource DetailPanelMinHeight}"
                 VerticalAlignment="Stretch"
                 HorizontalAlignment="Stretch">
             <Grid.RowDefinitions>

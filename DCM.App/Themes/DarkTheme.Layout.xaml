@@ -62,11 +62,111 @@
   <!-- CORNER RADIUS SYSTEM - Einheitliche Eckenradien                       -->
   <!-- =================================================================== -->
 
+  <CornerRadius x:Key="RadiusNone">0</CornerRadius>
   <CornerRadius x:Key="RadiusS">6</CornerRadius>
   <CornerRadius x:Key="RadiusM">10</CornerRadius>
   <CornerRadius x:Key="RadiusL">12</CornerRadius>
   <CornerRadius x:Key="RadiusXL">16</CornerRadius>
   <CornerRadius x:Key="RadiusPill">20</CornerRadius>
   <CornerRadius x:Key="RadiusCircle">999</CornerRadius>
+
+  <!-- =================================================================== -->
+  <!-- SIZE SYSTEM - Standard Größen für Komponenten                        -->
+  <!-- =================================================================== -->
+
+  <!-- Border Thickness -->
+  <sys:Double x:Key="BorderThicknessNone">0</sys:Double>
+  <sys:Double x:Key="BorderThicknessThin">0.5</sys:Double>
+  <sys:Double x:Key="BorderThicknessNormal">1</sys:Double>
+  <sys:Double x:Key="BorderThicknessThick">2</sys:Double>
+
+  <Thickness x:Key="BorderThickness1">1</Thickness>
+  <Thickness x:Key="BorderThickness0">0</Thickness>
+
+  <!-- Divider Heights -->
+  <sys:Double x:Key="DividerHeight">1</sys:Double>
+
+  <!-- Icon Sizes (für Container/Viewbox) -->
+  <sys:Double x:Key="IconSizeXS">12</sys:Double>
+  <sys:Double x:Key="IconSizeS">16</sys:Double>
+  <sys:Double x:Key="IconSizeM">20</sys:Double>
+  <sys:Double x:Key="IconSizeL">24</sys:Double>
+  <sys:Double x:Key="IconSizeXL">32</sys:Double>
+
+  <!-- Thumbnail/Preview Sizes -->
+  <sys:Double x:Key="ThumbnailSizeS">48</sys:Double>
+  <sys:Double x:Key="ThumbnailSizeM">72</sys:Double>
+  <sys:Double x:Key="ThumbnailSizeL">96</sys:Double>
+  <sys:Double x:Key="ThumbnailSizeXL">120</sys:Double>
+
+  <!-- Card MinHeight -->
+  <sys:Double x:Key="CardMinHeightS">80</sys:Double>
+  <sys:Double x:Key="CardMinHeightM">96</sys:Double>
+  <sys:Double x:Key="CardMinHeightL">140</sys:Double>
+  <sys:Double x:Key="CardMinHeightXL">180</sys:Double>
+
+  <!-- Input/Control MinHeight -->
+  <sys:Double x:Key="ControlMinHeightS">28</sys:Double>
+  <sys:Double x:Key="ControlMinHeightM">30</sys:Double>
+  <sys:Double x:Key="ControlMinHeightL">44</sys:Double>
+
+  <!-- ComboBox/Input MinWidth -->
+  <sys:Double x:Key="InputMinWidthS">160</sys:Double>
+  <sys:Double x:Key="InputMinWidthM">200</sys:Double>
+  <sys:Double x:Key="InputMinWidthL">260</sys:Double>
+  <sys:Double x:Key="InputMinWidthXL">320</sys:Double>
+
+  <!-- TextArea MinHeight -->
+  <sys:Double x:Key="TextAreaMinHeightS">80</sys:Double>
+  <sys:Double x:Key="TextAreaMinHeightM">110</sys:Double>
+  <sys:Double x:Key="TextAreaMinHeightL">140</sys:Double>
+  <sys:Double x:Key="TextAreaMinHeightXL">180</sys:Double>
+
+  <!-- Detail Panel MinHeight -->
+  <sys:Double x:Key="DetailPanelMinHeight">360</sys:Double>
+
+  <!-- Progress Bar Height -->
+  <sys:Double x:Key="ProgressBarHeight">8</sys:Double>
+
+  <!-- Button Width -->
+  <sys:Double x:Key="ButtonMinWidthS">80</sys:Double>
+  <sys:Double x:Key="ButtonMinWidthM">96</sys:Double>
+  <sys:Double x:Key="ButtonMinWidthL">160</sys:Double>
+
+  <!-- =================================================================== -->
+  <!-- PADDING SYSTEM - Standard Padding für Komponenten                    -->
+  <!-- =================================================================== -->
+
+  <!-- Compact Padding (für Tags, Chips, kleine Elemente) -->
+  <Thickness x:Key="PaddingCompact">6,2</Thickness>
+  <Thickness x:Key="PaddingCompactVertical">4,6</Thickness>
+
+  <!-- Button Padding -->
+  <Thickness x:Key="ButtonPaddingS">8,4</Thickness>
+  <Thickness x:Key="ButtonPaddingM">16,5</Thickness>
+  <Thickness x:Key="ButtonPaddingL">24,10</Thickness>
+
+  <!-- Card/Section Padding -->
+  <Thickness x:Key="CardPaddingS">8,8</Thickness>
+  <Thickness x:Key="CardPaddingM">12,12</Thickness>
+  <Thickness x:Key="CardPaddingL">16,16</Thickness>
+  <Thickness x:Key="CardPaddingXL">20,26</Thickness>
+
+  <!-- Input Padding -->
+  <Thickness x:Key="InputPaddingS">6,4</Thickness>
+  <Thickness x:Key="InputPaddingM">10,8</Thickness>
+
+  <!-- View Root Margin (standard für alle Views) -->
+  <Thickness x:Key="ViewRootMargin">0,0,8,0</Thickness>
+
+  <!-- Label Spacing -->
+  <Thickness x:Key="LabelMarginBottom">0,0,0,8</Thickness>
+  <Thickness x:Key="LabelMarginTop">0,8,0,0</Thickness>
+  <Thickness x:Key="LabelMarginTopSmall">0,4,0,0</Thickness>
+
+  <!-- Section Spacing -->
+  <Thickness x:Key="SectionMarginTop">0,16,0,0</Thickness>
+  <Thickness x:Key="SectionMarginBottom">0,0,0,16</Thickness>
+  <Thickness x:Key="SectionHeaderMarginBottom">0,0,0,10</Thickness>
 
 </ResourceDictionary>

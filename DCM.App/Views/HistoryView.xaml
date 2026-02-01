@@ -4,7 +4,7 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
-  <Grid Margin="0,0,8,0">
+  <Grid Margin="{StaticResource ViewRootMargin}">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
@@ -16,7 +16,7 @@
     <TextBlock Grid.Row="0"
                Text="{DynamicResource Section.Filters}"
                Style="{StaticResource SectionHeader}"
-               Margin="0,0,0,8"/>
+               Margin="{StaticResource LabelMarginBottom}"/>
 
     <Border Grid.Row="1"
             Style="{StaticResource SurfaceCard}"
@@ -65,7 +65,7 @@
                 ap:ButtonIcon.Glyph="&#xe5d5;"
                 Style="{StaticResource SecondaryButton}"
                 Background="Transparent"
-                BorderThickness="0"
+                BorderThickness="{StaticResource BorderThickness0}"
                 Padding="0"
                 FontSize="{StaticResource FontSizeS}"
                 Foreground="{StaticResource PrimaryBrush}"
@@ -78,7 +78,7 @@
     <TextBlock Grid.Row="3"
                Text="{DynamicResource Section.HistoryList}"
                Style="{StaticResource SectionHeader}"
-               Margin="0,0,0,8"/>
+               Margin="{StaticResource LabelMarginBottom}"/>
 
     <Border Grid.Row="4"
             Style="{StaticResource SurfaceCard}"

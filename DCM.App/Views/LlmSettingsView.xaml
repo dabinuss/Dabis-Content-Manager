@@ -13,7 +13,7 @@
       <sys:Int32>5</sys:Int32>
     </x:Array>
   </UserControl.Resources>
-  <Grid Margin="0,0,8,0">
+  <Grid Margin="{StaticResource ViewRootMargin}">
     <Grid.RowDefinitions>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
@@ -56,7 +56,7 @@
               </Grid.RowDefinitions>
               <ComboBox Grid.Row="0"
                         x:Name="LlmModeComboBox"
-                        MinWidth="200"
+                        MinWidth="{StaticResource InputMinWidthM}"
                         SelectionChanged="LlmModeComboBox_SelectionChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.LLM.Off}"
                               Tag="Off"/>
@@ -69,16 +69,16 @@
                          Text="{DynamicResource Settings.LLM.ModelPreset}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"/>
+                         Margin="{StaticResource LabelMarginTop}"/>
               <Grid Grid.Row="2"
-                    Margin="0,0,0,8">
+                    Margin="{StaticResource LabelMarginBottom}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <ComboBox x:Name="LlmModelPresetComboBox"
                           Grid.Column="0"
-                          MinWidth="200"
+                          MinWidth="{StaticResource InputMinWidthM}"
                           SelectionChanged="LlmModelPresetComboBox_SelectionChanged">
                   <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelPreset.Phi3Mini}"
                                 Tag="Phi3Mini4kQ4"/>
@@ -98,14 +98,14 @@
               <Grid Grid.Row="3"
                     x:Name="LlmDownloadProgressPanel"
                     Visibility="Collapsed"
-                    Margin="0,0,0,8">
+                    Margin="{StaticResource LabelMarginBottom}">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <ProgressBar Grid.Row="0"
                              x:Name="LlmDownloadProgressBar"
-                             Height="8"
+                             Height="{StaticResource ProgressBarHeight}"
                              Minimum="0"
                              Maximum="100"
                              Value="0"/>
@@ -113,7 +113,7 @@
                            x:Name="LlmDownloadProgressText"
                            FontSize="{StaticResource FontSizeS}"
                            Foreground="{StaticResource TextMutedBrush}"
-                           Margin="0,4,0,0"/>
+                           Margin="{StaticResource LabelMarginTopSmall}"/>
               </Grid>
 
               <!-- Custom Model Path (only visible when Custom is selected) -->
@@ -122,19 +122,19 @@
                          Text="{DynamicResource Settings.LLM.PathToModel}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"
+                         Margin="{StaticResource LabelMarginTop}"
                          Visibility="Collapsed"/>
               <Grid Grid.Row="5"
                     x:Name="LlmCustomPathPanel"
                     Visibility="Collapsed"
-                    Margin="0,0,0,8">
+                    Margin="{StaticResource LabelMarginBottom}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="LlmModelPathTextBox"
                          Grid.Column="0"
-                         MinWidth="320"
+                         MinWidth="{StaticResource InputMinWidthXL}"
                          HorizontalAlignment="Stretch"
                          ToolTip="{DynamicResource Settings.LLM.PathToModel.Tooltip}"
                          TextChanged="OnSettingChanged"/>
@@ -153,11 +153,11 @@
                          Text="{DynamicResource Settings.LLM.ModelType}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"
+                         Margin="{StaticResource LabelMarginTop}"
                          Visibility="Collapsed"/>
               <ComboBox Grid.Row="7"
                         x:Name="LlmModelTypeComboBox"
-                        MinWidth="200"
+                        MinWidth="{StaticResource InputMinWidthM}"
                         Visibility="Collapsed"
                         SelectionChanged="OnComboBoxSettingChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Detect}"
@@ -173,7 +173,7 @@
                          Text="{DynamicResource Settings.LLM.SystemPrompt}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"/>
+                         Margin="{StaticResource LabelMarginTop}"/>
               <TextBox Grid.Row="9"
                        x:Name="LlmSystemPromptTextBox"
                        AcceptsReturn="True"
@@ -183,7 +183,7 @@
                        TextChanged="OnSettingChanged"/>
 
               <Grid Grid.Row="10"
-                    Margin="0,8,0,0">
+                    Margin="{StaticResource LabelMarginTop}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="Auto"/>
@@ -235,7 +235,7 @@
               </Grid>
 
               <Grid Grid.Row="1"
-                    Margin="0,8,0,0">
+                    Margin="{StaticResource LabelMarginTop}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
@@ -303,7 +303,7 @@
                          Text="{DynamicResource Settings.LLM.Prompts.Description}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"/>
+                         Margin="{StaticResource LabelMarginTop}"/>
               <TextBox Grid.Row="3"
                        x:Name="LlmDescriptionCustomPromptTextBox"
                        Height="60"
@@ -316,7 +316,7 @@
                          Text="{DynamicResource Settings.LLM.Prompts.Tags}"
                          FontSize="{StaticResource FontSizeS}"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Margin="0,8,0,0"/>
+                         Margin="{StaticResource LabelMarginTop}"/>
               <TextBox Grid.Row="5"
                        x:Name="LlmTagsCustomPromptTextBox"
                        Height="60"
@@ -337,7 +337,7 @@
                 <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
               <Grid Grid.Row="0"
-                    Margin="0,0,0,8">
+                    Margin="{StaticResource LabelMarginBottom}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
@@ -353,7 +353,7 @@
               </Grid>
 
               <Grid Grid.Row="1"
-                    Margin="0,0,0,8">
+                    Margin="{StaticResource LabelMarginBottom}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>

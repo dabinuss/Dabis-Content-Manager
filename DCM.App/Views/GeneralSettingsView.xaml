@@ -4,7 +4,7 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
-  <Grid Margin="0,0,8,0">
+  <Grid Margin="{StaticResource ViewRootMargin}">
     <Grid.RowDefinitions>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
@@ -38,13 +38,13 @@
             </Grid.RowDefinitions>
             <ComboBox Grid.Row="0"
                       x:Name="LanguageComboBox"
-                      MinWidth="200"
+                      MinWidth="{StaticResource InputMinWidthM}"
                       SelectionChanged="LanguageComboBox_SelectionChanged"/>
             <TextBlock Grid.Row="1"
                        Text="{DynamicResource Settings.Language.Restart.Hint}"
                        FontSize="{StaticResource FontSizeS}"
                        Foreground="{StaticResource TextMutedBrush}"
-                       Margin="0,8,0,0"/>
+                       Margin="{StaticResource LabelMarginTop}"/>
           </Grid>
         </GroupBox>
 
@@ -53,7 +53,7 @@
                   Header="{DynamicResource Settings.Theme}">
           <Grid>
             <ComboBox x:Name="ThemeComboBox"
-                      MinWidth="200"
+                      MinWidth="{StaticResource InputMinWidthM}"
                       SelectionChanged="ThemeComboBox_SelectionChanged">
               <ComboBoxItem Content="{DynamicResource Settings.Theme.Dark}"
                             Tag="Dark"
@@ -98,7 +98,7 @@
                        Text="{DynamicResource Settings.ThumbnailFolder}"
                        FontSize="{StaticResource FontSizeS}"
                        Foreground="{StaticResource TextMutedBrush}"
-                       Margin="0,8,0,0"/>
+                       Margin="{StaticResource LabelMarginTop}"/>
             <Grid Grid.Row="3">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -155,7 +155,7 @@
                        TextChanged="OnSettingChanged"/>
             </Grid>
             <Grid Grid.Row="1"
-                  Margin="0,8,0,0">
+                  Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -178,25 +178,25 @@
             <CheckBox Grid.Row="2"
                       x:Name="ConfirmBeforeUploadCheckBox"
                       Content="{DynamicResource Settings.ConfirmUpload}"
-                      Margin="0,8,0,0"
+                      Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
             <CheckBox Grid.Row="3"
                       x:Name="AutoApplyDefaultTemplateCheckBox"
                       Content="{DynamicResource Settings.AutomaticTemplateApply}"
-                      Margin="0,8,0,0"
+                      Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
             <CheckBox Grid.Row="4"
                       x:Name="OpenBrowserAfterUploadCheckBox"
                       Content="{DynamicResource Settings.OpenBrowserAfterUpload}"
-                      Margin="0,8,0,0"
+                      Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
             <CheckBox Grid.Row="5"
                       x:Name="AutoConnectYouTubeCheckBox"
                       Content="{DynamicResource Settings.AutomaticConnect}"
-                      Margin="0,8,0,0"
+                      Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
           </Grid>
@@ -213,13 +213,13 @@
             <CheckBox Grid.Row="0"
                       x:Name="RememberDraftsCheckBox"
                       Content="{DynamicResource Settings.Drafts.Remember}"
-                      Margin="0,8,0,0"
+                      Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
             <CheckBox Grid.Row="1"
                       x:Name="AutoCleanDraftsCheckBox"
                       Content="{DynamicResource Settings.Drafts.AutoClean}"
-                      Margin="0,8,0,0"
+                      Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
           </Grid>
@@ -239,11 +239,11 @@
             <CheckBox Grid.Row="0"
                       x:Name="TranscriptionAutoCheckBox"
                       Content="{DynamicResource Settings.AutomaticTranscription}"
-                      Margin="0,8,0,0"
+                      Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
             <Grid Grid.Row="1"
-                  Margin="0,8,0,0">
+                  Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -253,7 +253,7 @@
                          Foreground="{StaticResource TextSecondaryBrush}"/>
               <ComboBox Grid.Column="1"
                         x:Name="TranscriptionModelSizeComboBox"
-                        Width="200"
+                        Width="{StaticResource InputMinWidthM}"
                         SelectionChanged="TranscriptionModelSizeComboBox_SelectionChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.WhisperModelSize.Tiny}"
                               Tag="{x:Static config:WhisperModelSize.Tiny}"/>
@@ -268,7 +268,7 @@
               </ComboBox>
             </Grid>
             <Grid Grid.Row="2"
-                  Margin="0,8,0,0">
+                  Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -278,7 +278,7 @@
                          Foreground="{StaticResource TextSecondaryBrush}"/>
               <ComboBox Grid.Column="1"
                         x:Name="TranscriptionLanguageComboBox"
-                        Width="200"
+                        Width="{StaticResource InputMinWidthM}"
                         SelectionChanged="OnComboBoxSettingChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.WhisperLanguage.De}"
                               Tag="de"/>
@@ -289,7 +289,7 @@
               </ComboBox>
             </Grid>
             <Grid Grid.Row="3"
-                  Margin="0,8,0,0">
+                  Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -303,7 +303,7 @@
                          Text="{DynamicResource Settings.Msg.NotChecked}"/>
             </Grid>
             <Grid Grid.Row="4"
-                  Margin="0,8,0,0">
+                  Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>

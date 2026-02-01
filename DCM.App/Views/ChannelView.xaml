@@ -4,7 +4,7 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core">
 <!-- wie PageUpload: Grid füllt die Breite, nur ein rechter Margin -->
-<Grid Margin="0,0,8,0">
+<Grid Margin="{StaticResource ViewRootMargin}">
 
   <Grid.RowDefinitions>
     <RowDefinition Height="Auto"/>
@@ -48,7 +48,7 @@
         <TextBlock Grid.Row="0"
                    Text="{DynamicResource Channel.Fields.Name}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBox Grid.Row="1"
                  x:Name="ChannelPersonaNameTextBox"
                  Margin="0,0,0,4"
@@ -57,11 +57,11 @@
                    Text="{DynamicResource Channel.Example.Name}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBlock Grid.Row="3"
                    Text="{DynamicResource Channel.Fields.ChannelName}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBox Grid.Row="4"
                  x:Name="ChannelPersonaChannelNameTextBox"
                  Margin="0,0,0,4"
@@ -95,13 +95,13 @@
         <TextBlock Grid.Row="0"
                    Text="{DynamicResource Channel.Fields.Language}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <ComboBox Grid.Row="1"
                   x:Name="ChannelPersonaLanguageTextBox"
                   IsEditable="True"
                   IsTextSearchEnabled="True"
                   StaysOpenOnEdit="True"
-                  MinWidth="200"
+                  MinWidth="{StaticResource InputMinWidthM}"
                   ToolTip="{DynamicResource Channel.Example.Language}"
                   Margin="0,0,0,4"
                   SelectionChanged="OnComboBoxSettingChanged"/>
@@ -109,11 +109,11 @@
                    Text="{DynamicResource Channel.Example.Language}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBlock Grid.Row="3"
                    Text="{DynamicResource Channel.Fields.ToneOfWords}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBox Grid.Row="4"
                  x:Name="ChannelPersonaToneOfVoiceTextBox"
                  ToolTip="{DynamicResource Channel.Example.Tone}"
@@ -123,11 +123,11 @@
                    Text="{DynamicResource Channel.Example.Tone}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBlock Grid.Row="6"
                    Text="{DynamicResource Channel.Fields.ContentType}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBox Grid.Row="7"
                  x:Name="ChannelPersonaContentTypeTextBox"
                  ToolTip="{DynamicResource Channel.Example.ContentType}"
@@ -137,11 +137,11 @@
                    Text="{DynamicResource Channel.Example.ContentType}"
                    FontSize="{StaticResource FontSizeXS}"
                    Foreground="{StaticResource TextMutedBrush}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBlock Grid.Row="9"
                    Text="{DynamicResource Channel.Fields.TargetAudience}"
                    Style="{StaticResource TextLabel}"
-                   Margin="0,0,0,8"/>
+                   Margin="{StaticResource LabelMarginBottom}"/>
         <TextBox Grid.Row="10"
                  x:Name="ChannelPersonaTargetAudienceTextBox"
                  ToolTip="{DynamicResource Channel.Example.TargetAudience}"
@@ -170,7 +170,7 @@
                    FontSize="{StaticResource FontSizeM}"/>
         <TextBox Grid.Row="1"
                  x:Name="ChannelPersonaAdditionalInstructionsTextBox"
-                 Margin="0,8,0,0"
+                 Margin="{StaticResource LabelMarginTop}"
                  AcceptsReturn="True"
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Auto"
