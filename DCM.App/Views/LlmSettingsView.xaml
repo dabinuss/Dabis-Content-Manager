@@ -38,8 +38,16 @@
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <GroupBox Grid.Row="0"
-                    Style="{StaticResource SettingsSectionGroupBox}"
-                    Header="{DynamicResource Settings.LLM.Mode}">
+                    Style="{StaticResource SettingsSectionGroupBox}">
+            <GroupBox.Header>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{DynamicResource Settings.LLM.Mode}" VerticalAlignment="Center"/>
+                <Border Style="{StaticResource HelpIconButton}"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmMode.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
+            </GroupBox.Header>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/> <!-- 0: Mode ComboBox -->
@@ -65,11 +73,15 @@
               </ComboBox>
 
               <!-- Model Preset Selection -->
-              <TextBlock Grid.Row="1"
-                         Text="{DynamicResource Settings.LLM.ModelPreset}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         Margin="{StaticResource LabelMarginTop}"/>
+              <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="{StaticResource LabelMarginTop}">
+                <TextBlock Text="{DynamicResource Settings.LLM.ModelPreset}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmModel.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <Grid Grid.Row="2"
                     Margin="{StaticResource LabelMarginBottom}">
                 <Grid.ColumnDefinitions>
@@ -117,13 +129,15 @@
               </Grid>
 
               <!-- Custom Model Path (only visible when Custom is selected) -->
-              <TextBlock Grid.Row="4"
-                         x:Name="LlmCustomPathLabel"
-                         Text="{DynamicResource Settings.LLM.PathToModel}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         Margin="{StaticResource LabelMarginTop}"
-                         Visibility="Collapsed"/>
+              <StackPanel Grid.Row="4" x:Name="LlmCustomPathLabel" Orientation="Horizontal" Margin="{StaticResource LabelMarginTop}" Visibility="Collapsed">
+                <TextBlock Text="{DynamicResource Settings.LLM.PathToModel}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmModelPath.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <Grid Grid.Row="5"
                     x:Name="LlmCustomPathPanel"
                     Visibility="Collapsed"
@@ -148,13 +162,15 @@
               </Grid>
 
               <!-- Model Type (only for Custom) -->
-              <TextBlock Grid.Row="6"
-                         x:Name="LlmModelTypeLabel"
-                         Text="{DynamicResource Settings.LLM.ModelType}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         Margin="{StaticResource LabelMarginTop}"
-                         Visibility="Collapsed"/>
+              <StackPanel Grid.Row="6" x:Name="LlmModelTypeLabel" Orientation="Horizontal" Margin="{StaticResource LabelMarginTop}" Visibility="Collapsed">
+                <TextBlock Text="{DynamicResource Settings.LLM.ModelType}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmModelType.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <ComboBox Grid.Row="7"
                         x:Name="LlmModelTypeComboBox"
                         MinWidth="{StaticResource InputMinWidthM}"
@@ -201,8 +217,12 @@
           </GroupBox>
 
           <GroupBox Grid.Row="2"
-                    Style="{StaticResource SettingsSectionGroupBox}"
-                    Header="{DynamicResource Settings.LLM.Parameters}">
+                    Style="{StaticResource SettingsSectionGroupBox}">
+            <GroupBox.Header>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{DynamicResource Settings.LLM.Parameters}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </GroupBox.Header>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -213,9 +233,13 @@
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           Text="{DynamicResource Settings.LLM.Parameters.MaxToken}"
-                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                  <TextBlock Text="{DynamicResource Settings.LLM.Parameters.MaxToken}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                  <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                          ToolTip="{DynamicResource Settings.Tooltip.LlmMaxTokens.Example}">
+                    <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                  </Border>
+                </StackPanel>
                 <Grid Grid.Column="1">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -240,9 +264,13 @@
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           Text="{DynamicResource Settings.LLM.Parameters.Temperature}"
-                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                  <TextBlock Text="{DynamicResource Settings.LLM.Parameters.Temperature}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                  <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                          ToolTip="{DynamicResource Settings.Tooltip.LlmTemperature.Example}">
+                    <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                  </Border>
+                </StackPanel>
                 <Grid Grid.Column="1">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -276,8 +304,12 @@
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
           <GroupBox Grid.Row="0"
-                    Style="{StaticResource SettingsSectionGroupBox}"
-                    Header="{DynamicResource Settings.LLM.Prompts}">
+                    Style="{StaticResource SettingsSectionGroupBox}">
+            <GroupBox.Header>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{DynamicResource Settings.LLM.Prompts}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </GroupBox.Header>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -287,10 +319,15 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
-              <TextBlock Grid.Row="0"
-                         Text="{DynamicResource Settings.LLM.Prompts.Title}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"/>
+              <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <TextBlock Text="{DynamicResource Settings.LLM.Prompts.Title}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmTitlePrompt.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <TextBox Grid.Row="1"
                        x:Name="LlmTitleCustomPromptTextBox"
                        Height="60"
@@ -299,11 +336,15 @@
                        VerticalScrollBarVisibility="Auto"
                        TextChanged="OnSettingChanged"/>
 
-              <TextBlock Grid.Row="2"
-                         Text="{DynamicResource Settings.LLM.Prompts.Description}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         Margin="{StaticResource LabelMarginTop}"/>
+              <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="{StaticResource LabelMarginTop}">
+                <TextBlock Text="{DynamicResource Settings.LLM.Prompts.Description}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmDescriptionPrompt.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <TextBox Grid.Row="3"
                        x:Name="LlmDescriptionCustomPromptTextBox"
                        Height="60"
@@ -312,11 +353,15 @@
                        VerticalScrollBarVisibility="Auto"
                        TextChanged="OnSettingChanged"/>
 
-              <TextBlock Grid.Row="4"
-                         Text="{DynamicResource Settings.LLM.Prompts.Tags}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         Margin="{StaticResource LabelMarginTop}"/>
+              <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="{StaticResource LabelMarginTop}">
+                <TextBlock Text="{DynamicResource Settings.LLM.Prompts.Tags}"
+                           FontSize="{StaticResource FontSizeS}"
+                           Foreground="{StaticResource TextMutedBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmTagsPrompt.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <TextBox Grid.Row="5"
                        x:Name="LlmTagsCustomPromptTextBox"
                        Height="60"

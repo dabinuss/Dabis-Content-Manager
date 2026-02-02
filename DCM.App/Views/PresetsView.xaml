@@ -311,9 +311,13 @@
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Label Content="{DynamicResource Presets.Fields.Name}"
-                   Grid.Row="0"
-                   Grid.Column="0"/>
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+              <Label Content="{DynamicResource Presets.Fields.Name}" Padding="0"/>
+              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                      ToolTip="{DynamicResource Presets.Tooltip.Name.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
             <TextBox x:Name="PresetNameTextBox"
                      Grid.Row="0"
                      Grid.Column="1"
@@ -358,17 +362,25 @@
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Label Content="{DynamicResource Presets.Fields.TitlePrefix}"
-                   Grid.Row="0"
-                   Grid.Column="0"/>
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+              <Label Content="{DynamicResource Presets.Fields.TitlePrefix}" Padding="0"/>
+              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                      ToolTip="{DynamicResource Presets.Tooltip.TitlePrefix.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
             <TextBox x:Name="PresetTitlePrefixTextBox"
                      Grid.Row="0"
                      Grid.Column="1"
                      TextChanged="PresetEditorField_Changed"/>
 
-            <Label Content="{DynamicResource Presets.Fields.Tags}"
-                   Grid.Row="2"
-                   Grid.Column="0"/>
+            <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+              <Label Content="{DynamicResource Presets.Fields.Tags}" Padding="0"/>
+              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                      ToolTip="{DynamicResource Presets.Tooltip.Tags.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
             <TextBox x:Name="PresetTagsTextBox"
                      Grid.Row="2"
                      Grid.Column="1"
@@ -495,10 +507,15 @@
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0"
-                       Text="{DynamicResource Presets.Fields.TemplateBody}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       FontSize="{StaticResource FontSizeM}"/>
+            <StackPanel Grid.Row="0" Orientation="Horizontal">
+              <TextBlock Text="{DynamicResource Presets.Fields.TemplateBody}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{StaticResource FontSizeM}"/>
+              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                      ToolTip="{DynamicResource Presets.Tooltip.DescriptionTemplate.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
             <TextBox x:Name="PresetDescriptionTemplateTextBox"
                      Grid.Row="2"
                      AcceptsReturn="True"

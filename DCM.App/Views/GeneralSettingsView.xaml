@@ -29,8 +29,16 @@
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <GroupBox Grid.Row="0"
-                  Style="{StaticResource SettingsSectionGroupBox}"
-                  Header="{DynamicResource Settings.Language}">
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{DynamicResource Settings.Language}" VerticalAlignment="Center"/>
+              <Border Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.Language.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
+          </GroupBox.Header>
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
@@ -49,8 +57,16 @@
         </GroupBox>
 
         <GroupBox Grid.Row="2"
-                  Style="{StaticResource SettingsSectionGroupBox}"
-                  Header="{DynamicResource Settings.Theme}">
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{DynamicResource Settings.Theme}" VerticalAlignment="Center"/>
+              <Border Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.Theme.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
+          </GroupBox.Header>
           <Grid>
             <ComboBox x:Name="ThemeComboBox"
                       MinWidth="{StaticResource InputMinWidthM}"
@@ -72,10 +88,15 @@
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0"
-                       Text="{DynamicResource Settings.VideoFolder}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"/>
+            <StackPanel Grid.Row="0" Orientation="Horizontal">
+              <TextBlock Text="{DynamicResource Settings.VideoFolder}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"/>
+              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                      ToolTip="{DynamicResource Settings.Tooltip.VideoFolder.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
             <Grid Grid.Row="1">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -94,11 +115,15 @@
                       Click="DefaultVideoFolderBrowseButton_Click"/>
             </Grid>
 
-            <TextBlock Grid.Row="2"
-                       Text="{DynamicResource Settings.ThumbnailFolder}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       Margin="{StaticResource LabelMarginTop}"/>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="{StaticResource LabelMarginTop}">
+              <TextBlock Text="{DynamicResource Settings.ThumbnailFolder}"
+                         FontSize="{StaticResource FontSizeS}"
+                         Foreground="{StaticResource TextMutedBrush}"/>
+              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                      ToolTip="{DynamicResource Settings.Tooltip.ThumbnailFolder.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </StackPanel>
             <Grid Grid.Row="3">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -146,9 +171,14 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0"
-                         Text="{DynamicResource Settings.StandardReleaseTime}"
-                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.StandardReleaseTime}"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.ReleaseTime.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <TextBox Grid.Column="1"
                        x:Name="DefaultSchedulingTimeTextBox"
                        Width="90"
@@ -248,9 +278,14 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0"
-                         Text="{DynamicResource Settings.WhisperModelSize}"
-                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.WhisperModelSize}"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.WhisperModel.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <ComboBox Grid.Column="1"
                         x:Name="TranscriptionModelSizeComboBox"
                         Width="{StaticResource InputMinWidthM}"
@@ -273,9 +308,14 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0"
-                         Text="{DynamicResource Settings.WhisperLanguage}"
-                         Foreground="{StaticResource TextSecondaryBrush}"/>
+              <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{DynamicResource Settings.WhisperLanguage}"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
+                        ToolTip="{DynamicResource Settings.Tooltip.WhisperLanguage.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </StackPanel>
               <ComboBox Grid.Column="1"
                         x:Name="TranscriptionLanguageComboBox"
                         Width="{StaticResource InputMinWidthM}"

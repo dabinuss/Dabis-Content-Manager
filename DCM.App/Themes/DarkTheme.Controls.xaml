@@ -2395,5 +2395,146 @@
     </Setter>
   </Style>
 
+  <!-- =================================================================== -->
+  <!-- AUTO-SAVE INDICATOR STYLES                                          -->
+  <!-- =================================================================== -->
+
+  <!-- Save indicator container style -->
+  <Style x:Key="SaveIndicatorContainer" TargetType="Border">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Padding" Value="8,4"/>
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusS}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+
+  <!-- Save indicator icon style -->
+  <Style x:Key="SaveIndicatorIcon" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+    <Setter Property="FontSize" Value="{StaticResource FontSizeM}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Margin" Value="0,0,6,0"/>
+  </Style>
+
+  <!-- Save indicator text style -->
+  <Style x:Key="SaveIndicatorText" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize" Value="{StaticResource FontSizeS}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+
+  <!-- Fade animation for save indicator -->
+  <Storyboard x:Key="SaveIndicatorFadeIn">
+    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                     From="0" To="1" Duration="0:0:0.2"/>
+  </Storyboard>
+
+  <Storyboard x:Key="SaveIndicatorFadeOut">
+    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                     From="1" To="0" Duration="0:0:0.3"/>
+  </Storyboard>
+
+  <!-- Pulse animation for saving state -->
+  <Storyboard x:Key="SaveIndicatorPulse" RepeatBehavior="Forever">
+    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                     From="1" To="0.5" Duration="0:0:0.5"
+                     AutoReverse="True"/>
+  </Storyboard>
+
+  <!-- =================================================================== -->
+  <!-- INLINE VALIDATION STYLES                                            -->
+  <!-- =================================================================== -->
+
+  <!-- Validation icon base style -->
+  <Style x:Key="ValidationIcon" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+    <Setter Property="FontSize" Value="{StaticResource FontSizeM}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Margin" Value="8,0,0,0"/>
+  </Style>
+
+  <!-- Valid state icon (green checkmark) -->
+  <Style x:Key="ValidationIconValid" TargetType="TextBlock" BasedOn="{StaticResource ValidationIcon}">
+    <Setter Property="Text" Value="&#xe5ca;"/>
+    <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+  </Style>
+
+  <!-- Invalid state icon (red X) -->
+  <Style x:Key="ValidationIconInvalid" TargetType="TextBlock" BasedOn="{StaticResource ValidationIcon}">
+    <Setter Property="Text" Value="&#xe5cd;"/>
+    <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+  </Style>
+
+  <!-- TextBox with validation feedback wrapper style -->
+  <Style x:Key="ValidatedInputContainer" TargetType="Grid">
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+  </Style>
+
+  <!-- Success border style for valid inputs -->
+  <Style x:Key="InputBorderValid" TargetType="Border">
+    <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusS}"/>
+    <Setter Property="Margin" Value="-1"/>
+    <Setter Property="IsHitTestVisible" Value="False"/>
+  </Style>
+
+  <!-- =================================================================== -->
+  <!-- HELP TOOLTIP STYLES (Question mark icon with tooltip)               -->
+  <!-- =================================================================== -->
+
+  <!-- Help icon button style -->
+  <Style x:Key="HelpIconButton" TargetType="Border">
+    <Setter Property="Width" Value="20"/>
+    <Setter Property="Height" Value="20"/>
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusCircle}"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Cursor" Value="Help"/>
+    <Setter Property="Margin" Value="8,0,0,0"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="ToolTipService.InitialShowDelay" Value="100"/>
+    <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- Help icon glyph style -->
+  <Style x:Key="HelpIconGlyph" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+    <Setter Property="Text" Value="&#xe8fd;"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+
+  <!-- Help tooltip content style -->
+  <Style x:Key="HelpTooltipContent" TargetType="StackPanel">
+    <Setter Property="MaxWidth" Value="280"/>
+  </Style>
+
+  <!-- Help tooltip title style -->
+  <Style x:Key="HelpTooltipTitle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize" Value="{StaticResource FontSizeS}"/>
+    <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    <Setter Property="Margin" Value="0,0,0,4"/>
+  </Style>
+
+  <!-- Help tooltip example style -->
+  <Style x:Key="HelpTooltipExample" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+    <Setter Property="FontSize" Value="{StaticResource FontSizeS}"/>
+    <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+    <Setter Property="FontStyle" Value="Italic"/>
+  </Style>
+
+  <!-- Label with help icon container -->
+  <Style x:Key="LabelWithHelpContainer" TargetType="StackPanel">
+    <Setter Property="Orientation" Value="Horizontal"/>
+    <Setter Property="Margin" Value="{StaticResource LabelMarginBottom}"/>
+  </Style>
+
 </ResourceDictionary>
 

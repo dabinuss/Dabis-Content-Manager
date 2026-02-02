@@ -117,6 +117,9 @@ public partial class MainWindow
             _llmClientNeedsRecreate = true;
         }
 
+        // Show "Saving..." indicator
+        ShowSaveIndicator(isSaving: true);
+
         if (_settingsSaveTimer is null)
         {
             _settingsSaveTimer = new DispatcherTimer
@@ -139,6 +142,9 @@ public partial class MainWindow
             _settingsSaveDirty = false;
             SaveSettings();
 
+            // Show "Saved" indicator and auto-hide after delay
+            ShowSaveIndicator(isSaving: false);
+
             // LLM-Client neu erstellen wenn nötig (nach dem Speichern)
             if (_llmClientNeedsRecreate)
             {
@@ -147,6 +153,94 @@ public partial class MainWindow
             }
         }
     }
+
+    #region Save Indicator
+
+    private DispatcherTimer? _saveIndicatorHideTimer;
+    private System.Windows.Media.Animation.Storyboard? _pulseStoryboard;
+
+    private void ShowSaveIndicator(bool isSaving)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            SaveIndicatorBorder.Visibility = Visibility.Visible;
+            SaveIndicatorBorder.Opacity = 1;
+
+            if (isSaving)
+            {
+                // Show "Saving..." with pulse animation
+                SaveIndicatorIcon.Text = "\ue161"; // save icon
+                SaveIndicatorIcon.Foreground = (System.Windows.Media.Brush)FindResource("TextMutedBrush");
+                SaveIndicatorText.Text = LocalizationHelper.Get("Status.Saving");
+                SaveIndicatorText.Foreground = (System.Windows.Media.Brush)FindResource("TextMutedBrush");
+
+                // Start pulse animation (create new storyboard to avoid frozen issue)
+                _pulseStoryboard?.Stop(SaveIndicatorBorder);
+                _pulseStoryboard = CreatePulseAnimation();
+                _pulseStoryboard.Begin(SaveIndicatorBorder, true);
+
+                // Cancel any pending hide timer
+                _saveIndicatorHideTimer?.Stop();
+            }
+            else
+            {
+                // Stop pulse animation
+                _pulseStoryboard?.Stop(SaveIndicatorBorder);
+
+                // Show "Saved ✓" with success color
+                SaveIndicatorIcon.Text = "\ue5ca"; // check icon
+                SaveIndicatorIcon.Foreground = (System.Windows.Media.Brush)FindResource("SuccessBrush");
+                SaveIndicatorText.Text = LocalizationHelper.Get("Status.Saved");
+                SaveIndicatorText.Foreground = (System.Windows.Media.Brush)FindResource("SuccessBrush");
+
+                // Auto-hide after 3 seconds
+                _saveIndicatorHideTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+                _saveIndicatorHideTimer.Tick -= SaveIndicatorHideTimer_Tick;
+                _saveIndicatorHideTimer.Tick += SaveIndicatorHideTimer_Tick;
+                _saveIndicatorHideTimer.Stop();
+                _saveIndicatorHideTimer.Start();
+            }
+        });
+    }
+
+    private static System.Windows.Media.Animation.Storyboard CreatePulseAnimation()
+    {
+        var animation = new System.Windows.Media.Animation.DoubleAnimation
+        {
+            From = 1,
+            To = 0.5,
+            Duration = TimeSpan.FromSeconds(0.5),
+            AutoReverse = true,
+            RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever
+        };
+        System.Windows.Media.Animation.Storyboard.SetTargetProperty(animation,
+            new PropertyPath(OpacityProperty));
+
+        var storyboard = new System.Windows.Media.Animation.Storyboard();
+        storyboard.Children.Add(animation);
+        return storyboard;
+    }
+
+    private void SaveIndicatorHideTimer_Tick(object? sender, EventArgs e)
+    {
+        _saveIndicatorHideTimer?.Stop();
+
+        // Fade out the indicator
+        var fadeOut = new System.Windows.Media.Animation.DoubleAnimation
+        {
+            From = 1,
+            To = 0,
+            Duration = TimeSpan.FromSeconds(0.3)
+        };
+        fadeOut.Completed += (s, args) =>
+        {
+            SaveIndicatorBorder.Visibility = Visibility.Collapsed;
+            SaveIndicatorBorder.Opacity = 1;
+        };
+        SaveIndicatorBorder.BeginAnimation(OpacityProperty, fadeOut);
+    }
+
+    #endregion
 
     private void ApplySettingsToUi()
     {

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using DCM.Core.Models;
+using DCM.App.Infrastructure.AttachedProperties;
 
 namespace DCM.App.Views;
 
@@ -95,7 +97,72 @@ public partial class ChannelView : UserControl
     {
         if (!_isApplyingSettings)
         {
+            // Update inline validation for the changed field
+            if (sender is TextBox textBox)
+            {
+                UpdateValidationState(textBox);
+            }
+
             SettingChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Updates the validation state indicator for a TextBox.
+    /// Shows green checkmark when valid, red X when invalid.
+    /// </summary>
+    private void UpdateValidationState(TextBox textBox)
+    {
+        // Determine which validation icon to update based on the TextBox
+        Border? validationBorder = null;
+        int minLength = 0;
+        bool isRequired = false;
+
+        if (textBox == ChannelPersonaNameTextBox)
+        {
+            validationBorder = NameValidationIcon;
+            minLength = 2;
+            isRequired = true;
+        }
+        else if (textBox == ChannelPersonaChannelNameTextBox)
+        {
+            validationBorder = ChannelNameValidationIcon;
+            minLength = 2;
+            isRequired = true;
+        }
+
+        if (validationBorder == null)
+        {
+            return;
+        }
+
+        var text = textBox.Text?.Trim() ?? string.Empty;
+        var isValid = (!isRequired || text.Length > 0) && text.Length >= minLength;
+
+        // Show validation only if user has entered something
+        if (text.Length == 0)
+        {
+            validationBorder.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        validationBorder.Visibility = Visibility.Visible;
+
+        var iconTextBlock = validationBorder.Child as TextBlock;
+        if (iconTextBlock == null)
+        {
+            return;
+        }
+
+        if (isValid)
+        {
+            iconTextBlock.Text = "\ue5ca"; // check icon
+            iconTextBlock.Foreground = (Brush)FindResource("SuccessBrush");
+        }
+        else
+        {
+            iconTextBlock.Text = "\ue5cd"; // close/X icon
+            iconTextBlock.Foreground = (Brush)FindResource("DangerBrush");
         }
     }
 

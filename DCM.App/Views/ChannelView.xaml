@@ -42,34 +42,62 @@
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0"
-                   Text="{DynamicResource Channel.Fields.Name}"
-                   Style="{StaticResource TextLabel}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBox Grid.Row="1"
-                 x:Name="ChannelPersonaNameTextBox"
-                 Margin="{StaticResource LabelMarginBottomSmall}"
-                 TextChanged="OnSettingChanged"/>
-        <TextBlock Grid.Row="2"
-                   Text="{DynamicResource Channel.Example.Name}"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBlock Grid.Row="3"
-                   Text="{DynamicResource Channel.Fields.ChannelName}"
-                   Style="{StaticResource TextLabel}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBox Grid.Row="4"
-                 x:Name="ChannelPersonaChannelNameTextBox"
-                 Margin="{StaticResource LabelMarginBottomSmall}"
-                 TextChanged="OnSettingChanged"/>
-        <TextBlock Grid.Row="5"
-                   Text="{DynamicResource Channel.Example.ChannelName}"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextMutedBrush}"/>
+
+        <!-- Name mit Help-Icon -->
+        <StackPanel Grid.Row="0"
+                    Style="{StaticResource LabelWithHelpContainer}">
+          <TextBlock Text="{DynamicResource Channel.Fields.Name}"
+                     Style="{StaticResource TextLabel}"/>
+          <Border Style="{StaticResource HelpIconButton}"
+                  ToolTip="{DynamicResource Channel.Example.Name}">
+            <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+          </Border>
+        </StackPanel>
+        <Grid Grid.Row="1"
+              Margin="{StaticResource LabelMarginBottomL}">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBox Grid.Column="0"
+                   x:Name="ChannelPersonaNameTextBox"
+                   TextChanged="OnSettingChanged"/>
+          <Border Grid.Column="1"
+                  x:Name="NameValidationIcon"
+                  Visibility="Collapsed"
+                  VerticalAlignment="Center"
+                  Margin="8,0,0,0">
+            <TextBlock Style="{StaticResource ValidationIcon}"/>
+          </Border>
+        </Grid>
+
+        <!-- Kanalname mit Help-Icon -->
+        <StackPanel Grid.Row="2"
+                    Style="{StaticResource LabelWithHelpContainer}">
+          <TextBlock Text="{DynamicResource Channel.Fields.ChannelName}"
+                     Style="{StaticResource TextLabel}"/>
+          <Border Style="{StaticResource HelpIconButton}"
+                  ToolTip="{DynamicResource Channel.Example.ChannelName}">
+            <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+          </Border>
+        </StackPanel>
+        <Grid Grid.Row="3">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBox Grid.Column="0"
+                   x:Name="ChannelPersonaChannelNameTextBox"
+                   TextChanged="OnSettingChanged"/>
+          <Border Grid.Column="1"
+                  x:Name="ChannelNameValidationIcon"
+                  Visibility="Collapsed"
+                  VerticalAlignment="Center"
+                  Margin="8,0,0,0">
+            <TextBlock Style="{StaticResource ValidationIcon}"/>
+          </Border>
+        </Grid>
       </Grid>
     </GroupBox>
 
@@ -87,70 +115,70 @@
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0"
-                   Text="{DynamicResource Channel.Fields.Language}"
-                   Style="{StaticResource TextLabel}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
+
+        <!-- Sprache mit Help-Icon -->
+        <StackPanel Grid.Row="0"
+                    Style="{StaticResource LabelWithHelpContainer}">
+          <TextBlock Text="{DynamicResource Channel.Fields.Language}"
+                     Style="{StaticResource TextLabel}"/>
+          <Border Style="{StaticResource HelpIconButton}"
+                  ToolTip="{DynamicResource Channel.Example.Language}">
+            <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+          </Border>
+        </StackPanel>
         <ComboBox Grid.Row="1"
                   x:Name="ChannelPersonaLanguageTextBox"
                   IsEditable="True"
                   IsTextSearchEnabled="True"
                   StaysOpenOnEdit="True"
                   MinWidth="{StaticResource InputMinWidthM}"
-                  ToolTip="{DynamicResource Channel.Example.Language}"
-                  Margin="{StaticResource LabelMarginBottomSmall}"
+                  Margin="{StaticResource LabelMarginBottomL}"
                   SelectionChanged="OnComboBoxSettingChanged"/>
-        <TextBlock Grid.Row="2"
-                   Text="{DynamicResource Channel.Example.Language}"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBlock Grid.Row="3"
-                   Text="{DynamicResource Channel.Fields.ToneOfWords}"
-                   Style="{StaticResource TextLabel}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBox Grid.Row="4"
+
+        <!-- Tonalität mit Help-Icon -->
+        <StackPanel Grid.Row="2"
+                    Style="{StaticResource LabelWithHelpContainer}">
+          <TextBlock Text="{DynamicResource Channel.Fields.ToneOfWords}"
+                     Style="{StaticResource TextLabel}"/>
+          <Border Style="{StaticResource HelpIconButton}"
+                  ToolTip="{DynamicResource Channel.Example.Tone}">
+            <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+          </Border>
+        </StackPanel>
+        <TextBox Grid.Row="3"
                  x:Name="ChannelPersonaToneOfVoiceTextBox"
-                 ToolTip="{DynamicResource Channel.Example.Tone}"
-                 Margin="{StaticResource LabelMarginBottomSmall}"
+                 Margin="{StaticResource LabelMarginBottomL}"
                  TextChanged="OnSettingChanged"/>
-        <TextBlock Grid.Row="5"
-                   Text="{DynamicResource Channel.Example.Tone}"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBlock Grid.Row="6"
-                   Text="{DynamicResource Channel.Fields.ContentType}"
-                   Style="{StaticResource TextLabel}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBox Grid.Row="7"
+
+        <!-- Content-Typ mit Help-Icon -->
+        <StackPanel Grid.Row="4"
+                    Style="{StaticResource LabelWithHelpContainer}">
+          <TextBlock Text="{DynamicResource Channel.Fields.ContentType}"
+                     Style="{StaticResource TextLabel}"/>
+          <Border Style="{StaticResource HelpIconButton}"
+                  ToolTip="{DynamicResource Channel.Example.ContentType}">
+            <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+          </Border>
+        </StackPanel>
+        <TextBox Grid.Row="5"
                  x:Name="ChannelPersonaContentTypeTextBox"
-                 ToolTip="{DynamicResource Channel.Example.ContentType}"
-                 Margin="{StaticResource LabelMarginBottomSmall}"
+                 Margin="{StaticResource LabelMarginBottomL}"
                  TextChanged="OnSettingChanged"/>
-        <TextBlock Grid.Row="8"
-                   Text="{DynamicResource Channel.Example.ContentType}"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBlock Grid.Row="9"
-                   Text="{DynamicResource Channel.Fields.TargetAudience}"
-                   Style="{StaticResource TextLabel}"
-                   Margin="{StaticResource LabelMarginBottom}"/>
-        <TextBox Grid.Row="10"
+
+        <!-- Zielgruppe mit Help-Icon -->
+        <StackPanel Grid.Row="6"
+                    Style="{StaticResource LabelWithHelpContainer}">
+          <TextBlock Text="{DynamicResource Channel.Fields.TargetAudience}"
+                     Style="{StaticResource TextLabel}"/>
+          <Border Style="{StaticResource HelpIconButton}"
+                  ToolTip="{DynamicResource Channel.Example.TargetAudience}">
+            <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+          </Border>
+        </StackPanel>
+        <TextBox Grid.Row="7"
                  x:Name="ChannelPersonaTargetAudienceTextBox"
-                 ToolTip="{DynamicResource Channel.Example.TargetAudience}"
-                 Margin="{StaticResource LabelMarginBottomSmall}"
                  TextChanged="OnSettingChanged"/>
-        <TextBlock Grid.Row="11"
-                   Text="{DynamicResource Channel.Example.TargetAudience}"
-                   FontSize="{StaticResource FontSizeXS}"
-                   Foreground="{StaticResource TextMutedBrush}"/>
       </Grid>
     </GroupBox>
 
@@ -164,10 +192,18 @@
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0"
-                   Text="{DynamicResource Channel.Fields.AdditionalInstructions}"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   FontSize="{StaticResource FontSizeM}"/>
+
+        <!-- Zusätzliche Anweisungen mit Help-Icon -->
+        <StackPanel Grid.Row="0"
+                    Style="{StaticResource LabelWithHelpContainer}">
+          <TextBlock Text="{DynamicResource Channel.Fields.AdditionalInstructions}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     FontSize="{StaticResource FontSizeM}"/>
+          <Border Style="{StaticResource HelpIconButton}"
+                  ToolTip="{DynamicResource Channel.Tooltip.Additional.Example}">
+            <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+          </Border>
+        </StackPanel>
         <TextBox Grid.Row="1"
                  x:Name="ChannelPersonaAdditionalInstructionsTextBox"
                  Margin="{StaticResource LabelMarginTop}"
@@ -182,4 +218,3 @@
   </Grid>
 </Grid>
 </UserControl>
-

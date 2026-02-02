@@ -490,6 +490,22 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             Margin="12,0,12,0">
+                  <!-- Auto-Save Indicator -->
+                  <Border x:Name="SaveIndicatorBorder"
+                          Style="{StaticResource SaveIndicatorContainer}"
+                          Visibility="Collapsed"
+                          Margin="0,0,16,0">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock x:Name="SaveIndicatorIcon"
+                                 Style="{StaticResource SaveIndicatorIcon}"
+                                 Text="&#xe161;"
+                                 Foreground="{StaticResource TextMutedBrush}"/>
+                      <TextBlock x:Name="SaveIndicatorText"
+                                 Style="{StaticResource SaveIndicatorText}"
+                                 Text="{DynamicResource Status.Saving}"
+                                 Foreground="{StaticResource TextMutedBrush}"/>
+                    </StackPanel>
+                  </Border>
                   <TextBlock Text="{DynamicResource Status}"
                              Foreground="{StaticResource TextMutedBrush}"
                              FontSize="{StaticResource FontSizeS}"

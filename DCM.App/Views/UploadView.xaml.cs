@@ -107,8 +107,40 @@ public partial class UploadView : UserControl
     private void UploadButton_Click(object sender, RoutedEventArgs e) =>
         UploadButtonClicked?.Invoke(sender, e);
 
-    private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+    private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
         TitleTextBoxTextChanged?.Invoke(sender, e);
+        UpdateTitleValidation();
+    }
+
+    private void UpdateTitleValidation()
+    {
+        if (TitleValidationIcon == null || TitleValidationIconGlyph == null)
+            return;
+
+        var text = TitleTextBox.Text?.Trim() ?? "";
+
+        if (string.IsNullOrEmpty(text))
+        {
+            TitleValidationIcon.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        TitleValidationIcon.Visibility = Visibility.Visible;
+
+        if (text.Length >= 3)
+        {
+            // Valid: green checkmark
+            TitleValidationIconGlyph.Text = "\ue5ca";
+            TitleValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+        }
+        else
+        {
+            // Invalid: red X
+            TitleValidationIconGlyph.Text = "\ue5cd";
+            TitleValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+        }
+    }
 
     private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
         DescriptionTextBoxTextChanged?.Invoke(sender, e);

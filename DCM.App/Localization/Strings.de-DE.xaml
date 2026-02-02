@@ -14,6 +14,8 @@
   <!-- Status -->
   <sys:String x:Key="Status">Status:</sys:String>
   <sys:String x:Key="Status.Ready">Status:</sys:String>
+  <sys:String x:Key="Status.Saving">Speichern...</sys:String>
+  <sys:String x:Key="Status.Saved">Gespeichert</sys:String>
   <sys:String x:Key="Header.Whisper">Whisper</sys:String>
   <sys:String x:Key="Header.Llm">LLM</sys:String>
   <sys:String x:Key="Header.Status.Ready">Bereit</sys:String>
@@ -481,6 +483,112 @@
   <sys:String x:Key="Channel.Example.Tone">z. B. locker, sachlich, informativ</sys:String>
   <sys:String x:Key="Channel.Example.ContentType">z. B. Gaming Highlights, Tutorials</sys:String>
   <sys:String x:Key="Channel.Example.TargetAudience">z. B. Casual Gamer 18-34</sys:String>
+
+  <!-- Channel Tooltip Titles -->
+  <sys:String x:Key="Channel.Tooltip.Name.Title">Beispiel</sys:String>
+  <sys:String x:Key="Channel.Tooltip.ChannelName.Title">Beispiel</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Language.Title">Beispiel</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Tone.Title">Beispiel</sys:String>
+  <sys:String x:Key="Channel.Tooltip.ContentType.Title">Beispiel</sys:String>
+  <sys:String x:Key="Channel.Tooltip.TargetAudience.Title">Beispiel</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Additional.Title">Hinweis</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Additional.Example">Hier kannst du zusätzliche Anweisungen für die KI-Generierung eingeben, z. B. "Verwende immer Emojis" oder "Erwähne den Sponsornamen".</sys:String>
+
+  <!-- Upload Tooltips -->
+  <sys:String x:Key="Upload.Tooltip.Title.Title">Video-Titel</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Title.Example">Der Titel sollte prägnant und aussagekräftig sein, z. B. "Minecraft Hardcore Tag 5 - Enderman Farm Tutorial"</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Description.Title">Video-Beschreibung</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Description.Example">Nutze die Beschreibung für Links, Timestamps und zusätzliche Infos. Vorlagen können mit Platzhaltern wie {{CHAPTERS}} verwendet werden.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Tags.Title">Video-Tags</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Tags.Example">Kommagetrennte Tags helfen bei der Auffindbarkeit, z. B. "minecraft, gaming, tutorial, deutsch"</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Thumbnail.Title">Thumbnail</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Thumbnail.Example">Optimale Größe: 1280x720 Pixel (16:9). Max. 2 MB. PNG oder JPG empfohlen.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Visibility.Title">Sichtbarkeit</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Visibility.Example">Öffentlich: Für alle sichtbar. Nicht gelistet: Nur mit Link erreichbar. Privat: Nur für dich sichtbar.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Playlist.Title">Playlist</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Playlist.Example">Das Video wird automatisch zur ausgewählten Playlist hinzugefügt.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Category.Title">Kategorie</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Category.Example">Die YouTube-Kategorie beeinflusst die Empfehlungen, z. B. "Gaming", "Unterhaltung", "Bildung".</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Schedule.Title">Geplante Veröffentlichung</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Schedule.Example">Das Video wird zum gewählten Zeitpunkt automatisch veröffentlicht. Zeitzone: Deine lokale Zeit.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Transcription.Title">Transkription</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Transcription.Example">Die automatische Transkription wird für KI-Vorschläge verwendet. Whisper erkennt gesprochenen Text.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Chapters.Title">Kapitelmarker</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Chapters.Example">Kapitel werden in der Beschreibung als Timestamps angezeigt, z. B. "00:00 Intro\n02:30 Hauptteil"</sys:String>
+  <sys:String x:Key="Upload.Tooltip.MadeForKids.Title">Made for Kids</sys:String>
+  <sys:String x:Key="Upload.Tooltip.MadeForKids.Example">Aktiviere dies nur, wenn das Video speziell für Kinder gedacht ist. Dies schränkt einige Funktionen ein.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Comments.Title">Kommentare</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Comments.Example">Aktiviert oder deaktiviert die Kommentarfunktion für dieses Video.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Language.Title">Sprache</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Language.Example">Die Sprache des Videos hilft YouTube bei der Empfehlung an das richtige Publikum.</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Preset.Title">Upload-Vorlage</sys:String>
+  <sys:String x:Key="Upload.Tooltip.Preset.Example">Vorlagen füllen automatisch Beschreibung, Tags, Sichtbarkeit und andere Einstellungen aus.</sys:String>
+
+  <!-- Settings Tooltips -->
+  <sys:String x:Key="Settings.Tooltip.Language.Title">App-Sprache</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Language.Example">Die Sprache der Benutzeroberfläche. Ein Neustart kann erforderlich sein.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Theme.Title">Farbschema</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Theme.Example">Das visuelle Erscheinungsbild der App. Derzeit nur Dark Mode verfügbar.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.VideoFolder.Title">Standard-Videoordner</sys:String>
+  <sys:String x:Key="Settings.Tooltip.VideoFolder.Example">Dieser Ordner wird beim Öffnen des Video-Auswahldialogs als Standard verwendet.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.ThumbnailFolder.Title">Standard-Thumbnail-Ordner</sys:String>
+  <sys:String x:Key="Settings.Tooltip.ThumbnailFolder.Example">Dieser Ordner wird beim Öffnen des Thumbnail-Auswahldialogs als Standard verwendet.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.ReleaseTime.Title">Standard-Veröffentlichungszeit</sys:String>
+  <sys:String x:Key="Settings.Tooltip.ReleaseTime.Example">Die voreingestellte Uhrzeit für geplante Uploads, z. B. 15:00 für Nachmittagsveröffentlichungen.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.RememberDrafts.Title">Entwürfe merken</sys:String>
+  <sys:String x:Key="Settings.Tooltip.RememberDrafts.Example">Wenn aktiviert, bleiben nicht hochgeladene Videos nach dem Schließen der App erhalten.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoCleanDrafts.Title">Entwürfe automatisch aufräumen</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoCleanDrafts.Example">Erfolgreich hochgeladene Videos werden automatisch aus der Liste entfernt.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.ConfirmUpload.Title">Upload bestätigen</sys:String>
+  <sys:String x:Key="Settings.Tooltip.ConfirmUpload.Example">Zeigt einen Bestätigungsdialog vor jedem Upload an, um versehentliche Uploads zu vermeiden.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoTemplate.Title">Vorlage automatisch anwenden</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoTemplate.Example">Die als Standard markierte Vorlage wird automatisch auf neue Videos angewendet.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.OpenBrowser.Title">Browser nach Upload öffnen</sys:String>
+  <sys:String x:Key="Settings.Tooltip.OpenBrowser.Example">Öffnet automatisch das hochgeladene Video im Browser nach erfolgreichem Upload.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoConnect.Title">Auto-Connect</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoConnect.Example">Verbindet automatisch mit YouTube beim Start der App, wenn zuvor verbunden.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoTranscribe.Title">Automatisch transkribieren</sys:String>
+  <sys:String x:Key="Settings.Tooltip.AutoTranscribe.Example">Startet automatisch die Transkription wenn ein Video ausgewählt wird.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.WhisperModel.Title">Whisper-Modell</sys:String>
+  <sys:String x:Key="Settings.Tooltip.WhisperModel.Example">Größere Modelle sind genauer aber langsamer. "Small" ist ein guter Kompromiss.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.WhisperLanguage.Title">Transkriptions-Sprache</sys:String>
+  <sys:String x:Key="Settings.Tooltip.WhisperLanguage.Example">Die Sprache des gesprochenen Texts im Video. "Auto" erkennt die Sprache automatisch.</sys:String>
+
+  <!-- LLM Settings Tooltips -->
+  <sys:String x:Key="Settings.Tooltip.LlmMode.Title">KI-Modus</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmMode.Example">Wähle zwischen lokaler KI (GGUF-Modell auf deinem PC) oder deaktiviere die KI-Funktionen.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmModel.Title">KI-Modell</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmModel.Example">Phi-3 Mini ist schnell und ressourcenschonend. Größere Modelle liefern bessere Ergebnisse.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmModelPath.Title">Modell-Pfad</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmModelPath.Example">Der Pfad zur GGUF-Modelldatei auf deinem Computer.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmModelType.Title">Modell-Typ</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmModelType.Example">Der Modelltyp bestimmt das richtige Prompt-Format. "Auto" erkennt dies meist korrekt.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmMaxTokens.Title">Maximale Tokens</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmMaxTokens.Example">Begrenzt die Länge der KI-Antwort. Mehr Tokens = längere Texte, aber auch längere Wartezeit.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmTemperature.Title">Temperatur</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmTemperature.Example">Niedrig (0.1-0.3): Vorhersagbare Texte. Hoch (0.7-1.0): Kreativere, aber weniger konsistente Texte.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmTitlePrompt.Title">Titel-Anweisungen</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmTitlePrompt.Example">Spezifische Anweisungen für die KI bei der Titelgenerierung.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmDescriptionPrompt.Title">Beschreibungs-Anweisungen</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmDescriptionPrompt.Example">Spezifische Anweisungen für die KI bei der Beschreibungsgenerierung.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmTagsPrompt.Title">Tags-Anweisungen</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmTagsPrompt.Example">Spezifische Anweisungen für die KI bei der Tag-Generierung.</sys:String>
+
+  <!-- Presets Tooltips -->
+  <sys:String x:Key="Presets.Tooltip.Name.Title">Vorlagenname</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Name.Example">Ein eindeutiger Name zur Identifikation der Vorlage, z. B. "Gaming Standard" oder "Tutorial Format".</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Platform.Title">Plattform</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Platform.Example">Die Zielplattform für diese Vorlage. Vorlagen werden nur für die gewählte Plattform angezeigt.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Default.Title">Standard-Vorlage</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Default.Example">Die Standard-Vorlage wird automatisch auf neue Videos angewendet (wenn in Einstellungen aktiviert).</sys:String>
+  <sys:String x:Key="Presets.Tooltip.TitlePrefix.Title">Titel-Prefix</sys:String>
+  <sys:String x:Key="Presets.Tooltip.TitlePrefix.Example">Text der automatisch vor jeden Titel gesetzt wird, z. B. "[Let's Play] " oder "Tutorial: ".</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Tags.Title">Standard-Tags</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Tags.Example">Diese Tags werden automatisch zu jedem Video hinzugefügt, das diese Vorlage verwendet.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.DescriptionTemplate.Title">Beschreibungsvorlage</sys:String>
+  <sys:String x:Key="Presets.Tooltip.DescriptionTemplate.Example">Nutze Platzhalter: {{TITLE}}, {{TAGS}}, {{CHAPTERS}}, {{DATE}} für dynamische Inhalte.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Notes.Title">Notizen</sys:String>
+  <sys:String x:Key="Presets.Tooltip.Notes.Example">Interne Notizen zur Vorlage. Diese werden nicht hochgeladen.</sys:String>
 
   <!-- Templates -->
   <sys:String x:Key="Templates">Vorlagen</sys:String>
