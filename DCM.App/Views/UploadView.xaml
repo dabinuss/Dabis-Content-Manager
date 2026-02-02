@@ -261,7 +261,7 @@
                            Text="&#xe145;"
                            Margin="0,0,10,0"/>
                 <TextBlock Text="{DynamicResource Upload.AddVideos}"
-                           FontWeight="SemiBold"
+                           FontWeight="{StaticResource FontWeightSemiBold}"
                            FontSize="{StaticResource FontSizeM}"
                            VerticalAlignment="Center"/>
               </StackPanel>
@@ -270,7 +270,7 @@
                          FontSize="{StaticResource FontSizeXS}"
                          Foreground="{StaticResource TextMutedBrush}"
                          HorizontalAlignment="Center"
-                         Margin="0,8,0,0"/>
+                         Margin="{StaticResource LabelMarginTop}"/>
             </Grid>
           </Button>
 
@@ -420,7 +420,7 @@
                   <TextBlock Grid.Row="0"
                              Grid.Column="2"
                              Text="{Binding DisplayName}"
-                             FontWeight="SemiBold"
+                             FontWeight="{StaticResource FontWeightSemiBold}"
                              FontSize="{StaticResource FontSizeL}"
                              Foreground="{StaticResource TextPrimaryBrush}"
                              TextTrimming="CharacterEllipsis"
@@ -453,7 +453,7 @@
                   <StackPanel Grid.Row="1"
                               Grid.Column="2"
                               Orientation="Horizontal"
-                              Margin="0,4,0,0">
+                              Margin="{StaticResource LabelMarginTopSmall}">
                     <TextBlock Text="{Binding VideoResolution, TargetNullValue='-', Mode=OneWay}"
                                Foreground="{StaticResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeXS}"/>
@@ -478,7 +478,7 @@
                   <StackPanel Grid.Row="2"
                               Grid.Column="2"
                               Orientation="Horizontal"
-                              Margin="0,2,0,0">
+                              Margin="{StaticResource LabelMarginTopXS}">
                     <StackPanel.Visibility>
                       <MultiBinding Converter="{StaticResource AnyStringToVisibilityConverter}">
                         <Binding Path="VideoDuration"/>
@@ -501,7 +501,7 @@
 
                   <WrapPanel Grid.Row="3"
                              Grid.Column="2"
-                             Margin="0,4,0,0">
+                             Margin="{StaticResource LabelMarginTopSmall}">
                     <Border Padding="{StaticResource PaddingCompact}"
                             CornerRadius="{StaticResource RadiusS}"
                             Background="{StaticResource SurfaceSunkenBrush}"
@@ -778,17 +778,17 @@
                            FontSize="{StaticResource FontSizeXXXXL}"
                            Foreground="{StaticResource TextMutedBrush}"
                            HorizontalAlignment="Center"
-                           Margin="0,0,0,24"/>
+                           Margin="{StaticResource LabelMarginBottomXL}"/>
                 <TextBlock Text="{DynamicResource Upload.Empty.Title}"
                            FontSize="{StaticResource FontSizeXXL}"
-                           FontWeight="SemiBold"
+                           FontWeight="{StaticResource FontWeightSemiBold}"
                            Foreground="{StaticResource TextPrimaryBrush}"
                            HorizontalAlignment="Center"/>
                 <TextBlock Text="{DynamicResource Upload.Empty.Formats}"
                            FontSize="{StaticResource FontSizeM}"
                            Foreground="{StaticResource TextMutedBrush}"
                            HorizontalAlignment="Center"
-                           Margin="0,12,0,0"/>
+                           Margin="{StaticResource LabelMarginTopL}"/>
               </StackPanel>
             </Grid>
           </Grid>
@@ -868,7 +868,7 @@
                             VerticalAlignment="Center">
                 <TextBlock x:Name="VideoFileNameTextBlock"
                              FontSize="{StaticResource FontSizeL}"
-                             FontWeight="SemiBold"
+                             FontWeight="{StaticResource FontWeightSemiBold}"
                              Foreground="{StaticResource TextPrimaryBrush}"
                              TextTrimming="CharacterEllipsis"/>
                   <Border Background="{StaticResource SurfaceSunkenBrush}"
@@ -989,7 +989,7 @@
                       IsEnabled="False"
                       ap:ButtonIcon.Glyph="&#xeb9b;"
                       Content="{DynamicResource Upload.StartUpload}"
-                      Margin="0,0,0,12"/>
+                      Margin="{StaticResource LabelMarginBottomL}"/>
               <Button x:Name="VideoChangeButton"
                       Content="{DynamicResource Common.Change}"
                       Style="{StaticResource TertiaryButton}"
@@ -1007,9 +1007,9 @@
           <Border x:Name="UploadActionBar"
                   Grid.Row="2"
                   Background="Transparent"
-                  BorderThickness="0"
-                  CornerRadius="0"
-                  Padding="10,8"
+                  BorderThickness="{StaticResource BorderThickness0}"
+                  CornerRadius="{StaticResource RadiusNone}"
+                  Padding="{StaticResource InputPaddingM}"
                   Visibility="{Binding Visibility, ElementName=VideoDropZone}">
             <Grid>
               <Grid.ColumnDefinitions>
@@ -1100,7 +1100,7 @@
             <TextBlock Grid.Row="0"
                        Text="{DynamicResource Section.Metadata}"
                        Style="{StaticResource SectionHeader}"
-                       Margin="0,0,0,8"/>
+                       Margin="{StaticResource LabelMarginBottom}"/>
 
             <!-- Titel -->
             <GroupBox Grid.Row="2"
@@ -1141,7 +1141,7 @@
                           Grid.Row="5"
                           Grid.Column="0"
                           Grid.ColumnSpan="2"
-                          Margin="0,8,0,0"
+                          Margin="{StaticResource LabelMarginTop}"
                           BorderBrush="{StaticResource BorderBrush}"
                           BorderThickness="0,1,0,0"
                           Padding="0,8,0,0"
@@ -1215,7 +1215,7 @@
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
                               <Button Style="{StaticResource SuggestionItemButtonStyle}"
-                                      Margin="0,0,0,8"
+                                      Margin="{StaticResource LabelMarginBottom}"
                                       ap:ButtonIcon.Glyph="&#xe8f4;"
                                       Click="SuggestionItemButton_Click"
                                       HorizontalAlignment="Stretch">
@@ -1271,7 +1271,7 @@
 
                   <Border x:Name="DescriptionSuggestionsPanel"
                           Grid.Row="3"
-                          Margin="0,8,0,0"
+                          Margin="{StaticResource LabelMarginTop}"
                           BorderBrush="{StaticResource BorderBrush}"
                           BorderThickness="0,1,0,0"
                           Padding="0,8,0,0"
@@ -1345,7 +1345,7 @@
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
                               <Button Style="{StaticResource SuggestionItemButtonStyle}"
-                                      Margin="0,0,0,8"
+                                      Margin="{StaticResource LabelMarginBottom}"
                                       ap:ButtonIcon.Glyph="&#xe8f4;"
                                       Click="SuggestionItemButton_Click"
                                       HorizontalAlignment="Stretch">
@@ -1388,7 +1388,7 @@
                           BorderBrush="{StaticResource BorderBrush}"
                           BorderThickness="{StaticResource BorderThickness1}"
                           CornerRadius="{StaticResource RadiusS}"
-                          Padding="8,6"
+                          Padding="{StaticResource InputPaddingM}"
                           ToolTip="{DynamicResource Upload.Tooltip.TagsInput}"
                           MouseDown="TagsInputBorder_MouseDown">
                     <WrapPanel>
@@ -1454,7 +1454,7 @@
                           Grid.Row="3"
                           Grid.Column="0"
                           Grid.ColumnSpan="2"
-                          Margin="0,8,0,0"
+                          Margin="{StaticResource LabelMarginTop}"
                           BorderBrush="{StaticResource BorderBrush}"
                           BorderThickness="0,1,0,0"
                           Padding="0,8,0,0"
@@ -1528,7 +1528,7 @@
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
                               <Button Style="{StaticResource SuggestionItemButtonStyle}"
-                                      Margin="0,0,0,8"
+                                      Margin="{StaticResource LabelMarginBottom}"
                                       ap:ButtonIcon.Glyph="&#xe8f4;"
                                       Click="SuggestionItemButton_Click"
                                       HorizontalAlignment="Stretch">
@@ -1691,12 +1691,12 @@
                   <StackPanel Grid.Row="7">
                     <TextBlock Text="{DynamicResource Upload.Fields.Chapters}"
                                FontSize="{StaticResource FontSizeS}"
-                               FontWeight="SemiBold"
+                               FontWeight="{StaticResource FontWeightSemiBold}"
                                Foreground="{StaticResource TextPrimaryBrush}"/>
                     <TextBlock Text="{DynamicResource Upload.Fields.Chapters.Descr}"
                                FontSize="{StaticResource FontSizeXS}"
                                Foreground="{StaticResource TextMutedBrush}"
-                               Margin="0,2,0,0"/>
+                               Margin="{StaticResource LabelMarginTopXS}"/>
                   </StackPanel>
 
                   <TextBox x:Name="ChaptersTextBox"
@@ -1716,7 +1716,7 @@
           <StackPanel Grid.Column="2">
             <TextBlock Text="{DynamicResource Section.Publishing}"
                        Style="{StaticResource SectionHeader}"
-                       Margin="0,0,0,8"/>
+                       Margin="{StaticResource LabelMarginBottom}"/>
 
             <Border Style="{StaticResource UploadSectionCard}">
               <StackPanel>
@@ -1752,7 +1752,7 @@
                             <TextBlock Style="{StaticResource IconXXL}"
                                        Text="&#xe40b;"
                                        HorizontalAlignment="Center"
-                                       Margin="0,0,0,8"/>
+                                       Margin="{StaticResource LabelMarginBottom}"/>
                             <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail.DropZone}"
                                        FontSize="{StaticResource FontSizeM}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
@@ -1761,12 +1761,12 @@
                                        FontSize="{StaticResource FontSizeS}"
                                        Foreground="{StaticResource TextMutedBrush}"
                                        HorizontalAlignment="Center"
-                                       Margin="0,2,0,0"/>
+                                       Margin="{StaticResource LabelMarginTopXS}"/>
                             <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail.DropZone.AllowedFiles}"
                                        FontSize="{StaticResource FontSizeXS}"
                                        Foreground="{StaticResource TextMutedBrush}"
                                        HorizontalAlignment="Center"
-                                       Margin="0,8,0,0"/>
+                                       Margin="{StaticResource LabelMarginTop}"/>
                           </StackPanel>
                         </Grid>
 
@@ -1807,7 +1807,7 @@
                             Style="{StaticResource SecondaryButton}"
                             ap:ButtonIcon.Glyph="&#xe872;"
                             Click="ThumbnailClearButton_Click"
-                            Padding="8,8"
+                            Padding="{StaticResource CardPaddingS}"
                             FontSize="{StaticResource FontSizeS}"/>
                   </StackPanel>
 
@@ -1882,13 +1882,13 @@
                                Text="{DynamicResource Upload.Fields.Publication.Date}"
                                FontSize="{StaticResource FontSizeXS}"
                                Foreground="{StaticResource TextMutedBrush}"
-                               Margin="0,0,0,6"/>
+                               Margin="{StaticResource LabelMarginBottomM}"/>
                     <TextBlock Grid.Row="0"
                                Grid.Column="2"
                                Text="{DynamicResource Upload.Fields.Publication.Time}"
                                FontSize="{StaticResource FontSizeXS}"
                                Foreground="{StaticResource TextMutedBrush}"
-                               Margin="0,0,0,6"/>
+                               Margin="{StaticResource LabelMarginBottomM}"/>
                     <Border x:Name="ScheduleCalendarBox"
                             Grid.Row="1"
                             Grid.Column="0"
@@ -1961,7 +1961,7 @@
                                    Grid.Column="0"
                                    Text="{DynamicResource Upload.Fields.Publication.HourShort}"
                                    FontSize="{StaticResource FontSizeM}"
-                                   FontWeight="SemiBold"
+                                   FontWeight="{StaticResource FontWeightSemiBold}"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,4,0,8"/>
@@ -1969,7 +1969,7 @@
                                    Grid.Column="2"
                                    Text="{DynamicResource Upload.Fields.Publication.MinuteShort}"
                                    FontSize="{StaticResource FontSizeM}"
-                                   FontWeight="SemiBold"
+                                   FontWeight="{StaticResource FontWeightSemiBold}"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,4,0,8"/>
@@ -1984,7 +1984,7 @@
                                 Cursor="Hand">
                           <TextBlock Text="&#xe316;"
                                      FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="18"
+                                     FontSize="{StaticResource FontSizeL}"
                                      Foreground="{StaticResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>
@@ -1998,7 +1998,7 @@
                                 Cursor="Hand">
                           <TextBlock Text="&#xe316;"
                                      FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="18"
+                                     FontSize="{StaticResource FontSizeL}"
                                      Foreground="{StaticResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>
@@ -2111,7 +2111,7 @@
                                 Cursor="Hand">
                           <TextBlock Text="&#xe313;"
                                      FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="18"
+                                     FontSize="{StaticResource FontSizeL}"
                                      Foreground="{StaticResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>
@@ -2125,7 +2125,7 @@
                                 Cursor="Hand">
                           <TextBlock Text="&#xe313;"
                                      FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="18"
+                                     FontSize="{StaticResource FontSizeL}"
                                      Foreground="{StaticResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>

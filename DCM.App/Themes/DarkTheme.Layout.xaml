@@ -126,7 +126,7 @@
   <sys:Double x:Key="DetailPanelMinHeight">360</sys:Double>
 
   <!-- Progress Bar Height -->
-  <sys:Double x:Key="ProgressBarHeight">8</sys:Double>
+  <sys:Double x:Key="ProgressBarHeight">6</sys:Double>
 
   <!-- Button Width -->
   <sys:Double x:Key="ButtonMinWidthS">80</sys:Double>
@@ -154,15 +154,26 @@
 
   <!-- Input Padding -->
   <Thickness x:Key="InputPaddingS">6,4</Thickness>
-  <Thickness x:Key="InputPaddingM">10,8</Thickness>
+  <Thickness x:Key="InputPaddingM">10,6</Thickness>
+
+  <!-- Input MinHeight -->
+  <sys:Double x:Key="InputMinHeight">34</sys:Double>
 
   <!-- View Root Margin (standard für alle Views) -->
   <Thickness x:Key="ViewRootMargin">0,0,8,0</Thickness>
 
   <!-- Label Spacing -->
   <Thickness x:Key="LabelMarginBottom">0,0,0,8</Thickness>
+  <Thickness x:Key="LabelMarginBottomXS">0,0,0,2</Thickness>
+  <Thickness x:Key="LabelMarginBottomSmall">0,0,0,4</Thickness>
+  <Thickness x:Key="LabelMarginBottomM">0,0,0,6</Thickness>
+  <Thickness x:Key="LabelMarginBottomL">0,0,0,12</Thickness>
+  <Thickness x:Key="LabelMarginBottomXL">0,0,0,24</Thickness>
   <Thickness x:Key="LabelMarginTop">0,8,0,0</Thickness>
+  <Thickness x:Key="LabelMarginTopM">0,6,0,0</Thickness>
   <Thickness x:Key="LabelMarginTopSmall">0,4,0,0</Thickness>
+  <Thickness x:Key="LabelMarginTopXS">0,2,0,0</Thickness>
+  <Thickness x:Key="LabelMarginTopL">0,12,0,0</Thickness>
 
   <!-- Section Spacing -->
   <Thickness x:Key="SectionMarginTop">0,16,0,0</Thickness>

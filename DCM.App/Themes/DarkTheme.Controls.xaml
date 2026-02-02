@@ -1183,9 +1183,9 @@
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="1"/>
+            Value="{StaticResource BorderThickness1}"/>
     <Setter Property="Padding"
-            Value="10,6"/>
+            Value="{StaticResource InputPaddingM}"/>
     <Setter Property="CaretBrush"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="SelectionBrush"
@@ -1197,7 +1197,7 @@
     <Setter Property="VerticalScrollBarVisibility"
             Value="Disabled"/>
     <Setter Property="MinHeight"
-            Value="34"/>
+            Value="{StaticResource InputMinHeight}"/>
     <Setter Property="Height"
             Value="Auto"/>
     <Setter Property="Validation.ErrorTemplate"
@@ -1277,11 +1277,11 @@
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="1"/>
+            Value="{StaticResource BorderThickness1}"/>
     <Setter Property="Padding"
-            Value="10,6"/>
+            Value="{StaticResource InputPaddingM}"/>
     <Setter Property="MinHeight"
-            Value="34"/>
+            Value="{StaticResource InputMinHeight}"/>
     <Setter Property="SnapsToDevicePixels"
             Value="True"/>
     <Setter Property="Validation.ErrorTemplate"
@@ -1638,9 +1638,9 @@
     <Setter Property="BorderBrush"
             Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="1"/>
+            Value="{StaticResource BorderThickness1}"/>
     <Setter Property="Margin"
-            Value="0,2"/>
+            Value="{StaticResource SpacingVerticalS}"/>
     <Setter Property="Cursor"
             Value="Hand"/>
     <Setter Property="VerticalContentAlignment"
@@ -2105,9 +2105,9 @@
     <Setter Property="Foreground"
             Value="{StaticResource PrimaryBrush}"/>
     <Setter Property="BorderThickness"
-            Value="0"/>
+            Value="{StaticResource BorderThickness0}"/>
     <Setter Property="Height"
-            Value="6"/>
+            Value="{StaticResource ProgressBarHeight}"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ProgressBar">

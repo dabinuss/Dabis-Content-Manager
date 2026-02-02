@@ -531,7 +531,7 @@
                             Margin="0,0,8,8"
                             Style="{StaticResource SecondaryButton}"
                             ap:ButtonIcon.Glyph="&#xe892;"
-                            Padding="8,8"
+                            Padding="{StaticResource CardPaddingS}"
                             Click="PlaceholderButton_Click"/>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -576,17 +576,17 @@
                          FontSize="{StaticResource FontSizeXXXXL}"
                          Foreground="{StaticResource TextMutedBrush}"
                          HorizontalAlignment="Center"
-                         Margin="0,0,0,24"/>
+                         Margin="{StaticResource LabelMarginBottomXL}"/>
               <TextBlock Text="{DynamicResource Presets.Empty.Title}"
                          FontSize="{StaticResource FontSizeXXL}"
-                         FontWeight="SemiBold"
+                         FontWeight="{StaticResource FontWeightSemiBold}"
                          Foreground="{StaticResource TextPrimaryBrush}"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{DynamicResource Presets.Empty.Subtitle}"
                          FontSize="{StaticResource FontSizeM}"
                          Foreground="{StaticResource TextMutedBrush}"
                          HorizontalAlignment="Center"
-                         Margin="0,12,0,0"/>
+                         Margin="{StaticResource LabelMarginTopL}"/>
               <Button Content="{DynamicResource Presets.Empty.Action}"
                       Style="{StaticResource PrimaryButton}"
                       ap:ButtonIcon.Glyph="&#xe145;"

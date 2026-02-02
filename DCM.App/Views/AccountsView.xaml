@@ -158,7 +158,7 @@
                   <TextBlock x:Name="AutoConnectThumbText"
                              Text="{TemplateBinding Content}"
                              FontSize="{StaticResource FontSizeXXS}"
-                             FontWeight="SemiBold"
+                             FontWeight="{StaticResource FontWeightSemiBold}"
                              Foreground="{StaticResource ToggleThumbTextBrush}"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"/>
@@ -318,7 +318,7 @@
                 VerticalAlignment="Top">
       <TextBlock Text="{DynamicResource Nav.Connections}"
                  Style="{StaticResource SectionHeader}"
-                 Margin="0,0,0,12"/>
+                 Margin="{StaticResource LabelMarginBottomL}"/>
 
       <ToggleButton x:Name="AccountsYouTubeTab"
                     Style="{StaticResource ServiceCardToggleButton}"
@@ -327,7 +327,7 @@
                     Checked="AccountsServiceTab_Checked"
                     HorizontalContentAlignment="Stretch"
                     MinHeight="{StaticResource CardMinHeightS}"
-                    Margin="0,0,0,12">
+                    Margin="{StaticResource LabelMarginBottomL}">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="72"/>
@@ -350,7 +350,7 @@
               <TextBlock Text="{DynamicResource Accounts.YouTube.Short}"
                          Foreground="White"
                          FontSize="{StaticResource FontSizeL}"
-                         FontWeight="Bold"
+                         FontWeight="{StaticResource FontWeightBold}"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"/>
             </Border>
@@ -364,7 +364,7 @@
                        FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Center"
-                       Margin="0,2,0,0"/>
+                       Margin="{StaticResource LabelMarginTopXS}"/>
           </StackPanel>
           <Grid Grid.Column="2"
                 VerticalAlignment="Center">
@@ -377,12 +377,12 @@
                        Text="{DynamicResource Accounts.YouTube}"
                        FontSize="{StaticResource FontSizeM}"
                        Foreground="{StaticResource TextPrimaryBrush}"
-                       FontWeight="SemiBold"
+                       FontWeight="{StaticResource FontWeightSemiBold}"
                        TextTrimming="CharacterEllipsis"/>
 
             <StackPanel Grid.Row="1"
                         Orientation="Vertical"
-                        Margin="0,4,0,0"
+                        Margin="{StaticResource LabelMarginTopSmall}"
                         VerticalAlignment="Center">
               <Border x:Name="YouTubeServiceChipBorder"
                       Padding="{StaticResource PaddingCompact}"
@@ -392,7 +392,7 @@
                       BorderThickness="{StaticResource BorderThickness1}"
                       MaxWidth="200"
                       HorizontalAlignment="Left"
-                      Margin="0,0,0,2">
+                      Margin="{StaticResource LabelMarginBottomXS}">
                 <TextBlock x:Name="YouTubeServiceChip"
                            Text="{DynamicResource Accounts.YouTube.Msg.NotConnected}"
                            FontSize="{StaticResource FontSizeXS}"
@@ -431,7 +431,7 @@
                     Checked="AccountsServiceTab_Checked"
                     HorizontalContentAlignment="Stretch"
                     MinHeight="{StaticResource CardMinHeightS}"
-                    Margin="0,0,0,12">
+                    Margin="{StaticResource LabelMarginBottomL}">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="72"/>
@@ -452,7 +452,7 @@
               <TextBlock Text="{DynamicResource Accounts.TikTok.Short}"
                          Foreground="White"
                          FontSize="{StaticResource FontSizeL}"
-                         FontWeight="Bold"
+                         FontWeight="{StaticResource FontWeightBold}"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"/>
             </Border>
@@ -463,7 +463,7 @@
                        FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Center"
-                       Margin="0,2,0,0"/>
+                       Margin="{StaticResource LabelMarginTopXS}"/>
           </StackPanel>
           <Grid Grid.Column="2"
                 VerticalAlignment="Center">
@@ -475,10 +475,10 @@
                        Text="{DynamicResource Platform.TikTok}"
                        FontSize="{StaticResource FontSizeM}"
                        Foreground="{StaticResource TextPrimaryBrush}"
-                       FontWeight="SemiBold"/>
+                       FontWeight="{StaticResource FontWeightSemiBold}"/>
             <StackPanel Grid.Row="1"
                         Orientation="Vertical"
-                        Margin="0,4,0,0"
+                        Margin="{StaticResource LabelMarginTopSmall}"
                         VerticalAlignment="Center">
               <Border Padding="{StaticResource PaddingCompact}"
                       CornerRadius="{StaticResource RadiusS}"
@@ -487,7 +487,7 @@
                       BorderThickness="{StaticResource BorderThickness1}"
                       MaxWidth="200"
                       HorizontalAlignment="Left"
-                      Margin="0,0,0,2">
+                      Margin="{StaticResource LabelMarginBottomXS}">
                 <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
                            FontSize="{StaticResource FontSizeXS}"
                            Foreground="{StaticResource TextMutedBrush}"
@@ -543,7 +543,7 @@
               <TextBlock Text="{DynamicResource Accounts.Instagram.Short}"
                          Foreground="White"
                          FontSize="{StaticResource FontSizeL}"
-                         FontWeight="Bold"
+                         FontWeight="{StaticResource FontWeightBold}"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"/>
             </Border>
@@ -554,7 +554,7 @@
                        FontSize="{StaticResource FontSizeXS}"
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Center"
-                       Margin="0,2,0,0"/>
+                       Margin="{StaticResource LabelMarginTopXS}"/>
           </StackPanel>
           <Grid Grid.Column="2"
                 VerticalAlignment="Center">
@@ -566,10 +566,10 @@
                        Text="{DynamicResource Platform.Instagram}"
                        FontSize="{StaticResource FontSizeM}"
                        Foreground="{StaticResource TextPrimaryBrush}"
-                       FontWeight="SemiBold"/>
+                       FontWeight="{StaticResource FontWeightSemiBold}"/>
             <StackPanel Grid.Row="1"
                         Orientation="Vertical"
-                        Margin="0,4,0,0"
+                        Margin="{StaticResource LabelMarginTopSmall}"
                         VerticalAlignment="Center">
               <Border Padding="{StaticResource PaddingCompact}"
                       CornerRadius="{StaticResource RadiusS}"
@@ -578,7 +578,7 @@
                       BorderThickness="{StaticResource BorderThickness1}"
                       MaxWidth="200"
                       HorizontalAlignment="Left"
-                      Margin="0,0,0,2">
+                      Margin="{StaticResource LabelMarginBottomXS}">
                 <TextBlock Text="{DynamicResource Accounts.ComingSoon}"
                            FontSize="{StaticResource FontSizeXS}"
                            Foreground="{StaticResource TextMutedBrush}"
@@ -709,7 +709,7 @@
                                  Foreground="White"
                                  HorizontalAlignment="Center"
                                  VerticalAlignment="Center"
-                                 FontWeight="Bold"
+                                 FontWeight="{StaticResource FontWeightBold}"
                                  FontSize="{StaticResource FontSizeM}"/>
                     </Border>
 
@@ -722,9 +722,9 @@
                       <TextBlock Text="{DynamicResource Accounts.YouTube.StatusHint}"
                                  Foreground="{StaticResource TextMutedBrush}"
                                  FontSize="{StaticResource FontSizeS}"
-                                 Margin="0,2,0,0"/>
+                                 Margin="{StaticResource LabelMarginTopXS}"/>
 
-                      <Grid Margin="0,8,0,0">
+                      <Grid Margin="{StaticResource LabelMarginTop}">
                         <Grid.RowDefinitions>
                           <RowDefinition Height="Auto"/>
                           <RowDefinition Height="Auto"/>
@@ -791,7 +791,7 @@
                       <TextBlock Text="{DynamicResource Accounts.YouTube.Status.AutoConnectHint}"
                                  Foreground="{StaticResource TextMutedBrush}"
                                  FontSize="{StaticResource FontSizeXS}"
-                                 Margin="0,6,0,0"
+                                 Margin="{StaticResource LabelMarginTopM}"
                                  TextWrapping="Wrap"/>
                     </StackPanel>
                   </Grid>
@@ -801,7 +801,7 @@
                 <GroupBox Grid.Row="2"
                           Header="{DynamicResource Accounts.YouTube.ActionsTitle}">
                   <UniformGrid Columns="4"
-                               Margin="0,4,0,0">
+                               Margin="{StaticResource LabelMarginTopSmall}">
                     <Button x:Name="YouTubeReconnectButton"
                             Content="{DynamicResource Accounts.YouTube.Action.Reconnect}"
                             Style="{StaticResource PrimaryButton}"
@@ -899,7 +899,7 @@
                     <TextBlock Text="{DynamicResource Accounts.YouTube.Stats.Hint}"
                                Foreground="{StaticResource TextMutedBrush}"
                                FontSize="{StaticResource FontSizeXS}"
-                               Margin="0,6,0,0"/>
+                               Margin="{StaticResource LabelMarginTopM}"/>
                   </StackPanel>
                 </GroupBox>
 
@@ -911,17 +911,17 @@
                                FontSize="{StaticResource FontSizeS}"
                                Foreground="{StaticResource TextMutedBrush}"
                                TextWrapping="Wrap"
-                               Margin="0,0,0,8"/>
+                               Margin="{StaticResource LabelMarginBottom}"/>
                     <TextBlock Text="{DynamicResource Accounts.YouTube.Settings.DefaultPlaylist}"
                                FontSize="{StaticResource FontSizeXS}"
                                Foreground="{StaticResource TextMutedBrush}"
-                               Margin="0,0,0,4"/>
+                               Margin="{StaticResource LabelMarginBottomSmall}"/>
                     <ListBox x:Name="YouTubePlaylistsListBox"
                              DisplayMemberPath="Title"
                              Height="160"
                              SelectionChanged="YouTubePlaylistsListBox_SelectionChanged"/>
 
-                    <Grid Margin="0,8,0,0">
+                    <Grid Margin="{StaticResource LabelMarginTop}">
                       <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -971,7 +971,7 @@
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"
                          VerticalAlignment="Top"
-                         Margin="0,8,0,0"/>
+                         Margin="{StaticResource LabelMarginTop}"/>
             </Grid>
 
             <!-- INSTAGRAM CONTENT (PLATZHALTER) -->
@@ -982,7 +982,7 @@
                          Foreground="{StaticResource TextMutedBrush}"
                          TextWrapping="Wrap"
                          VerticalAlignment="Top"
-                         Margin="0,8,0,0"/>
+                         Margin="{StaticResource LabelMarginTop}"/>
             </Grid>
 
           </Grid>
