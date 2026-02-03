@@ -1135,6 +1135,8 @@
          BasedOn="{StaticResource ModernGroupBox}">
     <Setter Property="Margin"
             Value="{StaticResource SettingsSectionSpacing}"/>
+    <Setter Property="HorizontalAlignment"
+            Value="Stretch"/>
   </Style>
 
   <Style x:Key="SettingsSectionGroupBox.Compact"

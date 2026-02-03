@@ -11,16 +11,15 @@
     <!-- Inhalt -->
   </Grid.RowDefinitions>
 
-  <!-- ZWEI-SPALTEN-LAYOUT wie bei Upload -->
+  <!-- ZWEI-SPALTEN-LAYOUT wie bei Settings -->
   <Grid Grid.Row="0"
+        HorizontalAlignment="Left"
+        MaxWidth="{StaticResource SettingsContentMaxWidth}"
         VerticalAlignment="Top">
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="*"
-                        MinWidth="350"/>
+      <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
-      <ColumnDefinition Width="*"
-                        MinWidth="300"
-                        MaxWidth="400"/>
+      <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
     <Grid.RowDefinitions>

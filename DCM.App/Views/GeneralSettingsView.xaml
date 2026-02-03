@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="DCM.App.Views.GeneralSettingsView"
+<UserControl x:Class="DCM.App.Views.GeneralSettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
@@ -9,17 +9,18 @@
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
-    <Grid Grid.Row="0"
-          HorizontalAlignment="Left"
-          MaxWidth="{StaticResource SettingsContentMaxWidth}">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"
-                          MinWidth="{StaticResource SettingsColumnMinWidth}"/>
-        <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
-        <ColumnDefinition Width="*"
-                          MinWidth="{StaticResource SettingsColumnMinWidth}"/>
-      </Grid.ColumnDefinitions>
+    <ScrollViewer Grid.Row="0"
+                  VerticalScrollBarVisibility="Auto">
+      <Grid HorizontalAlignment="Left"
+            MaxWidth="{StaticResource SettingsContentMaxWidth}"
+            VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+        <!-- LINKE SPALTE -->
       <Grid Grid.Column="0">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -28,6 +29,8 @@
           <RowDefinition Height="{StaticResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
+        <!-- BOX 1: Darstellung -->
         <GroupBox Grid.Row="0"
                   Style="{StaticResource SettingsSectionGroupBox}">
           <GroupBox.Header>
@@ -36,9 +39,9 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Language}" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Appearance}" VerticalAlignment="Center"/>
               <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
-                      ToolTip="{DynamicResource Settings.Tooltip.Language.Example}">
+                      ToolTip="{DynamicResource Settings.Tooltip.Appearance.Example}">
                 <TextBlock Style="{StaticResource HelpIconGlyph}"/>
               </Border>
             </Grid>
@@ -47,36 +50,38 @@
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingM}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <ComboBox Grid.Row="0"
-                      x:Name="LanguageComboBox"
-                      MinWidth="{StaticResource InputMinWidthM}"
-                      SelectionChanged="LanguageComboBox_SelectionChanged"/>
-            <TextBlock Grid.Row="1"
-                       Text="{DynamicResource Settings.Language.Restart.Hint}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
-                       Margin="{StaticResource LabelMarginTop}"/>
-          </Grid>
-        </GroupBox>
 
-        <GroupBox Grid.Row="2"
-                  Style="{StaticResource SettingsSectionGroupBox}">
-          <GroupBox.Header>
-            <Grid>
+            <!-- Sprache -->
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource Settings.Language}"
+                       Style="{StaticResource TextLabel}"/>
+            <Grid Grid.Row="1">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Theme}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
-                      ToolTip="{DynamicResource Settings.Tooltip.Theme.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-              </Border>
+              <ComboBox Grid.Column="0"
+                        x:Name="LanguageComboBox"
+                        MinWidth="{StaticResource InputMinWidthM}"
+                        SelectionChanged="LanguageComboBox_SelectionChanged"/>
+              <TextBlock Grid.Column="1"
+                         Text="{DynamicResource Settings.Language.Restart.Hint}"
+                         FontSize="{StaticResource FontSizeXS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         VerticalAlignment="Center"
+                         Margin="8,0,0,0"/>
             </Grid>
-          </GroupBox.Header>
-          <Grid>
-            <ComboBox x:Name="ThemeComboBox"
+
+            <!-- Theme -->
+            <TextBlock Grid.Row="3"
+                       Text="{DynamicResource Settings.Theme}"
+                       Style="{StaticResource TextLabel}"/>
+            <ComboBox Grid.Row="4"
+                      x:Name="ThemeComboBox"
                       MinWidth="{StaticResource InputMinWidthM}"
                       SelectionChanged="ThemeComboBox_SelectionChanged">
               <ComboBoxItem Content="{DynamicResource Settings.Theme.Dark}"
@@ -86,7 +91,8 @@
           </Grid>
         </GroupBox>
 
-        <GroupBox Grid.Row="4"
+        <!-- BOX 2: Standard-Ordner -->
+        <GroupBox Grid.Row="2"
                   Style="{StaticResource SettingsSectionGroupBox}">
           <GroupBox.Header>
             <Grid>
@@ -94,7 +100,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.StandardFolders}" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Folders}" VerticalAlignment="Center"/>
               <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.StandardFolders.Example}">
                 <TextBlock Style="{StaticResource HelpIconGlyph}"/>
@@ -105,18 +111,15 @@
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingM}"/>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" Orientation="Horizontal">
-              <TextBlock Text="{DynamicResource Settings.VideoFolder}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"/>
-              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
-                      ToolTip="{DynamicResource Settings.Tooltip.VideoFolder.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-              </Border>
-            </StackPanel>
+
+            <!-- Video-Ordner -->
+            <TextBlock Grid.Row="0"
+                       Text="{DynamicResource Settings.VideoFolder}"
+                       Style="{StaticResource TextLabel}"/>
             <Grid Grid.Row="1">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -124,7 +127,6 @@
               </Grid.ColumnDefinitions>
               <TextBox x:Name="DefaultVideoFolderTextBox"
                        Grid.Column="0"
-                       Width="260"
                        TextChanged="OnSettingChanged"/>
               <Button x:Name="DefaultVideoFolderBrowseButton"
                       Grid.Column="1"
@@ -135,23 +137,17 @@
                       Click="DefaultVideoFolderBrowseButton_Click"/>
             </Grid>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="{StaticResource LabelMarginTop}">
-              <TextBlock Text="{DynamicResource Settings.ThumbnailFolder}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"/>
-              <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
-                      ToolTip="{DynamicResource Settings.Tooltip.ThumbnailFolder.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-              </Border>
-            </StackPanel>
-            <Grid Grid.Row="3">
+            <!-- Thumbnail-Ordner -->
+            <TextBlock Grid.Row="3"
+                       Text="{DynamicResource Settings.ThumbnailFolder}"
+                       Style="{StaticResource TextLabel}"/>
+            <Grid Grid.Row="4">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBox x:Name="DefaultThumbnailFolderTextBox"
                        Grid.Column="0"
-                       Width="260"
                        TextChanged="OnSettingChanged"/>
               <Button x:Name="DefaultThumbnailFolderBrowseButton"
                       Grid.Column="1"
@@ -164,141 +160,7 @@
           </Grid>
         </GroupBox>
 
-      </Grid>
-
-      <Grid Grid.Column="2">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingXL}"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingXL}"/>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <GroupBox Grid.Row="0"
-                  Style="{StaticResource SettingsSectionGroupBox}">
-          <GroupBox.Header>
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.UploadSettings}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
-                      ToolTip="{DynamicResource Settings.Tooltip.UploadSettings.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-              </Border>
-            </Grid>
-          </GroupBox.Header>
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="{DynamicResource Settings.StandardReleaseTime}"
-                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
-                        ToolTip="{DynamicResource Settings.Tooltip.ReleaseTime.Example}">
-                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                </Border>
-              </StackPanel>
-              <TextBox Grid.Column="1"
-                       x:Name="DefaultSchedulingTimeTextBox"
-                       Width="90"
-                       TextChanged="OnSettingChanged"/>
-            </Grid>
-            <Grid Grid.Row="1"
-                  Margin="{StaticResource LabelMarginTop}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0"
-                         Text="{DynamicResource Upload.Fields.Visibility}"
-                         Foreground="{StaticResource TextSecondaryBrush}"/>
-              <ComboBox Grid.Column="1"
-                        x:Name="DefaultVisibilityComboBox"
-                        Width="160"
-                        SelectionChanged="OnComboBoxSettingChanged">
-                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
-                              Tag="{x:Static core:VideoVisibility.Public}"/>
-                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
-                              Tag="{x:Static core:VideoVisibility.Unlisted}"/>
-                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
-                              Tag="{x:Static core:VideoVisibility.Private}"/>
-              </ComboBox>
-            </Grid>
-            <CheckBox Grid.Row="2"
-                      x:Name="ConfirmBeforeUploadCheckBox"
-                      Content="{DynamicResource Settings.ConfirmUpload}"
-                      Margin="{StaticResource LabelMarginTop}"
-                      Checked="OnCheckBoxSettingChanged"
-                      Unchecked="OnCheckBoxSettingChanged"/>
-            <CheckBox Grid.Row="3"
-                      x:Name="AutoApplyDefaultTemplateCheckBox"
-                      Content="{DynamicResource Settings.AutomaticTemplateApply}"
-                      Margin="{StaticResource LabelMarginTop}"
-                      Checked="OnCheckBoxSettingChanged"
-                      Unchecked="OnCheckBoxSettingChanged"/>
-            <CheckBox Grid.Row="4"
-                      x:Name="OpenBrowserAfterUploadCheckBox"
-                      Content="{DynamicResource Settings.OpenBrowserAfterUpload}"
-                      Margin="{StaticResource LabelMarginTop}"
-                      Checked="OnCheckBoxSettingChanged"
-                      Unchecked="OnCheckBoxSettingChanged"/>
-            <CheckBox Grid.Row="5"
-                      x:Name="AutoConnectYouTubeCheckBox"
-                      Content="{DynamicResource Settings.AutomaticConnect}"
-                      Margin="{StaticResource LabelMarginTop}"
-                      Checked="OnCheckBoxSettingChanged"
-                      Unchecked="OnCheckBoxSettingChanged"/>
-          </Grid>
-        </GroupBox>
-
-        <GroupBox Grid.Row="2"
-                  Style="{StaticResource SettingsSectionGroupBox}">
-          <GroupBox.Header>
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Drafts}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
-                      ToolTip="{DynamicResource Settings.Tooltip.Drafts.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-              </Border>
-            </Grid>
-          </GroupBox.Header>
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <CheckBox Grid.Row="0"
-                      x:Name="RememberDraftsCheckBox"
-                      Content="{DynamicResource Settings.Drafts.Remember}"
-                      Margin="{StaticResource LabelMarginTop}"
-                      Checked="OnCheckBoxSettingChanged"
-                      Unchecked="OnCheckBoxSettingChanged"/>
-            <CheckBox Grid.Row="1"
-                      x:Name="AutoCleanDraftsCheckBox"
-                      Content="{DynamicResource Settings.Drafts.AutoClean}"
-                      Margin="{StaticResource LabelMarginTop}"
-                      Checked="OnCheckBoxSettingChanged"
-                      Unchecked="OnCheckBoxSettingChanged"/>
-          </Grid>
-        </GroupBox>
-
+        <!-- BOX 3: Transkription -->
         <GroupBox Grid.Row="4"
                   Style="{StaticResource SettingsSectionGroupBox}">
           <GroupBox.Header>
@@ -307,7 +169,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Transcription}" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Transcription}" VerticalAlignment="Center"/>
               <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.Transcription.Example}">
                 <TextBlock Style="{StaticResource HelpIconGlyph}"/>
@@ -322,26 +184,24 @@
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
+
+            <!-- Auto-Transkription -->
             <CheckBox Grid.Row="0"
                       x:Name="TranscriptionAutoCheckBox"
-                      Content="{DynamicResource Settings.AutomaticTranscription}"
-                      Margin="{StaticResource LabelMarginTop}"
+                      Content="{DynamicResource Settings.Transcription.Auto}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
-            <Grid Grid.Row="1"
-                  Margin="{StaticResource LabelMarginTop}">
+
+            <!-- Modellgröße -->
+            <Grid Grid.Row="1" Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="{DynamicResource Settings.WhisperModelSize}"
-                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
-                        ToolTip="{DynamicResource Settings.Tooltip.WhisperModel.Example}">
-                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                </Border>
-              </StackPanel>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Settings.Transcription.Model}"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         VerticalAlignment="Center"/>
               <ComboBox Grid.Column="1"
                         x:Name="TranscriptionModelSizeComboBox"
                         Width="{StaticResource InputMinWidthM}"
@@ -358,20 +218,17 @@
                               Tag="{x:Static config:WhisperModelSize.Large}"/>
               </ComboBox>
             </Grid>
-            <Grid Grid.Row="2"
-                  Margin="{StaticResource LabelMarginTop}">
+
+            <!-- Sprache -->
+            <Grid Grid.Row="2" Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
-              <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="{DynamicResource Settings.WhisperLanguage}"
-                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                <Border Style="{StaticResource HelpIconButton}" Margin="4,0,0,0"
-                        ToolTip="{DynamicResource Settings.Tooltip.WhisperLanguage.Example}">
-                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                </Border>
-              </StackPanel>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Settings.Transcription.Language}"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         VerticalAlignment="Center"/>
               <ComboBox Grid.Column="1"
                         x:Name="TranscriptionLanguageComboBox"
                         Width="{StaticResource InputMinWidthM}"
@@ -384,45 +241,175 @@
                               Tag="auto"/>
               </ComboBox>
             </Grid>
-            <Grid Grid.Row="3"
-                  Margin="{StaticResource LabelMarginTop}">
+
+            <!-- Status & Download -->
+            <Grid Grid.Row="3" Margin="{StaticResource LabelMarginTop}">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0"
-                         Text="{DynamicResource Common.Status}"
-                         Foreground="{StaticResource TextSecondaryBrush}"/>
-              <TextBlock Grid.Column="1"
                          x:Name="TranscriptionStatusTextBlock"
                          Foreground="{StaticResource TextMutedBrush}"
-                         Text="{DynamicResource Settings.Msg.NotChecked}"/>
-            </Grid>
-            <Grid Grid.Row="4"
-                  Margin="{StaticResource LabelMarginTop}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <Button Grid.Column="0"
+                         Text="{DynamicResource Settings.Msg.NotChecked}"
+                         VerticalAlignment="Center"/>
+              <Button Grid.Column="1"
                       x:Name="TranscriptionDownloadButton"
                       Content="{DynamicResource Settings.Whisper.Download}"
                       Style="{StaticResource SecondaryButton}"
                       ap:ButtonIcon.Glyph="&#xe2c4;"
                       Click="TranscriptionDownloadButton_Click"/>
-              <ProgressBar Grid.Column="1"
-                           x:Name="TranscriptionDownloadProgressBar"
-                           Width="150"
-                           Height="20"
-                           Minimum="0"
-                           Maximum="100"
-                           Visibility="Collapsed"
-                           Margin="8,0,0,0"/>
             </Grid>
+
+            <ProgressBar Grid.Row="4"
+                         x:Name="TranscriptionDownloadProgressBar"
+                         Height="20"
+                         Minimum="0"
+                         Maximum="100"
+                         Visibility="Collapsed"
+                         Margin="{StaticResource LabelMarginTop}"/>
           </Grid>
         </GroupBox>
       </Grid>
-    </Grid>
+
+      <!-- RECHTE SPALTE -->
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="{StaticResource SpacingXL}"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- BOX 4: Upload-Verhalten -->
+        <GroupBox Grid.Row="0"
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Upload}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.UploadSettings.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </Grid>
+          </GroupBox.Header>
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="{StaticResource SpacingM}"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Standard-Veröffentlichungszeit -->
+            <Grid Grid.Row="0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Settings.Upload.DefaultTime}"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         VerticalAlignment="Center"/>
+              <TextBox Grid.Column="1"
+                       x:Name="DefaultSchedulingTimeTextBox"
+                       Width="{StaticResource InputMinWidthXS}"
+                       TextChanged="OnSettingChanged"/>
+            </Grid>
+
+            <!-- Standard-Sichtbarkeit -->
+            <Grid Grid.Row="1" Margin="{StaticResource LabelMarginTop}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0"
+                         Text="{DynamicResource Settings.Upload.DefaultVisibility}"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         VerticalAlignment="Center"/>
+              <ComboBox Grid.Column="1"
+                        x:Name="DefaultVisibilityComboBox"
+                        Width="{StaticResource InputMinWidthS}"
+                        SelectionChanged="OnComboBoxSettingChanged">
+                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
+                              Tag="{x:Static core:VideoVisibility.Public}"/>
+                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
+                              Tag="{x:Static core:VideoVisibility.Unlisted}"/>
+                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
+                              Tag="{x:Static core:VideoVisibility.Private}"/>
+              </ComboBox>
+            </Grid>
+
+            <!-- Checkboxen -->
+            <CheckBox Grid.Row="3"
+                      x:Name="ConfirmBeforeUploadCheckBox"
+                      Content="{DynamicResource Settings.Upload.ConfirmBefore}"
+                      Checked="OnCheckBoxSettingChanged"
+                      Unchecked="OnCheckBoxSettingChanged"/>
+            <CheckBox Grid.Row="4"
+                      x:Name="AutoApplyDefaultTemplateCheckBox"
+                      Content="{DynamicResource Settings.Upload.AutoTemplate}"
+                      Margin="{StaticResource LabelMarginTop}"
+                      Checked="OnCheckBoxSettingChanged"
+                      Unchecked="OnCheckBoxSettingChanged"/>
+            <CheckBox Grid.Row="5"
+                      x:Name="OpenBrowserAfterUploadCheckBox"
+                      Content="{DynamicResource Settings.Upload.OpenBrowser}"
+                      Margin="{StaticResource LabelMarginTop}"
+                      Checked="OnCheckBoxSettingChanged"
+                      Unchecked="OnCheckBoxSettingChanged"/>
+            <CheckBox Grid.Row="6"
+                      x:Name="AutoConnectYouTubeCheckBox"
+                      Content="{DynamicResource Settings.Upload.AutoConnect}"
+                      Margin="{StaticResource LabelMarginTop}"
+                      Checked="OnCheckBoxSettingChanged"
+                      Unchecked="OnCheckBoxSettingChanged"/>
+          </Grid>
+        </GroupBox>
+
+        <!-- BOX 5: Entwürfe -->
+        <GroupBox Grid.Row="2"
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Drafts}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.Drafts.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </Grid>
+          </GroupBox.Header>
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <CheckBox Grid.Row="0"
+                      x:Name="RememberDraftsCheckBox"
+                      Content="{DynamicResource Settings.Drafts.Remember}"
+                      Checked="OnCheckBoxSettingChanged"
+                      Unchecked="OnCheckBoxSettingChanged"/>
+            <CheckBox Grid.Row="1"
+                      x:Name="AutoCleanDraftsCheckBox"
+                      Content="{DynamicResource Settings.Drafts.AutoClean}"
+                      Margin="{StaticResource LabelMarginTop}"
+                      Checked="OnCheckBoxSettingChanged"
+                      Unchecked="OnCheckBoxSettingChanged"/>
+          </Grid>
+        </GroupBox>
+      </Grid>
+      </Grid>
+    </ScrollViewer>
   </Grid>
 </UserControl>
-

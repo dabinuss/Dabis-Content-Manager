@@ -111,10 +111,14 @@
   <sys:Double x:Key="ControlMinHeightL">44</sys:Double>
 
   <!-- ComboBox/Input MinWidth -->
+  <sys:Double x:Key="InputMinWidthXS">80</sys:Double>
   <sys:Double x:Key="InputMinWidthS">160</sys:Double>
   <sys:Double x:Key="InputMinWidthM">200</sys:Double>
   <sys:Double x:Key="InputMinWidthL">260</sys:Double>
   <sys:Double x:Key="InputMinWidthXL">320</sys:Double>
+
+  <!-- Slider Width -->
+  <sys:Double x:Key="SliderWidth">140</sys:Double>
 
   <!-- TextArea MinHeight -->
   <sys:Double x:Key="TextAreaMinHeightS">80</sys:Double>

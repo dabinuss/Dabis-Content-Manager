@@ -586,6 +586,7 @@
   <sys:String x:Key="Settings.Tooltip.UploadSettings.Example">Konfiguriere das Standardverhalten beim Hochladen von Videos.</sys:String>
   <sys:String x:Key="Settings.Tooltip.Drafts.Example">Verwalte wie Entwürfe gespeichert und bereinigt werden.</sys:String>
   <sys:String x:Key="Settings.Tooltip.Transcription.Example">Einstellungen für die automatische Spracherkennung von Videos.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Appearance.Example">Passe Sprache und Farbschema der App an deine Vorlieben an.</sys:String>
 
   <!-- Presets Tooltips -->
   <sys:String x:Key="Presets.Tooltip.Name.Title">Vorlagenname</sys:String>
@@ -708,21 +709,49 @@
   <!-- Settings -->
   <sys:String x:Key="Settings">Einstellungen</sys:String>
   <sys:String x:Key="Settings.SaveAll">Alle Änderungen Speichern</sys:String>
+
+  <!-- Settings: Section Headers -->
+  <sys:String x:Key="Settings.Section.Appearance">Darstellung</sys:String>
+  <sys:String x:Key="Settings.Section.Folders">Standard-Ordner</sys:String>
+  <sys:String x:Key="Settings.Section.Transcription">Transkription</sys:String>
+  <sys:String x:Key="Settings.Section.Upload">Upload-Verhalten</sys:String>
+  <sys:String x:Key="Settings.Section.Drafts">Entwürfe</sys:String>
+
+  <!-- Settings: Appearance -->
   <sys:String x:Key="Settings.Language">Sprache</sys:String>
-  <sys:String x:Key="Settings.Language.Restart.Hint">Einige Änderungen werden sofort wirksam.</sys:String>
-  <sys:String x:Key="Settings.Theme">Theme</sys:String>
-  <sys:String x:Key="Settings.Theme.Dark">Dark</sys:String>
+  <sys:String x:Key="Settings.Language.Restart.Hint">Neustart ggf. erforderlich</sys:String>
+  <sys:String x:Key="Settings.Theme">Farbschema</sys:String>
+  <sys:String x:Key="Settings.Theme.Dark">Dunkel</sys:String>
+
+  <!-- Settings: Folders -->
   <sys:String x:Key="Settings.StandardFolders">Standard-Ordner</sys:String>
   <sys:String x:Key="Settings.VideoFolder">Video-Ordner</sys:String>
   <sys:String x:Key="Settings.ThumbnailFolder">Thumbnail-Ordner</sys:String>
-  <sys:String x:Key="Settings.ChoosePath">Pfad wählen</sys:String>
+  <sys:String x:Key="Settings.ChoosePath">Auswählen</sys:String>
   <sys:String x:Key="Dialog.VideoFolder.Title">Standard-Videoordner auswählen</sys:String>
   <sys:String x:Key="Dialog.ThumbnailFolder.Title">Standard-Thumbnailordner auswählen</sys:String>
+
+  <!-- Settings: Transcription -->
+  <sys:String x:Key="Settings.Transcription.Auto">Automatisch bei Video-Auswahl starten</sys:String>
+  <sys:String x:Key="Settings.Transcription.Model">Modellgröße</sys:String>
+  <sys:String x:Key="Settings.Transcription.Language">Sprache</sys:String>
+
+  <!-- Settings: Upload -->
   <sys:String x:Key="Settings.UploadSettings">Standard Upload Einstellungen</sys:String>
   <sys:String x:Key="Settings.StandardReleaseTime">Standard Release Zeit</sys:String>
+  <sys:String x:Key="Settings.Upload.DefaultTime">Veröffentlichungszeit</sys:String>
+  <sys:String x:Key="Settings.Upload.DefaultVisibility">Sichtbarkeit</sys:String>
+  <sys:String x:Key="Settings.Upload.ConfirmBefore">Vor Upload bestätigen</sys:String>
+  <sys:String x:Key="Settings.Upload.AutoTemplate">Standard-Vorlage anwenden</sys:String>
+  <sys:String x:Key="Settings.Upload.OpenBrowser">Browser nach Upload öffnen</sys:String>
+  <sys:String x:Key="Settings.Upload.AutoConnect">YouTube beim Start verbinden</sys:String>
+
+  <!-- Settings: Drafts -->
   <sys:String x:Key="Settings.Drafts">Entwürfe</sys:String>
-  <sys:String x:Key="Settings.Drafts.Remember">Entwürfe zwischen Sitzungen merken</sys:String>
-  <sys:String x:Key="Settings.Drafts.AutoClean">Abgeschlossene Entwürfe automatisch entfernen</sys:String>
+  <sys:String x:Key="Settings.Drafts.Remember">Entwürfe zwischen Sitzungen speichern</sys:String>
+  <sys:String x:Key="Settings.Drafts.AutoClean">Hochgeladene Entwürfe automatisch entfernen</sys:String>
+
+  <!-- Legacy (für Kompatibilität) -->
   <sys:String x:Key="Settings.ConfirmUpload">Vor Upload um Bestätigung fragen</sys:String>
   <sys:String x:Key="Settings.AutomaticTemplateApply">Standard-Vorlage automatisch anwenden</sys:String>
   <sys:String x:Key="Settings.OpenBrowserAfterUpload">Nach Upload Browser öffnen</sys:String>
@@ -740,18 +769,47 @@
   <sys:String x:Key="Settings.WhisperLanguage.Detect">Automatisch erkennen</sys:String>
   <sys:String x:Key="Settings.Msg.NotChecked">nicht geprüft</sys:String>
   <sys:String x:Key="Settings.Whisper.Download">Whisper installieren</sys:String>
+  <!-- LLM: Section Headers -->
+  <sys:String x:Key="Settings.LLM.Section.Model">KI-Modell</sys:String>
+  <sys:String x:Key="Settings.LLM.Section.Generation">Generierung</sys:String>
+  <sys:String x:Key="Settings.LLM.Section.Instructions">Anweisungen</sys:String>
+  <sys:String x:Key="Settings.LLM.Section.Suggestions">Anzahl Vorschläge</sys:String>
+
+  <!-- LLM: Model -->
+  <sys:String x:Key="Settings.LLM">KI Einstellungen</sys:String>
+  <sys:String x:Key="Settings.LLM.Status.Label">Aktivierung</sys:String>
+  <sys:String x:Key="Settings.LLM.Off">Deaktiviert</sys:String>
+  <sys:String x:Key="Settings.LLM.Local">Lokales Modell</sys:String>
+  <sys:String x:Key="Settings.LLM.Model.Select">Modell auswählen</sys:String>
+  <sys:String x:Key="Settings.LLM.Model.Path">Pfad zur Modelldatei</sys:String>
+  <sys:String x:Key="Settings.LLM.Model.Type">Modelltyp</sys:String>
+  <sys:String x:Key="Settings.LLM.Model.Status">Status:</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelPreset">Modell</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelPreset.Phi3Mini">Phi-3 Mini 4K (Q4, ~2.2 GB)</sys:String>
+  <sys:String x:Key="Settings.LLM.ModelPreset.Custom">Eigenes Modell...</sys:String>
+  <sys:String x:Key="Settings.LLM.Download">Herunterladen</sys:String>
+
+  <!-- LLM: Generation -->
+  <sys:String x:Key="Settings.LLM.Generation.MaxTokens">Maximale Länge</sys:String>
+  <sys:String x:Key="Settings.LLM.Generation.Creativity">Kreativität</sys:String>
+  <sys:String x:Key="Settings.LLM.Generation.SystemPrompt">Basis-Anweisung</sys:String>
+
+  <!-- LLM: Instructions -->
+  <sys:String x:Key="Settings.LLM.Instructions.Title">Für Titel</sys:String>
+  <sys:String x:Key="Settings.LLM.Instructions.Description">Für Beschreibung</sys:String>
+  <sys:String x:Key="Settings.LLM.Instructions.Tags">Für Tags</sys:String>
+
+  <!-- LLM: Suggestions -->
+  <sys:String x:Key="Settings.LLM.Suggestions.Title">Titel</sys:String>
+  <sys:String x:Key="Settings.LLM.Suggestions.Description">Beschreibung</sys:String>
+  <sys:String x:Key="Settings.LLM.Suggestions.Tags">Tags</sys:String>
+
+  <!-- Legacy (für Kompatibilität) -->
   <sys:String x:Key="Settings.Suggestions.Count">Vorschlagsanzahl</sys:String>
   <sys:String x:Key="Settings.Suggestions.Title">Titel</sys:String>
   <sys:String x:Key="Settings.Suggestions.Description">Beschreibung</sys:String>
   <sys:String x:Key="Settings.Suggestions.Tags">Tags</sys:String>
-  <sys:String x:Key="Settings.LLM">KI Einstellungen</sys:String>
   <sys:String x:Key="Settings.LLM.Mode">Modus</sys:String>
-  <sys:String x:Key="Settings.LLM.Off">Aus</sys:String>
-  <sys:String x:Key="Settings.LLM.Local">Lokal (.GGUF)</sys:String>
-  <sys:String x:Key="Settings.LLM.ModelPreset">Modell</sys:String>
-  <sys:String x:Key="Settings.LLM.ModelPreset.Phi3Mini">Phi-3 Mini 4K (Q4, ~2.2 GB)</sys:String>
-  <sys:String x:Key="Settings.LLM.ModelPreset.Custom">Eigenes Modell</sys:String>
-  <sys:String x:Key="Settings.LLM.Download">Herunterladen</sys:String>
   <sys:String x:Key="Settings.LLM.Download.Cancel">Abbrechen</sys:String>
   <sys:String x:Key="Settings.LLM.Download.Remove">Entfernen</sys:String>
   <sys:String x:Key="Settings.LLM.Download.Available">Verfügbar</sys:String>
