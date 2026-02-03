@@ -1004,50 +1004,70 @@
   <!-- =================================================================== -->
 
   <!-- MODERN GROUPBOX (Card Style) -->
+  <!-- Option 1: Minimalistischer Header - Header IN der Card, dezent, kompakt -->
   <Style x:Key="ModernGroupBox"
          TargetType="GroupBox">
     <Setter Property="Background"
             Value="Transparent"/>
     <Setter Property="BorderBrush"
-            Value="Transparent"/>
+            Value="{StaticResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="0"/>
+            Value="1"/>
     <Setter Property="Foreground"
             Value="{StaticResource TextPrimaryBrush}"/>
     <Setter Property="Padding"
-            Value="{StaticResource GroupBoxPadding}"/>
+            Value="10,8"/>
     <Setter Property="Margin"
-            Value="{StaticResource GroupBoxMargin}"/>
+            Value="0,0,0,12"/>
 
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="GroupBox">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+          <!-- Alles in einer Card -->
+          <Border x:Name="PART_Border"
+                  Background="{StaticResource SurfaceElevatedBrush}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{StaticResource RadiusM}"
+                  SnapsToDevicePixels="True">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- Header -->
+                <RowDefinition Height="Auto"/>
+                <!-- Separator -->
+                <RowDefinition Height="*"/>
+                <!-- Content -->
+              </Grid.RowDefinitions>
 
-              <!-- Header -->
-              <TextBlock Text="{TemplateBinding Header}"
-                         Style="{StaticResource SectionHeader}"
-                         Margin="{StaticResource SpacingVerticalM}"/>
+              <!-- Header (IN der Card, dezent) -->
+              <ContentPresenter Grid.Row="0"
+                                ContentSource="Header"
+                                RecognizesAccessKey="True"
+                                Margin="10,8,10,6"
+                                HorizontalAlignment="Stretch">
+                <ContentPresenter.Resources>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource SectionHeader}"/>
+                </ContentPresenter.Resources>
+              </ContentPresenter>
 
-            <!-- Inhalt + Border -->
-            <Border x:Name="PART_Border"
-                    Grid.Row="1"
-                    Background="{StaticResource SurfaceElevatedBrush}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="{StaticResource RadiusM}"
-                    Padding="{TemplateBinding Padding}">
-              <ContentPresenter/>
-            </Border>
-          </Grid>
+              <!-- Dezente Trennlinie -->
+              <Border Grid.Row="1"
+                      Height="1"
+                      Margin="8,0"
+                      Background="{StaticResource BorderBrush}"
+                      Opacity="0.4"
+                      SnapsToDevicePixels="True"/>
+
+              <!-- Content -->
+              <ContentPresenter Grid.Row="2"
+                                Margin="{TemplateBinding Padding}"/>
+            </Grid>
+          </Border>
 
           <!-- TRIGGERS -->
           <ControlTemplate.Triggers>
-            <!-- 1) HOVER -->
+            <!-- HOVER -->
             <Trigger Property="IsMouseOver"
                      Value="True">
               <Setter TargetName="PART_Border"

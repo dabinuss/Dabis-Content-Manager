@@ -31,13 +31,17 @@
         <GroupBox Grid.Row="0"
                   Style="{StaticResource SettingsSectionGroupBox}">
           <GroupBox.Header>
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{DynamicResource Settings.Language}" VerticalAlignment="Center"/>
-              <Border Style="{StaticResource HelpIconButton}"
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Language}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.Language.Example}">
                 <TextBlock Style="{StaticResource HelpIconGlyph}"/>
               </Border>
-            </StackPanel>
+            </Grid>
           </GroupBox.Header>
           <Grid>
             <Grid.RowDefinitions>
@@ -59,13 +63,17 @@
         <GroupBox Grid.Row="2"
                   Style="{StaticResource SettingsSectionGroupBox}">
           <GroupBox.Header>
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{DynamicResource Settings.Theme}" VerticalAlignment="Center"/>
-              <Border Style="{StaticResource HelpIconButton}"
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Theme}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.Theme.Example}">
                 <TextBlock Style="{StaticResource HelpIconGlyph}"/>
               </Border>
-            </StackPanel>
+            </Grid>
           </GroupBox.Header>
           <Grid>
             <ComboBox x:Name="ThemeComboBox"
@@ -79,8 +87,20 @@
         </GroupBox>
 
         <GroupBox Grid.Row="4"
-                  Style="{StaticResource SettingsSectionGroupBox}"
-                  Header="{DynamicResource Settings.StandardFolders}">
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.StandardFolders}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.StandardFolders.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </Grid>
+          </GroupBox.Header>
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
@@ -155,8 +175,20 @@
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <GroupBox Grid.Row="0"
-                  Style="{StaticResource SettingsSectionGroupBox}"
-                  Header="{DynamicResource Settings.UploadSettings}">
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.UploadSettings}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.UploadSettings.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </Grid>
+          </GroupBox.Header>
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
@@ -233,8 +265,20 @@
         </GroupBox>
 
         <GroupBox Grid.Row="2"
-                  Style="{StaticResource SettingsSectionGroupBox}"
-                  Header="{DynamicResource Settings.Drafts}">
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Drafts}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.Drafts.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </Grid>
+          </GroupBox.Header>
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
@@ -256,8 +300,20 @@
         </GroupBox>
 
         <GroupBox Grid.Row="4"
-                  Style="{StaticResource SettingsSectionGroupBox}"
-                  Header="{DynamicResource Settings.Transcription}">
+                  Style="{StaticResource SettingsSectionGroupBox}">
+          <GroupBox.Header>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Transcription}" VerticalAlignment="Center"/>
+              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                      ToolTip="{DynamicResource Settings.Tooltip.Transcription.Example}">
+                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+              </Border>
+            </Grid>
+          </GroupBox.Header>
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>

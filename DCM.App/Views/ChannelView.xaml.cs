@@ -115,23 +115,50 @@ public partial class ChannelView : UserControl
     {
         // Determine which validation icon to update based on the TextBox
         Border? validationBorder = null;
+        TextBlock? validationGlyph = null;
         int minLength = 0;
         bool isRequired = false;
 
         if (textBox == ChannelPersonaNameTextBox)
         {
             validationBorder = NameValidationIcon;
+            validationGlyph = NameValidationIconGlyph;
             minLength = 2;
             isRequired = true;
         }
         else if (textBox == ChannelPersonaChannelNameTextBox)
         {
             validationBorder = ChannelNameValidationIcon;
+            validationGlyph = ChannelNameValidationIconGlyph;
             minLength = 2;
             isRequired = true;
         }
+        else if (textBox == ChannelPersonaToneOfVoiceTextBox)
+        {
+            validationBorder = ToneValidationIcon;
+            validationGlyph = ToneValidationIconGlyph;
+            minLength = 2;
+        }
+        else if (textBox == ChannelPersonaContentTypeTextBox)
+        {
+            validationBorder = ContentTypeValidationIcon;
+            validationGlyph = ContentTypeValidationIconGlyph;
+            minLength = 2;
+        }
+        else if (textBox == ChannelPersonaTargetAudienceTextBox)
+        {
+            validationBorder = TargetAudienceValidationIcon;
+            validationGlyph = TargetAudienceValidationIconGlyph;
+            minLength = 2;
+        }
+        else if (textBox == ChannelPersonaAdditionalInstructionsTextBox)
+        {
+            validationBorder = AdditionalValidationIcon;
+            validationGlyph = AdditionalValidationIconGlyph;
+            minLength = 5;
+        }
 
-        if (validationBorder == null)
+        if (validationBorder == null || validationGlyph == null)
         {
             return;
         }
@@ -148,21 +175,15 @@ public partial class ChannelView : UserControl
 
         validationBorder.Visibility = Visibility.Visible;
 
-        var iconTextBlock = validationBorder.Child as TextBlock;
-        if (iconTextBlock == null)
-        {
-            return;
-        }
-
         if (isValid)
         {
-            iconTextBlock.Text = "\ue5ca"; // check icon
-            iconTextBlock.Foreground = (Brush)FindResource("SuccessBrush");
+            validationGlyph.Text = "\ue5ca"; // check icon
+            validationGlyph.Foreground = (Brush)FindResource("SuccessBrush");
         }
         else
         {
-            iconTextBlock.Text = "\ue5cd"; // close/X icon
-            iconTextBlock.Foreground = (Brush)FindResource("DangerBrush");
+            validationGlyph.Text = "\ue5cd"; // close/X icon
+            validationGlyph.Foreground = (Brush)FindResource("DangerBrush");
         }
     }
 

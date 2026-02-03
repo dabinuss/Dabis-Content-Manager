@@ -142,8 +142,38 @@ public partial class UploadView : UserControl
         }
     }
 
-    private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+    private void DescriptionTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
         DescriptionTextBoxTextChanged?.Invoke(sender, e);
+        UpdateDescriptionValidation();
+    }
+
+    private void UpdateDescriptionValidation()
+    {
+        if (DescriptionValidationIcon == null || DescriptionValidationIconGlyph == null)
+            return;
+
+        var text = DescriptionTextBox.Text?.Trim() ?? "";
+
+        if (string.IsNullOrEmpty(text))
+        {
+            DescriptionValidationIcon.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        DescriptionValidationIcon.Visibility = Visibility.Visible;
+
+        if (text.Length >= 10)
+        {
+            DescriptionValidationIconGlyph.Text = "\ue5ca";
+            DescriptionValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+        }
+        else
+        {
+            DescriptionValidationIconGlyph.Text = "\ue5cd";
+            DescriptionValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+        }
+    }
 
     private void GenerateTitleButton_Click(object sender, RoutedEventArgs e) =>
         GenerateTitleButtonClicked?.Invoke(sender, e);
@@ -177,10 +207,70 @@ public partial class UploadView : UserControl
         }
 
         TagsTextBoxTextChanged?.Invoke(sender, e);
+        UpdateTagsValidation();
     }
 
-    private void TranscriptTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
+    private void UpdateTagsValidation()
+    {
+        if (TagsValidationIcon == null || TagsValidationIconGlyph == null)
+            return;
+
+        var text = TagsTextBox.Text?.Trim() ?? "";
+
+        if (string.IsNullOrEmpty(text))
+        {
+            TagsValidationIcon.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        TagsValidationIcon.Visibility = Visibility.Visible;
+
+        // Valid if at least one tag exists
+        if (text.Length >= 2)
+        {
+            TagsValidationIconGlyph.Text = "\ue5ca";
+            TagsValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+        }
+        else
+        {
+            TagsValidationIconGlyph.Text = "\ue5cd";
+            TagsValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+        }
+    }
+
+    private void TranscriptTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
         TranscriptTextBoxTextChanged?.Invoke(sender, e);
+        UpdateTranscriptionValidation();
+    }
+
+    private void UpdateTranscriptionValidation()
+    {
+        if (TranscriptionValidationIcon == null || TranscriptionValidationIconGlyph == null)
+            return;
+
+        var text = TranscriptTextBox.Text?.Trim() ?? "";
+
+        if (string.IsNullOrEmpty(text))
+        {
+            TranscriptionValidationIcon.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        TranscriptionValidationIcon.Visibility = Visibility.Visible;
+
+        // Valid if transcript exists
+        if (text.Length >= 20)
+        {
+            TranscriptionValidationIconGlyph.Text = "\ue5ca";
+            TranscriptionValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+        }
+        else
+        {
+            TranscriptionValidationIconGlyph.Text = "\ue5cd";
+            TranscriptionValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+        }
+    }
 
     private void ChaptersTextBox_TextChanged(object sender, TextChangedEventArgs e) =>
         ChaptersTextBoxTextChanged?.Invoke(sender, e);

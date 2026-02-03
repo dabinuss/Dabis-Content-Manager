@@ -40,13 +40,17 @@
           <GroupBox Grid.Row="0"
                     Style="{StaticResource SettingsSectionGroupBox}">
             <GroupBox.Header>
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{DynamicResource Settings.LLM.Mode}" VerticalAlignment="Center"/>
-                <Border Style="{StaticResource HelpIconButton}"
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Mode}" VerticalAlignment="Center"/>
+                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.LlmMode.Example}">
                   <TextBlock Style="{StaticResource HelpIconGlyph}"/>
                 </Border>
-              </StackPanel>
+              </Grid>
             </GroupBox.Header>
             <Grid>
               <Grid.RowDefinitions>
@@ -219,9 +223,17 @@
           <GroupBox Grid.Row="2"
                     Style="{StaticResource SettingsSectionGroupBox}">
             <GroupBox.Header>
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{DynamicResource Settings.LLM.Parameters}" VerticalAlignment="Center"/>
-              </StackPanel>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Parameters}" VerticalAlignment="Center"/>
+                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmParameters.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </Grid>
             </GroupBox.Header>
             <Grid>
               <Grid.RowDefinitions>
@@ -306,9 +318,17 @@
           <GroupBox Grid.Row="0"
                     Style="{StaticResource SettingsSectionGroupBox}">
             <GroupBox.Header>
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{DynamicResource Settings.LLM.Prompts}" VerticalAlignment="Center"/>
-              </StackPanel>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Prompts}" VerticalAlignment="Center"/>
+                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                        ToolTip="{DynamicResource Settings.Tooltip.LlmPrompts.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </Grid>
             </GroupBox.Header>
             <Grid>
               <Grid.RowDefinitions>
@@ -373,8 +393,20 @@
           </GroupBox>
 
           <GroupBox Grid.Row="2"
-                    Style="{StaticResource SettingsSectionGroupBox}"
-                    Header="{DynamicResource Settings.Suggestions.Count}">
+                    Style="{StaticResource SettingsSectionGroupBox}">
+            <GroupBox.Header>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Suggestions.Count}" VerticalAlignment="Center"/>
+                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                        ToolTip="{DynamicResource Settings.Tooltip.SuggestionCount.Example}">
+                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                </Border>
+              </Grid>
+            </GroupBox.Header>
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

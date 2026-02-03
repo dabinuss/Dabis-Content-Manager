@@ -1107,13 +1107,22 @@
                       Tag="{Binding ElementName=TitleTextBox}"
                       PreviewMouseDown="FocusTargetOnContainerClick">
               <GroupBox.Header>
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Title}" VerticalAlignment="Center"/>
-                  <Border Style="{StaticResource HelpIconButton}"
-                          ToolTip="{DynamicResource Upload.Tooltip.Title.Example}">
-                    <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                  </Border>
-                </StackPanel>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Title}" VerticalAlignment="Center"/>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border x:Name="TitleValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
+                      <TextBlock x:Name="TitleValidationIconGlyph" Style="{StaticResource ValidationIcon}"/>
+                    </Border>
+                    <Border Style="{StaticResource HelpIconButton}"
+                            ToolTip="{DynamicResource Upload.Tooltip.Title.Example}">
+                      <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                    </Border>
+                  </StackPanel>
+                </Grid>
               </GroupBox.Header>
               <Grid>
                   <Grid.RowDefinitions>
@@ -1130,22 +1139,9 @@
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
-                  <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="*"/>
-                      <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="TitleTextBox"
-                             Grid.Column="0"
-                             TextChanged="TitleTextBox_TextChanged"/>
-                    <Border Grid.Column="1"
-                            x:Name="TitleValidationIcon"
-                            Visibility="Collapsed"
-                            VerticalAlignment="Center"
-                            Margin="8,0,0,0">
-                      <TextBlock x:Name="TitleValidationIconGlyph" Style="{StaticResource ValidationIcon}"/>
-                    </Border>
-                  </Grid>
+                  <TextBox x:Name="TitleTextBox"
+                           Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                           TextChanged="TitleTextBox_TextChanged"/>
                   <Button x:Name="GenerateTitleButton"
                           Grid.Row="4"
                           Grid.Column="0"
@@ -1256,13 +1252,22 @@
                       Tag="{Binding ElementName=DescriptionTextBox}"
                       PreviewMouseDown="FocusTargetOnContainerClick">
               <GroupBox.Header>
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Description}" VerticalAlignment="Center"/>
-                  <Border Style="{StaticResource HelpIconButton}"
-                          ToolTip="{DynamicResource Upload.Tooltip.Description.Example}">
-                    <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                  </Border>
-                </StackPanel>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Description}" VerticalAlignment="Center"/>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border x:Name="DescriptionValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
+                      <TextBlock x:Name="DescriptionValidationIconGlyph" Style="{StaticResource ValidationIcon}"/>
+                    </Border>
+                    <Border Style="{StaticResource HelpIconButton}"
+                            ToolTip="{DynamicResource Upload.Tooltip.Description.Example}">
+                      <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                    </Border>
+                  </StackPanel>
+                </Grid>
               </GroupBox.Header>
               <Grid>
                   <Grid.RowDefinitions>
@@ -1394,13 +1399,22 @@
                       Tag="{Binding ElementName=TagInputTextBox}"
                       PreviewMouseDown="FocusTargetOnContainerClick">
               <GroupBox.Header>
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Tags}" VerticalAlignment="Center"/>
-                  <Border Style="{StaticResource HelpIconButton}"
-                          ToolTip="{DynamicResource Upload.Tooltip.Tags.Example}">
-                    <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                  </Border>
-                </StackPanel>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Tags}" VerticalAlignment="Center"/>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border x:Name="TagsValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
+                      <TextBlock x:Name="TagsValidationIconGlyph" Style="{StaticResource ValidationIcon}"/>
+                    </Border>
+                    <Border Style="{StaticResource HelpIconButton}"
+                            ToolTip="{DynamicResource Upload.Tooltip.Tags.Example}">
+                      <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                    </Border>
+                  </StackPanel>
+                </Grid>
               </GroupBox.Header>
               <Grid>
                   <Grid.RowDefinitions>
@@ -1585,13 +1599,22 @@
                       Tag="{Binding ElementName=TranscriptTextBox}"
                       PreviewMouseDown="FocusTargetOnContainerClick">
               <GroupBox.Header>
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Transcription}" VerticalAlignment="Center"/>
-                  <Border Style="{StaticResource HelpIconButton}"
-                          ToolTip="{DynamicResource Upload.Tooltip.Transcription.Example}">
-                    <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                  </Border>
-                </StackPanel>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Transcription}" VerticalAlignment="Center"/>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border x:Name="TranscriptionValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
+                      <TextBlock x:Name="TranscriptionValidationIconGlyph" Style="{StaticResource ValidationIcon}"/>
+                    </Border>
+                    <Border Style="{StaticResource HelpIconButton}"
+                            ToolTip="{DynamicResource Upload.Tooltip.Transcription.Example}">
+                      <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                    </Border>
+                  </StackPanel>
+                </Grid>
               </GroupBox.Header>
               <Grid>
                   <Grid.RowDefinitions>
@@ -1769,13 +1792,22 @@
 
             <Border Style="{StaticResource UploadSectionCard}">
               <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="{StaticResource SectionHeaderMarginBottom}">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail}" Style="{StaticResource TextLabel}"/>
-                  <Border Style="{StaticResource HelpIconButton}"
-                          ToolTip="{DynamicResource Upload.Tooltip.Thumbnail.Example}">
-                    <TextBlock Style="{StaticResource HelpIconGlyph}"/>
-                  </Border>
-                </StackPanel>
+                <Grid Margin="{StaticResource SectionHeaderMarginBottom}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Thumbnail}" Style="{StaticResource TextLabel}"/>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Border x:Name="ThumbnailValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
+                      <TextBlock x:Name="ThumbnailValidationIconGlyph" Style="{StaticResource ValidationIcon}"/>
+                    </Border>
+                    <Border Style="{StaticResource HelpIconButton}"
+                            ToolTip="{DynamicResource Upload.Tooltip.Thumbnail.Example}">
+                      <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                    </Border>
+                  </StackPanel>
+                </Grid>
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -1875,13 +1907,17 @@
               <StackPanel>
                 <TextBlock Text="{DynamicResource Section.Upload.VisibilityPlanning}"
                            Style="{StaticResource UploadSectionHeader}"/>
-                <StackPanel Orientation="Horizontal" Margin="{StaticResource LabelMarginBottom}">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Paylists}" Style="{StaticResource TextLabel}"/>
-                  <Border Style="{StaticResource HelpIconButton}"
+                <Grid Margin="{StaticResource LabelMarginBottom}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Paylists}" Style="{StaticResource TextLabel}"/>
+                  <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                           ToolTip="{DynamicResource Upload.Tooltip.Playlist.Example}">
                     <TextBlock Style="{StaticResource HelpIconGlyph}"/>
                   </Border>
-                </StackPanel>
+                </Grid>
                 <ComboBox x:Name="PlaylistComboBox"
                           DisplayMemberPath="Title"
                           SelectionChanged="PlaylistComboBox_SelectionChanged"/>
@@ -1891,13 +1927,17 @@
                         HorizontalAlignment="Stretch"
                         SnapsToDevicePixels="True"/>
 
-                <StackPanel Orientation="Horizontal" Margin="{StaticResource LabelMarginBottom}">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Visibility}" Style="{StaticResource TextLabel}"/>
-                  <Border Style="{StaticResource HelpIconButton}"
+                <Grid Margin="{StaticResource LabelMarginBottom}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Visibility}" Style="{StaticResource TextLabel}"/>
+                  <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                           ToolTip="{DynamicResource Upload.Tooltip.Visibility.Example}">
                     <TextBlock Style="{StaticResource HelpIconGlyph}"/>
                   </Border>
-                </StackPanel>
+                </Grid>
                 <ComboBox x:Name="VisibilityComboBox"
                           SelectionChanged="VisibilityComboBox_SelectionChanged">
                   <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
@@ -1914,13 +1954,17 @@
                         HorizontalAlignment="Stretch"
                         SnapsToDevicePixels="True"/>
 
-                <StackPanel Orientation="Horizontal" Margin="{StaticResource LabelMarginBottom}">
-                  <TextBlock Text="{DynamicResource Upload.Fields.Publication}" Style="{StaticResource TextLabel}"/>
-                  <Border Style="{StaticResource HelpIconButton}"
+                <Grid Margin="{StaticResource LabelMarginBottom}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Publication}" Style="{StaticResource TextLabel}"/>
+                  <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
                           ToolTip="{DynamicResource Upload.Tooltip.Schedule.Example}">
                     <TextBlock Style="{StaticResource HelpIconGlyph}"/>
                   </Border>
-                </StackPanel>
+                </Grid>
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

@@ -463,6 +463,10 @@
   <sys:String x:Key="Accounts.YouTube.LastSync">Letzte Synchronisierung</sys:String>
   <sys:String x:Key="Accounts.YouTube.LastSyncNever">nie</sys:String>
   <sys:String x:Key="Accounts.YouTube.LastSyncPlaceholder">Letzte Synchronisierung: --</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeStatus.Example">Zeigt den aktuellen Verbindungsstatus zu deinem YouTube-Kanal.</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeActions.Example">Schnelle Aktionen zum Verwalten deiner YouTube-Verbindung.</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeStats.Example">Übersicht über deine Upload-Aktivitäten der letzten Tage.</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeSettings.Example">Standard-Einstellungen für neue YouTube-Uploads.</sys:String>
 
   <!-- Channel -->
   <sys:String x:Key="Channel">Kanalprofil</sys:String>
@@ -493,6 +497,8 @@
   <sys:String x:Key="Channel.Tooltip.TargetAudience.Title">Beispiel</sys:String>
   <sys:String x:Key="Channel.Tooltip.Additional.Title">Hinweis</sys:String>
   <sys:String x:Key="Channel.Tooltip.Additional.Example">Hier kannst du zusätzliche Anweisungen für die KI-Generierung eingeben, z. B. "Verwende immer Emojis" oder "Erwähne den Sponsornamen".</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Profile.Example">Grundlegende Informationen zu deinem Kanal für personalisierte KI-Vorschläge.</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Style.Example">Definiere Sprache und Tonalität für konsistente KI-generierte Inhalte.</sys:String>
 
   <!-- Upload Tooltips -->
   <sys:String x:Key="Upload.Tooltip.Title.Title">Video-Titel</sys:String>
@@ -573,6 +579,13 @@
   <sys:String x:Key="Settings.Tooltip.LlmDescriptionPrompt.Example">Spezifische Anweisungen für die KI bei der Beschreibungsgenerierung.</sys:String>
   <sys:String x:Key="Settings.Tooltip.LlmTagsPrompt.Title">Tags-Anweisungen</sys:String>
   <sys:String x:Key="Settings.Tooltip.LlmTagsPrompt.Example">Spezifische Anweisungen für die KI bei der Tag-Generierung.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmParameters.Example">Feineinstellungen für das Verhalten der KI wie Token-Limit und Kreativität.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmPrompts.Example">Anpassbare Anweisungen für Titel, Beschreibung und Tags.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.SuggestionCount.Example">Anzahl der KI-Vorschläge die gleichzeitig generiert werden.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.StandardFolders.Example">Definiere Standard-Ordner für schnelleren Zugriff beim Auswählen von Videos und Thumbnails.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.UploadSettings.Example">Konfiguriere das Standardverhalten beim Hochladen von Videos.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Drafts.Example">Verwalte wie Entwürfe gespeichert und bereinigt werden.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Transcription.Example">Einstellungen für die automatische Spracherkennung von Videos.</sys:String>
 
   <!-- Presets Tooltips -->
   <sys:String x:Key="Presets.Tooltip.Name.Title">Vorlagenname</sys:String>
@@ -589,6 +602,10 @@
   <sys:String x:Key="Presets.Tooltip.DescriptionTemplate.Example">Nutze Platzhalter: {{TITLE}}, {{TAGS}}, {{CHAPTERS}}, {{DATE}} für dynamische Inhalte.</sys:String>
   <sys:String x:Key="Presets.Tooltip.Notes.Title">Notizen</sys:String>
   <sys:String x:Key="Presets.Tooltip.Notes.Example">Interne Notizen zur Vorlage. Diese werden nicht hochgeladen.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionInfo.Example">Allgemeine Informationen zur Identifizierung dieser Vorlage.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionBasic.Example">Grundlegende Metadaten die auf jedes Video angewendet werden.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionPublishing.Example">Einstellungen für Sichtbarkeit und Veröffentlichung.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionTemplate.Example">Beschreibungsvorlage mit Platzhaltern für dynamische Inhalte.</sys:String>
 
   <!-- Templates -->
   <sys:String x:Key="Templates">Vorlagen</sys:String>

@@ -461,6 +461,10 @@
   <sys:String x:Key="Accounts.YouTube.LastSync">Last sync</sys:String>
   <sys:String x:Key="Accounts.YouTube.LastSyncNever">never</sys:String>
   <sys:String x:Key="Accounts.YouTube.LastSyncPlaceholder">Last sync: --</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeStatus.Example">Shows the current connection status to your YouTube channel.</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeActions.Example">Quick actions for managing your YouTube connection.</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeStats.Example">Overview of your upload activity in recent days.</sys:String>
+  <sys:String x:Key="Accounts.Tooltip.YouTubeSettings.Example">Default settings for new YouTube uploads.</sys:String>
 
   <!-- Channel -->
   <sys:String x:Key="Channel">Channel Profile</sys:String>
@@ -491,6 +495,8 @@
   <sys:String x:Key="Channel.Tooltip.TargetAudience.Title">Example</sys:String>
   <sys:String x:Key="Channel.Tooltip.Additional.Title">Note</sys:String>
   <sys:String x:Key="Channel.Tooltip.Additional.Example">Here you can add additional instructions for AI generation, e.g. "Always use emojis" or "Mention the sponsor name".</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Profile.Example">Basic information about your channel for personalized AI suggestions.</sys:String>
+  <sys:String x:Key="Channel.Tooltip.Style.Example">Define language and tone for consistent AI-generated content.</sys:String>
 
   <!-- Upload Tooltips -->
   <sys:String x:Key="Upload.Tooltip.Title.Title">Video Title</sys:String>
@@ -571,6 +577,13 @@
   <sys:String x:Key="Settings.Tooltip.LlmDescriptionPrompt.Example">Specific instructions for AI description generation.</sys:String>
   <sys:String x:Key="Settings.Tooltip.LlmTagsPrompt.Title">Tags Instructions</sys:String>
   <sys:String x:Key="Settings.Tooltip.LlmTagsPrompt.Example">Specific instructions for AI tag generation.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmParameters.Example">Fine-tune AI behavior with token limits and creativity settings.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.LlmPrompts.Example">Customizable instructions for title, description, and tags generation.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.SuggestionCount.Example">Number of AI suggestions generated at once.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.StandardFolders.Example">Define default folders for quicker access when selecting videos and thumbnails.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.UploadSettings.Example">Configure the default behavior when uploading videos.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Drafts.Example">Manage how drafts are saved and cleaned up.</sys:String>
+  <sys:String x:Key="Settings.Tooltip.Transcription.Example">Settings for automatic video speech recognition.</sys:String>
 
   <!-- Presets Tooltips -->
   <sys:String x:Key="Presets.Tooltip.Name.Title">Preset Name</sys:String>
@@ -587,6 +600,10 @@
   <sys:String x:Key="Presets.Tooltip.DescriptionTemplate.Example">Use placeholders: {{TITLE}}, {{TAGS}}, {{CHAPTERS}}, {{DATE}} for dynamic content.</sys:String>
   <sys:String x:Key="Presets.Tooltip.Notes.Title">Notes</sys:String>
   <sys:String x:Key="Presets.Tooltip.Notes.Example">Internal notes about the preset. These are not uploaded.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionInfo.Example">General information to identify this preset.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionBasic.Example">Basic metadata applied to every video.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionPublishing.Example">Settings for visibility and publishing.</sys:String>
+  <sys:String x:Key="Presets.Tooltip.SectionTemplate.Example">Description template with placeholders for dynamic content.</sys:String>
 
   <!-- Templates -->
   <sys:String x:Key="Templates">Templates</sys:String>

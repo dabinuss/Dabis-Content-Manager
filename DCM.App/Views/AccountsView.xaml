@@ -691,8 +691,20 @@
                 </Grid.RowDefinitions>
 
                 <!-- Account-Status -->
-                <GroupBox Grid.Row="0"
-                          Header="{DynamicResource Accounts.YouTube.StatusTitle}">
+                <GroupBox Grid.Row="0">
+                  <GroupBox.Header>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Grid.Column="0" Text="{DynamicResource Accounts.YouTube.StatusTitle}" VerticalAlignment="Center"/>
+                      <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                              ToolTip="{DynamicResource Accounts.Tooltip.YouTubeStatus.Example}">
+                        <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                      </Border>
+                    </Grid>
+                  </GroupBox.Header>
                   <Grid>
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="Auto"/>
@@ -798,8 +810,20 @@
                 </GroupBox>
 
                 <!-- Schnellaktionen -->
-                <GroupBox Grid.Row="2"
-                          Header="{DynamicResource Accounts.YouTube.ActionsTitle}">
+                <GroupBox Grid.Row="2">
+                  <GroupBox.Header>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Grid.Column="0" Text="{DynamicResource Accounts.YouTube.ActionsTitle}" VerticalAlignment="Center"/>
+                      <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                              ToolTip="{DynamicResource Accounts.Tooltip.YouTubeActions.Example}">
+                        <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                      </Border>
+                    </Grid>
+                  </GroupBox.Header>
                   <UniformGrid Columns="4"
                                Margin="{StaticResource LabelMarginTopSmall}">
                     <Button x:Name="YouTubeReconnectButton"
@@ -843,8 +867,20 @@
                 </Grid.RowDefinitions>
 
                 <!-- Statistik-Snapshot -->
-                <GroupBox Grid.Row="0"
-                          Header="{DynamicResource Accounts.YouTube.StatsTitle}">
+                <GroupBox Grid.Row="0">
+                  <GroupBox.Header>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Grid.Column="0" Text="{DynamicResource Accounts.YouTube.StatsTitle}" VerticalAlignment="Center"/>
+                      <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                              ToolTip="{DynamicResource Accounts.Tooltip.YouTubeStats.Example}">
+                        <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                      </Border>
+                    </Grid>
+                  </GroupBox.Header>
                   <StackPanel>
                     <Grid>
                       <Grid.RowDefinitions>
@@ -904,8 +940,20 @@
                 </GroupBox>
 
                 <!-- Standard-Einstellungen -->
-                <GroupBox Grid.Row="2"
-                          Header="{DynamicResource Accounts.YouTube.SettingsTitle}">
+                <GroupBox Grid.Row="2">
+                  <GroupBox.Header>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Grid.Column="0" Text="{DynamicResource Accounts.YouTube.SettingsTitle}" VerticalAlignment="Center"/>
+                      <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                              ToolTip="{DynamicResource Accounts.Tooltip.YouTubeSettings.Example}">
+                        <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                      </Border>
+                    </Grid>
+                  </GroupBox.Header>
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Accounts.YouTube.Settings.Description}"
                                FontSize="{StaticResource FontSizeS}"
