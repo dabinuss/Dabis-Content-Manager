@@ -13,6 +13,7 @@ public partial class AccountsView : UserControl
 {
     private bool _isYouTubeConnected;
     private bool _isAutoConnectBinding;
+    private bool _isYouTubeSettingsBinding;
 
     public AccountsView()
     {
@@ -23,6 +24,8 @@ public partial class AccountsView : UserControl
     public event RoutedEventHandler? YouTubeConnectButtonClicked;
     public event RoutedEventHandler? YouTubeDisconnectButtonClicked;
     public event SelectionChangedEventHandler? YouTubePlaylistsSelectionChanged;
+    public event SelectionChangedEventHandler? YouTubeDefaultVisibilitySelectionChanged;
+    public event TextChangedEventHandler? YouTubeDefaultPublishTimeTextChanged;
     public event EventHandler<bool>? YouTubeAutoConnectToggled;
     public event RoutedEventHandler? YouTubeRefreshButtonClicked;
     public event RoutedEventHandler? YouTubeOpenLogsButtonClicked;
@@ -70,6 +73,10 @@ public partial class AccountsView : UserControl
         YouTubeAutoConnectToggle.Content = isEnabled
             ? LocalizationHelper.Get("Common.On")
             : LocalizationHelper.Get("Common.Off");
+        if (YouTubeAutoConnectCheckBox is not null)
+        {
+            YouTubeAutoConnectCheckBox.IsChecked = isEnabled;
+        }
         SetAutoConnectStatusText(isEnabled);
         _isAutoConnectBinding = false;
     }
@@ -127,19 +134,41 @@ public partial class AccountsView : UserControl
 
     public void SetYouTubeDefaultVisibility(VideoVisibility visibility)
     {
-        if (YouTubeDefaultVisibilityTextBlock is null)
+        if (YouTubeDefaultVisibilityComboBox is null)
         {
             return;
         }
 
-        YouTubeDefaultVisibilityTextBlock.Text = visibility switch
-        {
-            VideoVisibility.Public => LocalizationHelper.Get("Upload.Fields.Visibility.Public"),
-            VideoVisibility.Unlisted => LocalizationHelper.Get("Upload.Fields.Visibility.Unlisted"),
-            VideoVisibility.Private => LocalizationHelper.Get("Upload.Fields.Visibility.Private"),
-            _ => LocalizationHelper.Get("Accounts.NotAvailable")
-        };
+        _isYouTubeSettingsBinding = true;
+        SelectComboBoxItemByTag(YouTubeDefaultVisibilityComboBox, visibility);
+        _isYouTubeSettingsBinding = false;
     }
+
+    public VideoVisibility GetYouTubeDefaultVisibility()
+    {
+        if (YouTubeDefaultVisibilityComboBox?.SelectedItem is ComboBoxItem item &&
+            item.Tag is VideoVisibility visibility)
+        {
+            return visibility;
+        }
+
+        return VideoVisibility.Unlisted;
+    }
+
+    public void SetYouTubeDefaultPublishTime(string? timeText)
+    {
+        if (YouTubeDefaultPublishTimeTextBox is null)
+        {
+            return;
+        }
+
+        _isYouTubeSettingsBinding = true;
+        YouTubeDefaultPublishTimeTextBox.Text = timeText ?? string.Empty;
+        _isYouTubeSettingsBinding = false;
+    }
+
+    public string GetYouTubeDefaultPublishTime() =>
+        YouTubeDefaultPublishTimeTextBox?.Text ?? string.Empty;
 
     public void SetYouTubeLocale(string? localeKey)
     {
@@ -166,6 +195,56 @@ public partial class AccountsView : UserControl
     private void YouTubePlaylistsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         YouTubePlaylistsSelectionChanged?.Invoke(sender, e);
 
+    private void YouTubeDefaultVisibilityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isYouTubeSettingsBinding)
+        {
+            return;
+        }
+
+        YouTubeDefaultVisibilitySelectionChanged?.Invoke(sender, e);
+    }
+
+    private void YouTubeDefaultPublishTimeTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isYouTubeSettingsBinding)
+        {
+            return;
+        }
+
+        YouTubeDefaultPublishTimeTextChanged?.Invoke(sender, e);
+    }
+
+    private void YouTubeAutoConnectCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_isAutoConnectBinding)
+        {
+            return;
+        }
+
+        _isAutoConnectBinding = true;
+        YouTubeAutoConnectToggle.IsChecked = true;
+        YouTubeAutoConnectToggle.Content = LocalizationHelper.Get("Common.On");
+        SetAutoConnectStatusText(true);
+        _isAutoConnectBinding = false;
+        YouTubeAutoConnectToggled?.Invoke(this, true);
+    }
+
+    private void YouTubeAutoConnectCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (_isAutoConnectBinding)
+        {
+            return;
+        }
+
+        _isAutoConnectBinding = true;
+        YouTubeAutoConnectToggle.IsChecked = false;
+        YouTubeAutoConnectToggle.Content = LocalizationHelper.Get("Common.Off");
+        SetAutoConnectStatusText(false);
+        _isAutoConnectBinding = false;
+        YouTubeAutoConnectToggled?.Invoke(this, false);
+    }
+
     private void YouTubeAutoConnectToggle_Checked(object sender, RoutedEventArgs e)
     {
         if (_isAutoConnectBinding)
@@ -173,6 +252,10 @@ public partial class AccountsView : UserControl
             return;
         }
 
+        if (YouTubeAutoConnectCheckBox is not null)
+        {
+            YouTubeAutoConnectCheckBox.IsChecked = true;
+        }
         YouTubeAutoConnectToggle.Content = LocalizationHelper.Get("Common.On");
         SetAutoConnectStatusText(true);
         YouTubeAutoConnectToggled?.Invoke(this, true);
@@ -185,6 +268,10 @@ public partial class AccountsView : UserControl
             return;
         }
 
+        if (YouTubeAutoConnectCheckBox is not null)
+        {
+            YouTubeAutoConnectCheckBox.IsChecked = false;
+        }
         YouTubeAutoConnectToggle.Content = LocalizationHelper.Get("Common.Off");
         SetAutoConnectStatusText(false);
         YouTubeAutoConnectToggled?.Invoke(this, false);
@@ -256,6 +343,24 @@ public partial class AccountsView : UserControl
         if (YouTubeLogsButton is not null)
         {
             YouTubeLogsButton.IsEnabled = true;
+        }
+    }
+
+    private static void SelectComboBoxItemByTag<T>(ComboBox comboBox, T value)
+    {
+        if (comboBox is null)
+        {
+            return;
+        }
+
+        foreach (var item in comboBox.Items)
+        {
+            if (item is ComboBoxItem comboItem && comboItem.Tag is T tag &&
+                EqualityComparer<T>.Default.Equals(tag, value))
+            {
+                comboBox.SelectedItem = comboItem;
+                return;
+            }
         }
     }
 }

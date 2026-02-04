@@ -300,74 +300,24 @@
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingM}"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Standard-Veröffentlichungszeit -->
-            <Grid Grid.Row="0">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0"
-                         Text="{DynamicResource Settings.Upload.DefaultTime}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         VerticalAlignment="Center"/>
-              <TextBox Grid.Column="1"
-                       x:Name="DefaultSchedulingTimeTextBox"
-                       Width="{StaticResource InputMinWidthXS}"
-                       TextChanged="OnSettingChanged"/>
-            </Grid>
-
-            <!-- Standard-Sichtbarkeit -->
-            <Grid Grid.Row="1" Margin="{StaticResource LabelMarginTop}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0"
-                         Text="{DynamicResource Settings.Upload.DefaultVisibility}"
-                         Foreground="{StaticResource TextSecondaryBrush}"
-                         VerticalAlignment="Center"/>
-              <ComboBox Grid.Column="1"
-                        x:Name="DefaultVisibilityComboBox"
-                        Width="{StaticResource InputMinWidthS}"
-                        SelectionChanged="OnComboBoxSettingChanged">
-                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
-                              Tag="{x:Static core:VideoVisibility.Public}"/>
-                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
-                              Tag="{x:Static core:VideoVisibility.Unlisted}"/>
-                <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
-                              Tag="{x:Static core:VideoVisibility.Private}"/>
-              </ComboBox>
-            </Grid>
-
             <!-- Checkboxen -->
-            <CheckBox Grid.Row="3"
+            <CheckBox Grid.Row="0"
                       x:Name="ConfirmBeforeUploadCheckBox"
                       Content="{DynamicResource Settings.Upload.ConfirmBefore}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
-            <CheckBox Grid.Row="4"
+            <CheckBox Grid.Row="1"
                       x:Name="AutoApplyDefaultTemplateCheckBox"
                       Content="{DynamicResource Settings.Upload.AutoTemplate}"
                       Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>
-            <CheckBox Grid.Row="5"
+            <CheckBox Grid.Row="2"
                       x:Name="OpenBrowserAfterUploadCheckBox"
                       Content="{DynamicResource Settings.Upload.OpenBrowser}"
-                      Margin="{StaticResource LabelMarginTop}"
-                      Checked="OnCheckBoxSettingChanged"
-                      Unchecked="OnCheckBoxSettingChanged"/>
-            <CheckBox Grid.Row="6"
-                      x:Name="AutoConnectYouTubeCheckBox"
-                      Content="{DynamicResource Settings.Upload.AutoConnect}"
                       Margin="{StaticResource LabelMarginTop}"
                       Checked="OnCheckBoxSettingChanged"
                       Unchecked="OnCheckBoxSettingChanged"/>

@@ -973,6 +973,7 @@
                       <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                       </Grid.RowDefinitions>
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -981,30 +982,54 @@
 
                       <TextBlock Grid.Row="0"
                                  Grid.Column="0"
-                                 Text="{DynamicResource Accounts.YouTube.Settings.DefaultVisibility}"
+                                 Text="{DynamicResource Settings.Upload.DefaultTime}"
                                  Foreground="{StaticResource TextMutedBrush}"
                                  FontSize="{StaticResource FontSizeXS}"
                                  Margin="0,0,8,2"/>
-                      <TextBlock x:Name="YouTubeDefaultVisibilityTextBlock"
+                      <TextBox x:Name="YouTubeDefaultPublishTimeTextBox"
                                  Grid.Row="0"
                                  Grid.Column="1"
-                                 Text="{DynamicResource Accounts.NotAvailable}"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 FontSize="{StaticResource FontSizeXS}"/>
+                                 Width="{StaticResource InputMinWidthXS}"
+                                 TextChanged="YouTubeDefaultPublishTimeTextBox_TextChanged"/>
 
                       <TextBlock Grid.Row="1"
+                                 Grid.Column="0"
+                                 Text="{DynamicResource Accounts.YouTube.Settings.DefaultVisibility}"
+                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{StaticResource FontSizeXS}"
+                                 Margin="0,0,8,0"/>
+                      <ComboBox x:Name="YouTubeDefaultVisibilityComboBox"
+                                 Grid.Row="1"
+                                 Grid.Column="1"
+                                 Width="{StaticResource InputMinWidthS}"
+                                 SelectionChanged="YouTubeDefaultVisibilityComboBox_SelectionChanged">
+                        <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Public}"
+                                      Tag="{x:Static core:VideoVisibility.Public}"/>
+                        <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Unlisted}"
+                                      Tag="{x:Static core:VideoVisibility.Unlisted}"/>
+                        <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
+                                      Tag="{x:Static core:VideoVisibility.Private}"/>
+                      </ComboBox>
+
+                      <TextBlock Grid.Row="2"
                                  Grid.Column="0"
                                  Text="{DynamicResource Accounts.YouTube.Settings.Locale}"
                                  Foreground="{StaticResource TextMutedBrush}"
                                  FontSize="{StaticResource FontSizeXS}"
                                  Margin="0,0,8,0"/>
                       <TextBlock x:Name="YouTubeLocaleTextBlock"
-                                 Grid.Row="1"
+                                 Grid.Row="2"
                                  Grid.Column="1"
                                  Text="{DynamicResource Accounts.YouTube.Settings.LocaleAuto}"
                                  Foreground="{StaticResource TextPrimaryBrush}"
                                  FontSize="{StaticResource FontSizeXS}"/>
                     </Grid>
+
+                    <CheckBox x:Name="YouTubeAutoConnectCheckBox"
+                              Content="{DynamicResource Settings.Upload.AutoConnect}"
+                              Margin="{StaticResource LabelMarginTop}"
+                              Checked="YouTubeAutoConnectCheckBox_Checked"
+                              Unchecked="YouTubeAutoConnectCheckBox_Unchecked"/>
                   </StackPanel>
                 </GroupBox>
 

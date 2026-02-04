@@ -253,6 +253,9 @@ public partial class MainWindow
         AccountsPageView?.SetYouTubeAutoConnectState(_settings.AutoConnectYouTube);
         AccountsPageView?.SetYouTubeLastSync(_settings.YouTubeLastSyncUtc);
         AccountsPageView?.SetYouTubeDefaultVisibility(_settings.DefaultVisibility);
+        AccountsPageView?.SetYouTubeDefaultPublishTime(string.IsNullOrWhiteSpace(_settings.DefaultSchedulingTime)
+            ? Constants.DefaultSchedulingTime
+            : _settings.DefaultSchedulingTime);
         AccountsPageView?.SetYouTubeLocale(_settings.YouTubeOptionsLocale);
 
         var llm = _settings.Llm ?? new LlmSettings();
@@ -358,6 +361,31 @@ public partial class MainWindow
             : LocalizationHelper.Get("Status.YouTube.AutoConnectDisabled");
     }
 
+    private void YouTubeDefaultVisibilityComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (AccountsPageView is null)
+        {
+            return;
+        }
+
+        _settings.DefaultVisibility = AccountsPageView.GetYouTubeDefaultVisibility();
+        SaveSettings();
+    }
+
+    private void YouTubeDefaultPublishTimeTextBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (AccountsPageView is null)
+        {
+            return;
+        }
+
+        var raw = AccountsPageView.GetYouTubeDefaultPublishTime();
+        _settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(raw)
+            ? null
+            : raw.Trim();
+        ScheduleSettingsSave();
+    }
+
     #endregion
 
     #region LLM-Einstellungen Events
@@ -402,7 +430,7 @@ public partial class MainWindow
             return;
         }
 
-        _llmModelManager ??= new LlmModelManager(new HttpClient(), _logger);
+        _llmModelManager ??= new LlmModelManager(_llmHttpClient, _logger);
 
         // Prüfen ob das Modell bereits heruntergeladen wurde
         if (_llmModelManager.CheckAvailability(preset))
@@ -501,7 +529,7 @@ public partial class MainWindow
             return;
         }
 
-        _llmModelManager ??= new LlmModelManager(new HttpClient(), _logger);
+        _llmModelManager ??= new LlmModelManager(_llmHttpClient, _logger);
 
         if (_llmModelManager.RemoveModel(preset))
         {
@@ -524,7 +552,7 @@ public partial class MainWindow
             return;
         }
 
-        _llmModelManager ??= new LlmModelManager(new HttpClient(), _logger);
+        _llmModelManager ??= new LlmModelManager(_llmHttpClient, _logger);
         var isAvailable = _llmModelManager.CheckAvailability(preset);
         LlmSettingsPageView?.SetDownloadButtonState(isDownloading: false, isAvailable: isAvailable);
     }

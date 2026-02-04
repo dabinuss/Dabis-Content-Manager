@@ -98,6 +98,7 @@ public partial class MainWindow : Window
     private bool _isUploading;
     private UploadDraft? _activeUploadDraft;
     private CancellationTokenSource? _activeUploadCts;
+    private readonly HttpClient _llmHttpClient;
     private int _currentPageIndex;
     private int _lastUploadsPageIndex = 0;
     private int _lastConnectionsPageIndex = 1;
@@ -125,6 +126,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _llmHttpClient = new HttpClient();
         _ui = new UiDispatcher(Dispatcher);
         _logIndicatorThrottle = new UiThrottledAction(_ui, UiLogThrottleInterval, UiUpdatePolicy.LogPriority);
         _uploadProgressThrottle = new UiThrottledAction(_ui, UiProgressThrottleInterval, UiUpdatePolicy.ProgressPriority);
@@ -346,6 +348,8 @@ public partial class MainWindow : Window
         AccountsPageView.YouTubeConnectButtonClicked += YouTubeConnectButton_Click;
         AccountsPageView.YouTubeDisconnectButtonClicked += YouTubeDisconnectButton_Click;
         AccountsPageView.YouTubePlaylistsSelectionChanged += YouTubePlaylistsListBox_SelectionChanged;
+        AccountsPageView.YouTubeDefaultVisibilitySelectionChanged += YouTubeDefaultVisibilityComboBox_SelectionChanged;
+        AccountsPageView.YouTubeDefaultPublishTimeTextChanged += YouTubeDefaultPublishTimeTextBox_TextChanged;
         AccountsPageView.YouTubeAutoConnectToggled += YouTubeAutoConnectToggled;
         AccountsPageView.YouTubeRefreshButtonClicked += YouTubeRefreshButton_Click;
         AccountsPageView.YouTubeOpenLogsButtonClicked += YouTubeOpenLogsButton_Click;
@@ -551,6 +555,7 @@ public partial class MainWindow : Window
             _settingsSaveDirty = false;
             SaveSettings(forceSync: true);
         }
+        _llmHttpClient.Dispose();
 
         // Event-Handler zuerst entfernen
         try

@@ -110,12 +110,6 @@ public partial class GeneralSettingsView : UserControl
         set => AutoCleanDraftsCheckBox.IsChecked = value;
     }
 
-    public string DefaultSchedulingTime
-    {
-        get => DefaultSchedulingTimeTextBox.Text ?? string.Empty;
-        set => DefaultSchedulingTimeTextBox.Text = value ?? string.Empty;
-    }
-
     public void SetLanguageOptions(IEnumerable<LanguageInfo> languages, string? selectedCode)
     {
         var languageList = languages?.ToList() ?? new List<LanguageInfo>();
@@ -167,17 +161,11 @@ public partial class GeneralSettingsView : UserControl
         {
             DefaultVideoFolder = settings.DefaultVideoFolder ?? string.Empty;
             DefaultThumbnailFolder = settings.DefaultThumbnailFolder ?? string.Empty;
-            DefaultSchedulingTime = string.IsNullOrWhiteSpace(settings.DefaultSchedulingTime)
-                ? Constants.DefaultSchedulingTime
-                : settings.DefaultSchedulingTime;
-
-            SelectComboBoxItemByTag(DefaultVisibilityComboBox, settings.DefaultVisibility);
             SetSelectedTheme(settings.Theme);
 
             ConfirmBeforeUploadCheckBox.IsChecked = settings.ConfirmBeforeUpload;
             AutoApplyDefaultTemplateCheckBox.IsChecked = settings.AutoApplyDefaultTemplate;
             OpenBrowserAfterUploadCheckBox.IsChecked = settings.OpenBrowserAfterUpload;
-            AutoConnectYouTubeCheckBox.IsChecked = settings.AutoConnectYouTube;
             RememberDraftsBetweenSessions = settings.RememberDraftsBetweenSessions;
             AutoCleanDrafts = settings.AutoRemoveCompletedDrafts;
         }
@@ -197,16 +185,11 @@ public partial class GeneralSettingsView : UserControl
             ? null
             : DefaultThumbnailFolder.Trim();
 
-        settings.DefaultSchedulingTime = string.IsNullOrWhiteSpace(DefaultSchedulingTime)
-            ? null
-            : DefaultSchedulingTime.Trim();
         settings.Theme = GetSelectedTheme();
 
-        settings.DefaultVisibility = GetDefaultVisibility();
         settings.ConfirmBeforeUpload = ConfirmBeforeUploadCheckBox.IsChecked == true;
         settings.AutoApplyDefaultTemplate = AutoApplyDefaultTemplateCheckBox.IsChecked == true;
         settings.OpenBrowserAfterUpload = OpenBrowserAfterUploadCheckBox.IsChecked == true;
-        settings.AutoConnectYouTube = AutoConnectYouTubeCheckBox.IsChecked == true;
         settings.RememberDraftsBetweenSessions = RememberDraftsBetweenSessions;
         settings.AutoRemoveCompletedDrafts = AutoCleanDrafts;
     }
@@ -292,17 +275,6 @@ public partial class GeneralSettingsView : UserControl
         {
             TranscriptionDownloadButton.IsEnabled = canEnable;
         }
-    }
-
-    private VideoVisibility GetDefaultVisibility()
-    {
-        if (DefaultVisibilityComboBox.SelectedItem is ComboBoxItem visItem &&
-            visItem.Tag is VideoVisibility visibility)
-        {
-            return visibility;
-        }
-
-        return VideoVisibility.Unlisted;
     }
 
     private static void SelectComboBoxItemByTag<T>(ComboBox comboBox, T value)
