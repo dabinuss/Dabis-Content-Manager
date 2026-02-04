@@ -899,7 +899,6 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Setup.Button.Install">Installieren</sys:String>
   <sys:String x:Key="Setup.Button.Installed">Installiert</sys:String>
   <sys:String x:Key="Setup.Button.Cancel">Abbrechen</sys:String>
-  <sys:String x:Key="Setup.Button.Skip">Überspringen</sys:String>
   <sys:String x:Key="Setup.Button.Continue">Weiter zur App</sys:String>
   <sys:String x:Key="Setup.InfoNote">Diese Features sind optional. Du kannst sie jederzeit später in den Einstellungen installieren oder entfernen.</sys:String>
   <sys:String x:Key="Setup.DontShowAgain">Diesen Dialog nicht mehr anzeigen</sys:String>

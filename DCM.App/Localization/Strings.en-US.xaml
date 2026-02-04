@@ -337,6 +337,8 @@
   <sys:String x:Key="Upload.Fields.Publication.Now">Now</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.HourShort">H</sys:String>
   <sys:String x:Key="Upload.Fields.Publication.MinuteShort">M</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.Hour">Hours</sys:String>
+  <sys:String x:Key="Upload.Fields.Publication.Minute">Minutes</sys:String>
   <sys:String x:Key="Upload.Section.Details">File info</sys:String>
   <sys:String x:Key="Upload.VideoInfo.Resolution">Resolution</sys:String>
   <sys:String x:Key="Upload.VideoInfo.Fps">FPS</sys:String>
@@ -897,7 +899,6 @@ Error: {1}</sys:String>
   <sys:String x:Key="Setup.Button.Install">Install</sys:String>
   <sys:String x:Key="Setup.Button.Installed">Installed</sys:String>
   <sys:String x:Key="Setup.Button.Cancel">Cancel</sys:String>
-  <sys:String x:Key="Setup.Button.Skip">Skip</sys:String>
   <sys:String x:Key="Setup.Button.Continue">Continue to App</sys:String>
   <sys:String x:Key="Setup.InfoNote">These features are optional. You can always install or remove them later in the settings.</sys:String>
   <sys:String x:Key="Setup.DontShowAgain">Don't show this dialog again</sys:String>

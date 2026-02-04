@@ -83,14 +83,37 @@ public sealed partial class TemplateService
             ["SCHEDULEDDATE"] = project.ScheduledTime?.ToString("yyyy-MM-dd") ?? string.Empty,
             ["SCHEDULEDTIME"] = project.ScheduledTime?.ToString("HH:mm") ?? string.Empty,
             ["DATE"] = DateTime.Now.ToString("yyyy-MM-dd"),
+            ["YEAR"] = DateTime.Now.Year.ToString(),
+            ["MONTH"] = DateTime.Now.Month.ToString("D2"),
+            ["DAY"] = DateTime.Now.Day.ToString("D2"),
             ["CREATED_AT"] = project.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
             ["VIDEOFILE"] = string.IsNullOrWhiteSpace(project.VideoFilePath)
                 ? string.Empty
                 : Path.GetFileName(project.VideoFilePath),
-            ["TRANSCRIPT"] = project.TranscriptText
+            ["VIDEOPATH"] = project.VideoFilePath ?? string.Empty,
+            ["TRANSCRIPT"] = project.TranscriptText,
+            ["TRANSCRIPT_SNIPPET"] = TruncateTranscript(project.TranscriptText, 200)
         };
 
         return ApplyTemplate(template, dict);
+    }
+
+    /// <summary>
+    /// Kürzt ein Transkript auf die angegebene maximale Länge.
+    /// </summary>
+    private static string TruncateTranscript(string? transcript, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(transcript))
+        {
+            return string.Empty;
+        }
+
+        if (transcript.Length <= maxLength)
+        {
+            return transcript;
+        }
+
+        return transcript[..maxLength] + "\u2026"; // Unicode-Ellipsis
     }
 
     /// <summary>
