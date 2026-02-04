@@ -13,7 +13,7 @@
 
   <!-- ZWEI-SPALTEN-LAYOUT wie bei Settings -->
   <Grid Grid.Row="0"
-        HorizontalAlignment="Left"
+        HorizontalAlignment="Stretch"
         MaxWidth="{StaticResource SettingsContentMaxWidth}"
         VerticalAlignment="Top">
     <Grid.ColumnDefinitions>

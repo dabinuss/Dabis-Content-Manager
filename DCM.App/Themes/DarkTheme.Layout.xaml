@@ -52,8 +52,8 @@
   <Thickness x:Key="HeaderPadding">16,8</Thickness>
   <Thickness x:Key="GroupBoxPadding">12</Thickness>
   <Thickness x:Key="GroupBoxMargin">0,0,0,16</Thickness>
-  <sys:Double x:Key="SettingsContentMaxWidth">1040</sys:Double>
-  <sys:Double x:Key="SettingsColumnMinWidth">350</sys:Double>
+  <sys:Double x:Key="SettingsContentMaxWidth">1200</sys:Double>
+  <sys:Double x:Key="SettingsColumnMinWidth">450</sys:Double>
   <sys:Double x:Key="SettingsColumnSpacing">24</sys:Double>
   <Thickness x:Key="SettingsSectionSpacing">0,0,0,16</Thickness>
   <Thickness x:Key="SettingsSectionSpacingCompact">0,0,0,8</Thickness>
@@ -157,8 +157,8 @@
   <Thickness x:Key="CardPaddingXL">20,26</Thickness>
 
   <!-- Input Padding -->
-  <Thickness x:Key="InputPaddingS">6,4</Thickness>
-  <Thickness x:Key="InputPaddingM">10,6</Thickness>
+  <Thickness x:Key="InputPaddingS">3,3</Thickness>
+  <Thickness x:Key="InputPaddingM">4,4</Thickness>
 
   <!-- Input MinHeight -->
   <sys:Double x:Key="InputMinHeight">34</sys:Double>

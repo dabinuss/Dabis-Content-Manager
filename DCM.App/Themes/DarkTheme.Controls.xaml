@@ -1327,7 +1327,7 @@
                                   Grid.Column="0"
                                   Content="{TemplateBinding SelectionBoxItem}"
                                   ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                  Margin="10,0,0,0"
+                                  Margin="8,0,0,0"
                                   VerticalAlignment="Center"
                                   HorizontalAlignment="Left"
                                   IsHitTestVisible="False"/>
@@ -1340,7 +1340,7 @@
                          Foreground="{StaticResource TextPrimaryBrush}"
                          CaretBrush="{StaticResource TextPrimaryBrush}"
                          BorderThickness="0"
-                         Margin="10,0,0,0"
+                         Margin="8,0,0,0"
                          VerticalAlignment="Center"/>
 
                 <TextBlock Grid.Column="1"
@@ -1609,7 +1609,7 @@
     <Setter Property="BorderThickness"
             Value="0"/>
     <Setter Property="Padding"
-            Value="6,4"/>
+            Value="{StaticResource InputPaddingS}"/>
     <Setter Property="Focusable"
             Value="True"/>
     <Setter Property="FocusVisualStyle"

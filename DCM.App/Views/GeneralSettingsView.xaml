@@ -11,7 +11,7 @@
 
     <ScrollViewer Grid.Row="0"
                   VerticalScrollBarVisibility="Auto">
-      <Grid HorizontalAlignment="Left"
+      <Grid HorizontalAlignment="Stretch"
             MaxWidth="{StaticResource SettingsContentMaxWidth}"
             VerticalAlignment="Top">
         <Grid.ColumnDefinitions>

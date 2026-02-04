@@ -16,8 +16,8 @@
   <sys:String x:Key="Status.Ready">Status:</sys:String>
   <sys:String x:Key="Status.Saving">Speichern...</sys:String>
   <sys:String x:Key="Status.Saved">Gespeichert</sys:String>
-  <sys:String x:Key="Header.Whisper">Whisper</sys:String>
-  <sys:String x:Key="Header.Llm">LLM</sys:String>
+  <sys:String x:Key="Header.Whisper">Transkription</sys:String>
+  <sys:String x:Key="Header.Llm">AI</sys:String>
   <sys:String x:Key="Header.Status.Ready">Bereit</sys:String>
   <sys:String x:Key="Header.Status.Working">Arbeitet</sys:String>
   <sys:String x:Key="Header.Status.NotInstalled">Nicht installiert</sys:String>
