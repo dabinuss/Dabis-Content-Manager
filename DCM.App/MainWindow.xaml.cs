@@ -629,6 +629,9 @@ public partial class MainWindow : Window
 
         await InitializeHeavyUiAsync().ConfigureAwait(false);
 
+        // Setup-Dialog anzeigen, wenn Whisper oder LLM nicht installiert sind
+        ShowSetupDialogIfNeeded();
+
         if (_settings.AutoConnectYouTube)
         {
             await TryAutoConnectYouTubeAsync().ConfigureAwait(false);
@@ -641,6 +644,43 @@ public partial class MainWindow : Window
             UpdateLlmHeaderStatus();
             UpdateHeaderLanguageSelection(_settings.Language ?? LocalizationManager.Instance.CurrentLanguage);
             UpdateLogLinkIndicator();
+        }, UiUpdatePolicy.StatusPriority);
+    }
+
+    private void ShowSetupDialogIfNeeded()
+    {
+        // Skip nur wenn der Benutzer explizit "Nicht mehr anzeigen" angekreuzt hat
+        if (_settings.SkipSetupDialog)
+        {
+            return;
+        }
+
+        ShowSetupDialog();
+    }
+
+    private void ShowSetupDialog()
+    {
+        _ui.Run(() =>
+        {
+            var setupDialog = new SetupDialog(_logger, _settings, _transcriptionService)
+            {
+                Owner = this
+            };
+
+            setupDialog.Closed += (s, args) =>
+            {
+                // "Nicht mehr anzeigen" Checkbox-Status speichern (auch wenn deaktiviert)
+                _settings.SkipSetupDialog = setupDialog.DontShowAgain;
+                SaveSettings();
+
+                // Status nach dem Dialog aktualisieren
+                UpdateWhisperHeaderStatus();
+                UpdateLlmHeaderStatus();
+                UpdateLlmStatusText();
+            };
+
+            // Nicht-modaler Dialog - App bleibt nutzbar
+            setupDialog.Show();
         }, UiUpdatePolicy.StatusPriority);
     }
 
@@ -2965,6 +3005,11 @@ public partial class MainWindow : Window
     private async void CheckUpdatesHyperlink_Click(object sender, RoutedEventArgs e)
     {
         await CheckForUpdatesAsync().ConfigureAwait(false);
+    }
+
+    private void SetupAssistantLink_Click(object sender, RoutedEventArgs e)
+    {
+        ShowSetupDialog();
     }
 
     #endregion

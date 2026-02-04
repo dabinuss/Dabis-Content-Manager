@@ -10,6 +10,7 @@
   <sys:String x:Key="App.Copyright">© dabinuss</sys:String>
   <sys:String x:Key="App.CheckUpdates">Updates prüfen</sys:String>
   <sys:String x:Key="App.WindowTitle">Dabis Content Manager · © dabinuss</sys:String>
+  <sys:String x:Key="App.SetupAssistant">Setup-Assistent</sys:String>
 
   <!-- Status -->
   <sys:String x:Key="Status">Status:</sys:String>
@@ -883,6 +884,25 @@ Details im Log.</sys:String>
 Fehler: {1}</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Title">Information</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Text">Log-Datei existiert noch nicht.</sys:String>
+
+  <!-- Setup Dialog -->
+  <sys:String x:Key="Setup.WindowTitle">Willkommen</sys:String>
+  <sys:String x:Key="Setup.AppDescription">Verwalte und lade deine Videos schneller hoch - mit automatischer Transkription und KI-Unterstützung.</sys:String>
+  <sys:String x:Key="Setup.PrivacyNote">Alles läuft lokal auf deinem PC. Keine Cloud, keine Daten-Weitergabe.</sys:String>
+  <sys:String x:Key="Setup.Transcription.Title">Transkription</sys:String>
+  <sys:String x:Key="Setup.Transcription.Description">Wandelt gesprochene Sprache aus deinen Videos automatisch in Text um. Perfekt als Basis für Titel, Beschreibungen und Kapitelmarker.</sys:String>
+  <sys:String x:Key="Setup.LLM.Title">KI-Assistent</sys:String>
+  <sys:String x:Key="Setup.LLM.Description">Die KI läuft komplett offline auf deinem Computer und generiert Vorschläge für Titel, Beschreibungen und Tags basierend auf dem Transkript.</sys:String>
+  <sys:String x:Key="Setup.Status.NotInstalled">Nicht installiert</sys:String>
+  <sys:String x:Key="Setup.Status.Installed">Installiert</sys:String>
+  <sys:String x:Key="Setup.Status.Downloading">Wird heruntergeladen...</sys:String>
+  <sys:String x:Key="Setup.Button.Install">Installieren</sys:String>
+  <sys:String x:Key="Setup.Button.Installed">Installiert</sys:String>
+  <sys:String x:Key="Setup.Button.Cancel">Abbrechen</sys:String>
+  <sys:String x:Key="Setup.Button.Skip">Überspringen</sys:String>
+  <sys:String x:Key="Setup.Button.Continue">Weiter zur App</sys:String>
+  <sys:String x:Key="Setup.InfoNote">Diese Features sind optional. Du kannst sie jederzeit später in den Einstellungen installieren oder entfernen.</sys:String>
+  <sys:String x:Key="Setup.DontShowAgain">Diesen Dialog nicht mehr anzeigen</sys:String>
 </ResourceDictionary>
 
 

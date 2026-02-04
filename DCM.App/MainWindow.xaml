@@ -768,6 +768,14 @@
                 <Run Text="{DynamicResource App.Github}"/>
               </Hyperlink>
             </TextBlock>
+            <TextBlock FontSize="{StaticResource FontSizeXS}"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center">
+              <Hyperlink Click="SetupAssistantLink_Click"
+                         Foreground="{StaticResource PrimaryBrush}">
+                <Run Text="{DynamicResource App.SetupAssistant}"/>
+              </Hyperlink>
+            </TextBlock>
           </StackPanel>
         </Grid>
       </Border>

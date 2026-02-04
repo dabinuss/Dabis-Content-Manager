@@ -10,6 +10,7 @@
   <sys:String x:Key="App.Copyright">© dabinuss</sys:String>
   <sys:String x:Key="App.CheckUpdates">Check for Updates</sys:String>
   <sys:String x:Key="App.WindowTitle">Dabis Content Manager · © dabinuss</sys:String>
+  <sys:String x:Key="App.SetupAssistant">Setup Assistant</sys:String>
 
   <!-- Status -->
   <sys:String x:Key="Status">Status:</sys:String>
@@ -881,6 +882,25 @@ See log for details.</sys:String>
 Error: {1}</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Title">Information</sys:String>
   <sys:String x:Key="Dialog.Log.NotExists.Text">Log file does not exist yet.</sys:String>
+
+  <!-- Setup Dialog -->
+  <sys:String x:Key="Setup.WindowTitle">Welcome</sys:String>
+  <sys:String x:Key="Setup.AppDescription">Manage and upload your videos faster - with automatic transcription and AI assistance.</sys:String>
+  <sys:String x:Key="Setup.PrivacyNote">Everything runs locally on your PC. No cloud, no data sharing.</sys:String>
+  <sys:String x:Key="Setup.Transcription.Title">Transcription</sys:String>
+  <sys:String x:Key="Setup.Transcription.Description">Automatically converts spoken words from your videos into text. Perfect as a basis for titles, descriptions, and chapter markers.</sys:String>
+  <sys:String x:Key="Setup.LLM.Title">AI Assistant</sys:String>
+  <sys:String x:Key="Setup.LLM.Description">The AI runs completely offline on your computer and generates suggestions for titles, descriptions, and tags based on the transcript.</sys:String>
+  <sys:String x:Key="Setup.Status.NotInstalled">Not installed</sys:String>
+  <sys:String x:Key="Setup.Status.Installed">Installed</sys:String>
+  <sys:String x:Key="Setup.Status.Downloading">Downloading...</sys:String>
+  <sys:String x:Key="Setup.Button.Install">Install</sys:String>
+  <sys:String x:Key="Setup.Button.Installed">Installed</sys:String>
+  <sys:String x:Key="Setup.Button.Cancel">Cancel</sys:String>
+  <sys:String x:Key="Setup.Button.Skip">Skip</sys:String>
+  <sys:String x:Key="Setup.Button.Continue">Continue to App</sys:String>
+  <sys:String x:Key="Setup.InfoNote">These features are optional. You can always install or remove them later in the settings.</sys:String>
+  <sys:String x:Key="Setup.DontShowAgain">Don't show this dialog again</sys:String>
 </ResourceDictionary>
 
 

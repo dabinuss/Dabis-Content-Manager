@@ -1,0 +1,383 @@
+<Window x:Class="DCM.App.SetupDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties"
+        Title="{DynamicResource Setup.WindowTitle}"
+        Height="650"
+        Width="580"
+        MinHeight="500"
+        MinWidth="480"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+
+  <Border x:Name="RootBorder"
+          BorderBrush="{StaticResource BorderBrush}"
+          BorderThickness="1"
+          CornerRadius="{StaticResource RadiusM}"
+          Background="{StaticResource BackgroundBrush}">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- Close Button (X) -->
+      <Button x:Name="CloseButton"
+              Grid.Row="0"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Margin="0,12,12,0"
+              Width="32"
+              Height="32"
+              Padding="0"
+              Background="Transparent"
+              BorderThickness="0"
+              Cursor="Hand"
+              Click="CloseButton_Click"
+              Panel.ZIndex="10">
+        <Button.Template>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}"
+                    CornerRadius="{StaticResource RadiusS}">
+              <ContentPresenter HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource SurfacePressedBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Button.Template>
+        <TextBlock Style="{StaticResource IconL}"
+                   Text="&#xe5cd;"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   Margin="0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+      </Button>
+
+      <!-- Header Section -->
+      <Border Grid.Row="0"
+              Padding="32,28,32,20">
+        <StackPanel HorizontalAlignment="Center">
+          <!-- App Logo -->
+          <Image Source="/DCM.App;component/Assets/logo.png"
+                 Width="120"
+                 Height="42"
+                 Stretch="Uniform"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,16"/>
+
+          <!-- App Name -->
+          <TextBlock Text="{DynamicResource App.Name}"
+                     Style="{StaticResource TextHeadingXL}"
+                     HorizontalAlignment="Center"
+                     Margin="0,0,0,12"/>
+
+          <!-- App Description -->
+          <TextBlock Text="{DynamicResource Setup.AppDescription}"
+                     Style="{StaticResource TextSecondary}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxWidth="420"
+                     HorizontalAlignment="Center"
+                     Margin="0,0,0,12"/>
+
+          <!-- Privacy Note -->
+          <StackPanel Orientation="Horizontal"
+                      HorizontalAlignment="Center">
+            <TextBlock Style="{StaticResource IconM}"
+                       Text="&#xe897;"
+                       Foreground="{StaticResource SuccessBrush}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,6,0"/>
+            <TextBlock Text="{DynamicResource Setup.PrivacyNote}"
+                       Style="{StaticResource TextCaption}"
+                       Foreground="{StaticResource SuccessBrush}"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Divider -->
+      <Border Grid.Row="0"
+              Height="1"
+              Background="{StaticResource BorderBrush}"
+              VerticalAlignment="Bottom"
+              Margin="24,0"/>
+
+      <!-- Content Section - Service Cards -->
+      <ScrollViewer Grid.Row="1"
+                    VerticalScrollBarVisibility="Auto"
+                    Padding="24,20">
+        <StackPanel>
+          <!-- Transcription Card -->
+          <Border x:Name="TranscriptionCard"
+                  Style="{StaticResource SurfaceCard}"
+                  Padding="16"
+                  Margin="0,0,0,16">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <!-- Icon -->
+              <Border Grid.Column="0"
+                      Grid.RowSpan="2"
+                      Width="48"
+                      Height="48"
+                      CornerRadius="{StaticResource RadiusS}"
+                      Background="{StaticResource SurfaceLightBrush}"
+                      VerticalAlignment="Top"
+                      Margin="0,0,14,0">
+                <TextBlock Style="{StaticResource IconXL}"
+                           Text="&#xe029;"
+                           Foreground="{StaticResource PrimaryBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0"/>
+              </Border>
+
+              <!-- Title and Size -->
+              <StackPanel Grid.Column="1"
+                          Grid.Row="0"
+                          Orientation="Horizontal"
+                          Margin="0,0,0,4">
+                <TextBlock Text="{DynamicResource Setup.Transcription.Title}"
+                           Style="{StaticResource SectionHeader}"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="TranscriptionSizeText"
+                           Text="~466 MB"
+                           Style="{StaticResource TextCaption}"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"/>
+              </StackPanel>
+
+              <!-- Description -->
+              <TextBlock Grid.Column="1"
+                         Grid.Row="1"
+                         Text="{DynamicResource Setup.Transcription.Description}"
+                         Style="{StaticResource TextSecondary}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,12,0"/>
+
+              <!-- Status Indicator -->
+              <StackPanel Grid.Column="2"
+                          Grid.Row="0"
+                          Grid.RowSpan="2"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Right">
+                <StackPanel x:Name="TranscriptionStatusPanel"
+                            Orientation="Horizontal"
+                            Margin="0,0,0,8">
+                  <Ellipse x:Name="TranscriptionStatusIndicator"
+                           Width="8"
+                           Height="8"
+                           Fill="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,6,0"/>
+                  <TextBlock x:Name="TranscriptionStatusText"
+                             Text="{DynamicResource Setup.Status.NotInstalled}"
+                             Style="{StaticResource TextCaption}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button x:Name="TranscriptionInstallButton"
+                        Content="{DynamicResource Setup.Button.Install}"
+                        Style="{StaticResource SecondaryButton}"
+                        MinWidth="100"
+                        Click="TranscriptionInstallButton_Click"/>
+              </StackPanel>
+
+              <!-- Progress Bar -->
+              <Grid Grid.Column="0"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="2"
+                    Margin="0,12,0,0">
+                <ProgressBar x:Name="TranscriptionProgressBar"
+                             Height="6"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="0"
+                             Visibility="Collapsed"/>
+                <TextBlock x:Name="TranscriptionProgressText"
+                           Style="{StaticResource TextCaption}"
+                           HorizontalAlignment="Right"
+                           Margin="0,10,0,0"
+                           Visibility="Collapsed"/>
+              </Grid>
+            </Grid>
+          </Border>
+
+          <!-- LLM Card -->
+          <Border x:Name="LlmCard"
+                  Style="{StaticResource SurfaceCard}"
+                  Padding="16"
+                  Margin="0,0,0,16">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <!-- Icon -->
+              <Border Grid.Column="0"
+                      Grid.RowSpan="2"
+                      Width="48"
+                      Height="48"
+                      CornerRadius="{StaticResource RadiusS}"
+                      Background="{StaticResource SurfaceLightBrush}"
+                      VerticalAlignment="Top"
+                      Margin="0,0,14,0">
+                <TextBlock Style="{StaticResource IconXL}"
+                           Text="&#xe90b;"
+                           Foreground="{StaticResource MagicAIBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0"/>
+              </Border>
+
+              <!-- Title and Size -->
+              <StackPanel Grid.Column="1"
+                          Grid.Row="0"
+                          Orientation="Horizontal"
+                          Margin="0,0,0,4">
+                <TextBlock Text="{DynamicResource Setup.LLM.Title}"
+                           Style="{StaticResource SectionHeader}"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="LlmSizeText"
+                           Text="~2.2 GB"
+                           Style="{StaticResource TextCaption}"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"/>
+              </StackPanel>
+
+              <!-- Description -->
+              <TextBlock Grid.Column="1"
+                         Grid.Row="1"
+                         Text="{DynamicResource Setup.LLM.Description}"
+                         Style="{StaticResource TextSecondary}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,12,0"/>
+
+              <!-- Status Indicator -->
+              <StackPanel Grid.Column="2"
+                          Grid.Row="0"
+                          Grid.RowSpan="2"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Right">
+                <StackPanel x:Name="LlmStatusPanel"
+                            Orientation="Horizontal"
+                            Margin="0,0,0,8">
+                  <Ellipse x:Name="LlmStatusIndicator"
+                           Width="8"
+                           Height="8"
+                           Fill="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,6,0"/>
+                  <TextBlock x:Name="LlmStatusText"
+                             Text="{DynamicResource Setup.Status.NotInstalled}"
+                             Style="{StaticResource TextCaption}"
+                             VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button x:Name="LlmInstallButton"
+                        Content="{DynamicResource Setup.Button.Install}"
+                        Style="{StaticResource SecondaryButton}"
+                        MinWidth="100"
+                        Click="LlmInstallButton_Click"/>
+              </StackPanel>
+
+              <!-- Progress Bar -->
+              <Grid Grid.Column="0"
+                    Grid.ColumnSpan="3"
+                    Grid.Row="2"
+                    Margin="0,12,0,0">
+                <ProgressBar x:Name="LlmProgressBar"
+                             Height="6"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="0"
+                             Visibility="Collapsed"/>
+                <TextBlock x:Name="LlmProgressText"
+                           Style="{StaticResource TextCaption}"
+                           HorizontalAlignment="Right"
+                           Margin="0,10,0,0"
+                           Visibility="Collapsed"/>
+              </Grid>
+            </Grid>
+          </Border>
+
+          <!-- Info Note -->
+          <Border Background="{StaticResource SurfaceLightBrush}"
+                  CornerRadius="{StaticResource RadiusS}"
+                  Padding="12"
+                  Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Style="{StaticResource IconM}"
+                         Text="&#xe88e;"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         VerticalAlignment="Top"
+                         Margin="0,2,8,0"/>
+              <TextBlock Text="{DynamicResource Setup.InfoNote}"
+                         Style="{StaticResource TextCaption}"
+                         TextWrapping="Wrap"
+                         VerticalAlignment="Center"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Footer Section -->
+      <Border Grid.Row="2"
+              BorderBrush="{StaticResource BorderBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="24,16">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <!-- Don't show again checkbox -->
+          <CheckBox x:Name="DontShowAgainCheckBox"
+                    Grid.Column="0"
+                    Content="{DynamicResource Setup.DontShowAgain}"
+                    Foreground="{StaticResource TextMutedBrush}"
+                    VerticalAlignment="Center"/>
+
+          <!-- Buttons -->
+          <StackPanel Grid.Column="1"
+                      Orientation="Horizontal">
+            <Button x:Name="ContinueButton"
+                    Content="{DynamicResource Setup.Button.Continue}"
+                    Style="{StaticResource PrimaryButton}"
+                    MinWidth="140"
+                    ap:ButtonIcon.Glyph="&#xe5c8;"
+                    Click="ContinueButton_Click"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</Window>

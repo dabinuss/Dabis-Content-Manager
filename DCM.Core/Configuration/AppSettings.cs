@@ -34,6 +34,7 @@ public sealed class AppSettings
     public List<OptionEntry> YouTubeCategoryOptions { get; set; } = new();
     public List<OptionEntry> YouTubeLanguageOptions { get; set; } = new();
     public DateTime? YouTubeLastSyncUtc { get; set; }
+    public bool SkipSetupDialog { get; set; }
 
     public AppSettings DeepCopy()
     {
@@ -137,7 +138,8 @@ public sealed class AppSettings
             YouTubeLanguageOptions = YouTubeLanguageOptions?
                 .Select(o => new OptionEntry { Code = o.Code, Name = o.Name })
                 .ToList() ?? new List<OptionEntry>(),
-            YouTubeLastSyncUtc = YouTubeLastSyncUtc
+            YouTubeLastSyncUtc = YouTubeLastSyncUtc,
+            SkipSetupDialog = SkipSetupDialog
         };
     }
 }
