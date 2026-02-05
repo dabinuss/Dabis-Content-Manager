@@ -239,11 +239,14 @@
   <sys:String x:Key="Nav.Settings">Einstellungen</sys:String>
   <sys:String x:Key="Nav.Settings.General">Allgemein</sys:String>
   <sys:String x:Key="Nav.Settings.Llm">KI</sys:String>
+  <sys:String x:Key="Nav.Clipper">Clipper</sys:String>
+  <sys:String x:Key="Nav.Clipper.Highlights">Highlights</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Home">Start</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Default">Start</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Uploads">Start >> Uploads</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Connections">Start >> Verbindungen</sys:String>
   <sys:String x:Key="Page.Breadcrumb.Settings">Start >> Einstellungen</sys:String>
+  <sys:String x:Key="Page.Breadcrumb.Clipper">Start >> Clipper</sys:String>
   <sys:String x:Key="Page.Context.Upload">Videos hochladen, planen und verwalten.</sys:String>
   <sys:String x:Key="Page.Context.Accounts">Konten verbinden und Playlists verwalten.</sys:String>
   <sys:String x:Key="Page.Context.Channel">Kanalprofil und Stilvorgaben pflegen.</sys:String>
@@ -252,6 +255,7 @@
   <sys:String x:Key="Page.Context.History">Vergangene Uploads und Status anzeigen.</sys:String>
   <sys:String x:Key="Page.Context.Settings">App-Optionen und Standardwerte konfigurieren.</sys:String>
   <sys:String x:Key="Page.Context.LlmSettings">LLM-Modus und Modelle konfigurieren.</sys:String>
+  <sys:String x:Key="Page.Context.Clipper">Highlights aus Videos finden und als Clips schneiden.</sys:String>
   <sys:String x:Key="Section.Filters">Filter</sys:String>
   <sys:String x:Key="Section.HistoryList">Upload-Liste</sys:String>
   <sys:String x:Key="Section.Metadata">Metadaten</sys:String>
@@ -902,6 +906,45 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Setup.Button.Continue">Weiter zur App</sys:String>
   <sys:String x:Key="Setup.InfoNote">Diese Features sind optional. Du kannst sie jederzeit später in den Einstellungen installieren oder entfernen.</sys:String>
   <sys:String x:Key="Setup.DontShowAgain">Diesen Dialog nicht mehr anzeigen</sys:String>
+
+  <!-- Clipper -->
+  <sys:String x:Key="Clipper.SelectDraft">Draft auswählen</sys:String>
+  <sys:String x:Key="Clipper.Candidates">Highlight-Kandidaten</sys:String>
+  <sys:String x:Key="Clipper.HasTranscript">Transkript vorhanden</sys:String>
+  <sys:String x:Key="Clipper.NoTranscript">Kein Transkript</sys:String>
+  <sys:String x:Key="Clipper.EmptyState.Title">Keine Kandidaten</sys:String>
+  <sys:String x:Key="Clipper.EmptyState.Description">Wähle einen Draft mit Transkript aus und klicke auf "Highlights finden", um KI-basierte Highlight-Vorschläge zu erhalten.</sys:String>
+  <sys:String x:Key="Clipper.Loading">Analysiere Transkript...</sys:String>
+  <sys:String x:Key="Clipper.Actions.FindHighlights">Highlights finden</sys:String>
+  <sys:String x:Key="Clipper.Actions.Cut">Ausgewählte schneiden</sys:String>
+  <sys:String x:Key="Clipper.NotImplemented">Diese Funktion wird in einer späteren Phase implementiert.</sys:String>
+  <sys:String x:Key="Clipper.NoDraftSelected">Bitte wähle zuerst einen Draft aus.</sys:String>
+  <sys:String x:Key="Clipper.AlreadyRunning">Analyse läuft bereits...</sys:String>
+  <sys:String x:Key="Clipper.LlmNotAvailable">LLM ist nicht verfügbar. Bitte prüfe die Einstellungen.</sys:String>
+  <sys:String x:Key="Clipper.CandidatesFromCache">{0} Kandidaten aus Cache geladen.</sys:String>
+  <sys:String x:Key="Clipper.NoWindowsFound">Keine geeigneten Zeitfenster im Transkript gefunden.</sys:String>
+  <sys:String x:Key="Clipper.Analyzing">Analysiere Highlights...</sys:String>
+  <sys:String x:Key="Clipper.CandidatesFound">{0} Highlight-Kandidaten gefunden.</sys:String>
+  <sys:String x:Key="Clipper.Cancelled">Analyse abgebrochen.</sys:String>
+  <sys:String x:Key="Clipper.Error">Fehler bei der Analyse: {0}</sys:String>
+  <sys:String x:Key="Clipper.Score">Score</sys:String>
+  <sys:String x:Key="Clipper.Duration">Dauer</sys:String>
+  <sys:String x:Key="Clipper.Reason">Begründung</sys:String>
+  <sys:String x:Key="Clipper.Preview">Vorschau</sys:String>
+  <sys:String x:Key="Clipper.Preview.EmptyState">Wähle einen Highlight-Kandidaten aus, um eine Vorschau zu sehen.</sys:String>
+  <sys:String x:Key="Clipper.Preview.Play">Abspielen</sys:String>
+  <sys:String x:Key="Clipper.Preview.Stop">Stopp</sys:String>
+  <sys:String x:Key="Clipper.Preview.Restart">Neustart</sys:String>
+  <sys:String x:Key="Clipper.Preview.Mute">Stumm/Ton</sys:String>
+
+  <!-- Clipper Rendering -->
+  <sys:String x:Key="Clipper.NoCandidatesSelected">Bitte wähle mindestens einen Highlight-Kandidaten aus.</sys:String>
+  <sys:String x:Key="Clipper.FFmpegNotAvailable">FFmpeg ist nicht verfügbar. Bitte installiere zuerst FFmpeg.</sys:String>
+  <sys:String x:Key="Clipper.RenderingInProgress">Rendering läuft bereits...</sys:String>
+  <sys:String x:Key="Clipper.RenderingStarted">Starte Rendering von {0} Clips...</sys:String>
+  <sys:String x:Key="Clipper.RenderingCompleted">Rendering abgeschlossen: {0} erfolgreich, {1} fehlgeschlagen.</sys:String>
+  <sys:String x:Key="Clipper.RenderingFailed">Rendering fehlgeschlagen: {0}</sys:String>
+  <sys:String x:Key="Clipper.RenderingCancelled">Rendering abgebrochen.</sys:String>
 </ResourceDictionary>
 
 

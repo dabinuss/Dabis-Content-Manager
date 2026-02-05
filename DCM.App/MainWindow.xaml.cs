@@ -123,6 +123,14 @@ public partial class MainWindow : Window
     private int _llmActiveOperations;
     private int _whisperDependencyOperations;
 
+    // Clipper
+    private ClipCandidateStore? _clipCandidateStore;
+    private IHighlightScoringService? _highlightScoringService;
+    private ClipRenderService? _clipRenderService;
+    private CancellationTokenSource? _clipperCts;
+    private bool _isClipperRunning;
+    private bool _isClipperRendering;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -151,6 +159,7 @@ public partial class MainWindow : Window
         AttachHistoryViewEvents();
         AttachSettingsViewEvents();
         AttachChannelProfileViewEvents();
+        AttachClipperViewEvents();
         RegisterEventSubscriptions();
         InitializePresetPlaceholders();
         InitializePresetOptions();
@@ -445,6 +454,31 @@ public partial class MainWindow : Window
             ChannelProfilePageView.SettingChanged += OnSettingChangedFromView;
             ChannelProfilePageView.SettingChangedImmediate += OnSettingChangedImmediateFromView;
         }
+    }
+
+    private void AttachClipperViewEvents()
+    {
+        if (ClipperPageView is not null)
+        {
+            ClipperPageView.DraftSelectionChanged += ClipperDraftSelectionChanged;
+        }
+    }
+
+    private void ClipperDraftSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (ClipperPageView is null)
+        {
+            return;
+        }
+
+        var selectedItem = ClipperPageView.DraftListBox.SelectedItem as Views.ClipperDraftItem;
+        var draft = selectedItem?.Draft;
+
+        // Video-Pfad für Preview setzen
+        ClipperPageView.SetVideoPath(draft?.VideoPath);
+
+        // Kandidaten zurücksetzen wenn Draft wechselt
+        ClipperPageView.ShowEmptyState();
     }
 
     /// <summary>
@@ -3136,6 +3170,7 @@ public partial class MainWindow : Window
         if (PageHistory is not null) PageHistory.Visibility = Visibility.Collapsed;
         if (PageGeneralSettings is not null) PageGeneralSettings.Visibility = Visibility.Collapsed;
         if (PageLlmSettings is not null) PageLlmSettings.Visibility = Visibility.Collapsed;
+        if (PageClipper is not null) PageClipper.Visibility = Visibility.Collapsed;
 
         // Gewählte Page anzeigen
         switch (pageIndex)
@@ -3160,6 +3195,10 @@ public partial class MainWindow : Window
                 break;
             case 5:
                 if (PageLlmSettings is not null) PageLlmSettings.Visibility = Visibility.Visible;
+                break;
+            case 7:
+                if (PageClipper is not null) PageClipper.Visibility = Visibility.Visible;
+                LoadClipperDrafts();
                 break;
         }
 
@@ -3216,6 +3255,11 @@ public partial class MainWindow : Window
                 context = LocalizationHelper.Get("Page.Context.LlmSettings");
                 breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Settings");
                 break;
+            case 7:
+                title = LocalizationHelper.Get("Nav.Clipper");
+                context = LocalizationHelper.Get("Page.Context.Clipper");
+                breadcrumb = LocalizationHelper.Get("Page.Breadcrumb.Clipper");
+                break;
             default:
                 title = LocalizationHelper.Get("App.Name");
                 context = string.Empty;
@@ -3240,7 +3284,8 @@ public partial class MainWindow : Window
             PageActionsPresets is null ||
             PageActionsHistory is null ||
             PageActionsGeneralSettings is null ||
-            PageActionsLlmSettings is null)
+            PageActionsLlmSettings is null ||
+            PageActionsClipper is null)
         {
             return;
         }
@@ -3252,6 +3297,7 @@ public partial class MainWindow : Window
         PageActionsHistory.Visibility = Visibility.Collapsed;
         PageActionsGeneralSettings.Visibility = Visibility.Collapsed;
         PageActionsLlmSettings.Visibility = Visibility.Collapsed;
+        PageActionsClipper.Visibility = Visibility.Collapsed;
 
         switch (pageIndex)
         {
@@ -3278,6 +3324,9 @@ public partial class MainWindow : Window
             case 5:
                 // Auto-Save ist aktiv, kein manueller Save-Button nötig
                 // PageActionsLlmSettings.Visibility = Visibility.Visible;
+                break;
+            case 7:
+                PageActionsClipper.Visibility = Visibility.Visible;
                 break;
         }
     }
@@ -3307,7 +3356,8 @@ public partial class MainWindow : Window
     {
         if (UploadsSubMenuPanel is null ||
             ConnectionsSubMenuPanel is null ||
-            SettingsSubMenuPanel is null)
+            SettingsSubMenuPanel is null ||
+            ClipperSubMenuPanel is null)
         {
             return;
         }
@@ -3316,6 +3366,19 @@ public partial class MainWindow : Window
         {
             SetSubMenuVisibility(UploadsSubMenuPanel);
             var target = NavUpload;
+            if (target is not null && target.IsChecked != true)
+            {
+                target.IsChecked = true;
+            }
+            if (target?.Tag is string tagString && int.TryParse(tagString, out var pageIndex))
+            {
+                ShowPage(pageIndex);
+            }
+        }
+        else if (sender == MainNavClipper)
+        {
+            SetSubMenuVisibility(ClipperSubMenuPanel);
+            var target = NavClipperMain;
             if (target is not null && target.IsChecked != true)
             {
                 target.IsChecked = true;
@@ -3358,6 +3421,9 @@ public partial class MainWindow : Window
         UploadsSubMenuPanel.Visibility = activePanel == UploadsSubMenuPanel
             ? Visibility.Visible
             : Visibility.Collapsed;
+        ClipperSubMenuPanel.Visibility = activePanel == ClipperSubMenuPanel
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         ConnectionsSubMenuPanel.Visibility = activePanel == ConnectionsSubMenuPanel
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -3386,7 +3452,7 @@ public partial class MainWindow : Window
 
     private void UpdateMainMenuSelection(int pageIndex)
     {
-        if (MainNavUploads is null || MainNavConnections is null || MainNavSettings is null)
+        if (MainNavUploads is null || MainNavConnections is null || MainNavSettings is null || MainNavClipper is null)
         {
             return;
         }
@@ -3399,6 +3465,12 @@ public partial class MainWindow : Window
                 if (MainNavUploads.IsChecked != true)
                 {
                     MainNavUploads.IsChecked = true;
+                }
+                break;
+            case 7:
+                if (MainNavClipper.IsChecked != true)
+                {
+                    MainNavClipper.IsChecked = true;
                 }
                 break;
             case 1:
@@ -3457,6 +3529,373 @@ public partial class MainWindow : Window
         5 => NavSettingsLlm,
         _ => NavSettingsGeneral
     };
+
+    #endregion
+
+    #region Clipper
+
+    private void LoadClipperDrafts()
+    {
+        if (ClipperPageView is null)
+        {
+            return;
+        }
+
+        var clipperItems = _uploadDrafts
+            .Select(d => new Views.ClipperDraftItem
+            {
+                Id = d.Id,
+                Title = string.IsNullOrWhiteSpace(d.Title) ? System.IO.Path.GetFileName(d.VideoPath ?? "Unbenannt") : d.Title,
+                VideoDuration = d.VideoDuration,
+                HasTranscript = !string.IsNullOrWhiteSpace(d.Transcript),
+                Draft = d
+            })
+            .ToList();
+
+        ClipperPageView.SetDrafts(clipperItems);
+    }
+
+    private void ClipperFindHighlightsButton_Click(object sender, RoutedEventArgs e)
+    {
+        _ = FindHighlightsAsync();
+    }
+
+    private async Task FindHighlightsAsync()
+    {
+        if (ClipperPageView is null)
+        {
+            return;
+        }
+
+        // Prüfe ob Draft ausgewählt
+        var selectedItem = ClipperPageView.DraftListBox.SelectedItem as Views.ClipperDraftItem;
+        var draft = selectedItem?.Draft;
+
+        if (draft is null)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoDraftSelected");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(draft.Transcript))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoTranscript");
+            return;
+        }
+
+        // Prüfe ob bereits läuft
+        if (_isClipperRunning)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.AlreadyRunning");
+            return;
+        }
+
+        // Services initialisieren
+        EnsureClipperServicesInitialized();
+
+        if (_highlightScoringService is null)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.LlmNotAvailable");
+            return;
+        }
+
+        // Prüfe Cache
+        var transcriptHash = ClipCandidateStore.ComputeTranscriptHash(draft.Transcript);
+        if (_settings.Clipper.UseCandidateCache && _clipCandidateStore is not null)
+        {
+            var cached = _clipCandidateStore.LoadCache(draft.Id);
+            if (cached is not null && cached.IsValidFor(transcriptHash) && cached.Candidates.Count > 0)
+            {
+                ClipperPageView.SetCandidates(cached.Candidates);
+                StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.CandidatesFromCache"), cached.Candidates.Count);
+                return;
+            }
+
+            if (cached is not null && !cached.IsValidFor(transcriptHash))
+            {
+                _clipCandidateStore.InvalidateCache(draft.Id);
+            }
+        }
+
+        // Lade Segmente (ohne expliziten Pfad, LoadSegments verwendet den Standard-Pfad)
+        var segments = _draftTranscriptStore.LoadSegments(draft.Id);
+
+        IReadOnlyList<ITimedSegment> timedSegments;
+        if (segments is not null && segments.Count > 0)
+        {
+            // Konvertiere zu ITimedSegment
+            timedSegments = segments.Select(s => new TimedSegment
+            {
+                Text = s.Text,
+                Start = s.Start,
+                End = s.End
+            } as ITimedSegment).ToList();
+        }
+        else
+        {
+            // Fallback: Simuliere ein einziges Segment aus dem gesamten Transkript
+            _logger.Warning("Keine Segmente gefunden, verwende Fallback", "Clipper");
+            timedSegments = new List<ITimedSegment>
+            {
+                new TimedSegment
+                {
+                    Text = draft.Transcript,
+                    Start = TimeSpan.Zero,
+                    End = ParseDuration(draft.VideoDuration) ?? TimeSpan.FromMinutes(10)
+                }
+            };
+        }
+
+        // Erstelle Candidate Windows
+        var minDuration = TimeSpan.FromSeconds(_settings.Clipper.MinClipDurationSeconds);
+        var maxDuration = TimeSpan.FromSeconds(_settings.Clipper.MaxClipDurationSeconds);
+
+        var windowGenerator = new CandidateWindowGenerator();
+        var windows = windowGenerator.GenerateWindows(timedSegments, minDuration, maxDuration);
+
+        if (windows.Count == 0)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoWindowsFound");
+            ClipperPageView.ShowEmptyState();
+            return;
+        }
+
+        _logger.Info($"Erstellt {windows.Count} Candidate Windows für Scoring", "Clipper");
+
+        // UI vorbereiten
+        _isClipperRunning = true;
+        _clipperCts = new CancellationTokenSource();
+        ClipperPageView.ShowLoading(LocalizationHelper.Get("Clipper.Analyzing"));
+
+        try
+        {
+            var contentContext = BuildClipperContentContext(draft);
+            var candidates = await _highlightScoringService.ScoreHighlightsAsync(
+                draft.Id,
+                windows,
+                contentContext,
+                _clipperCts.Token);
+
+            // In Cache speichern
+            if (_settings.Clipper.UseCandidateCache && candidates.Count > 0 && _clipCandidateStore is not null)
+            {
+                var cache = new ClipCandidateCache
+                {
+                    DraftId = draft.Id,
+                    GeneratedAt = DateTimeOffset.UtcNow,
+                    ContentHash = transcriptHash,
+                    Candidates = candidates.ToList()
+                };
+                _clipCandidateStore.SaveCache(cache);
+            }
+
+            // UI aktualisieren
+            ClipperPageView.SetCandidates(candidates);
+            StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.CandidatesFound"), candidates.Count);
+        }
+        catch (OperationCanceledException)
+        {
+            ClipperPageView.ShowEmptyState();
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.Cancelled");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Fehler bei Highlight-Analyse: {ex.Message}", "Clipper", ex);
+            ClipperPageView.ShowEmptyState();
+            StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.Error"), ex.Message);
+        }
+        finally
+        {
+            _isClipperRunning = false;
+            _clipperCts?.Dispose();
+            _clipperCts = null;
+        }
+    }
+
+    private void EnsureClipperServicesInitialized()
+    {
+        _clipCandidateStore ??= new ClipCandidateStore(_logger);
+
+        if (_highlightScoringService is null)
+        {
+            _highlightScoringService = new HighlightScoringService(
+                _llmClient,
+                _settings.Clipper.CustomScoringPrompt,
+                _logger);
+        }
+
+        if (_clipRenderService is null)
+        {
+            _clipRenderService = new ClipRenderService();
+            _clipRenderService.TryInitialize();
+        }
+    }
+
+    private static TimeSpan? ParseDuration(string? durationText)
+    {
+        if (string.IsNullOrWhiteSpace(durationText))
+        {
+            return null;
+        }
+
+        // Format: "HH:MM:SS" oder "MM:SS"
+        var parts = durationText.Split(':');
+        try
+        {
+            return parts.Length switch
+            {
+                3 => new TimeSpan(int.Parse(parts[0]), int.Parse(parts[1]), int.Parse(parts[2])),
+                2 => new TimeSpan(0, int.Parse(parts[0]), int.Parse(parts[1])),
+                _ => null
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? BuildClipperContentContext(UploadDraft draft)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(draft.Title))
+        {
+            parts.Add(draft.Title.Trim());
+        }
+
+        if (!string.IsNullOrWhiteSpace(draft.Description))
+        {
+            parts.Add(draft.Description.Trim());
+        }
+
+        return parts.Count == 0 ? null : string.Join(" | ", parts);
+    }
+
+    private async void ClipperCutButton_Click(object sender, RoutedEventArgs e)
+    {
+        await RenderSelectedClipsAsync();
+    }
+
+    private async Task RenderSelectedClipsAsync()
+    {
+        // Validierung
+        if (ClipperPageView is null)
+        {
+            return;
+        }
+
+        var selectedCandidates = ClipperPageView.SelectedCandidates;
+        if (selectedCandidates.Count == 0)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoCandidatesSelected");
+            return;
+        }
+
+        var selectedDraftItem = ClipperPageView.DraftListBox.SelectedItem as ClipperDraftItem;
+        var draft = selectedDraftItem?.Draft;
+        if (draft is null || string.IsNullOrWhiteSpace(draft.VideoPath))
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoDraftSelected");
+            return;
+        }
+
+        // Services initialisieren
+        EnsureClipperServicesInitialized();
+
+        if (_clipRenderService is null || !_clipRenderService.IsReady)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.FFmpegNotAvailable");
+            _logger.Warning("FFmpeg nicht verfügbar für Clip-Rendering", "Clipper");
+            return;
+        }
+
+        if (_isClipperRendering)
+        {
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.RenderingInProgress");
+            return;
+        }
+
+        _isClipperRendering = true;
+        _clipperCts = new CancellationTokenSource();
+
+        try
+        {
+            // Ausgabeordner
+            var outputFolder = Constants.ClipsFolder;
+            Directory.CreateDirectory(outputFolder);
+
+            // Jobs erstellen
+            var jobs = selectedCandidates
+                .Select(c => _clipRenderService.CreateJobFromCandidate(c, draft.VideoPath, outputFolder, convertToPortrait: false))
+                .ToList();
+
+            _logger.Info($"Starte Rendering von {jobs.Count} Clips", "Clipper");
+            StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.RenderingStarted"), jobs.Count);
+
+            // Fortschritt
+            var progress = new Progress<ClipBatchRenderProgress>(p =>
+            {
+                _ui.Run(() =>
+                {
+                    var status = $"Rendering Clip {p.CurrentJobIndex + 1}/{p.TotalJobs} ({p.OverallPercent}%)";
+                    if (p.CurrentJobProgress.StatusMessage is not null)
+                    {
+                        status = $"{status} - {p.CurrentJobProgress.StatusMessage}";
+                    }
+                    StatusTextBlock.Text = status;
+                });
+            });
+
+            // Rendern
+            var results = await _clipRenderService.RenderClipsAsync(jobs, progress, _clipperCts.Token);
+
+            // Ergebnisse auswerten
+            var successCount = results.Count(r => r.Success);
+            var failCount = results.Count(r => !r.Success);
+
+            if (successCount > 0)
+            {
+                _logger.Info($"Clip-Rendering abgeschlossen: {successCount} erfolgreich, {failCount} fehlgeschlagen", "Clipper");
+                StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.RenderingCompleted"), successCount, failCount);
+
+                // Optional: Ausgabeordner öffnen
+                if (successCount > 0 && _settings.Clipper.OpenOutputFolderAfterRender)
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start("explorer.exe", outputFolder);
+                    }
+                    catch
+                    {
+                        // Ignorieren
+                    }
+                }
+            }
+            else
+            {
+                var firstError = results.FirstOrDefault(r => !r.Success)?.ErrorMessage ?? "Unbekannter Fehler";
+                _logger.Error($"Alle Clips fehlgeschlagen: {firstError}", "Clipper");
+                StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.RenderingFailed"), firstError);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.Info("Clip-Rendering abgebrochen", "Clipper");
+            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.RenderingCancelled");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Fehler beim Clip-Rendering: {ex.Message}", "Clipper");
+            StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.RenderingFailed"), ex.Message);
+        }
+        finally
+        {
+            _isClipperRendering = false;
+            _clipperCts?.Dispose();
+            _clipperCts = null;
+        }
+    }
 
     #endregion
 

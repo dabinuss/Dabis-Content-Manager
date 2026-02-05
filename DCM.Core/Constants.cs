@@ -108,9 +108,29 @@ public static class Constants
     public const string DraftTranscriptsFolderName = "draft_transcripts";
 
     /// <summary>
+    /// Ordnername für Transkript-Segmente mit Zeitstempeln.
+    /// </summary>
+    public const string TranscriptSegmentsFolderName = "transcript_segments";
+
+    /// <summary>
     /// Ordnername für temporäre Transkriptionsdateien (im System-Temp).
     /// </summary>
     public const string TranscriptionTempFolderName = "DCM_Transcription";
+
+    /// <summary>
+    /// Ordnername für gerenderte Clips.
+    /// </summary>
+    public const string ClipsFolderName = "clips";
+
+    /// <summary>
+    /// Ordnername für Clip-Kandidaten (LLM-Bewertungen).
+    /// </summary>
+    public const string ClipCandidatesFolderName = "clip_candidates";
+
+    /// <summary>
+    /// Ordnername für Clip-Untertitel (ASS-Dateien).
+    /// </summary>
+    public const string ClipSubtitlesFolderName = "clip_subtitles";
 
     /// <summary>
     /// Maximale Thumbnail-Größe in Bytes (2 MB für YouTube).
@@ -322,6 +342,82 @@ public static class Constants
         get
         {
             var folder = Path.Combine(Path.GetTempPath(), TranscriptionTempFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Transkript-Segmente-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string TranscriptSegmentsFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, TranscriptSegmentsFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Clips-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string ClipsFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, ClipsFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Clip-Kandidaten-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string ClipCandidatesFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, ClipCandidatesFolderName);
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            return folder;
+        }
+    }
+
+    /// <summary>
+    /// Pfad zum Clip-Untertitel-Ordner.
+    /// Erstellt den Ordner falls er nicht existiert.
+    /// </summary>
+    public static string ClipSubtitlesFolder
+    {
+        get
+        {
+            var folder = Path.Combine(AppDataFolder, ClipSubtitlesFolderName);
 
             if (!Directory.Exists(folder))
             {

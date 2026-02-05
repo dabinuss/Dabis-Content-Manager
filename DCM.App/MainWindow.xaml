@@ -260,6 +260,23 @@
                   </StackPanel>
                 </RadioButton>
 
+                <RadioButton x:Name="MainNavClipper"
+                             Style="{StaticResource TopNavMainButton}"
+                             GroupName="MainMenu"
+                             Checked="MainMenu_Checked"
+                             Tag="7">
+                  <StackPanel Margin="0,20">
+                    <TextBlock Style="{StaticResource IconXXL}"
+                               Text="&#xe04a;"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource Nav.Clipper}"
+                               FontWeight="SemiBold"
+                               FontSize="{StaticResource FontSizeM}"
+                               Margin="0,6,0,0"
+                               HorizontalAlignment="Center"/>
+                  </StackPanel>
+                </RadioButton>
+
                 <RadioButton x:Name="MainNavConnections"
                              Style="{StaticResource TopNavMainButton}"
                              GroupName="MainMenu"
@@ -457,6 +474,23 @@
                                Checked="NavButton_Checked"
                                Tag="6">
                     <TextBlock Text="{DynamicResource Nav.ChannelProfile}"
+                               HorizontalAlignment="Center"/>
+                  </RadioButton>
+                </StackPanel>
+
+                <StackPanel x:Name="ClipperSubMenuPanel"
+                            Grid.Column="0"
+                            Orientation="Horizontal"
+                            Margin="0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Stretch"
+                            Visibility="Collapsed">
+                  <RadioButton x:Name="NavClipperMain"
+                               Style="{StaticResource TopNavSubButton}"
+                               GroupName="ClipperSubMenu"
+                               Checked="NavButton_Checked"
+                               Tag="7">
+                    <TextBlock Text="{DynamicResource Nav.Clipper.Highlights}"
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                 </StackPanel>
@@ -683,6 +717,23 @@
                       Click="SettingsSaveButton_Click"
                       />
             </StackPanel>
+
+            <StackPanel x:Name="PageActionsClipper"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+              <Button x:Name="ClipperFindHighlightsButton"
+                      Content="{DynamicResource Clipper.Actions.FindHighlights}"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xef47;"
+                      Click="ClipperFindHighlightsButton_Click"
+                      Margin="0,0,8,0"/>
+              <Button x:Name="ClipperCutButton"
+                      Content="{DynamicResource Clipper.Actions.Cut}"
+                      Style="{StaticResource PrimaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe04a;"
+                      Click="ClipperCutButton_Click"
+                      />
+            </StackPanel>
           </Grid>
         </Grid>
       </Border>
@@ -738,6 +789,12 @@
                       Visibility="Collapsed">
           <views:LlmSettingsView x:Name="LlmSettingsPageView"/>
         </ScrollViewer>
+
+        <!-- Page 7: Clipper -->
+        <Grid x:Name="PageClipper"
+              Visibility="Collapsed">
+          <views:ClipperView x:Name="ClipperPageView"/>
+        </Grid>
       </Grid>
 
       <!-- Footer Bar -->
