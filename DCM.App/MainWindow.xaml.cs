@@ -3882,6 +3882,19 @@ public partial class MainWindow : Window
                         var job = jobs[i];
                         try
                         {
+                            if (string.IsNullOrWhiteSpace(result.OutputPath))
+                            {
+                                continue;
+                            }
+
+                            var normalizedOutputPath = NormalizeVideoPath(result.OutputPath);
+                            if (_uploadDrafts.Any(d =>
+                                    d.HasVideo &&
+                                    string.Equals(NormalizeVideoPath(d.VideoPath), normalizedOutputPath, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                continue;
+                            }
+
                             var newDraft = _clipToDraftConverter!.CreateDraftFromClip(job, result, sourceSegments);
                             _uploadDrafts.Add(newDraft);
                             newDrafts.Add(newDraft);

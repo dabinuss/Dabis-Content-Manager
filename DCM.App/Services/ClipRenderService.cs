@@ -579,31 +579,60 @@ public sealed class ClipRenderService : IClipRenderService
                 continue;
             }
 
-            var words = segment.Words?
-                .Where(w => w.End > clipStart && w.Start < clipEnd)
-                .Select(w =>
+            List<ClipSubtitleWord>? words = null;
+            string? text = null;
+
+            if (segment.Words is not null && segment.Words.Count > 0)
+            {
+                words = new List<ClipSubtitleWord>();
+                var wordTexts = new List<string>();
+
+                foreach (var word in segment.Words)
                 {
-                    var wordStart = w.Start < clipStart ? clipStart : w.Start;
-                    var wordEnd = w.End > clipEnd ? clipEnd : w.End;
-                    if (wordEnd <= wordStart)
+                    if (word.End <= clipStart || word.Start >= clipEnd)
                     {
-                        return null;
+                        continue;
                     }
 
-                    return new ClipSubtitleWord
+                    var wordStart = word.Start < clipStart ? clipStart : word.Start;
+                    var wordEnd = word.End > clipEnd ? clipEnd : word.End;
+                    if (wordEnd <= wordStart)
                     {
-                        Text = w.Text,
+                        continue;
+                    }
+
+                    words.Add(new ClipSubtitleWord
+                    {
+                        Text = word.Text,
                         Start = wordStart - clipStart,
                         End = wordEnd - clipStart
-                    };
-                })
-                .Where(w => w is not null)
-                .Select(w => w!)
-                .ToList();
+                    });
+                    if (!string.IsNullOrWhiteSpace(word.Text))
+                    {
+                        wordTexts.Add(word.Text);
+                    }
+                }
+
+                if (words.Count == 0)
+                {
+                    continue;
+                }
+
+                text = wordTexts.Count > 0 ? string.Join(" ", wordTexts) : segment.Text;
+            }
+            else
+            {
+                text = segment.Text;
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                continue;
+            }
 
             list.Add(new ClipSubtitleSegment
             {
-                Text = segment.Text,
+                Text = text,
                 Start = start - clipStart,
                 End = end - clipStart,
                 Words = words

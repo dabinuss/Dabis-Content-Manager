@@ -111,10 +111,32 @@ public sealed class ClipToDraftConverter
             return string.Empty;
         }
 
-        var texts = segments
-            .Where(s => s.End > clipStart && s.Start < clipEnd)
-            .Select(s => s.Text?.Trim())
-            .Where(s => !string.IsNullOrWhiteSpace(s));
+        var texts = new List<string>();
+
+        foreach (var segment in segments)
+        {
+            if (segment.End <= clipStart || segment.Start >= clipEnd)
+            {
+                continue;
+            }
+
+            var wordText = BuildTextFromWords(segment.Words, clipStart, clipEnd);
+            if (!string.IsNullOrWhiteSpace(wordText))
+            {
+                texts.Add(wordText);
+                continue;
+            }
+
+            if (segment.Words is not null)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(segment.Text))
+            {
+                texts.Add(segment.Text.Trim());
+            }
+        }
 
         return string.Join(" ", texts);
     }
@@ -140,32 +162,61 @@ public sealed class ClipToDraftConverter
                 continue;
             }
 
-            var words = segment.Words?
-                .Where(w => w.End > clipStart && w.Start < clipEnd)
-                .Select(w =>
+            List<TranscriptionWord>? words = null;
+            string? text = null;
+
+            if (segment.Words is not null && segment.Words.Count > 0)
+            {
+                words = new List<TranscriptionWord>();
+                var wordTexts = new List<string>();
+
+                foreach (var word in segment.Words)
                 {
-                    var wordStart = w.Start < clipStart ? clipStart : w.Start;
-                    var wordEnd = w.End > clipEnd ? clipEnd : w.End;
-                    if (wordEnd <= wordStart)
+                    if (word.End <= clipStart || word.Start >= clipEnd)
                     {
-                        return null;
+                        continue;
                     }
 
-                    return new TranscriptionWord
+                    var wordStart = word.Start < clipStart ? clipStart : word.Start;
+                    var wordEnd = word.End > clipEnd ? clipEnd : word.End;
+                    if (wordEnd <= wordStart)
                     {
-                        Text = w.Text,
+                        continue;
+                    }
+
+                    words.Add(new TranscriptionWord
+                    {
+                        Text = word.Text,
                         Start = wordStart - clipStart,
                         End = wordEnd - clipStart,
-                        Probability = w.Probability
-                    };
-                })
-                .Where(w => w is not null)
-                .Select(w => w!)
-                .ToList();
+                        Probability = word.Probability
+                    });
+                    if (!string.IsNullOrWhiteSpace(word.Text))
+                    {
+                        wordTexts.Add(word.Text);
+                    }
+                }
+
+                if (words.Count == 0)
+                {
+                    continue;
+                }
+
+                text = wordTexts.Count > 0 ? string.Join(" ", wordTexts) : segment.Text;
+            }
+            else
+            {
+                text = segment.Text;
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                continue;
+            }
 
             result.Add(new TranscriptionSegment
             {
-                Text = segment.Text,
+                Text = text,
                 Start = start - clipStart,
                 End = end - clipStart,
                 Words = words
@@ -173,5 +224,24 @@ public sealed class ClipToDraftConverter
         }
 
         return result;
+    }
+
+    private static string? BuildTextFromWords(
+        IReadOnlyList<TranscriptionWord>? words,
+        TimeSpan clipStart,
+        TimeSpan clipEnd)
+    {
+        if (words is null || words.Count == 0)
+        {
+            return null;
+        }
+
+        var parts = words
+            .Where(w => w.End > clipStart && w.Start < clipEnd)
+            .Select(w => w.Text)
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .ToList();
+
+        return parts.Count == 0 ? null : string.Join(" ", parts);
     }
 }
