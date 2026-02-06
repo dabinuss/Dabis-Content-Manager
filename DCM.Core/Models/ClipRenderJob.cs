@@ -17,6 +17,11 @@ public sealed class ClipRenderJob
     public Guid CandidateId { get; set; }
 
     /// <summary>
+    /// Vollständiger ClipCandidate (optional, z.B. für Title-Generierung).
+    /// </summary>
+    public ClipCandidate? Candidate { get; set; }
+
+    /// <summary>
     /// ID des Quell-Drafts.
     /// </summary>
     public Guid SourceDraftId { get; set; }

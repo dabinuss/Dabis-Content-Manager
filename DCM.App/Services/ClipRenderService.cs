@@ -1,7 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
+using DCM.Core.Logging;
+using DCM.Transcription.PostProcessing;
 using DCM.Core;
 using DCM.Core.Models;
 using DCM.Core.Services;
@@ -15,9 +20,26 @@ namespace DCM.App.Services;
 public sealed class ClipRenderService : IClipRenderService
 {
     private readonly ASSSubtitleGenerator _subtitleGenerator = new();
+    private readonly IFaceDetectionService _faceDetectionService;
+    private readonly DraftTranscriptStore _segmentStore;
+    private readonly IAppLogger _logger;
     private string? _ffmpegPath;
     private string? _ffmpegDir;
     private bool _isReady;
+
+    public ClipRenderService() : this(null, null, null)
+    {
+    }
+
+    internal ClipRenderService(
+        DraftTranscriptStore? segmentStore = null,
+        IFaceDetectionService? faceDetectionService = null,
+        IAppLogger? logger = null)
+    {
+        _segmentStore = segmentStore ?? new DraftTranscriptStore();
+        _faceDetectionService = faceDetectionService ?? new FaceAiSharpDetectionService();
+        _logger = logger ?? AppLogger.Instance;
+    }
 
     /// <inheritdoc/>
     public bool IsReady => _isReady;
@@ -82,6 +104,21 @@ public sealed class ClipRenderService : IClipRenderService
                 Directory.CreateDirectory(outputDir);
             }
 
+            var videoInfo = await GetVideoInfoAsync(job.SourceVideoPath, cancellationToken);
+            var sourceWidth = videoInfo?.Width ?? 0;
+            var sourceHeight = videoInfo?.Height ?? 0;
+
+            CropRegionResult? cropRegion = null;
+            if (job.CropMode != CropMode.None && job.OutputWidth > 0 && job.OutputHeight > 0 && sourceWidth > 0 && sourceHeight > 0)
+            {
+                cropRegion = await ResolveCropRegionAsync(
+                    job,
+                    sourceWidth,
+                    sourceHeight,
+                    progress,
+                    cancellationToken);
+            }
+
             // Temporärer Ausgabepfad
             var tempOutputPath = job.OutputPath + ".tmp.mp4";
 
@@ -100,11 +137,28 @@ public sealed class ClipRenderService : IClipRenderService
                         StatusMessage = "Untertitel werden generiert..."
                     });
 
-                    subtitlePath = await GenerateSubtitleFileAsync(job, cancellationToken);
+                    subtitlePath = await GenerateSubtitleFileAsync(job, sourceWidth, sourceHeight, cancellationToken);
                 }
                 else if (job.BurnSubtitles && !string.IsNullOrEmpty(job.SubtitlePath) && File.Exists(job.SubtitlePath))
                 {
                     subtitlePath = job.SubtitlePath;
+                }
+                else if (job.BurnSubtitles)
+                {
+                    var clipSegments = BuildSubtitleSegmentsFromStore(job);
+                    if (clipSegments is { Count: > 0 })
+                    {
+                        job.SubtitleSegments = clipSegments;
+                        progress?.Report(new ClipRenderProgress
+                        {
+                            JobId = job.Id,
+                            Phase = ClipRenderPhase.SubtitleGeneration,
+                            PhaseProgress = 0,
+                            TotalProgress = 10,
+                            StatusMessage = "Untertitel werden generiert..."
+                        });
+                        subtitlePath = await GenerateSubtitleFileAsync(job, sourceWidth, sourceHeight, cancellationToken);
+                    }
                 }
 
                 // Phase: Rendering
@@ -121,6 +175,9 @@ public sealed class ClipRenderService : IClipRenderService
                     job,
                     tempOutputPath,
                     subtitlePath,
+                    cropRegion,
+                    sourceWidth,
+                    sourceHeight,
                     progress,
                     cancellationToken);
 
@@ -239,6 +296,7 @@ public sealed class ClipRenderService : IClipRenderService
         var job = new ClipRenderJob
         {
             CandidateId = candidate.Id,
+            Candidate = candidate,
             SourceDraftId = candidate.SourceDraftId,
             SourceVideoPath = sourceVideoPath,
             OutputPath = outputPath,
@@ -267,6 +325,9 @@ public sealed class ClipRenderService : IClipRenderService
         ClipRenderJob job,
         string outputPath,
         string? subtitlePath,
+        CropRegionResult? cropRegion,
+        int sourceWidth,
+        int sourceHeight,
         IProgress<ClipRenderProgress>? progress,
         CancellationToken cancellationToken)
     {
@@ -285,7 +346,7 @@ public sealed class ClipRenderService : IClipRenderService
                 options.WithCustomArgument($"-t {durationSeconds}");
 
                 // Video-Filter zusammenbauen
-                var videoFilters = BuildVideoFilters(job, subtitlePath);
+                var videoFilters = BuildVideoFilters(job, cropRegion, subtitlePath);
                 if (!string.IsNullOrEmpty(videoFilters))
                 {
                     options.WithCustomArgument($"-vf \"{videoFilters}\"");
@@ -347,14 +408,17 @@ public sealed class ClipRenderService : IClipRenderService
         }
     }
 
-    private static string BuildVideoFilters(ClipRenderJob job, string? subtitlePath)
+    private static string BuildVideoFilters(
+        ClipRenderJob job,
+        CropRegionResult? cropRegion,
+        string? subtitlePath)
     {
         var filters = new List<string>();
 
         // Crop/Scale für Portrait-Format
         if (job.OutputWidth > 0 && job.OutputHeight > 0)
         {
-            if (job.CropMode == CropMode.None)
+            if (job.CropMode == CropMode.None || cropRegion is null)
             {
                 // Nur skalieren ohne Crop
                 filters.Add($"scale={job.OutputWidth}:{job.OutputHeight}:force_original_aspect_ratio=decrease");
@@ -362,10 +426,9 @@ public sealed class ClipRenderService : IClipRenderService
             }
             else
             {
-                // Center Crop für Portrait
-                // Erst auf Höhe skalieren, dann horizontal croppen
-                filters.Add($"scale=-2:{job.OutputHeight}");
-                filters.Add($"crop={job.OutputWidth}:{job.OutputHeight}");
+                filters.Add(cropRegion.ToFfmpegCropFilter());
+                filters.Add($"scale={job.OutputWidth}:{job.OutputHeight}:force_original_aspect_ratio=decrease");
+                filters.Add($"pad={job.OutputWidth}:{job.OutputHeight}:(ow-iw)/2:(oh-ih)/2");
             }
         }
 
@@ -377,13 +440,17 @@ public sealed class ClipRenderService : IClipRenderService
                 .Replace("\\", "/")
                 .Replace(":", "\\:");
 
-            filters.Add($"subtitles='{escapedPath}'");
+            filters.Add($"ass='{escapedPath}'");
         }
 
         return string.Join(",", filters);
     }
 
-    private async Task<string?> GenerateSubtitleFileAsync(ClipRenderJob job, CancellationToken cancellationToken)
+    private async Task<string?> GenerateSubtitleFileAsync(
+        ClipRenderJob job,
+        int sourceWidth,
+        int sourceHeight,
+        CancellationToken cancellationToken)
     {
         if (job.SubtitleSegments is null || job.SubtitleSegments.Count == 0)
         {
@@ -398,14 +465,200 @@ public sealed class ClipRenderService : IClipRenderService
         try
         {
             var settings = job.SubtitleSettings ?? new ClipSubtitleSettings();
-            var playResX = job.OutputWidth > 0 ? job.OutputWidth : 1920;
-            var playResY = job.OutputHeight > 0 ? job.OutputHeight : 1080;
+            var playResX = job.OutputWidth > 0 ? job.OutputWidth : (sourceWidth > 0 ? sourceWidth : 1080);
+            var playResY = job.OutputHeight > 0 ? job.OutputHeight : (sourceHeight > 0 ? sourceHeight : 1920);
             var assContent = _subtitleGenerator.Generate(job.SubtitleSegments, settings, playResX, playResY);
             await File.WriteAllTextAsync(subtitlePath, assContent, Encoding.UTF8, cancellationToken);
             return subtitlePath;
         }
         catch
         {
+            return null;
+        }
+    }
+
+    private async Task<CropRegionResult?> ResolveCropRegionAsync(
+        ClipRenderJob job,
+        int sourceWidth,
+        int sourceHeight,
+        IProgress<ClipRenderProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        if (job.CropMode == CropMode.Center)
+        {
+            progress?.Report(new ClipRenderProgress
+            {
+                JobId = job.Id,
+                Phase = ClipRenderPhase.CropCalculation,
+                PhaseProgress = 0,
+                TotalProgress = 10,
+                StatusMessage = "Crop-Region wird berechnet..."
+            });
+            return CropRegionResult.CreateCenterCrop(sourceWidth, sourceHeight);
+        }
+
+        if (job.CropMode == CropMode.Manual)
+        {
+            progress?.Report(new ClipRenderProgress
+            {
+                JobId = job.Id,
+                Phase = ClipRenderPhase.CropCalculation,
+                PhaseProgress = 0,
+                TotalProgress = 10,
+                StatusMessage = "Crop-Region wird berechnet..."
+            });
+            return CreateManualCrop(sourceWidth, sourceHeight, job.OutputWidth, job.OutputHeight, job.ManualCropOffsetX);
+        }
+
+        if (job.CropMode == CropMode.AutoDetect && _faceDetectionService.IsAvailable)
+        {
+            progress?.Report(new ClipRenderProgress
+            {
+                JobId = job.Id,
+                Phase = ClipRenderPhase.FaceDetection,
+                PhaseProgress = 0,
+                TotalProgress = 5,
+                StatusMessage = "Gesichter werden analysiert..."
+            });
+
+            var analyses = await _faceDetectionService.AnalyzeVideoAsync(
+                job.SourceVideoPath,
+                TimeSpan.FromSeconds(FaceDetectionDefaults.SampleIntervalSeconds),
+                job.StartTime,
+                job.EndTime,
+                cancellationToken);
+
+            progress?.Report(new ClipRenderProgress
+            {
+                JobId = job.Id,
+                Phase = ClipRenderPhase.CropCalculation,
+                PhaseProgress = 0,
+                TotalProgress = 10,
+                StatusMessage = "Crop-Region wird berechnet..."
+            });
+
+            return _faceDetectionService.CalculateCropRegion(
+                analyses,
+                new PixelSize(sourceWidth, sourceHeight),
+                new PixelSize(job.OutputWidth, job.OutputHeight),
+                CropStrategy.MultipleFaces);
+        }
+
+        return CropRegionResult.CreateCenterCrop(sourceWidth, sourceHeight);
+    }
+
+    private IReadOnlyList<ClipSubtitleSegment>? BuildSubtitleSegmentsFromStore(ClipRenderJob job)
+    {
+        if (job.SourceDraftId == Guid.Empty)
+        {
+            return null;
+        }
+
+        var segments = _segmentStore.LoadSegments(job.SourceDraftId);
+        if (segments is null || segments.Count == 0)
+        {
+            return null;
+        }
+
+        return BuildSubtitleSegments(segments, job.StartTime, job.EndTime);
+    }
+
+    private static IReadOnlyList<ClipSubtitleSegment> BuildSubtitleSegments(
+        IReadOnlyList<TranscriptionSegment> segments,
+        TimeSpan clipStart,
+        TimeSpan clipEnd)
+    {
+        var list = new List<ClipSubtitleSegment>();
+
+        foreach (var segment in segments)
+        {
+            var start = segment.Start < clipStart ? clipStart : segment.Start;
+            var end = segment.End > clipEnd ? clipEnd : segment.End;
+            if (end <= start)
+            {
+                continue;
+            }
+
+            var words = segment.Words?
+                .Where(w => w.End > clipStart && w.Start < clipEnd)
+                .Select(w =>
+                {
+                    var wordStart = w.Start < clipStart ? clipStart : w.Start;
+                    var wordEnd = w.End > clipEnd ? clipEnd : w.End;
+                    if (wordEnd <= wordStart)
+                    {
+                        return null;
+                    }
+
+                    return new ClipSubtitleWord
+                    {
+                        Text = w.Text,
+                        Start = wordStart - clipStart,
+                        End = wordEnd - clipStart
+                    };
+                })
+                .Where(w => w is not null)
+                .Select(w => w!)
+                .ToList();
+
+            list.Add(new ClipSubtitleSegment
+            {
+                Text = segment.Text,
+                Start = start - clipStart,
+                End = end - clipStart,
+                Words = words
+            });
+        }
+
+        return list;
+    }
+
+    private static CropRegionResult CreateManualCrop(
+        int sourceWidth,
+        int sourceHeight,
+        int targetWidth,
+        int targetHeight,
+        double offsetX)
+    {
+        var ratio = targetHeight > 0 ? (double)targetWidth / targetHeight : 9.0 / 16.0;
+        var cropWidth = (int)Math.Round(sourceHeight * ratio);
+        if (cropWidth > sourceWidth)
+        {
+            cropWidth = sourceWidth;
+        }
+
+        var maxShift = Math.Max(0, (sourceWidth - cropWidth) / 2.0);
+        var centerX = sourceWidth / 2.0 + Math.Clamp(offsetX, -1.0, 1.0) * maxShift;
+        var cropX = (int)Math.Round(centerX - cropWidth / 2.0);
+        cropX = Math.Clamp(cropX, 0, sourceWidth - cropWidth);
+
+        return new CropRegionResult
+        {
+            Region = new CropRectangle(cropX, 0, cropWidth, sourceHeight),
+            SourceWidth = sourceWidth,
+            SourceHeight = sourceHeight,
+            Strategy = CropStrategy.CenterFallback,
+            BasedOnFaceDetection = false
+        };
+    }
+
+    private async Task<(int Width, int Height)?> GetVideoInfoAsync(string path, CancellationToken cancellationToken)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var info = await FFProbe.AnalyseAsync(path).ConfigureAwait(false);
+            var stream = info.PrimaryVideoStream;
+            if (stream is null)
+            {
+                return null;
+            }
+
+            return (stream.Width, stream.Height);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning($"FFProbe fehlgeschlagen: {ex.Message}", "ClipRender");
             return null;
         }
     }

@@ -24,6 +24,7 @@ using DCM.Core.Services;
 using DCM.Llm;
 using DCM.YouTube;
 using DCM.Transcription;
+using DCM.Transcription.PostProcessing;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -127,6 +128,7 @@ public partial class MainWindow : Window
     private ClipCandidateStore? _clipCandidateStore;
     private IHighlightScoringService? _highlightScoringService;
     private ClipRenderService? _clipRenderService;
+    private ClipToDraftConverter? _clipToDraftConverter;
     private CancellationTokenSource? _clipperCts;
     private bool _isClipperRunning;
     private bool _isClipperRendering;
@@ -3726,9 +3728,14 @@ public partial class MainWindow : Window
 
         if (_clipRenderService is null)
         {
-            _clipRenderService = new ClipRenderService();
+            _clipRenderService = new ClipRenderService(
+                _draftTranscriptStore,
+                new FaceAiSharpDetectionService(),
+                _logger);
             _clipRenderService.TryInitialize();
         }
+
+        _clipToDraftConverter ??= new ClipToDraftConverter(_draftTranscriptStore, _logger);
     }
 
     private static TimeSpan? ParseDuration(string? durationText)
@@ -3827,7 +3834,7 @@ public partial class MainWindow : Window
 
             // Jobs erstellen
             var jobs = selectedCandidates
-                .Select(c => _clipRenderService.CreateJobFromCandidate(c, draft.VideoPath, outputFolder, convertToPortrait: false))
+                .Select(c => _clipRenderService.CreateJobFromCandidate(c, draft.VideoPath, outputFolder, convertToPortrait: true))
                 .ToList();
 
             _logger.Info($"Starte Rendering von {jobs.Count} Clips", "Clipper");
@@ -3858,6 +3865,49 @@ public partial class MainWindow : Window
             {
                 _logger.Info($"Clip-Rendering abgeschlossen: {successCount} erfolgreich, {failCount} fehlgeschlagen", "Clipper");
                 StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.RenderingCompleted"), successCount, failCount);
+
+                if (_settings.Clipper.AutoCreateDraftFromClip)
+                {
+                    var sourceSegments = _draftTranscriptStore.LoadSegments(draft.Id) ?? new List<TranscriptionSegment>();
+                    var newDrafts = new List<UploadDraft>();
+
+                    for (var i = 0; i < results.Count; i++)
+                    {
+                        var result = results[i];
+                        if (!result.Success)
+                        {
+                            continue;
+                        }
+
+                        var job = jobs[i];
+                        try
+                        {
+                            var newDraft = _clipToDraftConverter!.CreateDraftFromClip(job, result, sourceSegments);
+                            _uploadDrafts.Add(newDraft);
+                            newDrafts.Add(newDraft);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Warning($"Clip-Draft konnte nicht erstellt werden: {ex.Message}", "Clipper");
+                        }
+                    }
+
+                    if (newDrafts.Count > 0)
+                    {
+                        foreach (var newDraft in newDrafts)
+                        {
+                            _ = LoadVideoFileInfoAsync(newDraft, triggerAutoTranscribe: false);
+                        }
+
+                        UpdateUploadListVisibility();
+                        ScheduleDraftPersistence();
+
+                        if (PageClipper?.Visibility == Visibility.Visible)
+                        {
+                            LoadClipperDrafts();
+                        }
+                    }
+                }
 
                 // Optional: Ausgabeordner öffnen
                 if (successCount > 0 && _settings.Clipper.OpenOutputFolderAfterRender)
