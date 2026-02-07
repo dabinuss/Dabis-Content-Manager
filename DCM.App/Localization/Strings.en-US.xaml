@@ -936,6 +936,8 @@ Error: {1}</sys:String>
   <sys:String x:Key="Clipper.Settings.SplitPreset.LeftRight">Left/Right</sys:String>
   <sys:String x:Key="Clipper.Split.Workbench.Landscape">Landscape Version</sys:String>
   <sys:String x:Key="Clipper.Split.Workbench.Portrait">Portrait Version</sys:String>
+  <sys:String x:Key="Clipper.Split.EditMode.EditLayout">Edit layout</sys:String>
+  <sys:String x:Key="Clipper.Split.EditMode.SaveLayout">Save layout</sys:String>
   <sys:String x:Key="Clipper.Split.Mode.Solo">Solo</sys:String>
   <sys:String x:Key="Clipper.Split.Mode.Duo">Duo</sys:String>
   <sys:String x:Key="Clipper.Settings.EnableSubtitles">Burn subtitles</sys:String>

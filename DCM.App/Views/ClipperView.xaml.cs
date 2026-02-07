@@ -34,6 +34,8 @@ public partial class ClipperView : UserControl
     private Point _subtitleDragStart;
     private double _subtitleStartLeft;
     private double _subtitleStartTop;
+    private Canvas? _activeSubtitleCanvas;
+    private Border? _activeSubtitlePreview;
     private bool _seekPendingAfterMediaOpen;
     private bool _restartFromClipStartOnNextPlay;
     private int _seekOperationVersion;
@@ -55,6 +57,8 @@ public partial class ClipperView : UserControl
     private double _logoScale = 0.15;
     private bool _isDraggingLogo;
     private Point _logoDragStart;
+    private Canvas? _activeLogoCanvas;
+    private Image? _activeLogoImage;
     private int _portraitPreviewVersion;
     private readonly IFaceDetectionService _faceDetectionService = new FaceAiSharpDetectionService();
     private CancellationTokenSource? _faceDetectionCts;
@@ -63,6 +67,7 @@ public partial class ClipperView : UserControl
     private NormalizedRect _splitPrimaryRegion = new() { X = 0, Y = 0, Width = 1, Height = 0.5 };
     private NormalizedRect _splitSecondaryRegion = new() { X = 0, Y = 0.5, Width = 1, Height = 0.5 };
     private bool _splitDuoMode = true;
+    private SplitEditorInteractionMode _splitEditorInteractionMode = SplitEditorInteractionMode.Elements;
     private SplitDragMode _splitDragMode;
     private SplitResizeCorner _splitResizeCorner = SplitResizeCorner.None;
     private SplitRegionTarget _activeSplitRegion = SplitRegionTarget.Primary;
@@ -624,6 +629,8 @@ public partial class ClipperView : UserControl
         PreviewMediaElement.Pause();
         _previewTimer.Stop();
         StopFfmpegPreviewProcess();
+        SplitPlaybackImage.Source = null;
+        SplitPlaybackImage.Visibility = Visibility.Collapsed;
 
         UpdatePlayButtonIcon(false);
     }
@@ -635,6 +642,8 @@ public partial class ClipperView : UserControl
         _previewTimer.Stop();
         PreviewMediaElement.Pause();
         StopFfmpegPreviewProcess();
+        SplitPlaybackImage.Source = null;
+        SplitPlaybackImage.Visibility = Visibility.Collapsed;
 
         if (_currentPreviewCandidate is not null && _isMediaReady)
         {
@@ -676,6 +685,8 @@ public partial class ClipperView : UserControl
         SplitPortraitSingleImage.Source = null;
         SplitPortraitTopImage.Source = null;
         SplitPortraitBottomImage.Source = null;
+        SplitPlaybackImage.Source = null;
+        SplitPlaybackImage.Visibility = Visibility.Collapsed;
         _splitSourceFrame = null;
         PreviewFrameImage.Source = null;
         PreviewFrameImage.Visibility = Visibility.Collapsed;
@@ -729,6 +740,8 @@ public partial class ClipperView : UserControl
         var isSplit = GetSelectedCropMode() == CropMode.SplitLayout;
         SplitWorkbenchPanel.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
         StandardPreviewPanel.Visibility = isSplit ? Visibility.Collapsed : Visibility.Visible;
+        UpdateSubtitlePlacementPreview();
+        UpdateLogoPosition();
     }
 
     private void SplitSoloButton_Click(object sender, RoutedEventArgs e)
@@ -757,22 +770,95 @@ public partial class ClipperView : UserControl
         RefreshPortraitPreview();
     }
 
+    private void SplitLayoutEditButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (GetSelectedCropMode() != CropMode.SplitLayout)
+        {
+            return;
+        }
+
+        var nextMode = IsSplitLayoutEditingActive()
+            ? SplitEditorInteractionMode.Elements
+            : SplitEditorInteractionMode.Layout;
+
+        SetSplitEditorInteractionMode(nextMode);
+
+        if (nextMode == SplitEditorInteractionMode.Elements)
+        {
+            CommitClipperSettingsChange();
+            RefreshPortraitPreview();
+        }
+    }
+
+    private void SetSplitEditorInteractionMode(SplitEditorInteractionMode mode)
+    {
+        if (_splitEditorInteractionMode == mode)
+        {
+            return;
+        }
+
+        _splitEditorInteractionMode = mode;
+        if (_splitEditorInteractionMode != SplitEditorInteractionMode.Layout)
+        {
+            _splitDragMode = SplitDragMode.None;
+            _splitResizeCorner = SplitResizeCorner.None;
+            _splitDragStartRect = null;
+            SplitSelectionCanvas.ReleaseMouseCapture();
+            _isDraggingSplitDivider = false;
+            SplitPortraitDividerCanvas.ReleaseMouseCapture();
+        }
+
+        UpdateSplitModeButtons();
+        UpdateSplitSelectionOverlay();
+        UpdateSplitPortraitPreview();
+        UpdateSubtitlePlacementPreview();
+        UpdateLogoPosition();
+    }
+
+    private bool IsSplitLayoutEditingActive()
+    {
+        return _splitEditorInteractionMode == SplitEditorInteractionMode.Layout;
+    }
+
+    private bool IsSplitElementEditingActive()
+    {
+        return _splitEditorInteractionMode == SplitEditorInteractionMode.Elements;
+    }
+
     private void UpdateSplitModeButtons()
     {
         var isSplit = GetSelectedCropMode() == CropMode.SplitLayout;
-        SplitSoloButton.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
-        SplitDuoButton.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
+        var isLayoutMode = isSplit && IsSplitLayoutEditingActive();
+
+        SplitLayoutEditButton.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
+        SplitSoloButton.Visibility = isLayoutMode ? Visibility.Visible : Visibility.Collapsed;
+        SplitDuoButton.Visibility = isLayoutMode ? Visibility.Visible : Visibility.Collapsed;
 
         if (!isSplit)
         {
             SplitPortraitDividerCanvas.Visibility = Visibility.Collapsed;
             SplitPortraitDividerCanvas.IsHitTestVisible = false;
+            SplitSelectionCanvas.IsHitTestVisible = false;
+            _isDraggingSplitDivider = false;
+            SplitPortraitDividerCanvas.ReleaseMouseCapture();
             return;
         }
 
+        var modeResourceKey = isLayoutMode
+            ? "Clipper.Split.EditMode.SaveLayout"
+            : "Clipper.Split.EditMode.EditLayout";
+        SplitLayoutEditButton.Content = FindResource(modeResourceKey);
+        SplitLayoutEditButton.FontWeight = isLayoutMode ? FontWeights.SemiBold : FontWeights.Normal;
         SplitSoloButton.FontWeight = !_splitDuoMode ? FontWeights.SemiBold : FontWeights.Normal;
         SplitDuoButton.FontWeight = _splitDuoMode ? FontWeights.SemiBold : FontWeights.Normal;
-        SplitPortraitDividerCanvas.IsHitTestVisible = _splitDuoMode;
+        SplitSelectionCanvas.IsHitTestVisible = isLayoutMode;
+        SplitPortraitDividerCanvas.IsHitTestVisible = _splitDuoMode && isLayoutMode;
+
+        if (!isLayoutMode)
+        {
+            _isDraggingSplitDivider = false;
+            SplitPortraitDividerCanvas.ReleaseMouseCapture();
+        }
     }
 
     private void SplitSelectionCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -782,7 +868,7 @@ public partial class ClipperView : UserControl
 
     private void SplitSelectionCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (GetSelectedCropMode() != CropMode.SplitLayout)
+        if (GetSelectedCropMode() != CropMode.SplitLayout || !IsSplitLayoutEditingActive())
         {
             return;
         }
@@ -852,7 +938,7 @@ public partial class ClipperView : UserControl
 
     private void SplitPortraitDividerHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (!_splitDuoMode)
+        if (!_splitDuoMode || !IsSplitLayoutEditingActive())
         {
             return;
         }
@@ -864,7 +950,7 @@ public partial class ClipperView : UserControl
 
     private void SplitPortraitDividerCanvas_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!_isDraggingSplitDivider || !_splitDuoMode)
+        if (!_isDraggingSplitDivider || !_splitDuoMode || !IsSplitLayoutEditingActive())
         {
             return;
         }
@@ -969,7 +1055,7 @@ public partial class ClipperView : UserControl
 
     private void UpdateSplitDividerVisual()
     {
-        if (!_splitDuoMode)
+        if (!_splitDuoMode || !IsSplitLayoutEditingActive())
         {
             SplitPortraitDividerCanvas.Visibility = Visibility.Collapsed;
             return;
@@ -1011,6 +1097,27 @@ public partial class ClipperView : UserControl
 
     private void UpdateSplitSelectionOverlay()
     {
+        if (GetSelectedCropMode() != CropMode.SplitLayout || !IsSplitLayoutEditingActive())
+        {
+            ApplyRegionToOverlay(
+                _splitPrimaryRegion,
+                SplitPrimarySelectionBox,
+                SplitPrimaryResizeHandleTopLeft,
+                SplitPrimaryResizeHandleTopRight,
+                SplitPrimaryResizeHandleBottomLeft,
+                SplitPrimaryResizeHandleBottomRight,
+                Visibility.Collapsed);
+            ApplyRegionToOverlay(
+                _splitSecondaryRegion,
+                SplitSecondarySelectionBox,
+                SplitSecondaryResizeHandleTopLeft,
+                SplitSecondaryResizeHandleTopRight,
+                SplitSecondaryResizeHandleBottomLeft,
+                SplitSecondaryResizeHandleBottomRight,
+                Visibility.Collapsed);
+            return;
+        }
+
         var viewport = GetSplitImageViewportRect();
         if (viewport.Width <= 0 || viewport.Height <= 0)
         {
@@ -1325,6 +1432,12 @@ public partial class ClipperView : UserControl
 
     private void UpdateSplitPortraitPreview()
     {
+        if (!_isPlaying)
+        {
+            SplitPlaybackImage.Source = null;
+            SplitPlaybackImage.Visibility = Visibility.Collapsed;
+        }
+
         if (_splitSourceFrame is null)
         {
             SplitPortraitSingleImage.Source = null;
@@ -1354,8 +1467,9 @@ public partial class ClipperView : UserControl
         SplitPortraitBottomRow.Height = new GridLength(1.0 - ratio, GridUnitType.Star);
         SplitPortraitSingleImage.Visibility = Visibility.Collapsed;
         SplitPortraitDuoGrid.Visibility = Visibility.Visible;
-        SplitPortraitDividerCanvas.Visibility = Visibility.Visible;
-        SplitPortraitDividerCanvas.IsHitTestVisible = true;
+        var showDivider = IsSplitLayoutEditingActive();
+        SplitPortraitDividerCanvas.Visibility = showDivider ? Visibility.Visible : Visibility.Collapsed;
+        SplitPortraitDividerCanvas.IsHitTestVisible = showDivider;
         SplitPortraitTopImage.Source = primary;
         SplitPortraitBottomImage.Source = secondary;
         UpdateSplitDividerVisual();
@@ -1434,6 +1548,22 @@ public partial class ClipperView : UserControl
         CommitClipperSettingsChange();
     }
 
+    private (Canvas Canvas, Border Preview) ResolveSubtitleOverlayTarget(object sender)
+    {
+        if (ReferenceEquals(sender, SplitSubtitleOverlayCanvas) || ReferenceEquals(sender, SplitSubtitlePlacementPreview))
+        {
+            return (SplitSubtitleOverlayCanvas, SplitSubtitlePlacementPreview);
+        }
+
+        return (SubtitleOverlayCanvas, SubtitlePlacementPreview);
+    }
+
+    private IEnumerable<(Canvas Canvas, Border Preview, bool IsSplitTarget)> EnumerateSubtitleOverlayTargets()
+    {
+        yield return (SubtitleOverlayCanvas, SubtitlePlacementPreview, false);
+        yield return (SplitSubtitleOverlayCanvas, SplitSubtitlePlacementPreview, true);
+    }
+
     private void SubtitleOverlayCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (EnableSubtitlesCheckBox.IsChecked != true)
@@ -1441,50 +1571,68 @@ public partial class ClipperView : UserControl
             return;
         }
 
-        _isDraggingSubtitle = true;
-        _subtitleDragStart = e.GetPosition(SubtitleOverlayCanvas);
-        _subtitleStartLeft = Canvas.GetLeft(SubtitlePlacementPreview);
-        _subtitleStartTop = Canvas.GetTop(SubtitlePlacementPreview);
-        if (double.IsNaN(_subtitleStartLeft))
+        var (canvas, preview) = ResolveSubtitleOverlayTarget(sender);
+        if (preview.Visibility != Visibility.Visible || canvas.ActualWidth <= 0 || canvas.ActualHeight <= 0)
         {
-            _subtitleStartLeft = 0;
-        }
-        if (double.IsNaN(_subtitleStartTop))
-        {
-            _subtitleStartTop = 0;
+            return;
         }
 
-        SubtitleOverlayCanvas.CaptureMouse();
+        var point = e.GetPosition(canvas);
+        var previewSize = MeasureSubtitlePreview(preview);
+        var left = Canvas.GetLeft(preview);
+        var top = Canvas.GetTop(preview);
+        if (double.IsNaN(left))
+        {
+            left = 0;
+        }
+        if (double.IsNaN(top))
+        {
+            top = 0;
+        }
+
+        if (point.X < left || point.X > left + previewSize.Width || point.Y < top || point.Y > top + previewSize.Height)
+        {
+            return;
+        }
+
+        _isDraggingSubtitle = true;
+        _activeSubtitleCanvas = canvas;
+        _activeSubtitlePreview = preview;
+        _subtitleDragStart = point;
+        _subtitleStartLeft = left;
+        _subtitleStartTop = top;
+
+        canvas.CaptureMouse();
         e.Handled = true;
     }
 
     private void SubtitleOverlayCanvas_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!_isDraggingSubtitle || EnableSubtitlesCheckBox.IsChecked != true)
+        if (!_isDraggingSubtitle || EnableSubtitlesCheckBox.IsChecked != true || _activeSubtitleCanvas is null || _activeSubtitlePreview is null)
         {
             return;
         }
 
-        var canvasWidth = SubtitleOverlayCanvas.ActualWidth;
-        var canvasHeight = SubtitleOverlayCanvas.ActualHeight;
+        var canvasWidth = _activeSubtitleCanvas.ActualWidth;
+        var canvasHeight = _activeSubtitleCanvas.ActualHeight;
         if (canvasWidth <= 0 || canvasHeight <= 0)
         {
             return;
         }
 
-        var previewSize = MeasureSubtitlePreview();
+        var previewSize = MeasureSubtitlePreview(_activeSubtitlePreview);
         var maxLeft = Math.Max(0, canvasWidth - previewSize.Width);
         var maxTop = Math.Max(0, canvasHeight - previewSize.Height);
 
-        var current = e.GetPosition(SubtitleOverlayCanvas);
+        var current = e.GetPosition(_activeSubtitleCanvas);
         var left = Math.Clamp(_subtitleStartLeft + (current.X - _subtitleDragStart.X), 0, maxLeft);
         var top = Math.Clamp(_subtitleStartTop + (current.Y - _subtitleDragStart.Y), 0, maxTop);
 
         _isApplyingSettings = true;
         try
         {
-            Canvas.SetLeft(SubtitlePlacementPreview, left);
-            Canvas.SetTop(SubtitlePlacementPreview, top);
+            Canvas.SetLeft(_activeSubtitlePreview, left);
+            Canvas.SetTop(_activeSubtitlePreview, top);
 
             var centerX = (left + previewSize.Width / 2.0) / canvasWidth;
             var centerY = (top + previewSize.Height / 2.0) / canvasHeight;
@@ -1495,6 +1643,8 @@ public partial class ClipperView : UserControl
         {
             _isApplyingSettings = false;
         }
+
+        UpdateSubtitlePlacementPreview();
     }
 
     private void SubtitleOverlayCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -1505,7 +1655,9 @@ public partial class ClipperView : UserControl
         }
 
         _isDraggingSubtitle = false;
-        SubtitleOverlayCanvas.ReleaseMouseCapture();
+        _activeSubtitleCanvas?.ReleaseMouseCapture();
+        _activeSubtitleCanvas = null;
+        _activeSubtitlePreview = null;
         UpdateSettingsValueLabels();
         CommitClipperSettingsChange();
         e.Handled = true;
@@ -1518,43 +1670,49 @@ public partial class ClipperView : UserControl
 
     private void UpdateSubtitlePlacementPreview()
     {
-        if (!IsLoaded || SubtitleOverlayCanvas is null || SubtitlePlacementPreview is null)
+        if (!IsLoaded)
         {
             return;
         }
 
         UpdateSettingsValueLabels();
 
-        if (SubtitlePlacementPreview.Child is TextBlock previewText)
-        {
-            previewText.FontSize = Math.Max(12, SubtitleFontSizeSlider.Value * 0.45);
-        }
-
         var isVisible = EnableSubtitlesCheckBox.IsChecked == true && VideoPlayerPanel.Visibility == Visibility.Visible;
-        SubtitleOverlayCanvas.IsHitTestVisible = isVisible;
-        SubtitlePlacementPreview.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        var isSplit = GetSelectedCropMode() == CropMode.SplitLayout;
 
-        if (!isVisible)
+        foreach (var (canvas, preview, isSplitTarget) in EnumerateSubtitleOverlayTargets())
         {
-            return;
+            if (preview.Child is TextBlock previewText)
+            {
+                previewText.FontSize = Math.Max(12, SubtitleFontSizeSlider.Value * 0.45);
+            }
+
+            var targetVisible = isVisible && (isSplitTarget == isSplit);
+            var canEdit = !isSplit || IsSplitElementEditingActive();
+            canvas.IsHitTestVisible = targetVisible && canEdit;
+            preview.Visibility = targetVisible ? Visibility.Visible : Visibility.Collapsed;
+
+            if (!targetVisible)
+            {
+                continue;
+            }
+
+            var canvasWidth = canvas.ActualWidth;
+            var canvasHeight = canvas.ActualHeight;
+            if (canvasWidth <= 0 || canvasHeight <= 0)
+            {
+                continue;
+            }
+
+            var previewSize = MeasureSubtitlePreview(preview);
+            var maxLeft = Math.Max(0, canvasWidth - previewSize.Width);
+            var maxTop = Math.Max(0, canvasHeight - previewSize.Height);
+            var left = Math.Clamp((SubtitlePositionXSlider.Value * canvasWidth) - (previewSize.Width / 2.0), 0, maxLeft);
+            var top = Math.Clamp((SubtitlePositionYSlider.Value * canvasHeight) - (previewSize.Height / 2.0), 0, maxTop);
+
+            Canvas.SetLeft(preview, left);
+            Canvas.SetTop(preview, top);
         }
-
-        var canvasWidth = SubtitleOverlayCanvas.ActualWidth;
-        var canvasHeight = SubtitleOverlayCanvas.ActualHeight;
-        if (canvasWidth <= 0 || canvasHeight <= 0)
-        {
-            return;
-        }
-
-        var previewSize = MeasureSubtitlePreview();
-        var maxLeft = Math.Max(0, canvasWidth - previewSize.Width);
-        var maxTop = Math.Max(0, canvasHeight - previewSize.Height);
-
-        var left = Math.Clamp((SubtitlePositionXSlider.Value * canvasWidth) - (previewSize.Width / 2.0), 0, maxLeft);
-        var top = Math.Clamp((SubtitlePositionYSlider.Value * canvasHeight) - (previewSize.Height / 2.0), 0, maxTop);
-
-        Canvas.SetLeft(SubtitlePlacementPreview, left);
-        Canvas.SetTop(SubtitlePlacementPreview, top);
     }
 
     private void UpdateSettingsValueLabels()
@@ -1603,6 +1761,7 @@ public partial class ClipperView : UserControl
             LogoPathText.Text = (string)FindResource("Clipper.Settings.NoLogo");
             ClearLogoButton.Visibility = Visibility.Collapsed;
             LogoOverlayCanvas.Visibility = Visibility.Collapsed;
+            SplitLogoOverlayCanvas.Visibility = Visibility.Collapsed;
             LogoScaleLabel.Visibility = Visibility.Collapsed;
             LogoScalePanel.Visibility = Visibility.Collapsed;
             LogoDragHintText.Visibility = Visibility.Collapsed;
@@ -1618,11 +1777,30 @@ public partial class ClipperView : UserControl
         }
     }
 
+    private (Canvas Canvas, Image Image) ResolveLogoOverlayTarget(object sender)
+    {
+        if (ReferenceEquals(sender, SplitLogoOverlayImage) || ReferenceEquals(sender, SplitLogoOverlayCanvas))
+        {
+            return (SplitLogoOverlayCanvas, SplitLogoOverlayImage);
+        }
+
+        return (LogoOverlayCanvas, LogoOverlayImage);
+    }
+
+    private IEnumerable<(Canvas Canvas, Image Image, bool IsSplitTarget)> EnumerateLogoOverlayTargets()
+    {
+        yield return (LogoOverlayCanvas, LogoOverlayImage, false);
+        yield return (SplitLogoOverlayCanvas, SplitLogoOverlayImage, true);
+    }
+
     private void UpdateLogoOverlay(string? path)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
         {
             LogoOverlayCanvas.Visibility = Visibility.Collapsed;
+            SplitLogoOverlayCanvas.Visibility = Visibility.Collapsed;
+            LogoOverlayImage.Source = null;
+            SplitLogoOverlayImage.Source = null;
             return;
         }
 
@@ -1636,37 +1814,46 @@ public partial class ClipperView : UserControl
             bitmap.Freeze();
 
             LogoOverlayImage.Source = bitmap;
-            LogoOverlayCanvas.Visibility = Visibility.Visible;
+            SplitLogoOverlayImage.Source = bitmap;
             UpdateLogoPosition();
         }
         catch
         {
             LogoOverlayCanvas.Visibility = Visibility.Collapsed;
+            SplitLogoOverlayCanvas.Visibility = Visibility.Collapsed;
         }
     }
 
     private void UpdateLogoPosition()
     {
-        if (LogoOverlayCanvas.ActualWidth <= 0 || LogoOverlayCanvas.ActualHeight <= 0)
+        var hasLogo = !string.IsNullOrWhiteSpace(_logoPath) && File.Exists(_logoPath);
+        var isPreviewVisible = VideoPlayerPanel.Visibility == Visibility.Visible;
+        var isSplit = GetSelectedCropMode() == CropMode.SplitLayout;
+
+        foreach (var (canvas, image, isSplitTarget) in EnumerateLogoOverlayTargets())
         {
-            return;
+            var targetVisible = hasLogo && isPreviewVisible && (isSplitTarget == isSplit);
+            canvas.Visibility = targetVisible ? Visibility.Visible : Visibility.Collapsed;
+            var canEdit = !isSplit || IsSplitElementEditingActive();
+            canvas.IsHitTestVisible = targetVisible && canEdit;
+
+            if (!targetVisible || canvas.ActualWidth <= 0 || canvas.ActualHeight <= 0)
+            {
+                continue;
+            }
+
+            var logoSize = canvas.ActualWidth * _logoScale;
+            image.Width = logoSize;
+            image.Height = logoSize;
+
+            var left = (_logoPositionX * canvas.ActualWidth) - (logoSize / 2);
+            var top = (_logoPositionY * canvas.ActualHeight) - (logoSize / 2);
+            left = Math.Clamp(left, 0, canvas.ActualWidth - logoSize);
+            top = Math.Clamp(top, 0, canvas.ActualHeight - logoSize);
+
+            Canvas.SetLeft(image, left);
+            Canvas.SetTop(image, top);
         }
-
-        // Berechne Logo-Größe basierend auf Scale (relativ zur Canvas-Breite)
-        var logoSize = LogoOverlayCanvas.ActualWidth * _logoScale;
-        LogoOverlayImage.Width = logoSize;
-        LogoOverlayImage.Height = logoSize;
-
-        // Berechne Position (zentriert auf Positions-Koordinaten)
-        var left = (_logoPositionX * LogoOverlayCanvas.ActualWidth) - (logoSize / 2);
-        var top = (_logoPositionY * LogoOverlayCanvas.ActualHeight) - (logoSize / 2);
-
-        // Begrenze auf Canvas-Bereich
-        left = Math.Clamp(left, 0, LogoOverlayCanvas.ActualWidth - logoSize);
-        top = Math.Clamp(top, 0, LogoOverlayCanvas.ActualHeight - logoSize);
-
-        Canvas.SetLeft(LogoOverlayImage, left);
-        Canvas.SetTop(LogoOverlayImage, top);
     }
 
     private void LogoOverlayCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1700,36 +1887,44 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        var (canvas, image) = ResolveLogoOverlayTarget(sender);
+        if (canvas.Visibility != Visibility.Visible || canvas.ActualWidth <= 0 || canvas.ActualHeight <= 0)
+        {
+            return;
+        }
+
         _isDraggingLogo = true;
-        _logoDragStart = e.GetPosition(LogoOverlayCanvas);
+        _activeLogoCanvas = canvas;
+        _activeLogoImage = image;
+        _logoDragStart = e.GetPosition(canvas);
         element.CaptureMouse();
         e.Handled = true;
     }
 
     private void LogoOverlay_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!_isDraggingLogo || LogoOverlayCanvas.ActualWidth <= 0)
+        if (!_isDraggingLogo || _activeLogoCanvas is null || _activeLogoImage is null || _activeLogoCanvas.ActualWidth <= 0)
         {
             return;
         }
 
-        var pos = e.GetPosition(LogoOverlayCanvas);
-        var logoSize = LogoOverlayCanvas.ActualWidth * _logoScale;
+        var pos = e.GetPosition(_activeLogoCanvas);
+        var logoSize = _activeLogoCanvas.ActualWidth * _logoScale;
 
         // Berechne neue Position (Zentrum des Logos)
-        var newLeft = Canvas.GetLeft(LogoOverlayImage) + (pos.X - _logoDragStart.X);
-        var newTop = Canvas.GetTop(LogoOverlayImage) + (pos.Y - _logoDragStart.Y);
+        var newLeft = Canvas.GetLeft(_activeLogoImage) + (pos.X - _logoDragStart.X);
+        var newTop = Canvas.GetTop(_activeLogoImage) + (pos.Y - _logoDragStart.Y);
 
         // Begrenze auf Canvas-Bereich
-        newLeft = Math.Clamp(newLeft, 0, LogoOverlayCanvas.ActualWidth - logoSize);
-        newTop = Math.Clamp(newTop, 0, LogoOverlayCanvas.ActualHeight - logoSize);
+        newLeft = Math.Clamp(newLeft, 0, _activeLogoCanvas.ActualWidth - logoSize);
+        newTop = Math.Clamp(newTop, 0, _activeLogoCanvas.ActualHeight - logoSize);
 
-        Canvas.SetLeft(LogoOverlayImage, newLeft);
-        Canvas.SetTop(LogoOverlayImage, newTop);
+        Canvas.SetLeft(_activeLogoImage, newLeft);
+        Canvas.SetTop(_activeLogoImage, newTop);
 
         // Speichere normalisierte Position (Zentrum)
-        _logoPositionX = (newLeft + logoSize / 2) / LogoOverlayCanvas.ActualWidth;
-        _logoPositionY = (newTop + logoSize / 2) / LogoOverlayCanvas.ActualHeight;
+        _logoPositionX = (newLeft + logoSize / 2) / _activeLogoCanvas.ActualWidth;
+        _logoPositionY = (newTop + logoSize / 2) / _activeLogoCanvas.ActualHeight;
 
         _logoDragStart = pos;
         e.Handled = true;
@@ -1743,6 +1938,8 @@ public partial class ClipperView : UserControl
         }
 
         _isDraggingLogo = false;
+        _activeLogoCanvas = null;
+        _activeLogoImage = null;
         (sender as FrameworkElement)?.ReleaseMouseCapture();
         CommitClipperSettingsChange();
         e.Handled = true;
@@ -1811,10 +2008,10 @@ public partial class ClipperView : UserControl
         return snapshot;
     }
 
-    private Size MeasureSubtitlePreview()
+    private static Size MeasureSubtitlePreview(Border preview)
     {
-        SubtitlePlacementPreview.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var desired = SubtitlePlacementPreview.DesiredSize;
+        preview.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var desired = preview.DesiredSize;
         return new Size(
             desired.Width <= 0 ? 40 : desired.Width,
             desired.Height <= 0 ? 20 : desired.Height);
@@ -2764,22 +2961,28 @@ public partial class ClipperView : UserControl
         var cropMode = GetSelectedCropMode();
         var manualOffset = 0.0;
         var cropRegion = _currentCropRegion;
+        var (sourceWidth, sourceHeight) = GetVideoDimensions(videoPath);
 
         string cropFilter;
-        if (cropMode == CropMode.AutoDetect && cropRegion is not null)
+        string filterChain;
+        if (cropMode == CropMode.SplitLayout)
+        {
+            filterChain = BuildSplitPlaybackFilterChain(sourceWidth, sourceHeight);
+        }
+        else if (cropMode == CropMode.AutoDetect && cropRegion is not null)
         {
             cropFilter = cropRegion.ToFfmpegCropFilter();
+            filterChain = string.IsNullOrEmpty(cropFilter)
+                ? "scale=360:640:flags=fast_bilinear"
+                : $"{cropFilter},scale=360:640:flags=fast_bilinear";
         }
         else
         {
-            var (sourceWidth, sourceHeight) = GetVideoDimensions(videoPath);
             cropFilter = CalculateCropFilter(sourceWidth, sourceHeight, cropMode, manualOffset);
+            filterChain = string.IsNullOrEmpty(cropFilter)
+                ? "scale=360:640:flags=fast_bilinear"
+                : $"{cropFilter},scale=360:640:flags=fast_bilinear";
         }
-
-        // Filter-Chain: Crop + Scale auf 360x640 (klein für Performance)
-        var filterChain = string.IsNullOrEmpty(cropFilter)
-            ? "scale=360:640:flags=fast_bilinear"
-            : $"{cropFilter},scale=360:640:flags=fast_bilinear";
 
         var startSeconds = start.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
         var duration = (end - start).TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
@@ -2820,6 +3023,49 @@ public partial class ClipperView : UserControl
         {
             StopFfmpegPreviewProcess();
         }
+    }
+
+    private string BuildSplitPlaybackFilterChain(int sourceWidth, int sourceHeight)
+    {
+        var safeSourceWidth = Math.Max(1, sourceWidth);
+        var safeSourceHeight = Math.Max(1, sourceHeight);
+        var outputWidth = 360;
+        var outputHeight = 640;
+
+        var primary = ToSplitPlaybackCropRectangle(_splitPrimaryRegion, safeSourceWidth, safeSourceHeight);
+
+        if (!_splitDuoMode)
+        {
+            return $"crop={primary.Width}:{primary.Height}:{primary.X}:{primary.Y}," +
+                   $"scale={outputWidth}:{outputHeight}:force_original_aspect_ratio=increase," +
+                   $"crop={outputWidth}:{outputHeight}";
+        }
+
+        var secondary = ToSplitPlaybackCropRectangle(_splitSecondaryRegion, safeSourceWidth, safeSourceHeight);
+        var ratio = ClampSplitDividerRatio(_splitDividerRatio);
+        var topHeight = Math.Clamp((int)Math.Round(outputHeight * ratio), 1, outputHeight - 1);
+        var bottomHeight = Math.Max(1, outputHeight - topHeight);
+
+        return $"split=2[v1][v2];" +
+               $"[v1]crop={primary.Width}:{primary.Height}:{primary.X}:{primary.Y}," +
+               $"scale={outputWidth}:{topHeight}:force_original_aspect_ratio=increase," +
+               $"crop={outputWidth}:{topHeight}[upper];" +
+               $"[v2]crop={secondary.Width}:{secondary.Height}:{secondary.X}:{secondary.Y}," +
+               $"scale={outputWidth}:{bottomHeight}:force_original_aspect_ratio=increase," +
+               $"crop={outputWidth}:{bottomHeight}[lower];" +
+               $"[upper][lower]vstack=inputs=2";
+    }
+
+    private static CropRectangle ToSplitPlaybackCropRectangle(NormalizedRect region, int sourceWidth, int sourceHeight)
+    {
+        var safe = (region ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        var width = Math.Clamp((int)Math.Round(safe.Width * sourceWidth), 1, sourceWidth);
+        var height = Math.Clamp((int)Math.Round(safe.Height * sourceHeight), 1, sourceHeight);
+        var maxX = Math.Max(0, sourceWidth - width);
+        var maxY = Math.Max(0, sourceHeight - height);
+        var x = Math.Clamp((int)Math.Round(safe.X * sourceWidth), 0, maxX);
+        var y = Math.Clamp((int)Math.Round(safe.Y * sourceHeight), 0, maxY);
+        return new CropRectangle(x, y, width, height);
     }
 
     private async Task ReadFfmpegFramesAsync(Process process, CancellationToken ct)
@@ -2879,8 +3125,16 @@ public partial class ClipperView : UserControl
                                     bitmap.StreamSource = ms;
                                     bitmap.EndInit();
                                     bitmap.Freeze();
-                                    CroppedPreviewImage.Source = bitmap;
-                                    CroppedPreviewImage.Visibility = Visibility.Visible;
+                                    if (GetSelectedCropMode() == CropMode.SplitLayout)
+                                    {
+                                        SplitPlaybackImage.Source = bitmap;
+                                        SplitPlaybackImage.Visibility = Visibility.Visible;
+                                    }
+                                    else
+                                    {
+                                        CroppedPreviewImage.Source = bitmap;
+                                        CroppedPreviewImage.Visibility = Visibility.Visible;
+                                    }
                                 }
                                 catch
                                 {
@@ -3028,6 +3282,12 @@ public partial class ClipperView : UserControl
         None = 0,
         Move = 1,
         Resize = 2
+    }
+
+    private enum SplitEditorInteractionMode
+    {
+        Layout = 0,
+        Elements = 1
     }
 
     private enum SplitResizeCorner

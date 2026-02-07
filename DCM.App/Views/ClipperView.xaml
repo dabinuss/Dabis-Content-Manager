@@ -656,6 +656,13 @@
                     </Border>
 
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                      <Button x:Name="SplitLayoutEditButton"
+                              Content="{DynamicResource Clipper.Split.EditMode.EditLayout}"
+                              Style="{StaticResource TertiaryButton}"
+                              Click="SplitLayoutEditButton_Click"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                       <Button x:Name="SplitSoloButton"
                               Content="{DynamicResource Clipper.Split.Mode.Solo}"
                               Style="{StaticResource TertiaryButton}"
@@ -696,6 +703,45 @@
                                  Grid.Row="1"
                                  Stretch="UniformToFill"/>
                         </Grid>
+                        <Image x:Name="SplitPlaybackImage"
+                               Stretch="UniformToFill"
+                               Visibility="Collapsed"/>
+                        <Canvas x:Name="SplitSubtitleOverlayCanvas"
+                                Background="{x:Null}"
+                                SizeChanged="SubtitleOverlayCanvas_SizeChanged"
+                                MouseLeftButtonDown="SubtitleOverlayCanvas_MouseLeftButtonDown"
+                                MouseMove="SubtitleOverlayCanvas_MouseMove"
+                                MouseLeftButtonUp="SubtitleOverlayCanvas_MouseLeftButtonUp">
+                          <Border x:Name="SplitSubtitlePlacementPreview"
+                                  Background="#66000000"
+                                  BorderBrush="#CCFFFFFF"
+                                  BorderThickness="1"
+                                  Padding="8,4"
+                                  CornerRadius="4"
+                                  Cursor="SizeAll"
+                                  Canvas.Left="0"
+                                  Canvas.Top="0">
+                            <TextBlock Text="Aa"
+                                       FontSize="22"
+                                       Foreground="White"
+                                       FontWeight="Bold"/>
+                          </Border>
+                        </Canvas>
+                        <Canvas x:Name="SplitLogoOverlayCanvas"
+                                Background="{x:Null}"
+                                SizeChanged="LogoOverlayCanvas_SizeChanged"
+                                Visibility="Collapsed">
+                          <Image x:Name="SplitLogoOverlayImage"
+                                 Stretch="Uniform"
+                                 Width="162"
+                                 Height="162"
+                                 Cursor="SizeAll"
+                                 Canvas.Left="0"
+                                 Canvas.Top="0"
+                                 MouseLeftButtonDown="LogoOverlay_MouseLeftButtonDown"
+                                 MouseMove="LogoOverlay_MouseMove"
+                                 MouseLeftButtonUp="LogoOverlay_MouseLeftButtonUp"/>
+                        </Canvas>
                         <Canvas x:Name="SplitPortraitDividerCanvas"
                                 Visibility="Collapsed"
                                 Background="Transparent"

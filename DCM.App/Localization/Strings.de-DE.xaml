@@ -936,6 +936,8 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Clipper.Settings.SplitPreset.LeftRight">Links/Rechts</sys:String>
   <sys:String x:Key="Clipper.Split.Workbench.Landscape">Querformat-Version</sys:String>
   <sys:String x:Key="Clipper.Split.Workbench.Portrait">Hochformat-Version</sys:String>
+  <sys:String x:Key="Clipper.Split.EditMode.EditLayout">Layout bearbeiten</sys:String>
+  <sys:String x:Key="Clipper.Split.EditMode.SaveLayout">Layout speichern</sys:String>
   <sys:String x:Key="Clipper.Split.Mode.Solo">Solo</sys:String>
   <sys:String x:Key="Clipper.Split.Mode.Duo">Duo</sys:String>
   <sys:String x:Key="Clipper.Settings.EnableSubtitles">Untertitel einbrennen</sys:String>
