@@ -62,6 +62,7 @@ public partial class ClipperView : UserControl
         SubtitleFontSizeSlider.ValueChanged += SubtitleSettingsControl_ValueChanged;
         SubtitlePositionXSlider.ValueChanged += SubtitleSettingsControl_ValueChanged;
         SubtitlePositionYSlider.ValueChanged += SubtitleSettingsControl_ValueChanged;
+        ManualCropOffsetSlider.ValueChanged += ManualCropOffsetSlider_ValueChanged;
         EnableSubtitlesCheckBox.Checked += SubtitleSettingsControl_Changed;
         EnableSubtitlesCheckBox.Unchecked += SubtitleSettingsControl_Changed;
         WordHighlightCheckBox.Checked += SubtitleSettingsControl_Changed;
@@ -71,8 +72,9 @@ public partial class ClipperView : UserControl
     }
 
     public event SelectionChangedEventHandler? DraftSelectionChanged;
+    public event EventHandler? SettingsChanged;
 
-    public UploadDraft? SelectedDraft => DraftListBox.SelectedItem as UploadDraft;
+    public UploadDraft? SelectedDraft => (DraftListBox.SelectedItem as ClipperDraftItem)?.Draft;
 
     public void ApplyClipperSettings(ClipperSettings settings)
     {
@@ -85,7 +87,7 @@ public partial class ClipperView : UserControl
         try
         {
             SelectCropMode(settings.DefaultCropMode);
-            ManualCropOffsetSlider.Value = 0;
+            ManualCropOffsetSlider.Value = Math.Clamp(settings.ManualCropOffsetX, -1, 1);
             EnableSubtitlesCheckBox.IsChecked = settings.EnableSubtitlesByDefault;
 
             var subtitle = settings.SubtitleSettings ?? new ClipSubtitleSettings();
@@ -99,6 +101,7 @@ public partial class ClipperView : UserControl
             _isApplyingSettings = false;
             UpdateManualCropUi();
             UpdateSubtitlePlacementPreview();
+            UpdateSettingsValueLabels();
         }
     }
 
@@ -110,6 +113,7 @@ public partial class ClipperView : UserControl
         }
 
         settings.DefaultCropMode = GetSelectedCropMode();
+        settings.ManualCropOffsetX = ManualCropOffsetSlider.Value;
         settings.EnableSubtitlesByDefault = EnableSubtitlesCheckBox.IsChecked == true;
         settings.SubtitleSettings ??= new ClipSubtitleSettings();
         settings.SubtitleSettings.WordByWordHighlight = WordHighlightCheckBox.IsChecked == true;
@@ -509,11 +513,13 @@ public partial class ClipperView : UserControl
     {
         UpdateManualCropUi();
         UpdateSubtitlePlacementPreview();
+        UpdateSettingsValueLabels();
     }
 
     private void CropModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateManualCropUi();
+        CommitClipperSettingsChange();
     }
 
     private void UpdateManualCropUi()
@@ -530,8 +536,9 @@ public partial class ClipperView : UserControl
             return;
         }
 
-        SubtitleFontSizeValueText.Text = ((int)Math.Round(SubtitleFontSizeSlider.Value)).ToString();
+        UpdateSettingsValueLabels();
         UpdateSubtitlePlacementPreview();
+        CommitClipperSettingsChange();
     }
 
     private void SubtitleSettingsControl_Changed(object sender, RoutedEventArgs e)
@@ -542,6 +549,13 @@ public partial class ClipperView : UserControl
         }
 
         UpdateSubtitlePlacementPreview();
+        CommitClipperSettingsChange();
+    }
+
+    private void ManualCropOffsetSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        UpdateSettingsValueLabels();
+        CommitClipperSettingsChange();
     }
 
     private void SubtitleOverlayCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -616,6 +630,8 @@ public partial class ClipperView : UserControl
 
         _isDraggingSubtitle = false;
         SubtitleOverlayCanvas.ReleaseMouseCapture();
+        UpdateSettingsValueLabels();
+        CommitClipperSettingsChange();
         e.Handled = true;
     }
 
@@ -626,7 +642,7 @@ public partial class ClipperView : UserControl
             return;
         }
 
-        SubtitleFontSizeValueText.Text = ((int)Math.Round(SubtitleFontSizeSlider.Value)).ToString();
+        UpdateSettingsValueLabels();
 
         if (SubtitlePlacementPreview.Child is TextBlock previewText)
         {
@@ -634,6 +650,7 @@ public partial class ClipperView : UserControl
         }
 
         var isVisible = EnableSubtitlesCheckBox.IsChecked == true && VideoPlayerPanel.Visibility == Visibility.Visible;
+        SubtitleOverlayCanvas.IsHitTestVisible = isVisible;
         SubtitlePlacementPreview.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
 
         if (!isVisible)
@@ -657,6 +674,50 @@ public partial class ClipperView : UserControl
 
         Canvas.SetLeft(SubtitlePlacementPreview, left);
         Canvas.SetTop(SubtitlePlacementPreview, top);
+    }
+
+    private void UpdateSettingsValueLabels()
+    {
+        SubtitleFontSizeValueText.Text = ((int)Math.Round(SubtitleFontSizeSlider.Value)).ToString(CultureInfo.CurrentCulture);
+        SubtitlePositionXValueText.Text = SubtitlePositionXSlider.Value.ToString("0.00", CultureInfo.CurrentCulture);
+        SubtitlePositionYValueText.Text = SubtitlePositionYSlider.Value.ToString("0.00", CultureInfo.CurrentCulture);
+        ManualCropOffsetValueText.Text = ManualCropOffsetSlider.Value.ToString("0.00", CultureInfo.CurrentCulture);
+    }
+
+    private void SubtitlePresetTopButton_Click(object sender, RoutedEventArgs e) => ApplySubtitlePreset(0.5, 0.20);
+
+    private void SubtitlePresetMiddleButton_Click(object sender, RoutedEventArgs e) => ApplySubtitlePreset(0.5, 0.50);
+
+    private void SubtitlePresetBottomButton_Click(object sender, RoutedEventArgs e) => ApplySubtitlePreset(0.5, 0.78);
+
+    private void SubtitlePresetResetButton_Click(object sender, RoutedEventArgs e) => ApplySubtitlePreset(0.5, 0.70);
+
+    private void ApplySubtitlePreset(double x, double y)
+    {
+        _isApplyingSettings = true;
+        try
+        {
+            SubtitlePositionXSlider.Value = Math.Clamp(x, 0, 1);
+            SubtitlePositionYSlider.Value = Math.Clamp(y, 0, 1);
+        }
+        finally
+        {
+            _isApplyingSettings = false;
+        }
+
+        UpdateSettingsValueLabels();
+        UpdateSubtitlePlacementPreview();
+        CommitClipperSettingsChange();
+    }
+
+    private void CommitClipperSettingsChange()
+    {
+        if (_isApplyingSettings)
+        {
+            return;
+        }
+
+        SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private Size MeasureSubtitlePreview()

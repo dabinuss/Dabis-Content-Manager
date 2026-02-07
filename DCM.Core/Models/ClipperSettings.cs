@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace DCM.Core.Models;
 
 /// <summary>
@@ -21,9 +23,24 @@ public sealed class ClipperSettings
     public int MaxCandidatesPerDraft { get; set; } = 5;
 
     /// <summary>
+    /// Alias für MaxCandidatesPerDraft (Planbezeichnung).
+    /// </summary>
+    [JsonIgnore]
+    public int MaxCandidates
+    {
+        get => MaxCandidatesPerDraft;
+        set => MaxCandidatesPerDraft = Math.Clamp(value, 1, 20);
+    }
+
+    /// <summary>
     /// Standard Crop-Modus.
     /// </summary>
     public CropMode DefaultCropMode { get; set; } = CropMode.AutoDetect;
+
+    /// <summary>
+    /// Standardwert für manuellen X-Offset (-1 bis 1).
+    /// </summary>
+    public double ManualCropOffsetX { get; set; }
 
     /// <summary>
     /// Ob Gesichtserkennung aktiviert ist.
@@ -50,6 +67,26 @@ public sealed class ClipperSettings
     /// Standard-Untertitel-Einstellungen.
     /// </summary>
     public ClipSubtitleSettings SubtitleSettings { get; set; } = new();
+
+    /// <summary>
+    /// Alias für SubtitleSettings (Planbezeichnung).
+    /// </summary>
+    [JsonIgnore]
+    public ClipSubtitleSettings DefaultSubtitleSettings
+    {
+        get => SubtitleSettings;
+        set => SubtitleSettings = value ?? new ClipSubtitleSettings();
+    }
+
+    /// <summary>
+    /// Standard-Layout für Split/Duo-Modus.
+    /// </summary>
+    public SplitLayoutConfig DefaultSplitLayout { get; set; } = new();
+
+    /// <summary>
+    /// Optionales Standard-Logo für Clip-Renderings.
+    /// </summary>
+    public string? DefaultLogoPath { get; set; }
 
     /// <summary>
     /// Ausgabebreite für gerenderte Clips.
@@ -102,11 +139,14 @@ public sealed class ClipperSettings
             MaxClipDurationSeconds = MaxClipDurationSeconds,
             MaxCandidatesPerDraft = MaxCandidatesPerDraft,
             DefaultCropMode = DefaultCropMode,
+            ManualCropOffsetX = ManualCropOffsetX,
             EnableFaceDetection = EnableFaceDetection,
             FaceDetectionFrameCount = FaceDetectionFrameCount,
             FaceDetectionMinConfidence = FaceDetectionMinConfidence,
             EnableSubtitlesByDefault = EnableSubtitlesByDefault,
-            SubtitleSettings = SubtitleSettings.Clone(),
+            SubtitleSettings = (SubtitleSettings ?? new ClipSubtitleSettings()).Clone(),
+            DefaultSplitLayout = (DefaultSplitLayout ?? new SplitLayoutConfig()).Clone(),
+            DefaultLogoPath = DefaultLogoPath,
             OutputWidth = OutputWidth,
             OutputHeight = OutputHeight,
             VideoQuality = VideoQuality,

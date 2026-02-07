@@ -919,6 +919,9 @@ Error: {1}</sys:String>
   <sys:String x:Key="Clipper.Actions.Refresh">Re-analyze</sys:String>
   <sys:String x:Key="Clipper.Actions.Cut">Cut Selected</sys:String>
   <sys:String x:Key="Clipper.Settings">Settings</sys:String>
+  <sys:String x:Key="Clipper.Settings.ApplyHint">Applies to upcoming rendered clips.</sys:String>
+  <sys:String x:Key="Clipper.Settings.Layout">Layout &amp; Crop</sys:String>
+  <sys:String x:Key="Clipper.Settings.Subtitles">Subtitles</sys:String>
   <sys:String x:Key="Clipper.Settings.CropMode">Crop Mode</sys:String>
   <sys:String x:Key="Clipper.Settings.CropMode.Auto">Automatic (Face Detection)</sys:String>
   <sys:String x:Key="Clipper.Settings.CropMode.Center">Center</sys:String>
@@ -929,6 +932,11 @@ Error: {1}</sys:String>
   <sys:String x:Key="Clipper.Settings.FontSize">Font size</sys:String>
   <sys:String x:Key="Clipper.Settings.PositionX">Subtitle position X</sys:String>
   <sys:String x:Key="Clipper.Settings.PositionY">Subtitle position Y</sys:String>
+  <sys:String x:Key="Clipper.Settings.Presets">Quick positions</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Top">Top</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Middle">Middle</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Bottom">Bottom</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Reset">Reset</sys:String>
   <sys:String x:Key="Clipper.NotImplemented">This feature will be implemented in a later phase.</sys:String>
   <sys:String x:Key="Clipper.NoDraftSelected">Please select a draft first.</sys:String>
   <sys:String x:Key="Clipper.AlreadyRunning">Analysis already in progress...</sys:String>

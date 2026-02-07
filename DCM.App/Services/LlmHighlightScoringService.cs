@@ -20,8 +20,8 @@ public sealed class HighlightScoringService : IHighlightScoringService
     private readonly ILlmClient _llmClient;
     private readonly IAppLogger _logger;
     private readonly string? _customPrompt;
+    private readonly int _maxCandidates;
 
-    private const int MaxCandidates = 5;
     private const int ChunkSize = 3500;
     private const int MinScore = 60;
 
@@ -41,7 +41,7 @@ KANDIDATEN:
 {windowsAsNumberedList}
 
 REGELN:
-- Wähle maximal 5 Kandidaten mit Score > 60
+- Wähle maximal {maxCandidates} Kandidaten mit Score > 60
 - Clip-Länge: 15-90 Sekunden
 - Du darfst Start/End leicht anpassen für besseren Schnitt
 - Keine Überlappungen zwischen Kandidaten
@@ -58,11 +58,16 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
   }
 ]";
 
-    public HighlightScoringService(ILlmClient llmClient, string? customPrompt = null, IAppLogger? logger = null)
+    public HighlightScoringService(
+        ILlmClient llmClient,
+        string? customPrompt = null,
+        IAppLogger? logger = null,
+        int maxCandidates = 5)
     {
         _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
         _customPrompt = customPrompt;
         _logger = logger ?? AppLogger.Instance;
+        _maxCandidates = Math.Clamp(maxCandidates, 1, 20);
     }
 
     public bool IsReady => _llmClient.IsReady;
@@ -121,7 +126,7 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
         var selected = new List<ClipCandidate>();
         foreach (var candidate in filtered)
         {
-            if (selected.Count >= MaxCandidates)
+            if (selected.Count >= _maxCandidates)
             {
                 break;
             }
@@ -179,6 +184,7 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
         var template = _customPrompt ?? DefaultScoringPrompt;
         return template
             .Replace("{contentContext}", string.IsNullOrWhiteSpace(contentContext) ? "-" : contentContext)
+            .Replace("{maxCandidates}", _maxCandidates.ToString(CultureInfo.InvariantCulture))
             .Replace("{windowsAsNumberedList}", listBuilder.ToString());
     }
 

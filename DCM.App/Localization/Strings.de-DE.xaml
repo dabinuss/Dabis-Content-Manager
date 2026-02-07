@@ -919,6 +919,9 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Clipper.Actions.Refresh">Neu analysieren</sys:String>
   <sys:String x:Key="Clipper.Actions.Cut">Ausgewählte schneiden</sys:String>
   <sys:String x:Key="Clipper.Settings">Einstellungen</sys:String>
+  <sys:String x:Key="Clipper.Settings.ApplyHint">Gilt für die nächsten Render-Clips.</sys:String>
+  <sys:String x:Key="Clipper.Settings.Layout">Layout &amp; Crop</sys:String>
+  <sys:String x:Key="Clipper.Settings.Subtitles">Untertitel</sys:String>
   <sys:String x:Key="Clipper.Settings.CropMode">Crop-Modus</sys:String>
   <sys:String x:Key="Clipper.Settings.CropMode.Auto">Automatisch (Gesichtserkennung)</sys:String>
   <sys:String x:Key="Clipper.Settings.CropMode.Center">Center</sys:String>
@@ -929,6 +932,11 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Clipper.Settings.FontSize">Schriftgröße</sys:String>
   <sys:String x:Key="Clipper.Settings.PositionX">Untertitel Position X</sys:String>
   <sys:String x:Key="Clipper.Settings.PositionY">Untertitel Position Y</sys:String>
+  <sys:String x:Key="Clipper.Settings.Presets">Schnellpositionen</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Top">Oben</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Middle">Mitte</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Bottom">Unten</sys:String>
+  <sys:String x:Key="Clipper.Settings.Preset.Reset">Reset</sys:String>
   <sys:String x:Key="Clipper.NotImplemented">Diese Funktion wird in einer späteren Phase implementiert.</sys:String>
   <sys:String x:Key="Clipper.NoDraftSelected">Bitte wähle zuerst einen Draft aus.</sys:String>
   <sys:String x:Key="Clipper.AlreadyRunning">Analyse läuft bereits...</sys:String>

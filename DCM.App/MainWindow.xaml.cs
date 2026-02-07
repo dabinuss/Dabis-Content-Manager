@@ -132,6 +132,8 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _clipperCts;
     private bool _isClipperRunning;
     private bool _isClipperRendering;
+    private string? _lastClipperPrompt;
+    private int _lastClipperMaxCandidates;
 
     public MainWindow()
     {
@@ -463,7 +465,15 @@ public partial class MainWindow : Window
         if (ClipperPageView is not null)
         {
             ClipperPageView.DraftSelectionChanged += ClipperDraftSelectionChanged;
+            ClipperPageView.SettingsChanged += ClipperPageView_SettingsChanged;
         }
+    }
+
+    private void ClipperPageView_SettingsChanged(object? sender, EventArgs e)
+    {
+        _settings.Clipper ??= new ClipperSettings();
+        ClipperPageView?.ApplyToClipperSettings(_settings.Clipper);
+        ScheduleSettingsSave();
     }
 
     private void ClipperDraftSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -550,6 +560,10 @@ public partial class MainWindow : Window
         // Channel Persona
         _settings.Persona ??= new ChannelPersona();
         ChannelProfilePageView?.UpdatePersona(_settings.Persona);
+
+        // Clipper Settings
+        _settings.Clipper ??= new ClipperSettings();
+        ClipperPageView?.ApplyToClipperSettings(_settings.Clipper);
     }
 
     private void RegisterEventSubscriptions()
@@ -3746,11 +3760,13 @@ public partial class MainWindow : Window
         try
         {
             var contentContext = BuildClipperContentContext(draft);
+            var maxCandidates = Math.Clamp(_settings.Clipper.MaxCandidates, 1, 20);
             var candidates = await _highlightScoringService.ScoreHighlightsAsync(
                 draft.Id,
                 windows,
                 contentContext,
                 _clipperCts.Token);
+            candidates = candidates.Take(maxCandidates).ToList();
 
             // In Cache speichern
             if (_settings.Clipper.UseCandidateCache && candidates.Count > 0 && _clipCandidateStore is not null)
@@ -3792,12 +3808,19 @@ public partial class MainWindow : Window
     {
         _clipCandidateStore ??= new ClipCandidateStore(_logger);
 
-        if (_highlightScoringService is null)
+        var currentPrompt = _settings.Clipper.CustomScoringPrompt;
+        var currentMaxCandidates = Math.Clamp(_settings.Clipper.MaxCandidates, 1, 20);
+        if (_highlightScoringService is null
+            || !string.Equals(_lastClipperPrompt, currentPrompt, StringComparison.Ordinal)
+            || _lastClipperMaxCandidates != currentMaxCandidates)
         {
             _highlightScoringService = new HighlightScoringService(
                 _llmClient,
-                _settings.Clipper.CustomScoringPrompt,
-                _logger);
+                currentPrompt,
+                _logger,
+                currentMaxCandidates);
+            _lastClipperPrompt = currentPrompt;
+            _lastClipperMaxCandidates = currentMaxCandidates;
         }
 
         if (_clipRenderService is null)
@@ -3916,7 +3939,7 @@ public partial class MainWindow : Window
             foreach (var job in jobs)
             {
                 job.CropMode = _settings.Clipper.DefaultCropMode;
-                job.ManualCropOffsetX = ClipperPageView.GetManualCropOffsetX();
+                job.ManualCropOffsetX = _settings.Clipper.ManualCropOffsetX;
                 job.BurnSubtitles = _settings.Clipper.EnableSubtitlesByDefault;
                 job.SubtitleSettings = _settings.Clipper.SubtitleSettings.Clone();
                 job.OutputWidth = _settings.Clipper.OutputWidth;
