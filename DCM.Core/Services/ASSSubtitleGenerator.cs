@@ -43,7 +43,7 @@ public sealed class ASSSubtitleGenerator
                 continue;
             }
 
-            var line = GenerateDialogueLine(segment, settings);
+            var line = GenerateDialogueLine(segment, settings, safePlayResX, safePlayResY);
             if (!string.IsNullOrEmpty(line))
             {
                 sb.AppendLine(line);
@@ -92,6 +92,15 @@ Style: Default,{settings.FontFamily},{settings.FontSize},{primary},{secondary},{
         IReadOnlyList<ClipSubtitleSegment> segments,
         ClipSubtitleSettings settings)
     {
+        return GenerateDialogueEvents(segments, settings, 1080, 1920);
+    }
+
+    public string GenerateDialogueEvents(
+        IReadOnlyList<ClipSubtitleSegment> segments,
+        ClipSubtitleSettings settings,
+        int playResX,
+        int playResY)
+    {
         var sb = new StringBuilder();
         sb.AppendLine(GenerateEventsHeader());
 
@@ -102,7 +111,7 @@ Style: Default,{settings.FontFamily},{settings.FontSize},{primary},{secondary},{
                 continue;
             }
 
-            var line = GenerateDialogueLine(segment, settings);
+            var line = GenerateDialogueLine(segment, settings, playResX, playResY);
             if (!string.IsNullOrEmpty(line))
             {
                 sb.AppendLine(line);
@@ -153,7 +162,11 @@ Style: Default,{settings.FontFamily},{settings.FontSize},{primary},{secondary},{
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text";
     }
 
-    private static string GenerateDialogueLine(ClipSubtitleSegment segment, ClipSubtitleSettings settings)
+    private static string GenerateDialogueLine(
+        ClipSubtitleSegment segment,
+        ClipSubtitleSettings settings,
+        int playResX,
+        int playResY)
     {
         var start = FormatTimestamp(segment.Start);
         var end = FormatTimestamp(segment.End);
@@ -169,7 +182,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
             return string.Empty;
         }
 
-        return $"Dialogue: 0,{start},{end},Default,,0,0,0,{effect},{text}";
+        var posX = (int)Math.Round(Math.Clamp(settings.PositionX, 0.0, 1.0) * playResX);
+        var posY = (int)Math.Round(Math.Clamp(settings.PositionY, 0.0, 1.0) * playResY);
+        var positionedText = $"{{\\pos({posX},{posY})}}{text}";
+
+        return $"Dialogue: 0,{start},{end},Default,,0,0,0,{effect},{positionedText}";
     }
 
     private static string BuildKaraokeText(IReadOnlyList<ClipSubtitleWord> words)

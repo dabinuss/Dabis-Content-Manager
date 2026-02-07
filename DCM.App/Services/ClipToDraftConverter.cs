@@ -57,7 +57,9 @@ public sealed class ClipToDraftConverter
             Visibility = VideoVisibility.Private,
             UploadStatus = LocalizationHelper.Get("Upload.Status.Ready"),
             TranscriptionState = UploadDraftTranscriptionState.Completed,
-            TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.Completed", job.Duration.TotalSeconds)
+            TranscriptionStatus = LocalizationHelper.Format("Status.Transcription.Completed", job.Duration.TotalSeconds),
+            IsGeneratedClipDraft = true,
+            SourceDraftId = job.SourceDraftId
         };
 
         var transcript = ExtractClipTranscript(sourceSegments, job.StartTime, job.EndTime);

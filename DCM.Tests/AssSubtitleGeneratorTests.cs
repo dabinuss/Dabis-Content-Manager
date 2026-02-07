@@ -47,7 +47,7 @@ public sealed class AssSubtitleGeneratorTests
 
         var ass = generator.Generate(new[] { segment }, settings, 1080, 1920);
 
-        Assert.Contains("Dialogue: 0,0:00:00.00,0:00:01.20,Default,,0,0,0,karaoke,{\\k30}Das {\\k20}ist {\\k20}ein {\\k35}Test", ass);
+        Assert.Contains("Dialogue: 0,0:00:00.00,0:00:01.20,Default,,0,0,0,karaoke,{\\pos(540,1344)}{\\k30}Das {\\k20}ist {\\k20}ein {\\k35}Test", ass);
     }
 
     [Fact]
@@ -71,6 +71,7 @@ public sealed class AssSubtitleGeneratorTests
             FillColor = "#FFFFFF",
             OutlineColor = "#000000",
             HighlightColor = "#FFFF00",
+            PositionX = 0.5,
             PositionY = 0.7
         };
 
@@ -87,5 +88,6 @@ public sealed class AssSubtitleGeneratorTests
         Assert.Contains("PlayResX: 1080", ass);
         Assert.Contains("PlayResY: 1920", ass);
         Assert.Contains("Style: Default,Arial Black,72,&H00FFFFFF,&H0000FFFF,&H00000000", ass);
+        Assert.Contains("{\\pos(540,1344)}Test", ass);
     }
 }

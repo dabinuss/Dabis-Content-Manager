@@ -727,6 +727,12 @@
                       ap:ButtonIcon.Glyph="&#xef47;"
                       Click="ClipperFindHighlightsButton_Click"
                       Margin="0,0,8,0"/>
+              <Button x:Name="ClipperRefreshButton"
+                      Content="{DynamicResource Clipper.Actions.Refresh}"
+                      Style="{StaticResource SecondaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe5d5;"
+                      Click="ClipperRefreshButton_Click"
+                      Margin="0,0,8,0"/>
               <Button x:Name="ClipperCutButton"
                       Content="{DynamicResource Clipper.Actions.Cut}"
                       Style="{StaticResource PrimaryButton}"

@@ -18,6 +18,8 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="{StaticResource SpacingM}"/>
         <RowDefinition Height="*"/>
+        <RowDefinition Height="{StaticResource SpacingM}"/>
+        <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <TextBlock Grid.Row="0"
@@ -61,6 +63,99 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+      </Border>
+
+      <Border Grid.Row="4"
+              Style="{StaticResource SurfaceCard}"
+              Padding="12">
+        <StackPanel>
+          <TextBlock Text="{DynamicResource Clipper.Settings}"
+                     FontWeight="SemiBold"
+                     FontSize="{StaticResource FontSizeS}"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
+
+          <TextBlock Text="{DynamicResource Clipper.Settings.CropMode}"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     Margin="0,12,0,6"/>
+          <ComboBox x:Name="CropModeComboBox"
+                    SelectionChanged="CropModeComboBox_SelectionChanged">
+            <ComboBoxItem Tag="AutoDetect"
+                          Content="{DynamicResource Clipper.Settings.CropMode.Auto}"/>
+            <ComboBoxItem Tag="Center"
+                          Content="{DynamicResource Clipper.Settings.CropMode.Center}"/>
+            <ComboBoxItem Tag="Manual"
+                          Content="{DynamicResource Clipper.Settings.CropMode.Manual}"/>
+          </ComboBox>
+
+          <StackPanel x:Name="ManualCropOffsetPanel"
+                      Visibility="Collapsed"
+                      Margin="0,8,0,0">
+            <TextBlock Text="{DynamicResource Clipper.Settings.ManualOffset}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"/>
+            <Slider x:Name="ManualCropOffsetSlider"
+                    Minimum="-1"
+                    Maximum="1"
+                    Value="0"
+                    TickFrequency="0.1"
+                    IsSnapToTickEnabled="False"/>
+          </StackPanel>
+
+          <CheckBox x:Name="EnableSubtitlesCheckBox"
+                    Content="{DynamicResource Clipper.Settings.EnableSubtitles}"
+                    Margin="0,12,0,0"/>
+          <CheckBox x:Name="WordHighlightCheckBox"
+                    Content="{DynamicResource Clipper.Settings.WordHighlight}"
+                    Margin="0,8,0,0"/>
+
+          <TextBlock Text="{DynamicResource Clipper.Settings.FontSize}"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     Margin="0,12,0,6"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Slider x:Name="SubtitleFontSizeSlider"
+                    Grid.Column="0"
+                    Minimum="24"
+                    Maximum="120"
+                    Value="72"
+                    TickFrequency="2"
+                    IsSnapToTickEnabled="False"/>
+            <TextBlock x:Name="SubtitleFontSizeValueText"
+                       Grid.Column="1"
+                       Margin="8,0,0,0"
+                       VerticalAlignment="Center"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       Text="72"/>
+          </Grid>
+
+          <TextBlock Text="{DynamicResource Clipper.Settings.PositionX}"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     Margin="0,12,0,6"/>
+          <Slider x:Name="SubtitlePositionXSlider"
+                  Minimum="0"
+                  Maximum="1"
+                  Value="0.5"
+                  TickFrequency="0.01"
+                  IsSnapToTickEnabled="False"/>
+
+          <TextBlock Text="{DynamicResource Clipper.Settings.PositionY}"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     Margin="0,12,0,6"/>
+          <Slider x:Name="SubtitlePositionYSlider"
+                  Minimum="0"
+                  Maximum="1"
+                  Value="0.7"
+                  TickFrequency="0.01"
+                  IsSnapToTickEnabled="False"/>
+        </StackPanel>
       </Border>
     </Grid>
 
@@ -224,12 +319,39 @@
             <Border Grid.Row="0"
                     Background="Black"
                     CornerRadius="{StaticResource RadiusM}">
-              <MediaElement x:Name="PreviewMediaElement"
-                            LoadedBehavior="Manual"
-                            UnloadedBehavior="Stop"
-                            Stretch="Uniform"
-                            MediaOpened="PreviewMediaElement_MediaOpened"
-                            MediaEnded="PreviewMediaElement_MediaEnded"/>
+              <Grid>
+                <MediaElement x:Name="PreviewMediaElement"
+                              LoadedBehavior="Manual"
+                              UnloadedBehavior="Stop"
+                              ScrubbingEnabled="True"
+                              Stretch="Uniform"
+                              MediaOpened="PreviewMediaElement_MediaOpened"
+                              MediaEnded="PreviewMediaElement_MediaEnded"/>
+                <Image x:Name="PreviewFrameImage"
+                       Visibility="Collapsed"
+                       Stretch="Uniform"
+                       IsHitTestVisible="False"/>
+                <Canvas x:Name="SubtitleOverlayCanvas"
+                        Background="Transparent"
+                        MouseLeftButtonDown="SubtitleOverlayCanvas_MouseLeftButtonDown"
+                        MouseMove="SubtitleOverlayCanvas_MouseMove"
+                        MouseLeftButtonUp="SubtitleOverlayCanvas_MouseLeftButtonUp">
+                  <Border x:Name="SubtitlePlacementPreview"
+                          Background="#66000000"
+                          BorderBrush="#CCFFFFFF"
+                          BorderThickness="1"
+                          Padding="8,4"
+                          CornerRadius="4"
+                          Cursor="SizeAll"
+                          Canvas.Left="0"
+                          Canvas.Top="0">
+                    <TextBlock Text="Aa"
+                               FontSize="22"
+                               Foreground="White"
+                               FontWeight="Bold"/>
+                  </Border>
+                </Canvas>
+              </Grid>
             </Border>
 
             <!-- Controls -->

@@ -38,5 +38,7 @@ public sealed class UploadDraftSnapshot
     public string? UploadStatus { get; set; }
     public string? TranscriptionState { get; set; }
     public string? TranscriptionStatus { get; set; }
+    public bool IsGeneratedClipDraft { get; set; }
+    public Guid? SourceDraftId { get; set; }
     public DateTimeOffset LastUpdated { get; set; } = DateTimeOffset.UtcNow;
 }

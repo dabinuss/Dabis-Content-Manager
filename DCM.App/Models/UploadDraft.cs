@@ -49,6 +49,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private bool _uploadProgressIsIndeterminate = true;
     private double _transcriptionProgress;
     private bool _transcriptionProgressIsIndeterminate = true;
+    private bool _isGeneratedClipDraft;
+    private Guid? _sourceDraftId;
     private DateTimeOffset _lastUpdated = DateTimeOffset.UtcNow;
     private bool _transcriptDirty;
     private bool _suppressTranscriptDirty;
@@ -312,6 +314,18 @@ public sealed class UploadDraft : INotifyPropertyChanged
         set => SetProperty(ref _transcriptionProgressIsIndeterminate, value);
     }
 
+    public bool IsGeneratedClipDraft
+    {
+        get => _isGeneratedClipDraft;
+        set => SetProperty(ref _isGeneratedClipDraft, value);
+    }
+
+    public Guid? SourceDraftId
+    {
+        get => _sourceDraftId;
+        set => SetProperty(ref _sourceDraftId, value);
+    }
+
     public DateTimeOffset LastUpdated => _lastUpdated;
 
     public bool TranscriptDirty => _transcriptDirty;
@@ -449,6 +463,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
             UploadStatus = UploadStatus,
             TranscriptionState = TranscriptionState.ToString(),
             TranscriptionStatus = TranscriptionStatus,
+            IsGeneratedClipDraft = IsGeneratedClipDraft,
+            SourceDraftId = SourceDraftId,
             LastUpdated = _lastUpdated
         };
     }
@@ -492,7 +508,9 @@ public sealed class UploadDraft : INotifyPropertyChanged
             Language = snapshot.Language,
             ScheduleEnabled = snapshot.ScheduleEnabled,
             ScheduledDate = snapshot.ScheduledDate,
-            ScheduledTimeText = snapshot.ScheduledTimeText
+            ScheduledTimeText = snapshot.ScheduledTimeText,
+            IsGeneratedClipDraft = snapshot.IsGeneratedClipDraft,
+            SourceDraftId = snapshot.SourceDraftId
         };
 
         draft.Id = snapshot.Id == Guid.Empty ? Guid.NewGuid() : snapshot.Id;

@@ -130,6 +130,8 @@ public sealed class AppSettings
                     UploadStatus = d.UploadStatus,
                     TranscriptionState = d.TranscriptionState,
                     TranscriptionStatus = d.TranscriptionStatus,
+                    IsGeneratedClipDraft = d.IsGeneratedClipDraft,
+                    SourceDraftId = d.SourceDraftId,
                     LastUpdated = d.LastUpdated
                 }).ToList() ?? new List<UploadDraftSnapshot>(),
             PendingTranscriptionQueue = PendingTranscriptionQueue?.ToList() ?? new List<Guid>(),

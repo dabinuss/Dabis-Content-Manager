@@ -479,8 +479,16 @@ public partial class MainWindow : Window
         // Video-Pfad für Preview setzen
         ClipperPageView.SetVideoPath(draft?.VideoPath);
 
-        // Kandidaten zurücksetzen wenn Draft wechselt
-        ClipperPageView.ShowEmptyState();
+        if (draft is null)
+        {
+            ClipperPageView.ShowEmptyState();
+            return;
+        }
+
+        if (!TryShowCachedClipperCandidates(draft))
+        {
+            ClipperPageView.ShowEmptyState();
+        }
     }
 
     /// <summary>
@@ -3543,7 +3551,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        ClipperPageView.ApplyClipperSettings(_settings.Clipper);
+
         var clipperItems = _uploadDrafts
+            .Where(d => !d.IsGeneratedClipDraft)
+            .Where(d => !IsStoredClipOutput(d.VideoPath))
             .Select(d => new Views.ClipperDraftItem
             {
                 Id = d.Id,
@@ -3557,8 +3569,70 @@ public partial class MainWindow : Window
         ClipperPageView.SetDrafts(clipperItems);
     }
 
+    private static bool IsStoredClipOutput(string? videoPath)
+    {
+        if (string.IsNullOrWhiteSpace(videoPath))
+        {
+            return false;
+        }
+
+        var normalizedPath = videoPath.Trim();
+        var clipFolder = Constants.ClipsFolder.TrimEnd('\\', '/');
+
+        return normalizedPath.StartsWith(clipFolder, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool TryShowCachedClipperCandidates(UploadDraft draft)
+    {
+        if (ClipperPageView is null || draft is null || string.IsNullOrWhiteSpace(draft.Transcript))
+        {
+            return false;
+        }
+
+        if (!_settings.Clipper.UseCandidateCache)
+        {
+            return false;
+        }
+
+        _clipCandidateStore ??= new ClipCandidateStore(_logger);
+
+        var transcriptHash = ClipCandidateStore.ComputeTranscriptHash(draft.Transcript);
+        var cached = _clipCandidateStore.LoadCache(draft.Id);
+        if (cached is null)
+        {
+            return false;
+        }
+
+        if (!cached.IsValidFor(transcriptHash))
+        {
+            _clipCandidateStore.InvalidateCache(draft.Id);
+            return false;
+        }
+
+        if (cached.Candidates.Count == 0)
+        {
+            return false;
+        }
+
+        ClipperPageView.SetCandidates(cached.Candidates);
+        StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.CandidatesFromCache"), cached.Candidates.Count);
+        return true;
+    }
+
     private void ClipperFindHighlightsButton_Click(object sender, RoutedEventArgs e)
     {
+        _ = FindHighlightsAsync();
+    }
+
+    private void ClipperRefreshButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ClipperPageView?.DraftListBox.SelectedItem is Views.ClipperDraftItem selected
+            && selected.Draft is not null)
+        {
+            EnsureClipperServicesInitialized();
+            _clipCandidateStore?.InvalidateCache(selected.Draft.Id);
+        }
+
         _ = FindHighlightsAsync();
     }
 
@@ -3809,6 +3883,8 @@ public partial class MainWindow : Window
 
         // Services initialisieren
         EnsureClipperServicesInitialized();
+        ClipperPageView.ApplyToClipperSettings(_settings.Clipper);
+        ScheduleSettingsSave();
 
         if (_clipRenderService is null || !_clipRenderService.IsReady)
         {
@@ -3836,6 +3912,18 @@ public partial class MainWindow : Window
             var jobs = selectedCandidates
                 .Select(c => _clipRenderService.CreateJobFromCandidate(c, draft.VideoPath, outputFolder, convertToPortrait: true))
                 .ToList();
+
+            foreach (var job in jobs)
+            {
+                job.CropMode = _settings.Clipper.DefaultCropMode;
+                job.ManualCropOffsetX = ClipperPageView.GetManualCropOffsetX();
+                job.BurnSubtitles = _settings.Clipper.EnableSubtitlesByDefault;
+                job.SubtitleSettings = _settings.Clipper.SubtitleSettings.Clone();
+                job.OutputWidth = _settings.Clipper.OutputWidth;
+                job.OutputHeight = _settings.Clipper.OutputHeight;
+                job.VideoQuality = _settings.Clipper.VideoQuality;
+                job.AudioBitrate = _settings.Clipper.AudioBitrate;
+            }
 
             _logger.Info($"Starte Rendering von {jobs.Count} Clips", "Clipper");
             StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.RenderingStarted"), jobs.Count);

@@ -41,6 +41,12 @@ public sealed class ClipSubtitleSettings
     public int ShadowDepth { get; set; } = 2;
 
     /// <summary>
+    /// Horizontale Position (0.0 = links, 1.0 = rechts).
+    /// Standard: 0.50 (zentriert).
+    /// </summary>
+    public double PositionX { get; set; } = 0.50;
+
+    /// <summary>
     /// Vertikale Position (0.0 = oben, 1.0 = unten).
     /// Standard: 0.70 (unteres Drittel).
     /// </summary>
@@ -70,6 +76,7 @@ public sealed class ClipSubtitleSettings
             OutlineWidth = OutlineWidth,
             ShadowColor = ShadowColor,
             ShadowDepth = ShadowDepth,
+            PositionX = PositionX,
             PositionY = PositionY,
             HighlightColor = HighlightColor,
             WordByWordHighlight = WordByWordHighlight
