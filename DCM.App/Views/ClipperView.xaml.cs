@@ -48,6 +48,11 @@ public partial class ClipperView : UserControl
     private ClipperSettings _defaultClipperSettings = new();
     private ClipCandidate? _editingCandidate;
     private string? _logoPath;
+    private double _logoPositionX = 0.9;
+    private double _logoPositionY = 0.05;
+    private double _logoScale = 0.15;
+    private bool _isDraggingLogo;
+    private Point _logoDragStart;
     private int _portraitPreviewVersion;
     private readonly IFaceDetectionService _faceDetectionService = new FaceAiSharpDetectionService();
     private CancellationTokenSource? _faceDetectionCts;
@@ -127,6 +132,10 @@ public partial class ClipperView : UserControl
         settings.DefaultCropMode = GetSelectedCropMode();
         settings.ManualCropOffsetX = ManualCropOffsetSlider.Value;
         settings.EnableSubtitlesByDefault = EnableSubtitlesCheckBox.IsChecked == true;
+        settings.DefaultLogoPath = _logoPath;
+        settings.LogoPositionX = _logoPositionX;
+        settings.LogoPositionY = _logoPositionY;
+        settings.LogoScale = _logoScale;
         settings.SubtitleSettings ??= new ClipSubtitleSettings();
         settings.SubtitleSettings.WordByWordHighlight = WordHighlightCheckBox.IsChecked == true;
         settings.SubtitleSettings.FontSize = (int)Math.Round(SubtitleFontSizeSlider.Value);
@@ -164,6 +173,14 @@ public partial class ClipperView : UserControl
             SubtitleFontSizeSlider.Value = Math.Clamp(subtitle.FontSize, SubtitleFontSizeSlider.Minimum, SubtitleFontSizeSlider.Maximum);
             SubtitlePositionXSlider.Value = Math.Clamp(subtitle.PositionX, 0, 1);
             SubtitlePositionYSlider.Value = Math.Clamp(subtitle.PositionY, 0, 1);
+
+            // Apply logo settings
+            _logoPositionX = Math.Clamp(settings.LogoPositionX, 0, 1);
+            _logoPositionY = Math.Clamp(settings.LogoPositionY, 0, 1);
+            _logoScale = Math.Clamp(settings.LogoScale, 0.05, 0.4);
+            LogoScaleSlider.Value = _logoScale;
+            LogoScaleValueText.Text = $"{(int)(_logoScale * 100)}%";
+            SetLogoPath(settings.DefaultLogoPath);
         }
         finally
         {
@@ -863,12 +880,150 @@ public partial class ClipperView : UserControl
         {
             LogoPathText.Text = (string)FindResource("Clipper.Settings.NoLogo");
             ClearLogoButton.Visibility = Visibility.Collapsed;
+            LogoOverlayCanvas.Visibility = Visibility.Collapsed;
+            LogoScaleLabel.Visibility = Visibility.Collapsed;
+            LogoScalePanel.Visibility = Visibility.Collapsed;
+            LogoDragHintText.Visibility = Visibility.Collapsed;
         }
         else
         {
             LogoPathText.Text = System.IO.Path.GetFileName(path);
             ClearLogoButton.Visibility = Visibility.Visible;
+            LogoScaleLabel.Visibility = Visibility.Visible;
+            LogoScalePanel.Visibility = Visibility.Visible;
+            LogoDragHintText.Visibility = Visibility.Visible;
+            UpdateLogoOverlay(path);
         }
+    }
+
+    private void UpdateLogoOverlay(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            LogoOverlayCanvas.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        try
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(path, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            LogoOverlayImage.Source = bitmap;
+            LogoOverlayCanvas.Visibility = Visibility.Visible;
+            UpdateLogoPosition();
+        }
+        catch
+        {
+            LogoOverlayCanvas.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void UpdateLogoPosition()
+    {
+        if (LogoOverlayCanvas.ActualWidth <= 0 || LogoOverlayCanvas.ActualHeight <= 0)
+        {
+            return;
+        }
+
+        // Berechne Logo-Größe basierend auf Scale (relativ zur Canvas-Breite)
+        var logoSize = LogoOverlayCanvas.ActualWidth * _logoScale;
+        LogoOverlayImage.Width = logoSize;
+        LogoOverlayImage.Height = logoSize;
+
+        // Berechne Position (zentriert auf Positions-Koordinaten)
+        var left = (_logoPositionX * LogoOverlayCanvas.ActualWidth) - (logoSize / 2);
+        var top = (_logoPositionY * LogoOverlayCanvas.ActualHeight) - (logoSize / 2);
+
+        // Begrenze auf Canvas-Bereich
+        left = Math.Clamp(left, 0, LogoOverlayCanvas.ActualWidth - logoSize);
+        top = Math.Clamp(top, 0, LogoOverlayCanvas.ActualHeight - logoSize);
+
+        Canvas.SetLeft(LogoOverlayBorder, left);
+        Canvas.SetTop(LogoOverlayBorder, top);
+    }
+
+    private void LogoOverlayCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateLogoPosition();
+    }
+
+    private void LogoScaleSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // Prüfe ob Controls bereits initialisiert sind
+        if (LogoScaleValueText is null || LogoScaleSlider is null)
+        {
+            return;
+        }
+
+        if (_isApplyingSettings)
+        {
+            return;
+        }
+
+        _logoScale = LogoScaleSlider.Value;
+        LogoScaleValueText.Text = $"{(int)(_logoScale * 100)}%";
+        UpdateLogoPosition();
+        CommitClipperSettingsChange();
+    }
+
+    private void LogoOverlay_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement element)
+        {
+            return;
+        }
+
+        _isDraggingLogo = true;
+        _logoDragStart = e.GetPosition(LogoOverlayCanvas);
+        element.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void LogoOverlay_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDraggingLogo || LogoOverlayCanvas.ActualWidth <= 0)
+        {
+            return;
+        }
+
+        var pos = e.GetPosition(LogoOverlayCanvas);
+        var logoSize = LogoOverlayCanvas.ActualWidth * _logoScale;
+
+        // Berechne neue Position (Zentrum des Logos)
+        var newLeft = Canvas.GetLeft(LogoOverlayBorder) + (pos.X - _logoDragStart.X);
+        var newTop = Canvas.GetTop(LogoOverlayBorder) + (pos.Y - _logoDragStart.Y);
+
+        // Begrenze auf Canvas-Bereich
+        newLeft = Math.Clamp(newLeft, 0, LogoOverlayCanvas.ActualWidth - logoSize);
+        newTop = Math.Clamp(newTop, 0, LogoOverlayCanvas.ActualHeight - logoSize);
+
+        Canvas.SetLeft(LogoOverlayBorder, newLeft);
+        Canvas.SetTop(LogoOverlayBorder, newTop);
+
+        // Speichere normalisierte Position (Zentrum)
+        _logoPositionX = (newLeft + logoSize / 2) / LogoOverlayCanvas.ActualWidth;
+        _logoPositionY = (newTop + logoSize / 2) / LogoOverlayCanvas.ActualHeight;
+
+        _logoDragStart = pos;
+        e.Handled = true;
+    }
+
+    private void LogoOverlay_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDraggingLogo)
+        {
+            return;
+        }
+
+        _isDraggingLogo = false;
+        (sender as FrameworkElement)?.ReleaseMouseCapture();
+        CommitClipperSettingsChange();
+        e.Handled = true;
     }
 
     public string? LogoPath => _logoPath;
@@ -1455,6 +1610,9 @@ public partial class ClipperView : UserControl
         target.SubtitleSettings = copy.SubtitleSettings;
         target.DefaultSplitLayout = copy.DefaultSplitLayout;
         target.DefaultLogoPath = copy.DefaultLogoPath;
+        target.LogoPositionX = copy.LogoPositionX;
+        target.LogoPositionY = copy.LogoPositionY;
+        target.LogoScale = copy.LogoScale;
         target.OutputWidth = copy.OutputWidth;
         target.OutputHeight = copy.OutputHeight;
         target.VideoQuality = copy.VideoQuality;

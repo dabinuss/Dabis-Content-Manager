@@ -476,6 +476,43 @@
                            Text="&#xe5cd;"/>
               </Button>
             </Grid>
+
+            <!-- Logo Scale Slider -->
+            <TextBlock x:Name="LogoScaleLabel"
+                       Text="{DynamicResource Clipper.Settings.LogoScale}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       Margin="0,12,0,6"
+                       Visibility="Collapsed"/>
+            <Grid x:Name="LogoScalePanel" Visibility="Collapsed">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <Slider x:Name="LogoScaleSlider"
+                      Grid.Column="0"
+                      Minimum="0.05"
+                      Maximum="0.4"
+                      Value="0.15"
+                      TickFrequency="0.01"
+                      IsSnapToTickEnabled="False"
+                      ValueChanged="LogoScaleSlider_ValueChanged"/>
+              <TextBlock x:Name="LogoScaleValueText"
+                         Grid.Column="1"
+                         Margin="8,0,0,0"
+                         VerticalAlignment="Center"
+                         FontSize="{StaticResource FontSizeXS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         Text="15%"/>
+            </Grid>
+
+            <TextBlock FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       Margin="0,4,0,0"
+                       Text="{DynamicResource Clipper.Settings.LogoDragHint}"
+                       TextWrapping="Wrap"
+                       x:Name="LogoDragHintText"
+                       Visibility="Collapsed"/>
             </StackPanel>
           </ScrollViewer>
         </Border>
@@ -543,6 +580,31 @@
                                          FontSize="22"
                                          Foreground="White"
                                          FontWeight="Bold"/>
+                            </Border>
+                          </Canvas>
+
+                          <!-- Logo Overlay Canvas (draggable, on top of subtitle) -->
+                          <Canvas x:Name="LogoOverlayCanvas"
+                                  Background="{x:Null}"
+                                  IsHitTestVisible="False"
+                                  SizeChanged="LogoOverlayCanvas_SizeChanged"
+                                  Visibility="Collapsed">
+                            <Border x:Name="LogoOverlayBorder"
+                                    Background="#01000000"
+                                    BorderBrush="#80FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Cursor="SizeAll"
+                                    IsHitTestVisible="True"
+                                    Canvas.Left="0"
+                                    Canvas.Top="0"
+                                    MouseLeftButtonDown="LogoOverlay_MouseLeftButtonDown"
+                                    MouseMove="LogoOverlay_MouseMove"
+                                    MouseLeftButtonUp="LogoOverlay_MouseLeftButtonUp">
+                              <Image x:Name="LogoOverlayImage"
+                                     Stretch="Uniform"
+                                     Width="162"
+                                     Height="162"/>
                             </Border>
                           </Canvas>
                         </Grid>

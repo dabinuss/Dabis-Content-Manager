@@ -89,6 +89,21 @@ public sealed class ClipperSettings
     public string? DefaultLogoPath { get; set; }
 
     /// <summary>
+    /// Logo X-Position (0-1, von links nach rechts).
+    /// </summary>
+    public double LogoPositionX { get; set; } = 0.9;
+
+    /// <summary>
+    /// Logo Y-Position (0-1, von oben nach unten).
+    /// </summary>
+    public double LogoPositionY { get; set; } = 0.05;
+
+    /// <summary>
+    /// Logo-Skalierung (0.05 - 0.5, relativ zur Ausgabebreite).
+    /// </summary>
+    public double LogoScale { get; set; } = 0.15;
+
+    /// <summary>
     /// Ausgabebreite für gerenderte Clips.
     /// </summary>
     public int OutputWidth { get; set; } = 1080;
@@ -147,6 +162,9 @@ public sealed class ClipperSettings
             SubtitleSettings = (SubtitleSettings ?? new ClipSubtitleSettings()).Clone(),
             DefaultSplitLayout = (DefaultSplitLayout ?? new SplitLayoutConfig()).Clone(),
             DefaultLogoPath = DefaultLogoPath,
+            LogoPositionX = LogoPositionX,
+            LogoPositionY = LogoPositionY,
+            LogoScale = LogoScale,
             OutputWidth = OutputWidth,
             OutputHeight = OutputHeight,
             VideoQuality = VideoQuality,

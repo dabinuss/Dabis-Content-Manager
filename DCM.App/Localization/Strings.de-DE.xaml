@@ -942,6 +942,8 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Clipper.Settings.Logo">Logo-Overlay</sys:String>
   <sys:String x:Key="Clipper.Settings.NoLogo">Kein Logo ausgewählt</sys:String>
   <sys:String x:Key="Clipper.Settings.SelectLogo">Auswählen...</sys:String>
+  <sys:String x:Key="Clipper.Settings.LogoScale">Logo-Größe</sys:String>
+  <sys:String x:Key="Clipper.Settings.LogoDragHint">Ziehe das Logo in der Vorschau, um es zu positionieren.</sys:String>
   <sys:String x:Key="Clipper.NotImplemented">Diese Funktion wird in einer späteren Phase implementiert.</sys:String>
   <sys:String x:Key="Clipper.NoDraftSelected">Bitte wähle zuerst einen Draft aus.</sys:String>
   <sys:String x:Key="Clipper.AlreadyRunning">Analyse läuft bereits...</sys:String>
