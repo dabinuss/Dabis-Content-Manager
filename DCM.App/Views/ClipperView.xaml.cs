@@ -943,8 +943,8 @@ public partial class ClipperView : UserControl
         left = Math.Clamp(left, 0, LogoOverlayCanvas.ActualWidth - logoSize);
         top = Math.Clamp(top, 0, LogoOverlayCanvas.ActualHeight - logoSize);
 
-        Canvas.SetLeft(LogoOverlayBorder, left);
-        Canvas.SetTop(LogoOverlayBorder, top);
+        Canvas.SetLeft(LogoOverlayImage, left);
+        Canvas.SetTop(LogoOverlayImage, top);
     }
 
     private void LogoOverlayCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -995,15 +995,15 @@ public partial class ClipperView : UserControl
         var logoSize = LogoOverlayCanvas.ActualWidth * _logoScale;
 
         // Berechne neue Position (Zentrum des Logos)
-        var newLeft = Canvas.GetLeft(LogoOverlayBorder) + (pos.X - _logoDragStart.X);
-        var newTop = Canvas.GetTop(LogoOverlayBorder) + (pos.Y - _logoDragStart.Y);
+        var newLeft = Canvas.GetLeft(LogoOverlayImage) + (pos.X - _logoDragStart.X);
+        var newTop = Canvas.GetTop(LogoOverlayImage) + (pos.Y - _logoDragStart.Y);
 
         // Begrenze auf Canvas-Bereich
         newLeft = Math.Clamp(newLeft, 0, LogoOverlayCanvas.ActualWidth - logoSize);
         newTop = Math.Clamp(newTop, 0, LogoOverlayCanvas.ActualHeight - logoSize);
 
-        Canvas.SetLeft(LogoOverlayBorder, newLeft);
-        Canvas.SetTop(LogoOverlayBorder, newTop);
+        Canvas.SetLeft(LogoOverlayImage, newLeft);
+        Canvas.SetTop(LogoOverlayImage, newTop);
 
         // Speichere normalisierte Position (Zentrum)
         _logoPositionX = (newLeft + logoSize / 2) / LogoOverlayCanvas.ActualWidth;

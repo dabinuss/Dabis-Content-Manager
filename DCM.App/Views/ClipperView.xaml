@@ -583,29 +583,21 @@
                             </Border>
                           </Canvas>
 
-                          <!-- Logo Overlay Canvas (draggable, on top of subtitle) -->
+                          <!-- Logo Overlay (draggable, on top of subtitle) -->
                           <Canvas x:Name="LogoOverlayCanvas"
                                   Background="{x:Null}"
-                                  IsHitTestVisible="False"
                                   SizeChanged="LogoOverlayCanvas_SizeChanged"
                                   Visibility="Collapsed">
-                            <Border x:Name="LogoOverlayBorder"
-                                    Background="#01000000"
-                                    BorderBrush="#80FFFFFF"
-                                    BorderThickness="1"
-                                    CornerRadius="4"
-                                    Cursor="SizeAll"
-                                    IsHitTestVisible="True"
-                                    Canvas.Left="0"
-                                    Canvas.Top="0"
-                                    MouseLeftButtonDown="LogoOverlay_MouseLeftButtonDown"
-                                    MouseMove="LogoOverlay_MouseMove"
-                                    MouseLeftButtonUp="LogoOverlay_MouseLeftButtonUp">
-                              <Image x:Name="LogoOverlayImage"
-                                     Stretch="Uniform"
-                                     Width="162"
-                                     Height="162"/>
-                            </Border>
+                            <Image x:Name="LogoOverlayImage"
+                                   Stretch="Uniform"
+                                   Width="162"
+                                   Height="162"
+                                   Cursor="SizeAll"
+                                   Canvas.Left="0"
+                                   Canvas.Top="0"
+                                   MouseLeftButtonDown="LogoOverlay_MouseLeftButtonDown"
+                                   MouseMove="LogoOverlay_MouseMove"
+                                   MouseLeftButtonUp="LogoOverlay_MouseLeftButtonUp"/>
                           </Canvas>
                         </Grid>
                       </Border>
