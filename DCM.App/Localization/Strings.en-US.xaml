@@ -918,6 +918,8 @@ Error: {1}</sys:String>
   <sys:String x:Key="Clipper.Actions.FindHighlights">Find Highlights</sys:String>
   <sys:String x:Key="Clipper.Actions.Refresh">Re-analyze</sys:String>
   <sys:String x:Key="Clipper.Actions.Cut">Cut Selected</sys:String>
+  <sys:String x:Key="Clipper.Actions.EditCandidate">Edit</sys:String>
+  <sys:String x:Key="Clipper.Actions.BackToOverview">Back to overview</sys:String>
   <sys:String x:Key="Clipper.Settings">Settings</sys:String>
   <sys:String x:Key="Clipper.Settings.ApplyHint">Applies to upcoming rendered clips.</sys:String>
   <sys:String x:Key="Clipper.Settings.Layout">Layout &amp; Crop</sys:String>

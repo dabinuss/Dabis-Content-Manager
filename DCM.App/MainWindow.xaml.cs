@@ -3938,14 +3938,18 @@ public partial class MainWindow : Window
 
             foreach (var job in jobs)
             {
-                job.CropMode = _settings.Clipper.DefaultCropMode;
-                job.ManualCropOffsetX = _settings.Clipper.ManualCropOffsetX;
-                job.BurnSubtitles = _settings.Clipper.EnableSubtitlesByDefault;
-                job.SubtitleSettings = _settings.Clipper.SubtitleSettings.Clone();
-                job.OutputWidth = _settings.Clipper.OutputWidth;
-                job.OutputHeight = _settings.Clipper.OutputHeight;
-                job.VideoQuality = _settings.Clipper.VideoQuality;
-                job.AudioBitrate = _settings.Clipper.AudioBitrate;
+                var effectiveSettings = job.Candidate is not null
+                    ? ClipperPageView.GetEffectiveSettingsForCandidate(job.Candidate, _settings.Clipper)
+                    : _settings.Clipper.DeepCopy();
+
+                job.CropMode = effectiveSettings.DefaultCropMode;
+                job.ManualCropOffsetX = effectiveSettings.ManualCropOffsetX;
+                job.BurnSubtitles = effectiveSettings.EnableSubtitlesByDefault;
+                job.SubtitleSettings = effectiveSettings.SubtitleSettings.Clone();
+                job.OutputWidth = effectiveSettings.OutputWidth;
+                job.OutputHeight = effectiveSettings.OutputHeight;
+                job.VideoQuality = effectiveSettings.VideoQuality;
+                job.AudioBitrate = effectiveSettings.AudioBitrate;
             }
 
             _logger.Info($"Starte Rendering von {jobs.Count} Clips", "Clipper");

@@ -39,6 +39,9 @@ public partial class ClipperView : UserControl
     private string? _ffmpegPath;
     private readonly Dictionary<string, BitmapSource> _previewFrameCache = new(StringComparer.OrdinalIgnoreCase);
     private List<ClipCandidate> _currentCandidates = new();
+    private readonly Dictionary<Guid, ClipperSettings> _candidateSettings = new();
+    private ClipperSettings _defaultClipperSettings = new();
+    private ClipCandidate? _editingCandidate;
 
     public ClipperView()
     {
@@ -83,6 +86,56 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        _defaultClipperSettings = settings.DeepCopy();
+        if (_editingCandidate is not null)
+        {
+            return;
+        }
+
+        ApplySettingsToControls(settings);
+    }
+
+    public void ApplyToClipperSettings(ClipperSettings settings)
+    {
+        if (settings is null)
+        {
+            return;
+        }
+
+        if (_editingCandidate is not null)
+        {
+            CopySettings(_defaultClipperSettings, settings);
+            return;
+        }
+
+        settings.DefaultCropMode = GetSelectedCropMode();
+        settings.ManualCropOffsetX = ManualCropOffsetSlider.Value;
+        settings.EnableSubtitlesByDefault = EnableSubtitlesCheckBox.IsChecked == true;
+        settings.SubtitleSettings ??= new ClipSubtitleSettings();
+        settings.SubtitleSettings.WordByWordHighlight = WordHighlightCheckBox.IsChecked == true;
+        settings.SubtitleSettings.FontSize = (int)Math.Round(SubtitleFontSizeSlider.Value);
+        settings.SubtitleSettings.PositionX = SubtitlePositionXSlider.Value;
+        settings.SubtitleSettings.PositionY = SubtitlePositionYSlider.Value;
+        _defaultClipperSettings = settings.DeepCopy();
+    }
+
+    public ClipperSettings GetEffectiveSettingsForCandidate(ClipCandidate candidate, ClipperSettings defaultSettings)
+    {
+        if (candidate is null)
+        {
+            return (defaultSettings ?? new ClipperSettings()).DeepCopy();
+        }
+
+        if (_candidateSettings.TryGetValue(candidate.Id, out var candidateSettings))
+        {
+            return candidateSettings.DeepCopy();
+        }
+
+        return (_defaultClipperSettings ?? defaultSettings ?? new ClipperSettings()).DeepCopy();
+    }
+
+    private void ApplySettingsToControls(ClipperSettings settings)
+    {
         _isApplyingSettings = true;
         try
         {
@@ -103,23 +156,6 @@ public partial class ClipperView : UserControl
             UpdateSubtitlePlacementPreview();
             UpdateSettingsValueLabels();
         }
-    }
-
-    public void ApplyToClipperSettings(ClipperSettings settings)
-    {
-        if (settings is null)
-        {
-            return;
-        }
-
-        settings.DefaultCropMode = GetSelectedCropMode();
-        settings.ManualCropOffsetX = ManualCropOffsetSlider.Value;
-        settings.EnableSubtitlesByDefault = EnableSubtitlesCheckBox.IsChecked == true;
-        settings.SubtitleSettings ??= new ClipSubtitleSettings();
-        settings.SubtitleSettings.WordByWordHighlight = WordHighlightCheckBox.IsChecked == true;
-        settings.SubtitleSettings.FontSize = (int)Math.Round(SubtitleFontSizeSlider.Value);
-        settings.SubtitleSettings.PositionX = SubtitlePositionXSlider.Value;
-        settings.SubtitleSettings.PositionY = SubtitlePositionYSlider.Value;
     }
 
     public CropMode GetSelectedCropMode()
@@ -147,6 +183,13 @@ public partial class ClipperView : UserControl
     {
         var list = candidates?.ToList() ?? new List<ClipCandidate>();
         _currentCandidates = list;
+
+        var validIds = list.Select(c => c.Id).ToHashSet();
+        foreach (var staleId in _candidateSettings.Keys.Where(id => !validIds.Contains(id)).ToList())
+        {
+            _candidateSettings.Remove(staleId);
+        }
+
         CandidatesListBox.ItemsSource = list;
 
         if (list.Count > 0)
@@ -161,12 +204,14 @@ public partial class ClipperView : UserControl
             EmptyStatePanel.Visibility = Visibility.Visible;
             CandidatesListBox.Visibility = Visibility.Collapsed;
             LoadingPanel.Visibility = Visibility.Collapsed;
+            ExitCandidateEditor();
             StopPreview();
         }
     }
 
     public void ShowLoading(string? statusText = null)
     {
+        ExitCandidateEditor();
         EmptyStatePanel.Visibility = Visibility.Collapsed;
         CandidatesListBox.Visibility = Visibility.Collapsed;
         LoadingPanel.Visibility = Visibility.Visible;
@@ -181,6 +226,7 @@ public partial class ClipperView : UserControl
 
     public void ShowEmptyState()
     {
+        ExitCandidateEditor();
         EmptyStatePanel.Visibility = Visibility.Visible;
         CandidatesListBox.Visibility = Visibility.Collapsed;
         LoadingPanel.Visibility = Visibility.Collapsed;
@@ -196,6 +242,7 @@ public partial class ClipperView : UserControl
 
         if (string.IsNullOrWhiteSpace(videoPath))
         {
+            ExitCandidateEditor();
             StopPreview();
             ShowVideoEmptyState();
         }
@@ -210,6 +257,7 @@ public partial class ClipperView : UserControl
 
     private void DraftListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        ExitCandidateEditor();
         DraftSelectionChanged?.Invoke(sender, e);
         StopPreview();
         ShowVideoEmptyState();
@@ -217,10 +265,61 @@ public partial class ClipperView : UserControl
 
     private void CandidatesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CandidatesListBox.SelectedItem is ClipCandidate candidate)
+        if (EditorPanel.Visibility == Visibility.Visible && CandidatesListBox.SelectedItem is ClipCandidate candidate)
         {
             LoadCandidatePreview(candidate);
         }
+    }
+
+    private void CandidateSettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: ClipCandidate candidate })
+        {
+            return;
+        }
+
+        _editingCandidate = candidate;
+        CandidatesListBox.SelectedItem = candidate;
+
+        EditorCandidateTitleText.Text = candidate.PreviewText;
+        EditorCandidateTimeText.Text = $"{candidate.StartFormatted} - {candidate.EndFormatted} ({candidate.DurationFormatted})";
+
+        if (_candidateSettings.TryGetValue(candidate.Id, out var candidateSettings))
+        {
+            ApplySettingsToControls(candidateSettings);
+        }
+        else
+        {
+            ApplySettingsToControls(_defaultClipperSettings);
+        }
+
+        EnterCandidateEditor();
+        LoadCandidatePreview(candidate);
+    }
+
+    private void BackToOverviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        ExitCandidateEditor();
+    }
+
+    private void EnterCandidateEditor()
+    {
+        OverviewPanel.Visibility = Visibility.Collapsed;
+        EditorGridSplitter.Visibility = Visibility.Collapsed;
+        EditorPanel.Visibility = Visibility.Visible;
+    }
+
+    private void ExitCandidateEditor()
+    {
+        SaveActiveCandidateSettings();
+        _editingCandidate = null;
+        ApplySettingsToControls(_defaultClipperSettings);
+        OverviewPanel.Visibility = Visibility.Visible;
+        EditorPanel.Visibility = Visibility.Collapsed;
+        EditorGridSplitter.Visibility = Visibility.Collapsed;
+        EditorSplitterColumn.Width = new GridLength(0);
+        EditorColumn.MinWidth = 0;
+        EditorColumn.Width = new GridLength(0);
     }
 
     private void LoadCandidatePreview(ClipCandidate candidate)
@@ -511,6 +610,7 @@ public partial class ClipperView : UserControl
 
     private void ClipperView_Loaded(object sender, RoutedEventArgs e)
     {
+        ExitCandidateEditor();
         UpdateManualCropUi();
         UpdateSubtitlePlacementPreview();
         UpdateSettingsValueLabels();
@@ -635,6 +735,11 @@ public partial class ClipperView : UserControl
         e.Handled = true;
     }
 
+    private void SubtitleOverlayCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateSubtitlePlacementPreview();
+    }
+
     private void UpdateSubtitlePlacementPreview()
     {
         if (!IsLoaded || SubtitleOverlayCanvas is null || SubtitlePlacementPreview is null)
@@ -717,7 +822,37 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        if (_editingCandidate is not null)
+        {
+            SaveActiveCandidateSettings();
+            return;
+        }
+
         SettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void SaveActiveCandidateSettings()
+    {
+        if (_editingCandidate is null)
+        {
+            return;
+        }
+
+        _candidateSettings[_editingCandidate.Id] = CreateSettingsSnapshotFromControls();
+    }
+
+    private ClipperSettings CreateSettingsSnapshotFromControls()
+    {
+        var snapshot = _defaultClipperSettings.DeepCopy();
+        snapshot.DefaultCropMode = GetSelectedCropMode();
+        snapshot.ManualCropOffsetX = ManualCropOffsetSlider.Value;
+        snapshot.EnableSubtitlesByDefault = EnableSubtitlesCheckBox.IsChecked == true;
+        snapshot.SubtitleSettings ??= new ClipSubtitleSettings();
+        snapshot.SubtitleSettings.WordByWordHighlight = WordHighlightCheckBox.IsChecked == true;
+        snapshot.SubtitleSettings.FontSize = (int)Math.Round(SubtitleFontSizeSlider.Value);
+        snapshot.SubtitleSettings.PositionX = SubtitlePositionXSlider.Value;
+        snapshot.SubtitleSettings.PositionY = SubtitlePositionYSlider.Value;
+        return snapshot;
     }
 
     private Size MeasureSubtitlePreview()
@@ -983,6 +1118,36 @@ public partial class ClipperView : UserControl
     {
         var ms = (long)Math.Round(timestamp.TotalMilliseconds, MidpointRounding.AwayFromZero);
         return $"{videoPath}|{ms}";
+    }
+
+    private static void CopySettings(ClipperSettings source, ClipperSettings target)
+    {
+        if (source is null || target is null)
+        {
+            return;
+        }
+
+        var copy = source.DeepCopy();
+        target.MinClipDurationSeconds = copy.MinClipDurationSeconds;
+        target.MaxClipDurationSeconds = copy.MaxClipDurationSeconds;
+        target.MaxCandidatesPerDraft = copy.MaxCandidatesPerDraft;
+        target.DefaultCropMode = copy.DefaultCropMode;
+        target.ManualCropOffsetX = copy.ManualCropOffsetX;
+        target.EnableFaceDetection = copy.EnableFaceDetection;
+        target.FaceDetectionFrameCount = copy.FaceDetectionFrameCount;
+        target.FaceDetectionMinConfidence = copy.FaceDetectionMinConfidence;
+        target.EnableSubtitlesByDefault = copy.EnableSubtitlesByDefault;
+        target.SubtitleSettings = copy.SubtitleSettings;
+        target.DefaultSplitLayout = copy.DefaultSplitLayout;
+        target.DefaultLogoPath = copy.DefaultLogoPath;
+        target.OutputWidth = copy.OutputWidth;
+        target.OutputHeight = copy.OutputHeight;
+        target.VideoQuality = copy.VideoQuality;
+        target.AudioBitrate = copy.AudioBitrate;
+        target.AutoCreateDraftFromClip = copy.AutoCreateDraftFromClip;
+        target.OpenOutputFolderAfterRender = copy.OpenOutputFolderAfterRender;
+        target.UseCandidateCache = copy.UseCandidateCache;
+        target.CustomScoringPrompt = copy.CustomScoringPrompt;
     }
 
     private async void StartPreviewFramePrefetch()

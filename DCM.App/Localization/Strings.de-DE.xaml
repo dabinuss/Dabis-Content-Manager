@@ -918,6 +918,8 @@ Fehler: {1}</sys:String>
   <sys:String x:Key="Clipper.Actions.FindHighlights">Highlights finden</sys:String>
   <sys:String x:Key="Clipper.Actions.Refresh">Neu analysieren</sys:String>
   <sys:String x:Key="Clipper.Actions.Cut">Ausgewählte schneiden</sys:String>
+  <sys:String x:Key="Clipper.Actions.EditCandidate">Bearbeiten</sys:String>
+  <sys:String x:Key="Clipper.Actions.BackToOverview">Zur Übersicht</sys:String>
   <sys:String x:Key="Clipper.Settings">Einstellungen</sys:String>
   <sys:String x:Key="Clipper.Settings.ApplyHint">Gilt für die nächsten Render-Clips.</sys:String>
   <sys:String x:Key="Clipper.Settings.Layout">Layout &amp; Crop</sys:String>
