@@ -24,5 +24,10 @@ public enum CropMode
     /// <summary>
     /// Manuell definierter Crop-Bereich.
     /// </summary>
-    Manual = 2
+    Manual = 2,
+
+    /// <summary>
+    /// Split-Layout mit zwei Bereichen (z.B. Top/Bottom oder Left/Right).
+    /// </summary>
+    SplitLayout = 3
 }

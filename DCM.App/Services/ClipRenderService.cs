@@ -109,7 +109,12 @@ public sealed class ClipRenderService : IClipRenderService
             var sourceHeight = videoInfo?.Height ?? 0;
 
             CropRegionResult? cropRegion = null;
-            if (job.CropMode != CropMode.None && job.OutputWidth > 0 && job.OutputHeight > 0 && sourceWidth > 0 && sourceHeight > 0)
+            if (job.CropMode != CropMode.None
+                && job.CropMode != CropMode.SplitLayout
+                && job.OutputWidth > 0
+                && job.OutputHeight > 0
+                && sourceWidth > 0
+                && sourceHeight > 0)
             {
                 cropRegion = await ResolveCropRegionAsync(
                     job,
@@ -334,6 +339,7 @@ public sealed class ClipRenderService : IClipRenderService
         var startSeconds = job.StartTime.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
         var durationSeconds = job.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
         var hasLogo = !string.IsNullOrEmpty(job.LogoPath) && File.Exists(job.LogoPath);
+        var requiresFilterComplex = hasLogo || job.CropMode == CropMode.SplitLayout;
 
         try
         {
@@ -360,10 +366,10 @@ public sealed class ClipRenderService : IClipRenderService
                 // Dauer
                 options.WithCustomArgument($"-t {durationSeconds}");
 
-                if (hasLogo)
+                if (requiresFilterComplex)
                 {
-                    // Mit Logo: filter_complex verwenden
-                    var filterComplex = BuildFilterComplex(job, cropRegion, subtitlePath);
+                    // Mit filter_complex (Logo oder Split-Layout)
+                    var filterComplex = BuildFilterComplex(job, cropRegion, subtitlePath, sourceWidth, sourceHeight, hasLogo);
                     if (!string.IsNullOrEmpty(filterComplex))
                     {
                         options.WithCustomArgument($"-filter_complex \"{filterComplex}\"");
@@ -439,8 +445,16 @@ public sealed class ClipRenderService : IClipRenderService
     private static string BuildFilterComplex(
         ClipRenderJob job,
         CropRegionResult? cropRegion,
-        string? subtitlePath)
+        string? subtitlePath,
+        int sourceWidth,
+        int sourceHeight,
+        bool hasLogo)
     {
+        if (job.CropMode == CropMode.SplitLayout)
+        {
+            return BuildSplitLayoutFilterComplex(job, subtitlePath, sourceWidth, sourceHeight, hasLogo);
+        }
+
         var sb = new StringBuilder();
 
         // Hauptvideo-Verarbeitung
@@ -466,19 +480,24 @@ public sealed class ClipRenderService : IClipRenderService
         // Untertitel einbrennen
         if (!string.IsNullOrEmpty(subtitlePath) && File.Exists(subtitlePath))
         {
-            var escapedPath = subtitlePath
-                .Replace("\\", "/")
-                .Replace(":", "\\:");
+            var escapedPath = EscapePathForAssFilter(subtitlePath);
             sb.Append($",ass='{escapedPath}'");
         }
 
-        sb.Append("[main];");
+        if (hasLogo)
+        {
+            sb.Append("[main];");
 
-        // Logo skalieren
-        sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
+            // Logo skalieren
+            sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
 
-        // Logo-Overlay (unten rechts mit Margin)
-        sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+            // Logo-Overlay (unten rechts mit Margin)
+            sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+        }
+        else
+        {
+            sb.Append("[out]");
+        }
 
         return sb.ToString();
     }
@@ -488,6 +507,12 @@ public sealed class ClipRenderService : IClipRenderService
         CropRegionResult? cropRegion,
         string? subtitlePath)
     {
+        if (job.CropMode == CropMode.SplitLayout)
+        {
+            // Split-Layout wird über filter_complex verarbeitet.
+            return string.Empty;
+        }
+
         var filters = new List<string>();
 
         // Crop/Scale für Portrait-Format
@@ -510,15 +535,177 @@ public sealed class ClipRenderService : IClipRenderService
         // Untertitel einbrennen
         if (!string.IsNullOrEmpty(subtitlePath) && File.Exists(subtitlePath))
         {
-            // Pfad für FFmpeg escapen (Backslashes und Doppelpunkte)
-            var escapedPath = subtitlePath
-                .Replace("\\", "/")
-                .Replace(":", "\\:");
-
+            var escapedPath = EscapePathForAssFilter(subtitlePath);
             filters.Add($"ass='{escapedPath}'");
         }
 
         return string.Join(",", filters);
+    }
+
+    private static string BuildSplitLayoutFilterComplex(
+        ClipRenderJob job,
+        string? subtitlePath,
+        int sourceWidth,
+        int sourceHeight,
+        bool hasLogo)
+    {
+        var splitConfig = job.SplitLayout?.Clone() ?? new SplitLayoutConfig();
+        var outputWidth = job.OutputWidth > 0 ? job.OutputWidth : 1080;
+        var outputHeight = job.OutputHeight > 0 ? job.OutputHeight : 1920;
+        var isSolo = splitConfig.Preset == SplitLayoutPreset.Solo;
+
+        var (primary, secondary) = ResolveSplitRegions(splitConfig, sourceWidth, sourceHeight);
+        var (topHeight, bottomHeight) = ResolveSplitOutputHeights(outputHeight, primary, secondary);
+
+        var sb = new StringBuilder();
+
+        if (isSolo)
+        {
+            sb.Append("[0:v]");
+            sb.Append($"crop={primary.Width}:{primary.Height}:{primary.X}:{primary.Y},");
+            sb.Append($"scale={outputWidth}:{outputHeight}:force_original_aspect_ratio=increase,");
+            sb.Append($"crop={outputWidth}:{outputHeight}");
+
+            if (!string.IsNullOrEmpty(subtitlePath) && File.Exists(subtitlePath))
+            {
+                var escapedPath = EscapePathForAssFilter(subtitlePath);
+                sb.Append($",ass='{escapedPath}'");
+            }
+
+            if (hasLogo)
+            {
+                sb.Append("[main];");
+                sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
+                sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+            }
+            else
+            {
+                sb.Append("[out]");
+            }
+
+            return sb.ToString();
+        }
+
+        sb.Append("[0:v]split=2[v1][v2];");
+        sb.Append($"[v1]crop={primary.Width}:{primary.Height}:{primary.X}:{primary.Y},");
+        sb.Append($"scale={outputWidth}:{topHeight}:force_original_aspect_ratio=increase,");
+        sb.Append($"crop={outputWidth}:{topHeight}[upper];");
+        sb.Append($"[v2]crop={secondary.Width}:{secondary.Height}:{secondary.X}:{secondary.Y},");
+        sb.Append($"scale={outputWidth}:{bottomHeight}:force_original_aspect_ratio=increase,");
+        sb.Append($"crop={outputWidth}:{bottomHeight}[lower];");
+        sb.Append("[upper][lower]vstack=inputs=2");
+
+        if (!string.IsNullOrEmpty(subtitlePath) && File.Exists(subtitlePath))
+        {
+            var escapedPath = EscapePathForAssFilter(subtitlePath);
+            sb.Append($",ass='{escapedPath}'");
+        }
+
+        if (hasLogo)
+        {
+            sb.Append("[main];");
+            sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
+            sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+        }
+        else
+        {
+            sb.Append("[out]");
+        }
+
+        return sb.ToString();
+    }
+
+    private static (int TopHeight, int BottomHeight) ResolveSplitOutputHeights(
+        int outputHeight,
+        CropRectangle primary,
+        CropRectangle secondary)
+    {
+        var safeHeight = Math.Max(2, outputHeight);
+        var combinedHeight = Math.Max(1, primary.Height + secondary.Height);
+        var topRatio = Math.Clamp((double)primary.Height / combinedHeight, 0.05, 0.95);
+        var topHeight = Math.Clamp((int)Math.Round(safeHeight * topRatio), 1, safeHeight - 1);
+        var bottomHeight = Math.Max(1, safeHeight - topHeight);
+        return (topHeight, bottomHeight);
+    }
+
+    private static (CropRectangle Primary, CropRectangle Secondary) ResolveSplitRegions(
+        SplitLayoutConfig? config,
+        int sourceWidth,
+        int sourceHeight)
+    {
+        var safeSourceWidth = Math.Max(1, sourceWidth);
+        var safeSourceHeight = Math.Max(1, sourceHeight);
+        var safeConfig = config?.Clone() ?? new SplitLayoutConfig();
+
+        if (safeConfig.PrimaryRegion is not null && safeConfig.SecondaryRegion is not null)
+        {
+            var configuredPrimary = safeConfig.PrimaryRegion.Clone().ClampToCanvas(safeConfig.MinRegionSize, safeConfig.MaxRegionSize);
+            var configuredSecondary = safeConfig.Preset == SplitLayoutPreset.Solo
+                ? configuredPrimary.Clone()
+                : safeConfig.SecondaryRegion.Clone().ClampToCanvas(safeConfig.MinRegionSize, safeConfig.MaxRegionSize);
+
+            return (
+                ToCropRectangle(configuredPrimary, safeSourceWidth, safeSourceHeight),
+                ToCropRectangle(configuredSecondary, safeSourceWidth, safeSourceHeight));
+        }
+
+        NormalizedRect primary;
+        NormalizedRect secondary;
+
+        switch (safeConfig.Preset)
+        {
+            case SplitLayoutPreset.LeftRight:
+                primary = new NormalizedRect { X = 0.0, Y = 0.0, Width = 0.5, Height = 1.0 };
+                secondary = new NormalizedRect { X = 0.5, Y = 0.0, Width = 0.5, Height = 1.0 };
+                break;
+
+            case SplitLayoutPreset.Custom:
+                primary = (safeConfig.PrimaryRegion ?? NormalizedRect.FullFrame()).Clone();
+                secondary = (safeConfig.SecondaryRegion ?? NormalizedRect.FullFrame()).Clone();
+                break;
+
+            case SplitLayoutPreset.Solo:
+                primary = NormalizedRect.FullFrame();
+                secondary = NormalizedRect.FullFrame();
+                break;
+
+            case SplitLayoutPreset.Auto:
+            case SplitLayoutPreset.TopBottom:
+            default:
+                primary = new NormalizedRect { X = 0.0, Y = 0.0, Width = 1.0, Height = 0.5 };
+                secondary = new NormalizedRect { X = 0.0, Y = 0.5, Width = 1.0, Height = 0.5 };
+                break;
+        }
+
+        var minSize = Math.Clamp(safeConfig.MinRegionSize, 0.05, 1.0);
+        var maxSize = Math.Clamp(safeConfig.MaxRegionSize, minSize, 1.0);
+        primary.ClampToCanvas(minSize, maxSize);
+        secondary.ClampToCanvas(minSize, maxSize);
+
+        return (
+            ToCropRectangle(primary, safeSourceWidth, safeSourceHeight),
+            ToCropRectangle(secondary, safeSourceWidth, safeSourceHeight));
+    }
+
+    private static CropRectangle ToCropRectangle(NormalizedRect rect, int sourceWidth, int sourceHeight)
+    {
+        var safeRect = (rect ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+
+        var width = Math.Clamp((int)Math.Round(safeRect.Width * sourceWidth), 1, sourceWidth);
+        var height = Math.Clamp((int)Math.Round(safeRect.Height * sourceHeight), 1, sourceHeight);
+        var maxX = Math.Max(0, sourceWidth - width);
+        var maxY = Math.Max(0, sourceHeight - height);
+        var x = Math.Clamp((int)Math.Round(safeRect.X * sourceWidth), 0, maxX);
+        var y = Math.Clamp((int)Math.Round(safeRect.Y * sourceHeight), 0, maxY);
+
+        return new CropRectangle(x, y, width, height);
+    }
+
+    private static string EscapePathForAssFilter(string path)
+    {
+        return path
+            .Replace("\\", "/")
+            .Replace(":", "\\:");
     }
 
     private async Task<string?> GenerateSubtitleFileAsync(
@@ -559,6 +746,11 @@ public sealed class ClipRenderService : IClipRenderService
         IProgress<ClipRenderProgress>? progress,
         CancellationToken cancellationToken)
     {
+        if (job.CropMode == CropMode.SplitLayout)
+        {
+            return null;
+        }
+
         if (job.CropMode == CropMode.Center)
         {
             progress?.Report(new ClipRenderProgress

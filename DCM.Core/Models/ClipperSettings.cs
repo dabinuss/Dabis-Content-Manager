@@ -35,7 +35,7 @@ public sealed class ClipperSettings
     /// <summary>
     /// Standard Crop-Modus.
     /// </summary>
-    public CropMode DefaultCropMode { get; set; } = CropMode.AutoDetect;
+    public CropMode DefaultCropMode { get; set; } = CropMode.SplitLayout;
 
     /// <summary>
     /// Standardwert für manuellen X-Offset (-1 bis 1).

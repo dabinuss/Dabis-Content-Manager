@@ -3945,8 +3945,9 @@ public partial class MainWindow : Window
                     ? ClipperPageView.GetEffectiveSettingsForCandidate(job.Candidate, _settings.Clipper)
                     : _settings.Clipper.DeepCopy();
 
-                job.CropMode = effectiveSettings.DefaultCropMode;
+                job.CropMode = CropMode.SplitLayout;
                 job.ManualCropOffsetX = effectiveSettings.ManualCropOffsetX;
+                job.SplitLayout = effectiveSettings.DefaultSplitLayout?.Clone();
                 job.BurnSubtitles = effectiveSettings.EnableSubtitlesByDefault;
                 job.SubtitleSettings = effectiveSettings.SubtitleSettings.Clone();
                 job.OutputWidth = effectiveSettings.OutputWidth;

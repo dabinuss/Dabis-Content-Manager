@@ -63,6 +63,11 @@ public sealed class ClipRenderJob
     public double ManualCropOffsetX { get; set; } = 0.0;
 
     /// <summary>
+    /// Konfiguration für Split-Layout (nur bei CropMode.SplitLayout).
+    /// </summary>
+    public SplitLayoutConfig? SplitLayout { get; set; }
+
+    /// <summary>
     /// Zielbreite des Ausgabe-Videos in Pixeln.
     /// Standard: 1080 für TikTok/Reels.
     /// </summary>

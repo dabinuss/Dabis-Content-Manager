@@ -57,6 +57,19 @@ public partial class ClipperView : UserControl
     private readonly IFaceDetectionService _faceDetectionService = new FaceAiSharpDetectionService();
     private CancellationTokenSource? _faceDetectionCts;
     private CropRegionResult? _currentCropRegion;
+    private BitmapSource? _splitSourceFrame;
+    private NormalizedRect _splitPrimaryRegion = new() { X = 0, Y = 0, Width = 1, Height = 0.5 };
+    private NormalizedRect _splitSecondaryRegion = new() { X = 0, Y = 0.5, Width = 1, Height = 0.5 };
+    private bool _splitDuoMode = true;
+    private SplitDragMode _splitDragMode;
+    private SplitResizeCorner _splitResizeCorner = SplitResizeCorner.None;
+    private SplitRegionTarget _activeSplitRegion = SplitRegionTarget.Primary;
+    private Point _splitDragStart;
+    private NormalizedRect? _splitDragStartRect;
+    private bool _isDraggingSplitDivider;
+    private double _splitDividerRatio = 0.5;
+    private const double MinSplitDividerRatio = 0.05;
+    private const double MaxSplitDividerRatio = 0.95;
 
     // Kontinuierlicher FFmpeg-Prozess für Echtzeit-Preview
     private Process? _ffmpegPreviewProcess;
@@ -79,14 +92,12 @@ public partial class ClipperView : UserControl
         // Standard-Lautstärke
         PreviewMediaElement.Volume = 0.5;
 
-        CropModeComboBox.SelectedIndex = 0;
         EnableSubtitlesCheckBox.IsChecked = true;
         WordHighlightCheckBox.IsChecked = true;
 
         SubtitleFontSizeSlider.ValueChanged += SubtitleSettingsControl_ValueChanged;
         SubtitlePositionXSlider.ValueChanged += SubtitleSettingsControl_ValueChanged;
         SubtitlePositionYSlider.ValueChanged += SubtitleSettingsControl_ValueChanged;
-        ManualCropOffsetSlider.ValueChanged += ManualCropOffsetSlider_ValueChanged;
         EnableSubtitlesCheckBox.Checked += SubtitleSettingsControl_Changed;
         EnableSubtitlesCheckBox.Unchecked += SubtitleSettingsControl_Changed;
         WordHighlightCheckBox.Checked += SubtitleSettingsControl_Changed;
@@ -129,8 +140,11 @@ public partial class ClipperView : UserControl
             return;
         }
 
-        settings.DefaultCropMode = GetSelectedCropMode();
-        settings.ManualCropOffsetX = ManualCropOffsetSlider.Value;
+        settings.DefaultCropMode = CropMode.SplitLayout;
+        settings.ManualCropOffsetX = 0;
+        var splitLayout = BuildSplitLayoutFromEditor();
+        splitLayout.Enabled = settings.DefaultCropMode == CropMode.SplitLayout;
+        settings.DefaultSplitLayout = splitLayout;
         settings.EnableSubtitlesByDefault = EnableSubtitlesCheckBox.IsChecked == true;
         settings.DefaultLogoPath = _logoPath;
         settings.LogoPositionX = _logoPositionX;
@@ -164,8 +178,31 @@ public partial class ClipperView : UserControl
         _isApplyingSettings = true;
         try
         {
-            SelectCropMode(settings.DefaultCropMode);
-            ManualCropOffsetSlider.Value = Math.Clamp(settings.ManualCropOffsetX, -1, 1);
+            var splitLayout = (settings.DefaultSplitLayout ?? new SplitLayoutConfig()).Clone();
+            _splitPrimaryRegion = (splitLayout.PrimaryRegion ?? new NormalizedRect
+            {
+                X = 0,
+                Y = 0,
+                Width = 1,
+                Height = 0.5
+            }).Clone().ClampToCanvas(0.05, 1.0);
+            _splitSecondaryRegion = (splitLayout.SecondaryRegion ?? new NormalizedRect
+            {
+                X = 0,
+                Y = 0.5,
+                Width = 1,
+                Height = 0.5
+            }).Clone().ClampToCanvas(0.05, 1.0);
+            _splitDuoMode = splitLayout.Preset != SplitLayoutPreset.Solo;
+            if (_splitDuoMode)
+            {
+                SyncSplitDividerRatioFromRegions();
+                ApplyDividerRatioToSplitRegions();
+            }
+            else
+            {
+                _splitDividerRatio = 0.5;
+            }
             EnableSubtitlesCheckBox.IsChecked = settings.EnableSubtitlesByDefault;
 
             var subtitle = settings.SubtitleSettings ?? new ClipSubtitleSettings();
@@ -187,20 +224,21 @@ public partial class ClipperView : UserControl
             _isApplyingSettings = false;
             UpdateManualCropUi();
             UpdateSubtitlePlacementPreview();
+            UpdateSplitModeButtons();
+            UpdateSplitSelectionOverlay();
+            UpdateSplitPortraitPreview();
             UpdateSettingsValueLabels();
         }
     }
 
-    public CropMode GetSelectedCropMode()
-    {
-        return CropModeComboBox.SelectedItem is ComboBoxItem item
-            && item.Tag is string tag
-            && Enum.TryParse<CropMode>(tag, out var mode)
-            ? mode
-            : CropMode.AutoDetect;
-    }
+    public CropMode GetSelectedCropMode() => CropMode.SplitLayout;
 
-    public double GetManualCropOffsetX() => ManualCropOffsetSlider.Value;
+    public double GetManualCropOffsetX() => 0;
+
+    private SplitLayoutPreset GetSelectedSplitPreset()
+    {
+        return SplitLayoutPreset.TopBottom;
+    }
 
     public IReadOnlyList<ClipCandidate> SelectedCandidates =>
         CandidatesListBox.ItemsSource is IEnumerable<ClipCandidate> candidates
@@ -632,6 +670,11 @@ public partial class ClipperView : UserControl
         }
 
         CroppedPreviewImage.Source = null;
+        SplitSourceImage.Source = null;
+        SplitPortraitSingleImage.Source = null;
+        SplitPortraitTopImage.Source = null;
+        SplitPortraitBottomImage.Source = null;
+        _splitSourceFrame = null;
         PreviewFrameImage.Source = null;
         PreviewFrameImage.Visibility = Visibility.Collapsed;
     }
@@ -647,15 +690,11 @@ public partial class ClipperView : UserControl
     {
         ExitCandidateEditor();
         UpdateManualCropUi();
+        UpdateSplitModeButtons();
+        UpdateSplitSelectionOverlay();
+        UpdateSplitPortraitPreview();
         UpdateSubtitlePlacementPreview();
         UpdateSettingsValueLabels();
-    }
-
-    private void CropModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        UpdateManualCropUi();
-        CommitClipperSettingsChange();
-        RefreshPortraitPreview();
     }
 
     private void RefreshPortraitPreview()
@@ -665,15 +704,660 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        if (GetSelectedCropMode() == CropMode.SplitLayout)
+        {
+            // Split-Preview rendert direkt aus dem geladenen Landscape-Frame;
+            // ein asynchrones Nachladen erzeugt sonst sichtbares "Springen".
+            UpdateSplitPortraitPreview();
+            return;
+        }
+
         // Portrait-Preview mit neuen Crop-Einstellungen neu laden
         LoadClipStartFramePreviewAsync(_currentVideoPath, _currentPreviewCandidate.Start);
     }
 
     private void UpdateManualCropUi()
     {
-        ManualCropOffsetPanel.Visibility = GetSelectedCropMode() == CropMode.Manual
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        UpdatePreviewModePanels();
+        UpdateSplitModeButtons();
+    }
+
+    private void UpdatePreviewModePanels()
+    {
+        var isSplit = GetSelectedCropMode() == CropMode.SplitLayout;
+        SplitWorkbenchPanel.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
+        StandardPreviewPanel.Visibility = isSplit ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void SplitSoloButton_Click(object sender, RoutedEventArgs e)
+    {
+        _isDraggingSplitDivider = false;
+        SplitPortraitDividerCanvas.ReleaseMouseCapture();
+        _splitDuoMode = false;
+        UpdateSplitModeButtons();
+        UpdateSplitSelectionOverlay();
+        UpdateSplitPortraitPreview();
+        CommitClipperSettingsChange();
+        RefreshPortraitPreview();
+    }
+
+    private void SplitDuoButton_Click(object sender, RoutedEventArgs e)
+    {
+        _splitDuoMode = true;
+        EnsureSplitDuoRegions();
+        SyncSplitDividerRatioFromRegions();
+        ApplyDividerRatioToSplitRegions();
+
+        UpdateSplitModeButtons();
+        UpdateSplitSelectionOverlay();
+        UpdateSplitPortraitPreview();
+        CommitClipperSettingsChange();
+        RefreshPortraitPreview();
+    }
+
+    private void UpdateSplitModeButtons()
+    {
+        var isSplit = GetSelectedCropMode() == CropMode.SplitLayout;
+        SplitSoloButton.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
+        SplitDuoButton.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
+
+        if (!isSplit)
+        {
+            SplitPortraitDividerCanvas.Visibility = Visibility.Collapsed;
+            SplitPortraitDividerCanvas.IsHitTestVisible = false;
+            return;
+        }
+
+        SplitSoloButton.FontWeight = !_splitDuoMode ? FontWeights.SemiBold : FontWeights.Normal;
+        SplitDuoButton.FontWeight = _splitDuoMode ? FontWeights.SemiBold : FontWeights.Normal;
+        SplitPortraitDividerCanvas.IsHitTestVisible = _splitDuoMode;
+    }
+
+    private void SplitSelectionCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateSplitSelectionOverlay();
+    }
+
+    private void SplitSelectionCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (GetSelectedCropMode() != CropMode.SplitLayout)
+        {
+            return;
+        }
+
+        var point = e.GetPosition(SplitSelectionCanvas);
+        if (!TryHitSplitRegion(point, out var targetRegion, out var resizeCorner))
+        {
+            return;
+        }
+
+        _activeSplitRegion = targetRegion;
+        _splitResizeCorner = resizeCorner;
+        _splitDragMode = resizeCorner == SplitResizeCorner.None ? SplitDragMode.Move : SplitDragMode.Resize;
+        _splitDragStart = point;
+        _splitDragStartRect = GetSplitRegion(targetRegion).Clone();
+        SplitSelectionCanvas.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void SplitSelectionCanvas_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_splitDragMode == SplitDragMode.None || _splitDragStartRect is null)
+        {
+            return;
+        }
+
+        var viewport = GetSplitImageViewportRect();
+        if (viewport.Width <= 0 || viewport.Height <= 0)
+        {
+            return;
+        }
+
+        var current = e.GetPosition(SplitSelectionCanvas);
+        var dx = (current.X - _splitDragStart.X) / viewport.Width;
+        var dy = (current.Y - _splitDragStart.Y) / viewport.Height;
+        var updated = _splitDragStartRect.Clone();
+
+        if (_splitDragMode == SplitDragMode.Move)
+        {
+            updated.X = Math.Clamp(_splitDragStartRect.X + dx, 0, 1 - _splitDragStartRect.Width);
+            updated.Y = Math.Clamp(_splitDragStartRect.Y + dy, 0, 1 - _splitDragStartRect.Height);
+        }
+        else
+        {
+            updated = ResizeSplitRegionFromCorner(_splitDragStartRect, _splitResizeCorner, dx, dy);
+        }
+
+        SetSplitRegion(_activeSplitRegion, updated.ClampToCanvas(0.05, 1.0));
+        if (_splitDuoMode)
+        {
+            SyncSplitDividerRatioFromRegions();
+        }
+        UpdateSplitSelectionOverlay();
+        UpdateSplitPortraitPreview();
+    }
+
+    private void SplitSelectionCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_splitDragMode == SplitDragMode.None)
+        {
+            return;
+        }
+
+        _splitDragMode = SplitDragMode.None;
+        _splitResizeCorner = SplitResizeCorner.None;
+        _splitDragStartRect = null;
+        SplitSelectionCanvas.ReleaseMouseCapture();
+        CommitClipperSettingsChange();
+        RefreshPortraitPreview();
+    }
+
+    private void SplitPortraitDividerHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!_splitDuoMode)
+        {
+            return;
+        }
+
+        _isDraggingSplitDivider = true;
+        SplitPortraitDividerCanvas.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void SplitPortraitDividerCanvas_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDraggingSplitDivider || !_splitDuoMode)
+        {
+            return;
+        }
+
+        var height = SplitPortraitDividerCanvas.ActualHeight;
+        if (height <= 0)
+        {
+            return;
+        }
+
+        var position = e.GetPosition(SplitPortraitDividerCanvas);
+        _splitDividerRatio = ClampSplitDividerRatio(position.Y / height);
+        ApplyDividerRatioToSplitRegions();
+        UpdateSplitSelectionOverlay();
+        UpdateSplitPortraitPreview();
+        e.Handled = true;
+    }
+
+    private void SplitPortraitDividerCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDraggingSplitDivider)
+        {
+            return;
+        }
+
+        _isDraggingSplitDivider = false;
+        SplitPortraitDividerCanvas.ReleaseMouseCapture();
+        CommitClipperSettingsChange();
+        RefreshPortraitPreview();
+        e.Handled = true;
+    }
+
+    private void SplitPortraitDividerCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateSplitDividerVisual();
+    }
+
+    private void EnsureSplitDuoRegions()
+    {
+        _splitPrimaryRegion ??= new NormalizedRect { X = 0.0, Y = 0.0, Width = 1.0, Height = 0.5 };
+        _splitSecondaryRegion ??= new NormalizedRect { X = 0.0, Y = 0.5, Width = 1.0, Height = 0.5 };
+        _splitPrimaryRegion.ClampToCanvas(0.05, 1.0);
+        _splitSecondaryRegion.ClampToCanvas(0.05, 1.0);
+
+        if (_splitPrimaryRegion.Width <= 0 || _splitPrimaryRegion.Height <= 0)
+        {
+            _splitPrimaryRegion = new NormalizedRect { X = 0.0, Y = 0.0, Width = 1.0, Height = 0.5 };
+        }
+
+        if (_splitSecondaryRegion.Width <= 0 || _splitSecondaryRegion.Height <= 0)
+        {
+            _splitSecondaryRegion = new NormalizedRect { X = 0.0, Y = 0.5, Width = 1.0, Height = 0.5 };
+        }
+    }
+
+    private void SyncSplitDividerRatioFromRegions()
+    {
+        if (!_splitDuoMode)
+        {
+            return;
+        }
+
+        var primaryHeight = Math.Max(MinSplitDividerRatio, _splitPrimaryRegion.Height);
+        var secondaryHeight = Math.Max(MinSplitDividerRatio, _splitSecondaryRegion.Height);
+        var total = primaryHeight + secondaryHeight;
+        _splitDividerRatio = total <= 0
+            ? 0.5
+            : ClampSplitDividerRatio(primaryHeight / total);
+    }
+
+    private void ApplyDividerRatioToSplitRegions()
+    {
+        if (!_splitDuoMode)
+        {
+            return;
+        }
+
+        EnsureSplitDuoRegions();
+
+        var ratio = ClampSplitDividerRatio(_splitDividerRatio);
+        var primary = _splitPrimaryRegion.Clone();
+        var secondary = _splitSecondaryRegion.Clone();
+
+        primary.Y = 0.0;
+        primary.Height = ratio;
+        primary.X = Math.Clamp(primary.X, 0.0, 1.0 - primary.Width);
+        primary.ClampToCanvas(0.05, 1.0);
+
+        secondary.Y = ratio;
+        secondary.Height = 1.0 - ratio;
+        secondary.X = Math.Clamp(secondary.X, 0.0, 1.0 - secondary.Width);
+        secondary.ClampToCanvas(0.05, 1.0);
+
+        _splitDividerRatio = ratio;
+        _splitPrimaryRegion = primary;
+        _splitSecondaryRegion = secondary;
+    }
+
+    private void UpdateSplitDividerVisual()
+    {
+        if (!_splitDuoMode)
+        {
+            SplitPortraitDividerCanvas.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        SplitPortraitDividerCanvas.Visibility = Visibility.Visible;
+        var canvasHeight = SplitPortraitDividerCanvas.ActualHeight;
+        var canvasWidth = SplitPortraitDividerCanvas.ActualWidth;
+        if (canvasHeight <= 0 || canvasWidth <= 0)
+        {
+            return;
+        }
+
+        var ratio = ClampSplitDividerRatio(_splitDividerRatio);
+        var handleTop = (ratio * canvasHeight) - (SplitPortraitDividerHandle.Height / 2.0);
+        var maxTop = Math.Max(0, canvasHeight - SplitPortraitDividerHandle.Height);
+        handleTop = Math.Clamp(handleTop, 0.0, maxTop);
+
+        Canvas.SetTop(SplitPortraitDividerHandle, handleTop);
+        Canvas.SetLeft(SplitPortraitDividerHandle, Math.Max(0.0, (canvasWidth - SplitPortraitDividerHandle.Width) / 2.0));
+    }
+
+    private static double ClampSplitDividerRatio(double ratio)
+    {
+        return Math.Clamp(ratio, MinSplitDividerRatio, MaxSplitDividerRatio);
+    }
+
+    private void UpdateSplitSelectionOverlay()
+    {
+        var viewport = GetSplitImageViewportRect();
+        if (viewport.Width <= 0 || viewport.Height <= 0)
+        {
+            return;
+        }
+
+        ApplyRegionToOverlay(
+            _splitPrimaryRegion,
+            SplitPrimarySelectionBox,
+            SplitPrimaryResizeHandleTopLeft,
+            SplitPrimaryResizeHandleTopRight,
+            SplitPrimaryResizeHandleBottomLeft,
+            SplitPrimaryResizeHandleBottomRight,
+            Visibility.Visible);
+        ApplyRegionToOverlay(
+            _splitSecondaryRegion,
+            SplitSecondarySelectionBox,
+            SplitSecondaryResizeHandleTopLeft,
+            SplitSecondaryResizeHandleTopRight,
+            SplitSecondaryResizeHandleBottomLeft,
+            SplitSecondaryResizeHandleBottomRight,
+            _splitDuoMode ? Visibility.Visible : Visibility.Collapsed);
+    }
+
+    private void ApplyRegionToOverlay(
+        NormalizedRect region,
+        Border box,
+        Border handleTopLeft,
+        Border handleTopRight,
+        Border handleBottomLeft,
+        Border handleBottomRight,
+        Visibility visibility)
+    {
+        box.Visibility = visibility;
+        handleTopLeft.Visibility = visibility;
+        handleTopRight.Visibility = visibility;
+        handleBottomLeft.Visibility = visibility;
+        handleBottomRight.Visibility = visibility;
+        if (visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        var rect = GetCanvasRectForRegion(region);
+        Canvas.SetLeft(box, rect.X);
+        Canvas.SetTop(box, rect.Y);
+        box.Width = rect.Width;
+        box.Height = rect.Height;
+
+        PositionCornerHandle(handleTopLeft, rect.X, rect.Y);
+        PositionCornerHandle(handleTopRight, rect.Right, rect.Y);
+        PositionCornerHandle(handleBottomLeft, rect.X, rect.Bottom);
+        PositionCornerHandle(handleBottomRight, rect.Right, rect.Bottom);
+    }
+
+    private Rect GetCanvasRectForRegion(NormalizedRect region)
+    {
+        var viewport = GetSplitImageViewportRect();
+        var normalized = (region ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        return new Rect(
+            viewport.X + (normalized.X * viewport.Width),
+            viewport.Y + (normalized.Y * viewport.Height),
+            normalized.Width * viewport.Width,
+            normalized.Height * viewport.Height);
+    }
+
+    private bool TryHitSplitRegion(Point point, out SplitRegionTarget region, out SplitResizeCorner resizeCorner)
+    {
+        var viewport = GetSplitImageViewportRect();
+        if (viewport.Width <= 0 || viewport.Height <= 0 || !viewport.Contains(point))
+        {
+            resizeCorner = SplitResizeCorner.None;
+            region = SplitRegionTarget.Primary;
+            return false;
+        }
+
+        resizeCorner = SplitResizeCorner.None;
+
+        if (_splitDuoMode && TryHitSingleRegion(point, _splitSecondaryRegion, out resizeCorner))
+        {
+            region = SplitRegionTarget.Secondary;
+            return true;
+        }
+
+        if (TryHitSingleRegion(point, _splitPrimaryRegion, out resizeCorner))
+        {
+            region = SplitRegionTarget.Primary;
+            return true;
+        }
+
+        region = SplitRegionTarget.Primary;
+        return false;
+    }
+
+    private bool TryHitSingleRegion(Point point, NormalizedRect region, out SplitResizeCorner resizeCorner)
+    {
+        var rect = GetCanvasRectForRegion(region);
+        var topLeftHandle = CreateHandleHitRect(rect.X, rect.Y);
+        var topRightHandle = CreateHandleHitRect(rect.Right, rect.Y);
+        var bottomLeftHandle = CreateHandleHitRect(rect.X, rect.Bottom);
+        var bottomRightHandle = CreateHandleHitRect(rect.Right, rect.Bottom);
+
+        if (topLeftHandle.Contains(point))
+        {
+            resizeCorner = SplitResizeCorner.TopLeft;
+            return true;
+        }
+        if (topRightHandle.Contains(point))
+        {
+            resizeCorner = SplitResizeCorner.TopRight;
+            return true;
+        }
+        if (bottomLeftHandle.Contains(point))
+        {
+            resizeCorner = SplitResizeCorner.BottomLeft;
+            return true;
+        }
+        if (bottomRightHandle.Contains(point))
+        {
+            resizeCorner = SplitResizeCorner.BottomRight;
+            return true;
+        }
+
+        resizeCorner = SplitResizeCorner.None;
+        return rect.Contains(point);
+    }
+
+    private static Rect CreateHandleHitRect(double centerX, double centerY)
+    {
+        const double size = 16.0;
+        var half = size / 2.0;
+        return new Rect(centerX - half, centerY - half, size, size);
+    }
+
+    private static void PositionCornerHandle(Border handle, double cornerX, double cornerY)
+    {
+        var halfWidth = handle.Width / 2.0;
+        var halfHeight = handle.Height / 2.0;
+        Canvas.SetLeft(handle, cornerX - halfWidth);
+        Canvas.SetTop(handle, cornerY - halfHeight);
+    }
+
+    private static NormalizedRect ResizeSplitRegionFromCorner(
+        NormalizedRect start,
+        SplitResizeCorner corner,
+        double dx,
+        double dy)
+    {
+        const double minSize = 0.05;
+
+        var x1 = start.X;
+        var y1 = start.Y;
+        var x2 = start.X + start.Width;
+        var y2 = start.Y + start.Height;
+
+        switch (corner)
+        {
+            case SplitResizeCorner.TopLeft:
+                x1 += dx;
+                y1 += dy;
+                break;
+            case SplitResizeCorner.TopRight:
+                x2 += dx;
+                y1 += dy;
+                break;
+            case SplitResizeCorner.BottomLeft:
+                x1 += dx;
+                y2 += dy;
+                break;
+            case SplitResizeCorner.BottomRight:
+                x2 += dx;
+                y2 += dy;
+                break;
+            default:
+                break;
+        }
+
+        x1 = Math.Clamp(x1, 0, 1);
+        y1 = Math.Clamp(y1, 0, 1);
+        x2 = Math.Clamp(x2, 0, 1);
+        y2 = Math.Clamp(y2, 0, 1);
+
+        if (x2 - x1 < minSize)
+        {
+            if (corner == SplitResizeCorner.TopLeft || corner == SplitResizeCorner.BottomLeft)
+            {
+                x1 = x2 - minSize;
+            }
+            else
+            {
+                x2 = x1 + minSize;
+            }
+        }
+
+        if (y2 - y1 < minSize)
+        {
+            if (corner == SplitResizeCorner.TopLeft || corner == SplitResizeCorner.TopRight)
+            {
+                y1 = y2 - minSize;
+            }
+            else
+            {
+                y2 = y1 + minSize;
+            }
+        }
+
+        x1 = Math.Clamp(x1, 0, 1 - minSize);
+        y1 = Math.Clamp(y1, 0, 1 - minSize);
+        x2 = Math.Clamp(x2, minSize, 1);
+        y2 = Math.Clamp(y2, minSize, 1);
+
+        if (x2 <= x1)
+        {
+            x2 = Math.Min(1, x1 + minSize);
+        }
+        if (y2 <= y1)
+        {
+            y2 = Math.Min(1, y1 + minSize);
+        }
+
+        return new NormalizedRect
+        {
+            X = x1,
+            Y = y1,
+            Width = x2 - x1,
+            Height = y2 - y1
+        };
+    }
+
+    private NormalizedRect GetSplitRegion(SplitRegionTarget target)
+    {
+        return target == SplitRegionTarget.Secondary ? _splitSecondaryRegion : _splitPrimaryRegion;
+    }
+
+    private void SetSplitRegion(SplitRegionTarget target, NormalizedRect value)
+    {
+        if (target == SplitRegionTarget.Secondary)
+        {
+            _splitSecondaryRegion = value;
+        }
+        else
+        {
+            _splitPrimaryRegion = value;
+        }
+    }
+
+    private Rect GetSplitImageViewportRect()
+    {
+        var canvasWidth = SplitSelectionCanvas.ActualWidth;
+        var canvasHeight = SplitSelectionCanvas.ActualHeight;
+        if (canvasWidth <= 0 || canvasHeight <= 0)
+        {
+            return Rect.Empty;
+        }
+
+        if (_splitSourceFrame is null || _splitSourceFrame.PixelWidth <= 0 || _splitSourceFrame.PixelHeight <= 0)
+        {
+            return new Rect(0, 0, canvasWidth, canvasHeight);
+        }
+
+        var sourceAspect = (double)_splitSourceFrame.PixelWidth / _splitSourceFrame.PixelHeight;
+        var canvasAspect = canvasWidth / canvasHeight;
+
+        if (sourceAspect >= canvasAspect)
+        {
+            var height = canvasWidth / sourceAspect;
+            return new Rect(0, (canvasHeight - height) / 2.0, canvasWidth, height);
+        }
+        else
+        {
+            var width = canvasHeight * sourceAspect;
+            return new Rect((canvasWidth - width) / 2.0, 0, width, canvasHeight);
+        }
+    }
+
+    private void UpdateSplitPortraitPreview()
+    {
+        if (_splitSourceFrame is null)
+        {
+            SplitPortraitSingleImage.Source = null;
+            SplitPortraitTopImage.Source = null;
+            SplitPortraitBottomImage.Source = null;
+            SplitPortraitDividerCanvas.Visibility = Visibility.Collapsed;
+            SplitPortraitDividerCanvas.IsHitTestVisible = false;
+            return;
+        }
+
+        var primary = CreateSplitCroppedBitmap(_splitSourceFrame, _splitPrimaryRegion);
+        if (!_splitDuoMode)
+        {
+            SplitPortraitDuoGrid.Visibility = Visibility.Collapsed;
+            SplitPortraitDividerCanvas.Visibility = Visibility.Collapsed;
+            SplitPortraitDividerCanvas.IsHitTestVisible = false;
+            SplitPortraitSingleImage.Visibility = Visibility.Visible;
+            SplitPortraitSingleImage.Source = primary;
+            SplitPortraitTopImage.Source = null;
+            SplitPortraitBottomImage.Source = null;
+            return;
+        }
+
+        var secondary = CreateSplitCroppedBitmap(_splitSourceFrame, _splitSecondaryRegion);
+        var ratio = ClampSplitDividerRatio(_splitDividerRatio);
+        SplitPortraitTopRow.Height = new GridLength(ratio, GridUnitType.Star);
+        SplitPortraitBottomRow.Height = new GridLength(1.0 - ratio, GridUnitType.Star);
+        SplitPortraitSingleImage.Visibility = Visibility.Collapsed;
+        SplitPortraitDuoGrid.Visibility = Visibility.Visible;
+        SplitPortraitDividerCanvas.Visibility = Visibility.Visible;
+        SplitPortraitDividerCanvas.IsHitTestVisible = true;
+        SplitPortraitTopImage.Source = primary;
+        SplitPortraitBottomImage.Source = secondary;
+        UpdateSplitDividerVisual();
+    }
+
+    private static BitmapSource? CreateSplitCroppedBitmap(BitmapSource source, NormalizedRect region)
+    {
+        if (source.PixelWidth <= 0 || source.PixelHeight <= 0)
+        {
+            return null;
+        }
+
+        var normalized = (region ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        var x = (int)Math.Round(normalized.X * source.PixelWidth);
+        var y = (int)Math.Round(normalized.Y * source.PixelHeight);
+        var width = Math.Max(1, (int)Math.Round(normalized.Width * source.PixelWidth));
+        var height = Math.Max(1, (int)Math.Round(normalized.Height * source.PixelHeight));
+
+        if (x + width > source.PixelWidth)
+        {
+            width = source.PixelWidth - x;
+        }
+        if (y + height > source.PixelHeight)
+        {
+            height = source.PixelHeight - y;
+        }
+
+        if (width <= 0 || height <= 0)
+        {
+            return null;
+        }
+
+        return new CroppedBitmap(source, new Int32Rect(x, y, width, height));
+    }
+
+    private SplitLayoutConfig BuildSplitLayoutFromEditor()
+    {
+        var preset = _splitDuoMode
+            ? GetSelectedSplitPreset()
+            : SplitLayoutPreset.Solo;
+
+        if (_splitDuoMode && preset == SplitLayoutPreset.Solo)
+        {
+            preset = SplitLayoutPreset.TopBottom;
+        }
+
+        return new SplitLayoutConfig
+        {
+            Enabled = GetSelectedCropMode() == CropMode.SplitLayout,
+            Preset = preset,
+            PrimaryRegion = _splitPrimaryRegion.Clone().ClampToCanvas(0.05, 1.0),
+            SecondaryRegion = (_splitDuoMode ? _splitSecondaryRegion : _splitPrimaryRegion).Clone().ClampToCanvas(0.05, 1.0)
+        };
     }
 
     private void SubtitleSettingsControl_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -697,18 +1381,6 @@ public partial class ClipperView : UserControl
 
         UpdateSubtitlePlacementPreview();
         CommitClipperSettingsChange();
-    }
-
-    private void ManualCropOffsetSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-        UpdateSettingsValueLabels();
-        CommitClipperSettingsChange();
-
-        // Portrait-Preview nur bei größeren Änderungen aktualisieren (Debounce)
-        if (GetSelectedCropMode() == CropMode.Manual && Math.Abs(e.NewValue - e.OldValue) > 0.05)
-        {
-            RefreshPortraitPreview();
-        }
     }
 
     private void SubtitleOverlayCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -839,7 +1511,6 @@ public partial class ClipperView : UserControl
         SubtitleFontSizeValueText.Text = ((int)Math.Round(SubtitleFontSizeSlider.Value)).ToString(CultureInfo.CurrentCulture);
         SubtitlePositionXValueText.Text = SubtitlePositionXSlider.Value.ToString("0.00", CultureInfo.CurrentCulture);
         SubtitlePositionYValueText.Text = SubtitlePositionYSlider.Value.ToString("0.00", CultureInfo.CurrentCulture);
-        ManualCropOffsetValueText.Text = ManualCropOffsetSlider.Value.ToString("0.00", CultureInfo.CurrentCulture);
     }
 
     private void SubtitlePresetTopButton_Click(object sender, RoutedEventArgs e) => ApplySubtitlePreset(0.5, 0.20);
@@ -1076,7 +1747,10 @@ public partial class ClipperView : UserControl
     {
         var snapshot = _defaultClipperSettings.DeepCopy();
         snapshot.DefaultCropMode = GetSelectedCropMode();
-        snapshot.ManualCropOffsetX = ManualCropOffsetSlider.Value;
+        snapshot.ManualCropOffsetX = 0;
+        var splitLayout = BuildSplitLayoutFromEditor();
+        splitLayout.Enabled = snapshot.DefaultCropMode == CropMode.SplitLayout;
+        snapshot.DefaultSplitLayout = splitLayout;
         snapshot.EnableSubtitlesByDefault = EnableSubtitlesCheckBox.IsChecked == true;
         snapshot.SubtitleSettings ??= new ClipSubtitleSettings();
         snapshot.SubtitleSettings.WordByWordHighlight = WordHighlightCheckBox.IsChecked == true;
@@ -1093,20 +1767,6 @@ public partial class ClipperView : UserControl
         return new Size(
             desired.Width <= 0 ? 40 : desired.Width,
             desired.Height <= 0 ? 20 : desired.Height);
-    }
-
-    private void SelectCropMode(CropMode mode)
-    {
-        foreach (var item in CropModeComboBox.Items.OfType<ComboBoxItem>())
-        {
-            if (item.Tag is string tag && Enum.TryParse<CropMode>(tag, out var parsed) && parsed == mode)
-            {
-                CropModeComboBox.SelectedItem = item;
-                return;
-            }
-        }
-
-        CropModeComboBox.SelectedIndex = 0;
     }
 
     private void PreviewTimer_Tick(object? sender, EventArgs e)
@@ -1224,8 +1884,40 @@ public partial class ClipperView : UserControl
         var ct = _faceDetectionCts.Token;
 
         var cropMode = GetSelectedCropMode();
-        var manualOffset = ManualCropOffsetSlider.Value;
+        var manualOffset = 0.0;
         var clipEnd = _currentPreviewCandidate?.End ?? clipStart + TimeSpan.FromSeconds(30);
+
+        if (cropMode == CropMode.SplitLayout)
+        {
+            var frameCacheKey = BuildPreviewCacheKey(videoPath, clipStart);
+            if (!_previewFrameCache.TryGetValue(frameCacheKey, out var sourceFrame))
+            {
+                sourceFrame = await Task.Run(() => ExtractFrameBitmap(videoPath, clipStart), ct);
+                if (sourceFrame is not null)
+                {
+                    _previewFrameCache[frameCacheKey] = sourceFrame;
+                }
+            }
+
+            if (ct.IsCancellationRequested)
+            {
+                return;
+            }
+
+            _currentCropRegion = null;
+            _splitSourceFrame = sourceFrame;
+            SplitSourceImage.Source = sourceFrame;
+            UpdatePreviewModePanels();
+            UpdateSplitSelectionOverlay();
+            UpdateSplitPortraitPreview();
+            return;
+        }
+
+        _splitSourceFrame = null;
+        SplitSourceImage.Source = null;
+        SplitPortraitSingleImage.Source = null;
+        SplitPortraitTopImage.Source = null;
+        SplitPortraitBottomImage.Source = null;
 
         // Cache-Key für Portrait-Preview (inkl. Face-Detection)
         var portraitCacheKey = BuildPortraitPreviewCacheKey(videoPath, clipStart, cropMode, manualOffset);
@@ -1472,6 +2164,10 @@ public partial class ClipperView : UserControl
                 cropX = (int)Math.Round(centerX - cropWidth / 2.0);
                 cropX = Math.Clamp(cropX, 0, sourceWidth - cropWidth);
                 break;
+            case CropMode.SplitLayout:
+                // Preview-Fallback: zeige zentrierten Portrait-Crop.
+                cropX = (sourceWidth - cropWidth) / 2;
+                break;
             case CropMode.AutoDetect:
             default:
                 // Für AutoDetect ohne Face-Detection: Center als Fallback
@@ -1676,7 +2372,7 @@ public partial class ClipperView : UserControl
         }
 
         var cropMode = GetSelectedCropMode();
-        var manualOffset = ManualCropOffsetSlider.Value;
+        var manualOffset = 0.0;
         var cropRegion = _currentCropRegion;
 
         string cropFilter;
@@ -1866,6 +2562,28 @@ public partial class ClipperView : UserControl
 
         _ffmpegPreviewCts?.Dispose();
         _ffmpegPreviewCts = null;
+    }
+
+    private enum SplitDragMode
+    {
+        None = 0,
+        Move = 1,
+        Resize = 2
+    }
+
+    private enum SplitResizeCorner
+    {
+        None = 0,
+        TopLeft = 1,
+        TopRight = 2,
+        BottomLeft = 3,
+        BottomRight = 4
+    }
+
+    private enum SplitRegionTarget
+    {
+        Primary = 0,
+        Secondary = 1
     }
 }
 
