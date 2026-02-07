@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -28,6 +29,7 @@ public partial class ClipperView : UserControl
     private string? _loadedVideoPath;
     private bool _isPlaying;
     private bool _isMediaReady;
+    private bool _isSplitSourceMediaReady;
     private bool _isDraggingSlider;
     private bool _isApplyingSettings;
     private bool _isDraggingSubtitle;
@@ -47,6 +49,9 @@ public partial class ClipperView : UserControl
     private readonly Dictionary<string, CropRegionResult> _faceDetectionCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, IReadOnlyList<SplitFaceAnchor>> _splitFaceAnchorCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _splitFaceAutoSelectionProcessedKeys = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, (int Width, int Height)> _videoDimensionsCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<Guid, int> _splitPrimaryFaceTrackLockByCandidate = new();
+    private readonly Dictionary<Guid, int> _splitSecondaryFaceTrackLockByCandidate = new();
     private List<ClipCandidate> _currentCandidates = new();
     private readonly Dictionary<Guid, ClipperSettings> _candidateSettings = new();
     private ClipperSettings _defaultClipperSettings = new();
@@ -74,6 +79,8 @@ public partial class ClipperView : UserControl
     private Point _splitDragStart;
     private NormalizedRect? _splitDragStartRect;
     private bool _isDraggingSplitDivider;
+    private NormalizedRect? _splitDividerDragStartPrimaryRegion;
+    private NormalizedRect? _splitDividerDragStartSecondaryRegion;
     private double _splitDividerRatio = 0.5;
     private const double MinSplitDividerRatio = 0.05;
     private const double MaxSplitDividerRatio = 0.95;
@@ -109,6 +116,8 @@ public partial class ClipperView : UserControl
         EnableSubtitlesCheckBox.Unchecked += SubtitleSettingsControl_Changed;
         WordHighlightCheckBox.Checked += SubtitleSettingsControl_Changed;
         WordHighlightCheckBox.Unchecked += SubtitleSettingsControl_Changed;
+        PreviewProgressSlider.AddHandler(Thumb.DragStartedEvent, new DragStartedEventHandler(PreviewProgressSlider_DragStarted));
+        PreviewProgressSlider.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(PreviewProgressSlider_DragCompleted));
 
         Loaded += ClipperView_Loaded;
     }
@@ -320,6 +329,7 @@ public partial class ClipperView : UserControl
 
         if (string.IsNullOrWhiteSpace(videoPath))
         {
+            ClearVideoScopedPreviewCaches();
             ExitCandidateEditor();
             StopPreview();
             ShowVideoEmptyState();
@@ -329,6 +339,7 @@ public partial class ClipperView : UserControl
             // Neues Video - muss neu geladen werden
             _loadedVideoPath = null;
             _isMediaReady = false;
+            ClearVideoScopedPreviewCaches();
             StartPreviewFramePrefetch();
         }
     }
@@ -429,12 +440,15 @@ public partial class ClipperView : UserControl
 
         try
         {
+            EnsureSplitSourceMediaLoaded();
+
             // Prüfen ob das Video bereits geladen ist
             if (_isMediaReady && string.Equals(_loadedVideoPath, _currentVideoPath, StringComparison.OrdinalIgnoreCase))
             {
                 // Video ist bereits geladen - nur Position ändern
                 PreviewMediaElement.Pause();
                 SeekToClipStart(renderPreviewFrame: true);
+                SeekSplitSourceMediaTo(_currentPreviewCandidate.Start);
             }
             else
             {
@@ -442,6 +456,8 @@ public partial class ClipperView : UserControl
                 _isMediaReady = false;
                 _seekPendingAfterMediaOpen = true;
                 PreviewMediaElement.Source = new Uri(_currentVideoPath);
+                _isSplitSourceMediaReady = false;
+                SplitSourceMediaElement.Source = new Uri(_currentVideoPath);
                 _loadedVideoPath = _currentVideoPath;
             }
         }
@@ -467,6 +483,31 @@ public partial class ClipperView : UserControl
         }
 
         UpdateSubtitlePlacementPreview();
+    }
+
+    private void SplitSourceMediaElement_MediaOpened(object sender, RoutedEventArgs e)
+    {
+        _isSplitSourceMediaReady = true;
+        if (_currentPreviewCandidate is not null)
+        {
+            SeekSplitSourceMediaTo(PreviewMediaElement.Position < _currentPreviewCandidate.Start
+                ? _currentPreviewCandidate.Start
+                : PreviewMediaElement.Position);
+
+            if (_isPlaying && GetSelectedCropMode() == CropMode.SplitLayout)
+            {
+                try
+                {
+                    SplitSourceMediaElement.Play();
+                }
+                catch
+                {
+                    // ignore preview-only playback sync errors
+                }
+            }
+        }
+
+        SyncSplitSourceMediaVisibility();
     }
 
     private void PreviewMediaElement_MediaEnded(object sender, RoutedEventArgs e)
@@ -553,8 +594,12 @@ public partial class ClipperView : UserControl
 
     private void PreviewProgressSlider_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        _isDraggingSlider = false;
-        SeekToSliderPosition();
+        CompleteSliderSeekInteraction();
+    }
+
+    private void PreviewProgressSlider_LostMouseCapture(object sender, MouseEventArgs e)
+    {
+        CompleteSliderSeekInteraction();
     }
 
     private void PreviewProgressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -568,6 +613,16 @@ public partial class ClipperView : UserControl
         }
     }
 
+    private void PreviewProgressSlider_DragStarted(object sender, DragStartedEventArgs e)
+    {
+        _isDraggingSlider = true;
+    }
+
+    private void PreviewProgressSlider_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        CompleteSliderSeekInteraction();
+    }
+
     private void SeekToSliderPosition()
     {
         if (_currentPreviewCandidate is null || !_isMediaReady)
@@ -579,9 +634,212 @@ public partial class ClipperView : UserControl
         var clipDuration = _currentPreviewCandidate.Duration;
         var progress = PreviewProgressSlider.Value / 100.0;
         var newPosition = clipStart + TimeSpan.FromSeconds(progress * clipDuration.TotalSeconds);
+        if (newPosition < clipStart)
+        {
+            newPosition = clipStart;
+        }
+        if (newPosition > _currentPreviewCandidate.End)
+        {
+            newPosition = _currentPreviewCandidate.End;
+        }
 
         PreviewMediaElement.Position = newPosition;
+        SeekSplitSourceMediaTo(newPosition);
+
+        if (_isPlaying && !string.IsNullOrWhiteSpace(_currentVideoPath))
+        {
+            var ffmpegStart = newPosition >= _currentPreviewCandidate.End
+                ? _currentPreviewCandidate.End - TimeSpan.FromMilliseconds(80)
+                : newPosition;
+            if (ffmpegStart < _currentPreviewCandidate.Start)
+            {
+                ffmpegStart = _currentPreviewCandidate.Start;
+            }
+
+            StartFfmpegPreviewProcess(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
+            if (GetSelectedCropMode() == CropMode.SplitLayout)
+            {
+                TrySyncSplitSourcePlaybackState(newPosition, play: true);
+            }
+        }
+        else
+        {
+            RenderPausedPreviewFrameAtPositionAsync(newPosition);
+        }
+
+        PreviewCurrentTimeText.Text = FormatTimeSpan(newPosition - clipStart);
         _restartFromClipStartOnNextPlay = false;
+    }
+
+    private void CompleteSliderSeekInteraction()
+    {
+        if (!_isDraggingSlider)
+        {
+            return;
+        }
+
+        _isDraggingSlider = false;
+        SeekToSliderPosition();
+    }
+
+    private void EnsureSplitSourceMediaLoaded()
+    {
+        if (string.IsNullOrWhiteSpace(_currentVideoPath))
+        {
+            return;
+        }
+
+        try
+        {
+            var targetUri = new Uri(_currentVideoPath);
+            if (SplitSourceMediaElement.Source is null ||
+                Uri.Compare(SplitSourceMediaElement.Source, targetUri, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                _isSplitSourceMediaReady = false;
+                SplitSourceMediaElement.Source = targetUri;
+            }
+        }
+        catch
+        {
+            // ignore preview-only loading errors
+        }
+    }
+
+    private void SeekSplitSourceMediaTo(TimeSpan position)
+    {
+        if (!_isSplitSourceMediaReady)
+        {
+            return;
+        }
+
+        try
+        {
+            SplitSourceMediaElement.Position = position;
+        }
+        catch
+        {
+            // ignore preview-only seek errors
+        }
+    }
+
+    private void TrySyncSplitSourcePlaybackState(TimeSpan position, bool play)
+    {
+        if (GetSelectedCropMode() != CropMode.SplitLayout)
+        {
+            try
+            {
+                SplitSourceMediaElement.Pause();
+            }
+            catch
+            {
+                // ignore
+            }
+            SyncSplitSourceMediaVisibility();
+            return;
+        }
+
+        EnsureSplitSourceMediaLoaded();
+        SeekSplitSourceMediaTo(position);
+
+        if (_isSplitSourceMediaReady)
+        {
+            try
+            {
+                if (play)
+                {
+                    SplitSourceMediaElement.Play();
+                }
+                else
+                {
+                    SplitSourceMediaElement.Pause();
+                }
+            }
+            catch
+            {
+                // ignore preview-only sync errors
+            }
+        }
+
+        SyncSplitSourceMediaVisibility();
+    }
+
+    private void SyncSplitSourceMediaVisibility()
+    {
+        var show = GetSelectedCropMode() == CropMode.SplitLayout &&
+                   _currentPreviewCandidate is not null &&
+                   _isSplitSourceMediaReady;
+        SplitSourceMediaElement.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private async void RenderPausedPreviewFrameAtPositionAsync(TimeSpan position)
+    {
+        if (_isPlaying || _currentPreviewCandidate is null || string.IsNullOrWhiteSpace(_currentVideoPath))
+        {
+            return;
+        }
+
+        var videoPath = _currentVideoPath;
+        if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
+        {
+            return;
+        }
+
+        var requestVersion = ++_previewFrameRequestVersion;
+        var cropMode = GetSelectedCropMode();
+
+        if (cropMode == CropMode.SplitLayout)
+        {
+            var key = BuildPreviewCacheKey(videoPath, position);
+            if (!_previewFrameCache.TryGetValue(key, out var frame))
+            {
+                frame = await Task.Run(() => ExtractFrameBitmap(videoPath, position));
+                if (frame is not null && requestVersion == _previewFrameRequestVersion)
+                {
+                    _previewFrameCache[key] = frame;
+                }
+            }
+
+            if (requestVersion != _previewFrameRequestVersion)
+            {
+                return;
+            }
+
+            if (frame is not null)
+            {
+                _splitSourceFrame = frame;
+                SplitSourceImage.Source = frame;
+                SplitPlaybackImage.Source = null;
+                SplitPlaybackImage.Visibility = Visibility.Collapsed;
+                UpdateSplitPortraitPreview();
+            }
+
+            return;
+        }
+
+        var portraitKey = BuildPortraitPreviewCacheKey(videoPath, position, cropMode, 0);
+        if (_portraitPreviewCache.TryGetValue(portraitKey, out var cachedPortrait))
+        {
+            CroppedPreviewImage.Source = cachedPortrait;
+            return;
+        }
+
+        var portrait = await Task.Run(() => ExtractPortraitFrameBitmapWithCropRegion(
+            videoPath,
+            position,
+            cropMode,
+            0,
+            _currentCropRegion));
+
+        if (requestVersion != _previewFrameRequestVersion)
+        {
+            return;
+        }
+
+        if (portrait is not null)
+        {
+            _portraitPreviewCache[portraitKey] = portrait;
+            CroppedPreviewImage.Source = portrait;
+        }
     }
 
     private void UpdateClipDetails(ClipCandidate candidate)
@@ -606,18 +864,33 @@ public partial class ClipperView : UserControl
         }
 
         // Nach Kandidatenwechsel erzwingt der erste Play-Start einen exakten Seek.
-        if (_restartFromClipStartOnNextPlay || IsOutsideCurrentClip(PreviewMediaElement.Position, _currentPreviewCandidate))
+        if (_restartFromClipStartOnNextPlay ||
+            IsOutsideCurrentClip(PreviewMediaElement.Position, _currentPreviewCandidate) ||
+            PreviewMediaElement.Position >= _currentPreviewCandidate.End)
         {
             SeekToClipStart(renderPreviewFrame: false);
             _restartFromClipStartOnNextPlay = false;
         }
 
-        // Starte kontinuierlichen FFmpeg-Preview-Prozess
-        StartFfmpegPreviewProcess(_currentVideoPath, _currentPreviewCandidate.Start, _currentPreviewCandidate.End);
-
-        PreviewFrameImage.Visibility = Visibility.Collapsed;
+        var playbackStart = PreviewMediaElement.Position;
+        if (playbackStart < _currentPreviewCandidate.Start || playbackStart > _currentPreviewCandidate.End)
+        {
+            playbackStart = _currentPreviewCandidate.Start;
+        }
 
         _isPlaying = true;
+
+        // Starte kontinuierlichen FFmpeg-Preview-Prozess
+        var ffmpegStart = playbackStart;
+        if (ffmpegStart >= _currentPreviewCandidate.End)
+        {
+            ffmpegStart = _currentPreviewCandidate.Start;
+        }
+
+        StartFfmpegPreviewProcess(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
+        TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: true);
+
+        PreviewFrameImage.Visibility = Visibility.Collapsed;
         PreviewMediaElement.Play();
         _previewTimer.Start();
         UpdatePlayButtonIcon(true);
@@ -627,10 +900,10 @@ public partial class ClipperView : UserControl
     {
         _isPlaying = false;
         PreviewMediaElement.Pause();
+        TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: false);
         _previewTimer.Stop();
         StopFfmpegPreviewProcess();
-        SplitPlaybackImage.Source = null;
-        SplitPlaybackImage.Visibility = Visibility.Collapsed;
+        RenderPausedPreviewFrameAtPositionAsync(PreviewMediaElement.Position);
 
         UpdatePlayButtonIcon(false);
     }
@@ -641,6 +914,7 @@ public partial class ClipperView : UserControl
         _isPlaying = false;
         _previewTimer.Stop();
         PreviewMediaElement.Pause();
+        TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: false);
         StopFfmpegPreviewProcess();
         SplitPlaybackImage.Source = null;
         SplitPlaybackImage.Visibility = Visibility.Collapsed;
@@ -667,6 +941,7 @@ public partial class ClipperView : UserControl
         _currentPreviewCandidate = null;
         _currentCropRegion = null;
         _loadedVideoPath = null;
+        _isSplitSourceMediaReady = false;
         _seekPendingAfterMediaOpen = false;
         _restartFromClipStartOnNextPlay = false;
 
@@ -674,6 +949,8 @@ public partial class ClipperView : UserControl
         {
             PreviewMediaElement.Stop();
             PreviewMediaElement.Source = null;
+            SplitSourceMediaElement.Stop();
+            SplitSourceMediaElement.Source = null;
         }
         catch
         {
@@ -687,6 +964,7 @@ public partial class ClipperView : UserControl
         SplitPortraitBottomImage.Source = null;
         SplitPlaybackImage.Source = null;
         SplitPlaybackImage.Visibility = Visibility.Collapsed;
+        SplitSourceMediaElement.Visibility = Visibility.Collapsed;
         _splitSourceFrame = null;
         PreviewFrameImage.Source = null;
         PreviewFrameImage.Visibility = Visibility.Collapsed;
@@ -740,6 +1018,11 @@ public partial class ClipperView : UserControl
         var isSplit = GetSelectedCropMode() == CropMode.SplitLayout;
         SplitWorkbenchPanel.Visibility = isSplit ? Visibility.Visible : Visibility.Collapsed;
         StandardPreviewPanel.Visibility = isSplit ? Visibility.Collapsed : Visibility.Visible;
+        if (!isSplit)
+        {
+            TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: false);
+        }
+        SyncSplitSourceMediaVisibility();
         UpdateSubtitlePlacementPreview();
         UpdateLogoPosition();
     }
@@ -805,6 +1088,8 @@ public partial class ClipperView : UserControl
             _splitDragStartRect = null;
             SplitSelectionCanvas.ReleaseMouseCapture();
             _isDraggingSplitDivider = false;
+            _splitDividerDragStartPrimaryRegion = null;
+            _splitDividerDragStartSecondaryRegion = null;
             SplitPortraitDividerCanvas.ReleaseMouseCapture();
         }
 
@@ -840,6 +1125,8 @@ public partial class ClipperView : UserControl
             SplitPortraitDividerCanvas.IsHitTestVisible = false;
             SplitSelectionCanvas.IsHitTestVisible = false;
             _isDraggingSplitDivider = false;
+            _splitDividerDragStartPrimaryRegion = null;
+            _splitDividerDragStartSecondaryRegion = null;
             SplitPortraitDividerCanvas.ReleaseMouseCapture();
             return;
         }
@@ -857,6 +1144,8 @@ public partial class ClipperView : UserControl
         if (!isLayoutMode)
         {
             _isDraggingSplitDivider = false;
+            _splitDividerDragStartPrimaryRegion = null;
+            _splitDividerDragStartSecondaryRegion = null;
             SplitPortraitDividerCanvas.ReleaseMouseCapture();
         }
     }
@@ -943,7 +1232,10 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        EnsureSplitDuoRegions();
         _isDraggingSplitDivider = true;
+        _splitDividerDragStartPrimaryRegion = _splitPrimaryRegion.Clone();
+        _splitDividerDragStartSecondaryRegion = _splitSecondaryRegion.Clone();
         SplitPortraitDividerCanvas.CaptureMouse();
         e.Handled = true;
     }
@@ -963,7 +1255,7 @@ public partial class ClipperView : UserControl
 
         var position = e.GetPosition(SplitPortraitDividerCanvas);
         _splitDividerRatio = ClampSplitDividerRatio(position.Y / height);
-        ApplyDividerRatioToSplitRegions();
+        ApplyDividerRatioToSplitRegions(useDragBaseline: true, smoothRecentering: true);
         UpdateSplitSelectionOverlay();
         UpdateSplitPortraitPreview();
         e.Handled = true;
@@ -977,6 +1269,9 @@ public partial class ClipperView : UserControl
         }
 
         _isDraggingSplitDivider = false;
+        _splitDividerDragStartPrimaryRegion = null;
+        _splitDividerDragStartSecondaryRegion = null;
+        ApplyDividerRatioToSplitRegions(useDragBaseline: false, smoothRecentering: false);
         SplitPortraitDividerCanvas.ReleaseMouseCapture();
         CommitClipperSettingsChange();
         RefreshPortraitPreview();
@@ -1021,7 +1316,7 @@ public partial class ClipperView : UserControl
             : ClampSplitDividerRatio(primaryHeight / total);
     }
 
-    private void ApplyDividerRatioToSplitRegions()
+    private void ApplyDividerRatioToSplitRegions(bool useDragBaseline = false, bool smoothRecentering = false)
     {
         if (!_splitDuoMode)
         {
@@ -1031,11 +1326,13 @@ public partial class ClipperView : UserControl
         EnsureSplitDuoRegions();
 
         var ratio = ClampSplitDividerRatio(_splitDividerRatio);
-        var primary = _splitPrimaryRegion.Clone();
-        var secondary = _splitSecondaryRegion.Clone();
+        var currentPrimary = _splitPrimaryRegion.Clone();
+        var currentSecondary = _splitSecondaryRegion.Clone();
+        var basePrimary = (useDragBaseline ? _splitDividerDragStartPrimaryRegion : null)?.Clone() ?? currentPrimary.Clone();
+        var baseSecondary = (useDragBaseline ? _splitDividerDragStartSecondaryRegion : null)?.Clone() ?? currentSecondary.Clone();
 
         const double minSize = 0.05;
-        var totalHeight = Math.Clamp(primary.Height + secondary.Height, minSize * 2.0, 1.8);
+        var totalHeight = Math.Clamp(basePrimary.Height + baseSecondary.Height, minSize * 2.0, 1.8);
         var desiredPrimaryHeight = Math.Clamp(totalHeight * ratio, minSize, 1.0);
         var desiredSecondaryHeight = Math.Clamp(totalHeight - desiredPrimaryHeight, minSize, 1.0);
 
@@ -1045,8 +1342,15 @@ public partial class ClipperView : UserControl
             desiredSecondaryHeight = 1.0 - ratio;
         }
 
-        primary = ResizeRegionKeepingCenter(primary, desiredPrimaryHeight);
-        secondary = ResizeRegionKeepingCenter(secondary, desiredSecondaryHeight);
+        var primaryTarget = ResizeRegionKeepingCenter(basePrimary, desiredPrimaryHeight);
+        var secondaryTarget = ResizeRegionKeepingCenter(baseSecondary, desiredSecondaryHeight);
+
+        var primary = smoothRecentering
+            ? EaseSplitRegionY(currentPrimary, primaryTarget, 0.28)
+            : primaryTarget;
+        var secondary = smoothRecentering
+            ? EaseSplitRegionY(currentSecondary, secondaryTarget, 0.28)
+            : secondaryTarget;
 
         _splitDividerRatio = ratio;
         _splitPrimaryRegion = primary;
@@ -1093,6 +1397,23 @@ public partial class ClipperView : UserControl
         safe.Y = centerY - (targetHeight / 2.0);
         safe.X = Math.Clamp(safe.X, 0.0, 1.0 - safe.Width);
         return safe.ClampToCanvas(0.05, 1.0);
+    }
+
+    private static NormalizedRect EaseSplitRegionY(NormalizedRect current, NormalizedRect target, double easing)
+    {
+        var from = (current ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        var to = (target ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        var factor = Math.Clamp(easing, 0.0, 1.0);
+        var y = from.Y + ((to.Y - from.Y) * factor);
+        var eased = new NormalizedRect
+        {
+            X = from.X,
+            Y = y,
+            Width = to.Width,
+            Height = to.Height
+        };
+
+        return eased.ClampToCanvas(0.05, 1.0);
     }
 
     private void UpdateSplitSelectionOverlay()
@@ -1432,12 +1753,6 @@ public partial class ClipperView : UserControl
 
     private void UpdateSplitPortraitPreview()
     {
-        if (!_isPlaying)
-        {
-            SplitPlaybackImage.Source = null;
-            SplitPlaybackImage.Visibility = Visibility.Collapsed;
-        }
-
         if (_splitSourceFrame is null)
         {
             SplitPortraitSingleImage.Source = null;
@@ -2082,6 +2397,7 @@ public partial class ClipperView : UserControl
         var target = _currentPreviewCandidate.Start;
         var seekVersion = ++_seekOperationVersion;
         PreviewMediaElement.Position = target;
+        SeekSplitSourceMediaTo(target);
 
         if (!renderPreviewFrame)
         {
@@ -2101,8 +2417,10 @@ public partial class ClipperView : UserControl
 
             PreviewMediaElement.Pause();
             PreviewMediaElement.Position = target;
+            SeekSplitSourceMediaTo(target);
             PreviewCurrentTimeText.Text = "0:00";
             PreviewProgressSlider.Value = 0;
+            RenderPausedPreviewFrameAtPositionAsync(target);
         }
         catch
         {
@@ -2130,6 +2448,7 @@ public partial class ClipperView : UserControl
         _faceDetectionCts?.Cancel();
         _faceDetectionCts = new CancellationTokenSource();
         var ct = _faceDetectionCts.Token;
+        var frameRequestVersion = ++_previewFrameRequestVersion;
 
         var cropMode = GetSelectedCropMode();
         var manualOffset = 0.0;
@@ -2147,7 +2466,7 @@ public partial class ClipperView : UserControl
                 }
             }
 
-            if (ct.IsCancellationRequested)
+            if (ct.IsCancellationRequested || frameRequestVersion != _previewFrameRequestVersion)
             {
                 return;
             }
@@ -2155,6 +2474,7 @@ public partial class ClipperView : UserControl
             _currentCropRegion = null;
             _splitSourceFrame = sourceFrame;
             SplitSourceImage.Source = sourceFrame;
+            UpdatePreviewModePanels();
             var autoSelectionKey = BuildSplitFaceAutoSelectionKey(videoPath, clipStart);
             var shouldRunAutoSelection = ShouldRunInitialSplitAutoSelection(autoSelectionKey);
             var selectionApplied = false;
@@ -2163,6 +2483,8 @@ public partial class ClipperView : UserControl
             {
                 ApplyNeutralSplitInitialSelection(sourceFrame);
                 selectionApplied = true;
+                UpdateSplitSelectionOverlay();
+                UpdateSplitPortraitPreview();
 
                 var autoApplied = await TryApplyAutoSplitFaceSelectionAsync(
                     videoPath,
@@ -2170,12 +2492,23 @@ public partial class ClipperView : UserControl
                     clipEnd,
                     sourceFrame,
                     ct);
+                if (ct.IsCancellationRequested || frameRequestVersion != _previewFrameRequestVersion)
+                {
+                    return;
+                }
                 selectionApplied = selectionApplied || autoApplied;
-            }
 
-            UpdatePreviewModePanels();
-            UpdateSplitSelectionOverlay();
-            UpdateSplitPortraitPreview();
+                if (autoApplied)
+                {
+                    UpdateSplitSelectionOverlay();
+                    UpdateSplitPortraitPreview();
+                }
+            }
+            else
+            {
+                UpdateSplitSelectionOverlay();
+                UpdateSplitPortraitPreview();
+            }
 
             if (selectionApplied)
             {
@@ -2322,14 +2655,14 @@ public partial class ClipperView : UserControl
             var topShare = ClampSplitDividerRatio(_splitDividerRatio);
             var bottomShare = 1.0 - topShare;
 
-            var topAnchor = new SplitFaceAnchor(0.50, 0.34, 0.15, 0.20, 0);
-            var bottomAnchor = new SplitFaceAnchor(0.50, 0.66, 0.15, 0.20, 0);
+            var topAnchor = new SplitFaceAnchor(-1, 0.50, 0.34, 0.15, 0.20, 0);
+            var bottomAnchor = new SplitFaceAnchor(-1, 0.50, 0.66, 0.15, 0.20, 0);
             _splitPrimaryRegion = CreateSplitRegionFromFaceAnchor(topAnchor, sourceAspect, topShare);
             _splitSecondaryRegion = CreateSplitRegionFromFaceAnchor(bottomAnchor, sourceAspect, bottomShare);
             return;
         }
 
-        var soloAnchor = new SplitFaceAnchor(0.50, 0.50, 0.16, 0.22, 0);
+        var soloAnchor = new SplitFaceAnchor(-1, 0.50, 0.50, 0.16, 0.22, 0);
         _splitPrimaryRegion = CreateSplitRegionFromFaceAnchor(soloAnchor, sourceAspect, 1.0);
     }
 
@@ -2374,7 +2707,7 @@ public partial class ClipperView : UserControl
         {
             var analyses = await _faceDetectionService.AnalyzeVideoAsync(
                 videoPath,
-                TimeSpan.FromSeconds(0.8),
+                TimeSpan.FromSeconds(0.35),
                 clipStart,
                 quickDetectionEnd,
                 ct);
@@ -2398,8 +2731,25 @@ public partial class ClipperView : UserControl
             return false;
         }
 
-        var primaryAnchor = anchors[0];
-        var secondaryAnchor = FindSecondarySplitFaceAnchor(anchors, primaryAnchor);
+        int? preferredPrimaryTrackId = null;
+        int? preferredSecondaryTrackId = null;
+        if (_editingCandidate is not null)
+        {
+            if (_splitPrimaryFaceTrackLockByCandidate.TryGetValue(_editingCandidate.Id, out var primaryTrackLock))
+            {
+                preferredPrimaryTrackId = primaryTrackLock;
+            }
+
+            if (_splitSecondaryFaceTrackLockByCandidate.TryGetValue(_editingCandidate.Id, out var secondaryTrackLock))
+            {
+                preferredSecondaryTrackId = secondaryTrackLock;
+            }
+        }
+
+        var primaryAnchor = SelectPrimarySplitFaceAnchor(anchors, preferredPrimaryTrackId);
+        var secondaryAnchor = _splitDuoMode
+            ? FindSecondarySplitFaceAnchor(anchors, primaryAnchor, preferredSecondaryTrackId)
+            : null;
 
         if (_splitDuoMode)
         {
@@ -2414,6 +2764,28 @@ public partial class ClipperView : UserControl
 
         _splitPrimaryRegion.ClampToCanvas(0.05, 1.0);
         _splitSecondaryRegion.ClampToCanvas(0.05, 1.0);
+
+        if (_editingCandidate is not null)
+        {
+            if (primaryAnchor.TrackId > 0)
+            {
+                _splitPrimaryFaceTrackLockByCandidate[_editingCandidate.Id] = primaryAnchor.TrackId;
+            }
+            else
+            {
+                _splitPrimaryFaceTrackLockByCandidate.Remove(_editingCandidate.Id);
+            }
+
+            if (_splitDuoMode && secondaryAnchor.HasValue && secondaryAnchor.Value.TrackId > 0 && secondaryAnchor.Value.TrackId != primaryAnchor.TrackId)
+            {
+                _splitSecondaryFaceTrackLockByCandidate[_editingCandidate.Id] = secondaryAnchor.Value.TrackId;
+            }
+            else
+            {
+                _splitSecondaryFaceTrackLockByCandidate.Remove(_editingCandidate.Id);
+            }
+        }
+
         return true;
     }
 
@@ -2427,14 +2799,29 @@ public partial class ClipperView : UserControl
             return Array.Empty<SplitFaceAnchor>();
         }
 
-        var samples = new List<SplitFaceSample>();
-        foreach (var analysis in analyses)
+        var orderedAnalyses = analyses
+            .Where(a => a is not null)
+            .OrderBy(a => a.Timestamp)
+            .ToList();
+
+        if (orderedAnalyses.Count == 0)
         {
-            if (analysis?.Faces is null || analysis.Faces.Count == 0)
+            return Array.Empty<SplitFaceAnchor>();
+        }
+
+        var tracks = new List<SplitFaceTrackAccumulator>();
+        var nextTrackId = 1;
+        const double trackMatchDistance = 0.16;
+        const double maxTrackGapSeconds = 1.0;
+
+        foreach (var analysis in orderedAnalyses)
+        {
+            if (analysis.Faces is null || analysis.Faces.Count == 0)
             {
                 continue;
             }
 
+            var samples = new List<SplitFaceSample>();
             foreach (var face in analysis.Faces)
             {
                 if (face.Confidence <= 0)
@@ -2450,73 +2837,121 @@ public partial class ClipperView : UserControl
                 }
                 var centerX = Math.Clamp(face.BoundingBox.CenterX / sourceWidth, 0.0f, 1.0f);
                 var centerY = Math.Clamp(face.BoundingBox.CenterY / sourceHeight, 0.0f, 1.0f);
-                samples.Add(new SplitFaceSample(centerX, centerY, width, height, face.Confidence));
+                samples.Add(new SplitFaceSample(centerX, centerY, width, height, face.Confidence, analysis.Timestamp));
+            }
+
+            if (samples.Count == 0)
+            {
+                continue;
+            }
+
+            var usedTrackIds = new HashSet<int>();
+            foreach (var sample in samples.OrderByDescending(s => s.Weight))
+            {
+                SplitFaceTrackAccumulator? selectedTrack = null;
+                var selectedScore = double.MaxValue;
+
+                foreach (var track in tracks)
+                {
+                    if (usedTrackIds.Contains(track.TrackId) || !track.CanContinueAt(sample.Timestamp, maxTrackGapSeconds))
+                    {
+                        continue;
+                    }
+
+                    var distance = track.DistanceTo(sample.CenterX, sample.CenterY);
+                    var areaPenalty = Math.Abs(track.AverageFaceArea - sample.FaceArea) * 0.55;
+                    var matchScore = distance + areaPenalty;
+                    if (matchScore <= trackMatchDistance && matchScore < selectedScore)
+                    {
+                        selectedTrack = track;
+                        selectedScore = matchScore;
+                    }
+                }
+
+                if (selectedTrack is null)
+                {
+                    var newTrack = new SplitFaceTrackAccumulator(nextTrackId++, sample);
+                    tracks.Add(newTrack);
+                    usedTrackIds.Add(newTrack.TrackId);
+                }
+                else
+                {
+                    selectedTrack.Add(sample);
+                    usedTrackIds.Add(selectedTrack.TrackId);
+                }
             }
         }
 
-        if (samples.Count == 0)
+        if (tracks.Count == 0)
         {
             return Array.Empty<SplitFaceAnchor>();
         }
 
-        const double clusterDistance = 0.16;
-        var clusters = new List<SplitFaceClusterAccumulator>();
-        foreach (var sample in samples.OrderByDescending(s => s.Weight))
-        {
-            SplitFaceClusterAccumulator? selectedCluster = null;
-            var selectedDistance = double.MaxValue;
-
-            foreach (var cluster in clusters)
-            {
-                var distance = cluster.DistanceTo(sample.CenterX, sample.CenterY);
-                if (distance <= clusterDistance && distance < selectedDistance)
-                {
-                    selectedCluster = cluster;
-                    selectedDistance = distance;
-                }
-            }
-
-            if (selectedCluster is null)
-            {
-                clusters.Add(new SplitFaceClusterAccumulator(sample));
-            }
-            else
-            {
-                selectedCluster.Add(sample);
-            }
-        }
-
-        return clusters
-            .Select(c => c.ToAnchor())
+        return tracks
+            .Select(t => t.ToAnchor())
             .OrderByDescending(a => a.Score)
             .Take(6)
             .ToList();
     }
 
+    private static SplitFaceAnchor SelectPrimarySplitFaceAnchor(
+        IReadOnlyList<SplitFaceAnchor> anchors,
+        int? preferredTrackId)
+    {
+        if (anchors.Count == 0)
+        {
+            return default;
+        }
+
+        if (preferredTrackId.HasValue)
+        {
+            var preferred = anchors.FirstOrDefault(a => a.TrackId == preferredTrackId.Value);
+            if (preferred.TrackId > 0)
+            {
+                return preferred;
+            }
+        }
+
+        return anchors[0];
+    }
+
     private static SplitFaceAnchor? FindSecondarySplitFaceAnchor(
         IReadOnlyList<SplitFaceAnchor> anchors,
-        SplitFaceAnchor primary)
+        SplitFaceAnchor primary,
+        int? preferredTrackId = null)
     {
         if (anchors.Count <= 1)
         {
             return null;
         }
 
+        if (preferredTrackId.HasValue)
+        {
+            var preferred = anchors.FirstOrDefault(a => a.TrackId == preferredTrackId.Value && a.TrackId != primary.TrackId);
+            if (preferred.TrackId > 0)
+            {
+                return preferred;
+            }
+        }
+
         SplitFaceAnchor? best = null;
         var bestDistance = 0.0;
-        foreach (var candidate in anchors.Skip(1))
+        foreach (var candidate in anchors.Where(a => a.TrackId != primary.TrackId))
         {
             var distance = SplitFaceAnchorDistance(primary, candidate);
-            if (distance > bestDistance)
+            var sidePenalty = Math.Abs(candidate.CenterX - primary.CenterX) < 0.05 ? 0.05 : 0.0;
+            var weightedDistance = distance - sidePenalty;
+            if (weightedDistance > bestDistance)
             {
                 best = candidate;
-                bestDistance = distance;
+                bestDistance = weightedDistance;
             }
         }
 
         if (!best.HasValue)
         {
-            return anchors[1];
+            var fallback = anchors.FirstOrDefault(a => a.TrackId != primary.TrackId);
+            return fallback.TrackId != 0 ? fallback : null;
         }
 
         if (bestDistance >= 0.08)
@@ -2524,7 +2959,11 @@ public partial class ClipperView : UserControl
             return best;
         }
 
-        return anchors[1];
+        var scoredFallback = anchors
+            .Where(a => a.TrackId != primary.TrackId)
+            .OrderByDescending(a => a.Score)
+            .FirstOrDefault();
+        return scoredFallback.TrackId != 0 ? scoredFallback : null;
     }
 
     private static double SplitFaceAnchorDistance(SplitFaceAnchor a, SplitFaceAnchor b)
@@ -2539,6 +2978,7 @@ public partial class ClipperView : UserControl
         var oppositeX = primary.CenterX < 0.5 ? 0.78 : 0.22;
         var oppositeY = Math.Clamp(primary.CenterY, 0.30, 0.70);
         return new SplitFaceAnchor(
+            -1,
             oppositeX,
             oppositeY,
             Math.Clamp(primary.FaceWidth, 0.08, 0.45),
@@ -2603,6 +3043,16 @@ public partial class ClipperView : UserControl
 
     private (int width, int height) GetVideoDimensions(string videoPath)
     {
+        if (string.IsNullOrWhiteSpace(videoPath))
+        {
+            return (0, 0);
+        }
+
+        if (_videoDimensionsCache.TryGetValue(videoPath, out var cachedDimensions))
+        {
+            return cachedDimensions;
+        }
+
         var ffmpegPath = FindFfmpeg();
         if (string.IsNullOrWhiteSpace(ffmpegPath))
         {
@@ -2612,7 +3062,9 @@ public partial class ClipperView : UserControl
         var ffprobePath = Path.Combine(Path.GetDirectoryName(ffmpegPath) ?? "", "ffprobe.exe");
         if (!File.Exists(ffprobePath))
         {
-            return (1920, 1080); // Default fallback
+            var fallback = (1920, 1080);
+            _videoDimensionsCache[videoPath] = fallback;
+            return fallback; // Default fallback
         }
 
         try
@@ -2636,7 +3088,9 @@ public partial class ClipperView : UserControl
                     int.TryParse(parts[0], out var w) &&
                     int.TryParse(parts[1], out var h))
                 {
-                    return (w, h);
+                    var result = (w, h);
+                    _videoDimensionsCache[videoPath] = result;
+                    return result;
                 }
             }
         }
@@ -2645,7 +3099,9 @@ public partial class ClipperView : UserControl
             // Ignore
         }
 
-        return (1920, 1080);
+        var defaultResult = (1920, 1080);
+        _videoDimensionsCache[videoPath] = defaultResult;
+        return defaultResult;
     }
 
     private BitmapImage? ExtractPortraitFrameBitmapWithCropRegion(
@@ -2873,6 +3329,18 @@ public partial class ClipperView : UserControl
         return $"{videoPath}|{ms}";
     }
 
+    private void ClearVideoScopedPreviewCaches()
+    {
+        _previewFrameCache.Clear();
+        _portraitPreviewCache.Clear();
+        _faceDetectionCache.Clear();
+        _splitFaceAnchorCache.Clear();
+        _splitFaceAutoSelectionProcessedKeys.Clear();
+        _videoDimensionsCache.Clear();
+        _splitPrimaryFaceTrackLockByCandidate.Clear();
+        _splitSecondaryFaceTrackLockByCandidate.Clear();
+    }
+
     private static void CopySettings(ClipperSettings source, ClipperSettings target)
     {
         if (source is null || target is null)
@@ -2962,6 +3430,10 @@ public partial class ClipperView : UserControl
         var manualOffset = 0.0;
         var cropRegion = _currentCropRegion;
         var (sourceWidth, sourceHeight) = GetVideoDimensions(videoPath);
+        if (end <= start)
+        {
+            return;
+        }
 
         string cropFilter;
         string filterChain;
@@ -3076,24 +3548,36 @@ public partial class ClipperView : UserControl
         try
         {
             using var stream = process.StandardOutput.BaseStream;
-            var buffer = new byte[1024 * 1024]; // 1MB Buffer
-            var frameBuffer = new MemoryStream();
+            var readBuffer = new byte[64 * 1024];
+            var pendingBuffer = new byte[256 * 1024];
+            var pendingLength = 0;
+            var searchStart = 0;
             var lastFrameTime = DateTime.UtcNow;
 
             while (!ct.IsCancellationRequested && !process.HasExited)
             {
-                var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, ct);
+                var bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length, ct);
                 if (bytesRead == 0)
                 {
                     break;
                 }
 
-                // Schreibe in Frame-Buffer
-                frameBuffer.Write(buffer, 0, bytesRead);
+                var requiredLength = pendingLength + bytesRead;
+                if (requiredLength > pendingBuffer.Length)
+                {
+                    var newLength = pendingBuffer.Length;
+                    while (newLength < requiredLength)
+                    {
+                        newLength *= 2;
+                    }
 
-                // Suche nach JPEG-Ende-Marker (FFD9)
-                var data = frameBuffer.ToArray();
-                var frameEnd = FindJpegEndMarker(data);
+                    Array.Resize(ref pendingBuffer, newLength);
+                }
+
+                Buffer.BlockCopy(readBuffer, 0, pendingBuffer, pendingLength, bytesRead);
+                pendingLength += bytesRead;
+
+                var frameEnd = FindJpegEndMarker(pendingBuffer, pendingLength, Math.Max(0, searchStart));
 
                 while (frameEnd >= 0)
                 {
@@ -3106,8 +3590,9 @@ public partial class ClipperView : UserControl
                     lastFrameTime = DateTime.UtcNow;
 
                     // Extrahiere Frame
-                    var frameData = new byte[frameEnd + 2];
-                    Array.Copy(data, frameData, frameEnd + 2);
+                    var frameLength = frameEnd + 2;
+                    var frameData = new byte[frameLength];
+                    Buffer.BlockCopy(pendingBuffer, 0, frameData, 0, frameLength);
 
                     // Zeige Frame auf UI-Thread
                     if (!ct.IsCancellationRequested)
@@ -3145,16 +3630,17 @@ public partial class ClipperView : UserControl
                     }
 
                     // Entferne verarbeiteten Frame aus Buffer
-                    var remaining = data.Length - frameEnd - 2;
-                    frameBuffer = new MemoryStream();
+                    var remaining = pendingLength - frameLength;
                     if (remaining > 0)
                     {
-                        frameBuffer.Write(data, frameEnd + 2, remaining);
+                        Buffer.BlockCopy(pendingBuffer, frameLength, pendingBuffer, 0, remaining);
                     }
-
-                    data = frameBuffer.ToArray();
-                    frameEnd = FindJpegEndMarker(data);
+                    pendingLength = Math.Max(0, remaining);
+                    searchStart = 0;
+                    frameEnd = FindJpegEndMarker(pendingBuffer, pendingLength, 0);
                 }
+
+                searchStart = Math.Max(0, pendingLength - 1);
             }
         }
         catch (OperationCanceledException)
@@ -3167,10 +3653,17 @@ public partial class ClipperView : UserControl
         }
     }
 
-    private static int FindJpegEndMarker(byte[] data)
+    private static int FindJpegEndMarker(byte[] data, int length, int startIndex)
     {
+        if (length <= 1)
+        {
+            return -1;
+        }
+
+        var start = Math.Clamp(startIndex, 0, Math.Max(0, length - 2));
+
         // JPEG endet mit FFD9
-        for (int i = 0; i < data.Length - 1; i++)
+        for (int i = start; i < length - 1; i++)
         {
             if (data[i] == 0xFF && data[i + 1] == 0xD9)
             {
@@ -3209,6 +3702,7 @@ public partial class ClipperView : UserControl
     }
 
     private readonly record struct SplitFaceAnchor(
+        int TrackId,
         double CenterX,
         double CenterY,
         double FaceWidth,
@@ -3220,28 +3714,42 @@ public partial class ClipperView : UserControl
         double CenterY,
         double FaceWidth,
         double FaceHeight,
-        double Confidence)
+        double Confidence,
+        TimeSpan Timestamp)
     {
         public double Weight => (FaceWidth * FaceHeight * 6.0) + Confidence;
+        public double FaceArea => FaceWidth * FaceHeight;
     }
 
-    private sealed class SplitFaceClusterAccumulator
+    private sealed class SplitFaceTrackAccumulator
     {
+        private readonly int _trackId;
         private double _centerX;
         private double _centerY;
         private double _widthSum;
         private double _heightSum;
         private double _confidenceSum;
         private int _count;
+        private TimeSpan _lastTimestamp;
 
-        public SplitFaceClusterAccumulator(SplitFaceSample sample)
+        public SplitFaceTrackAccumulator(int trackId, SplitFaceSample sample)
         {
+            _trackId = trackId;
             _centerX = sample.CenterX;
             _centerY = sample.CenterY;
             _widthSum = sample.FaceWidth;
             _heightSum = sample.FaceHeight;
             _confidenceSum = sample.Confidence;
             _count = 1;
+            _lastTimestamp = sample.Timestamp;
+        }
+
+        public int TrackId => _trackId;
+        public double AverageFaceArea => (_widthSum / _count) * (_heightSum / _count);
+
+        public bool CanContinueAt(TimeSpan timestamp, double maxGapSeconds)
+        {
+            return (timestamp - _lastTimestamp).TotalSeconds <= maxGapSeconds;
         }
 
         public void Add(SplitFaceSample sample)
@@ -3252,6 +3760,7 @@ public partial class ClipperView : UserControl
             _widthSum += sample.FaceWidth;
             _heightSum += sample.FaceHeight;
             _confidenceSum += sample.Confidence;
+            _lastTimestamp = sample.Timestamp;
         }
 
         public double DistanceTo(double centerX, double centerY)
@@ -3269,6 +3778,7 @@ public partial class ClipperView : UserControl
             var score = (_count * 1.6) + (avgWidth * avgHeight * 8.0) + avgConfidence;
 
             return new SplitFaceAnchor(
+                _trackId,
                 _centerX,
                 _centerY,
                 avgWidth,

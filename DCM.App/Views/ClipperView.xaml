@@ -588,6 +588,15 @@
                       <Grid>
                         <Image x:Name="SplitSourceImage"
                                Stretch="Uniform"/>
+                        <MediaElement x:Name="SplitSourceMediaElement"
+                                      LoadedBehavior="Manual"
+                                      UnloadedBehavior="Stop"
+                                      ScrubbingEnabled="True"
+                                      IsMuted="True"
+                                      Stretch="Uniform"
+                                      Visibility="Collapsed"
+                                      IsHitTestVisible="False"
+                                      MediaOpened="SplitSourceMediaElement_MediaOpened"/>
                         <Canvas x:Name="SplitSelectionCanvas"
                                 Background="Transparent"
                                 SizeChanged="SplitSelectionCanvas_SizeChanged"
@@ -799,11 +808,13 @@
                           Grid.Column="2"
                           VerticalAlignment="Center"
                           IsEnabled="True"
+                          IsMoveToPointEnabled="True"
                           Minimum="0"
                           Maximum="100"
                           Value="0"
                           PreviewMouseDown="PreviewProgressSlider_PreviewMouseDown"
                           PreviewMouseUp="PreviewProgressSlider_PreviewMouseUp"
+                          LostMouseCapture="PreviewProgressSlider_LostMouseCapture"
                           ValueChanged="PreviewProgressSlider_ValueChanged"/>
 
                   <TextBlock x:Name="PreviewEndTimeText"
