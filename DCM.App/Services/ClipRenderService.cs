@@ -333,23 +333,51 @@ public sealed class ClipRenderService : IClipRenderService
     {
         var startSeconds = job.StartTime.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
         var durationSeconds = job.Duration.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
+        var hasLogo = !string.IsNullOrEmpty(job.LogoPath) && File.Exists(job.LogoPath);
 
         try
         {
-            var arguments = FFMpegArguments
-                .FromFileInput(job.SourceVideoPath, verifyExists: true, options => options
-                    .WithCustomArgument($"-ss {startSeconds}"));
+            FFMpegArguments arguments;
+
+            if (hasLogo)
+            {
+                // Mit Logo: filter_complex erforderlich
+                arguments = FFMpegArguments
+                    .FromFileInput(job.SourceVideoPath, verifyExists: true, options => options
+                        .WithCustomArgument($"-ss {startSeconds}"))
+                    .AddFileInput(job.LogoPath!);
+            }
+            else
+            {
+                // Ohne Logo: einfacher Input
+                arguments = FFMpegArguments
+                    .FromFileInput(job.SourceVideoPath, verifyExists: true, options => options
+                        .WithCustomArgument($"-ss {startSeconds}"));
+            }
 
             var processor = arguments.OutputToFile(outputPath, overwrite: true, options =>
             {
                 // Dauer
                 options.WithCustomArgument($"-t {durationSeconds}");
 
-                // Video-Filter zusammenbauen
-                var videoFilters = BuildVideoFilters(job, cropRegion, subtitlePath);
-                if (!string.IsNullOrEmpty(videoFilters))
+                if (hasLogo)
                 {
-                    options.WithCustomArgument($"-vf \"{videoFilters}\"");
+                    // Mit Logo: filter_complex verwenden
+                    var filterComplex = BuildFilterComplex(job, cropRegion, subtitlePath);
+                    if (!string.IsNullOrEmpty(filterComplex))
+                    {
+                        options.WithCustomArgument($"-filter_complex \"{filterComplex}\"");
+                        options.WithCustomArgument("-map \"[out]\" -map 0:a?");
+                    }
+                }
+                else
+                {
+                    // Ohne Logo: einfache Video-Filter
+                    var videoFilters = BuildVideoFilters(job, cropRegion, subtitlePath);
+                    if (!string.IsNullOrEmpty(videoFilters))
+                    {
+                        options.WithCustomArgument($"-vf \"{videoFilters}\"");
+                    }
                 }
 
                 // Video-Codec und Qualität
@@ -406,6 +434,53 @@ public sealed class ClipRenderService : IClipRenderService
         {
             return false;
         }
+    }
+
+    private static string BuildFilterComplex(
+        ClipRenderJob job,
+        CropRegionResult? cropRegion,
+        string? subtitlePath)
+    {
+        var sb = new StringBuilder();
+
+        // Hauptvideo-Verarbeitung
+        sb.Append("[0:v]");
+
+        // Crop/Scale für Portrait-Format
+        if (job.OutputWidth > 0 && job.OutputHeight > 0)
+        {
+            if (job.CropMode == CropMode.None || cropRegion is null)
+            {
+                sb.Append($"scale={job.OutputWidth}:{job.OutputHeight}:force_original_aspect_ratio=decrease,");
+                sb.Append($"pad={job.OutputWidth}:{job.OutputHeight}:(ow-iw)/2:(oh-ih)/2");
+            }
+            else
+            {
+                sb.Append(cropRegion.ToFfmpegCropFilter());
+                sb.Append(',');
+                sb.Append($"scale={job.OutputWidth}:{job.OutputHeight}:force_original_aspect_ratio=decrease,");
+                sb.Append($"pad={job.OutputWidth}:{job.OutputHeight}:(ow-iw)/2:(oh-ih)/2");
+            }
+        }
+
+        // Untertitel einbrennen
+        if (!string.IsNullOrEmpty(subtitlePath) && File.Exists(subtitlePath))
+        {
+            var escapedPath = subtitlePath
+                .Replace("\\", "/")
+                .Replace(":", "\\:");
+            sb.Append($",ass='{escapedPath}'");
+        }
+
+        sb.Append("[main];");
+
+        // Logo skalieren
+        sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
+
+        // Logo-Overlay (unten rechts mit Margin)
+        sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+
+        return sb.ToString();
     }
 
     private static string BuildVideoFilters(

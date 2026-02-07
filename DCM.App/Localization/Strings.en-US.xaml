@@ -939,6 +939,9 @@ Error: {1}</sys:String>
   <sys:String x:Key="Clipper.Settings.Preset.Middle">Middle</sys:String>
   <sys:String x:Key="Clipper.Settings.Preset.Bottom">Bottom</sys:String>
   <sys:String x:Key="Clipper.Settings.Preset.Reset">Reset</sys:String>
+  <sys:String x:Key="Clipper.Settings.Logo">Logo Overlay</sys:String>
+  <sys:String x:Key="Clipper.Settings.NoLogo">No logo selected</sys:String>
+  <sys:String x:Key="Clipper.Settings.SelectLogo">Select...</sys:String>
   <sys:String x:Key="Clipper.NotImplemented">This feature will be implemented in a later phase.</sys:String>
   <sys:String x:Key="Clipper.NoDraftSelected">Please select a draft first.</sys:String>
   <sys:String x:Key="Clipper.AlreadyRunning">Analysis already in progress...</sys:String>

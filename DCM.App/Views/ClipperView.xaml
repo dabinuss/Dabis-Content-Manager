@@ -352,10 +352,10 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="SubtitleFontSizeSlider"
                       Grid.Column="0"
-                      Minimum="24"
-                      Maximum="120"
-                      Value="72"
-                      TickFrequency="2"
+                      Minimum="48"
+                      Maximum="300"
+                      Value="96"
+                      TickFrequency="4"
                       IsSnapToTickEnabled="False"/>
               <TextBlock x:Name="SubtitleFontSizeValueText"
                          Grid.Column="1"
@@ -437,6 +437,45 @@
                       Style="{StaticResource TertiaryButton}"
                       Click="SubtitlePresetResetButton_Click"/>
             </UniformGrid>
+
+            <Separator Margin="0,14,0,12"/>
+
+            <!-- Logo Section -->
+            <TextBlock Text="{DynamicResource Clipper.Settings.Logo}"
+                       FontSize="{StaticResource FontSizeXS}"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <Grid Margin="0,8,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+
+              <TextBlock x:Name="LogoPathText"
+                         Grid.Column="0"
+                         Text="{DynamicResource Clipper.Settings.NoLogo}"
+                         FontSize="{StaticResource FontSizeXS}"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis"/>
+              <Button Grid.Column="1"
+                      Content="{DynamicResource Clipper.Settings.SelectLogo}"
+                      Style="{StaticResource TertiaryButton}"
+                      Margin="8,0,0,0"
+                      Padding="10,4"
+                      Click="SelectLogoButton_Click"/>
+              <Button x:Name="ClearLogoButton"
+                      Grid.Column="2"
+                      Style="{StaticResource TertiaryButton}"
+                      Margin="4,0,0,0"
+                      Padding="6,4"
+                      Visibility="Collapsed"
+                      Click="ClearLogoButton_Click">
+                <TextBlock Style="{StaticResource IconS}"
+                           Text="&#xe5cd;"/>
+              </Button>
+            </Grid>
             </StackPanel>
           </ScrollViewer>
         </Border>
@@ -453,44 +492,71 @@
                 <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
 
-              <Border Grid.Row="0"
-                      Background="Black"
-                      CornerRadius="{StaticResource RadiusM}">
-                <Grid>
-                  <MediaElement x:Name="PreviewMediaElement"
-                                LoadedBehavior="Manual"
-                                UnloadedBehavior="Stop"
-                                ScrubbingEnabled="True"
-                                Stretch="Uniform"
-                                MediaOpened="PreviewMediaElement_MediaOpened"
-                                MediaEnded="PreviewMediaElement_MediaEnded"/>
-                  <Image x:Name="PreviewFrameImage"
-                         Visibility="Collapsed"
-                         Stretch="Uniform"
-                         IsHitTestVisible="False"/>
-                  <Canvas x:Name="SubtitleOverlayCanvas"
-                          Background="Transparent"
-                          SizeChanged="SubtitleOverlayCanvas_SizeChanged"
-                          MouseLeftButtonDown="SubtitleOverlayCanvas_MouseLeftButtonDown"
-                          MouseMove="SubtitleOverlayCanvas_MouseMove"
-                          MouseLeftButtonUp="SubtitleOverlayCanvas_MouseLeftButtonUp">
-                    <Border x:Name="SubtitlePlacementPreview"
-                            Background="#66000000"
-                            BorderBrush="#CCFFFFFF"
-                            BorderThickness="1"
-                            Padding="8,4"
-                            CornerRadius="4"
-                            Cursor="SizeAll"
-                            Canvas.Left="0"
-                            Canvas.Top="0">
-                      <TextBlock Text="Aa"
-                                 FontSize="22"
-                                 Foreground="White"
-                                 FontWeight="Bold"/>
-                    </Border>
-                  </Canvas>
-                </Grid>
-              </Border>
+              <!-- Portrait Preview Container (9:16 Aspect Ratio) -->
+              <Grid Grid.Row="0" HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Container with 9:16 aspect ratio -->
+                <Border x:Name="PortraitPreviewBorder"
+                        Background="Black"
+                        CornerRadius="{StaticResource RadiusM}"
+                        MaxWidth="360"
+                        ClipToBounds="True">
+                  <Grid>
+                    <!-- Viewbox for 9:16 aspect ratio -->
+                    <Viewbox Stretch="Uniform" StretchDirection="Both">
+                      <Border Width="1080" Height="1920" Background="Black">
+                        <Grid>
+                          <!-- Portrait Preview Frame (shown when paused) -->
+                          <Image x:Name="CroppedPreviewImage"
+                                 Stretch="Uniform"/>
+
+                          <!-- Video Playback (shown during play) -->
+                          <MediaElement x:Name="PreviewMediaElement"
+                                        LoadedBehavior="Manual"
+                                        UnloadedBehavior="Stop"
+                                        ScrubbingEnabled="True"
+                                        Stretch="UniformToFill"
+                                        Visibility="Collapsed"
+                                        MediaOpened="PreviewMediaElement_MediaOpened"
+                                        MediaEnded="PreviewMediaElement_MediaEnded"/>
+
+                          <!-- Subtitle Overlay -->
+                          <Canvas x:Name="SubtitleOverlayCanvas"
+                                  Background="Transparent"
+                                  SizeChanged="SubtitleOverlayCanvas_SizeChanged"
+                                  MouseLeftButtonDown="SubtitleOverlayCanvas_MouseLeftButtonDown"
+                                  MouseMove="SubtitleOverlayCanvas_MouseMove"
+                                  MouseLeftButtonUp="SubtitleOverlayCanvas_MouseLeftButtonUp">
+                            <Border x:Name="SubtitlePlacementPreview"
+                                    Background="#66000000"
+                                    BorderBrush="#CCFFFFFF"
+                                    BorderThickness="1"
+                                    Padding="8,4"
+                                    CornerRadius="4"
+                                    Cursor="SizeAll"
+                                    Canvas.Left="0"
+                                    Canvas.Top="0">
+                              <TextBlock Text="Aa"
+                                         FontSize="22"
+                                         Foreground="White"
+                                         FontWeight="Bold"/>
+                            </Border>
+                          </Canvas>
+                        </Grid>
+                      </Border>
+                    </Viewbox>
+                  </Grid>
+                </Border>
+
+                <!-- Fallback frame image (not used anymore, kept for compatibility) -->
+                <Image x:Name="PreviewFrameImage"
+                       Visibility="Collapsed"
+                       Stretch="Uniform"
+                       IsHitTestVisible="False"/>
+              </Grid>
 
               <!-- Controls -->
               <Grid Grid.Row="1" Margin="0,12,0,0">

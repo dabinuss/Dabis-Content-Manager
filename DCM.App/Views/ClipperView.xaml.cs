@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,8 +13,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using DCM.App.Models;
+using DCM.App.Services;
 using DCM.Core;
 using DCM.Core.Models;
+using DCM.Core.Services;
 
 namespace DCM.App.Views;
 
@@ -38,10 +41,23 @@ public partial class ClipperView : UserControl
     private int _previewPrefetchVersion;
     private string? _ffmpegPath;
     private readonly Dictionary<string, BitmapSource> _previewFrameCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, BitmapSource> _portraitPreviewCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, CropRegionResult> _faceDetectionCache = new(StringComparer.OrdinalIgnoreCase);
     private List<ClipCandidate> _currentCandidates = new();
     private readonly Dictionary<Guid, ClipperSettings> _candidateSettings = new();
     private ClipperSettings _defaultClipperSettings = new();
     private ClipCandidate? _editingCandidate;
+    private string? _logoPath;
+    private int _portraitPreviewVersion;
+    private readonly IFaceDetectionService _faceDetectionService = new FaceAiSharpDetectionService();
+    private CancellationTokenSource? _faceDetectionCts;
+    private CropRegionResult? _currentCropRegion;
+
+    // Kontinuierlicher FFmpeg-Prozess für Echtzeit-Preview
+    private Process? _ffmpegPreviewProcess;
+    private CancellationTokenSource? _ffmpegPreviewCts;
+    private Task? _ffmpegFrameReaderTask;
+    private readonly object _ffmpegLock = new();
 
     public ClipperView()
     {
@@ -522,7 +538,7 @@ public partial class ClipperView : UserControl
 
     private void StartPlayback()
     {
-        if (_currentPreviewCandidate is null || !_isMediaReady)
+        if (_currentPreviewCandidate is null || !_isMediaReady || string.IsNullOrWhiteSpace(_currentVideoPath))
         {
             return;
         }
@@ -534,7 +550,11 @@ public partial class ClipperView : UserControl
             _restartFromClipStartOnNextPlay = false;
         }
 
+        // Starte kontinuierlichen FFmpeg-Preview-Prozess
+        StartFfmpegPreviewProcess(_currentVideoPath, _currentPreviewCandidate.Start, _currentPreviewCandidate.End);
+
         PreviewFrameImage.Visibility = Visibility.Collapsed;
+
         _isPlaying = true;
         PreviewMediaElement.Play();
         _previewTimer.Start();
@@ -546,10 +566,8 @@ public partial class ClipperView : UserControl
         _isPlaying = false;
         PreviewMediaElement.Pause();
         _previewTimer.Stop();
-        if (PreviewFrameImage.Source is not null)
-        {
-            PreviewFrameImage.Visibility = Visibility.Visible;
-        }
+        StopFfmpegPreviewProcess();
+
         UpdatePlayButtonIcon(false);
     }
 
@@ -559,6 +577,7 @@ public partial class ClipperView : UserControl
         _isPlaying = false;
         _previewTimer.Stop();
         PreviewMediaElement.Pause();
+        StopFfmpegPreviewProcess();
 
         if (_currentPreviewCandidate is not null && _isMediaReady)
         {
@@ -567,10 +586,6 @@ public partial class ClipperView : UserControl
 
         PreviewCurrentTimeText.Text = "0:00";
         PreviewProgressSlider.Value = 0;
-        if (PreviewFrameImage.Source is not null)
-        {
-            PreviewFrameImage.Visibility = Visibility.Visible;
-        }
         UpdatePlayButtonIcon(false);
     }
 
@@ -582,7 +597,9 @@ public partial class ClipperView : UserControl
         _isPlaying = false;
         _isMediaReady = false;
         _previewTimer.Stop();
+        StopFfmpegPreviewProcess();
         _currentPreviewCandidate = null;
+        _currentCropRegion = null;
         _loadedVideoPath = null;
         _seekPendingAfterMediaOpen = false;
         _restartFromClipStartOnNextPlay = false;
@@ -597,6 +614,7 @@ public partial class ClipperView : UserControl
             // Ignorieren
         }
 
+        CroppedPreviewImage.Source = null;
         PreviewFrameImage.Source = null;
         PreviewFrameImage.Visibility = Visibility.Collapsed;
     }
@@ -620,6 +638,18 @@ public partial class ClipperView : UserControl
     {
         UpdateManualCropUi();
         CommitClipperSettingsChange();
+        RefreshPortraitPreview();
+    }
+
+    private void RefreshPortraitPreview()
+    {
+        if (_currentPreviewCandidate is null || string.IsNullOrWhiteSpace(_currentVideoPath))
+        {
+            return;
+        }
+
+        // Portrait-Preview mit neuen Crop-Einstellungen neu laden
+        LoadClipStartFramePreviewAsync(_currentVideoPath, _currentPreviewCandidate.Start);
     }
 
     private void UpdateManualCropUi()
@@ -656,6 +686,12 @@ public partial class ClipperView : UserControl
     {
         UpdateSettingsValueLabels();
         CommitClipperSettingsChange();
+
+        // Portrait-Preview nur bei größeren Änderungen aktualisieren (Debounce)
+        if (GetSelectedCropMode() == CropMode.Manual && Math.Abs(e.NewValue - e.OldValue) > 0.05)
+        {
+            RefreshPortraitPreview();
+        }
     }
 
     private void SubtitleOverlayCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -796,6 +832,46 @@ public partial class ClipperView : UserControl
     private void SubtitlePresetBottomButton_Click(object sender, RoutedEventArgs e) => ApplySubtitlePreset(0.5, 0.78);
 
     private void SubtitlePresetResetButton_Click(object sender, RoutedEventArgs e) => ApplySubtitlePreset(0.5, 0.70);
+
+    private void SelectLogoButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Logo auswählen",
+            Filter = "Bilder (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|Alle Dateien (*.*)|*.*",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            SetLogoPath(dialog.FileName);
+            CommitClipperSettingsChange();
+        }
+    }
+
+    private void ClearLogoButton_Click(object sender, RoutedEventArgs e)
+    {
+        SetLogoPath(null);
+        CommitClipperSettingsChange();
+    }
+
+    private void SetLogoPath(string? path)
+    {
+        _logoPath = path;
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            LogoPathText.Text = (string)FindResource("Clipper.Settings.NoLogo");
+            ClearLogoButton.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            LogoPathText.Text = System.IO.Path.GetFileName(path);
+            ClearLogoButton.Visibility = Visibility.Visible;
+        }
+    }
+
+    public string? LogoPath => _logoPath;
 
     private void ApplySubtitlePreset(double x, double y)
     {
@@ -980,36 +1056,275 @@ public partial class ClipperView : UserControl
     {
         if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
         {
+            CroppedPreviewImage.Source = null;
             PreviewFrameImage.Source = null;
             PreviewFrameImage.Visibility = Visibility.Collapsed;
+            _currentCropRegion = null;
             return;
         }
 
-        var cacheKey = BuildPreviewCacheKey(videoPath, clipStart);
-        if (_previewFrameCache.TryGetValue(cacheKey, out var cached))
+        // Cancel any ongoing face detection
+        _faceDetectionCts?.Cancel();
+        _faceDetectionCts = new CancellationTokenSource();
+        var ct = _faceDetectionCts.Token;
+
+        var cropMode = GetSelectedCropMode();
+        var manualOffset = ManualCropOffsetSlider.Value;
+        var clipEnd = _currentPreviewCandidate?.End ?? clipStart + TimeSpan.FromSeconds(30);
+
+        // Cache-Key für Portrait-Preview (inkl. Face-Detection)
+        var portraitCacheKey = BuildPortraitPreviewCacheKey(videoPath, clipStart, cropMode, manualOffset);
+
+        if (_portraitPreviewCache.TryGetValue(portraitCacheKey, out var cachedPortrait))
         {
-            PreviewFrameImage.Source = cached;
-            if (!_isPlaying)
+            CroppedPreviewImage.Source = cachedPortrait;
+            return;
+        }
+
+        var requestVersion = ++_portraitPreviewVersion;
+
+        try
+        {
+            // Für AutoDetect: Face-Detection ausführen
+            CropRegionResult? cropRegion = null;
+            if (cropMode == CropMode.AutoDetect && _faceDetectionService.IsAvailable)
             {
-                PreviewFrameImage.Visibility = Visibility.Visible;
+                // Prüfen ob Face-Detection bereits gecached ist
+                var faceDetectionKey = BuildFaceDetectionCacheKey(videoPath, clipStart, clipEnd);
+                if (!_faceDetectionCache.TryGetValue(faceDetectionKey, out cropRegion))
+                {
+                    // Video-Dimensionen holen
+                    var (sourceWidth, sourceHeight) = await Task.Run(() => GetVideoDimensions(videoPath), ct);
+
+                    if (sourceWidth > 0 && sourceHeight > 0)
+                    {
+                        // Face-Detection ausführen
+                        var analyses = await _faceDetectionService.AnalyzeVideoAsync(
+                            videoPath,
+                            TimeSpan.FromSeconds(FaceDetectionDefaults.SampleIntervalSeconds),
+                            clipStart,
+                            clipEnd,
+                            ct);
+
+                        if (analyses.Count > 0)
+                        {
+                            cropRegion = _faceDetectionService.CalculateCropRegion(
+                                analyses,
+                                new PixelSize(sourceWidth, sourceHeight),
+                                new PixelSize(1080, 1920),
+                                CropStrategy.MultipleFaces);
+
+                            _faceDetectionCache[faceDetectionKey] = cropRegion;
+                        }
+                    }
+                }
             }
-            return;
+
+            if (ct.IsCancellationRequested || requestVersion != _portraitPreviewVersion)
+            {
+                return;
+            }
+
+            // Speichere Crop-Region für Wiedergabe-Frames
+            _currentCropRegion = cropRegion;
+
+            // Frame mit Crop-Region extrahieren
+            var portraitBitmap = await Task.Run(() =>
+                ExtractPortraitFrameBitmapWithCropRegion(videoPath, clipStart, cropMode, manualOffset, cropRegion), ct);
+
+            if (ct.IsCancellationRequested || requestVersion != _portraitPreviewVersion)
+            {
+                return;
+            }
+
+            if (portraitBitmap is not null)
+            {
+                _portraitPreviewCache[portraitCacheKey] = portraitBitmap;
+                CroppedPreviewImage.Source = portraitBitmap;
+            }
         }
-
-        var requestVersion = ++_previewFrameRequestVersion;
-        var bitmap = await Task.Run(() => ExtractFrameBitmap(videoPath, clipStart));
-
-        if (requestVersion != _previewFrameRequestVersion || bitmap is null)
+        catch (OperationCanceledException)
         {
-            return;
+            // Abgebrochen - ignorieren
+        }
+        catch
+        {
+            // Fallback bei Fehler
+        }
+    }
+
+    private static string BuildPortraitPreviewCacheKey(string videoPath, TimeSpan timestamp, CropMode cropMode, double manualOffset)
+    {
+        var ms = (long)Math.Round(timestamp.TotalMilliseconds, MidpointRounding.AwayFromZero);
+        var offsetInt = (int)Math.Round(manualOffset * 100);
+        return $"{videoPath}|{ms}|portrait|{cropMode}|{offsetInt}";
+    }
+
+    private static string BuildFaceDetectionCacheKey(string videoPath, TimeSpan clipStart, TimeSpan clipEnd)
+    {
+        var startMs = (long)Math.Round(clipStart.TotalMilliseconds, MidpointRounding.AwayFromZero);
+        var endMs = (long)Math.Round(clipEnd.TotalMilliseconds, MidpointRounding.AwayFromZero);
+        return $"{videoPath}|face|{startMs}|{endMs}";
+    }
+
+    private (int width, int height) GetVideoDimensions(string videoPath)
+    {
+        var ffmpegPath = FindFfmpeg();
+        if (string.IsNullOrWhiteSpace(ffmpegPath))
+        {
+            return (0, 0);
         }
 
-        _previewFrameCache[cacheKey] = bitmap;
-        PreviewFrameImage.Source = bitmap;
-        if (!_isPlaying)
+        var ffprobePath = Path.Combine(Path.GetDirectoryName(ffmpegPath) ?? "", "ffprobe.exe");
+        if (!File.Exists(ffprobePath))
         {
-            PreviewFrameImage.Visibility = Visibility.Visible;
+            return (1920, 1080); // Default fallback
         }
+
+        try
+        {
+            var probeInfo = new ProcessStartInfo
+            {
+                FileName = ffprobePath,
+                Arguments = $"-v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 \"{videoPath}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true
+            };
+
+            using var probeProcess = Process.Start(probeInfo);
+            if (probeProcess is not null)
+            {
+                var output = probeProcess.StandardOutput.ReadToEnd();
+                probeProcess.WaitForExit(3000);
+                var parts = output.Trim().Split(',');
+                if (parts.Length >= 2 &&
+                    int.TryParse(parts[0], out var w) &&
+                    int.TryParse(parts[1], out var h))
+                {
+                    return (w, h);
+                }
+            }
+        }
+        catch
+        {
+            // Ignore
+        }
+
+        return (1920, 1080);
+    }
+
+    private BitmapImage? ExtractPortraitFrameBitmapWithCropRegion(
+        string videoPath,
+        TimeSpan timestamp,
+        CropMode cropMode,
+        double manualOffset,
+        CropRegionResult? faceDetectionCropRegion)
+    {
+        var ffmpegPath = FindFfmpeg();
+        if (string.IsNullOrWhiteSpace(ffmpegPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var seconds = timestamp.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
+            var (sourceWidth, sourceHeight) = GetVideoDimensions(videoPath);
+
+            string cropFilter;
+            if (cropMode == CropMode.AutoDetect && faceDetectionCropRegion is not null)
+            {
+                // Use face-detection crop region
+                cropFilter = faceDetectionCropRegion.ToFfmpegCropFilter();
+            }
+            else
+            {
+                // Calculate crop filter based on mode
+                cropFilter = CalculateCropFilter(sourceWidth, sourceHeight, cropMode, manualOffset);
+            }
+
+            // FFmpeg-Argumente für Portrait-Frame
+            var filterChain = string.IsNullOrEmpty(cropFilter)
+                ? "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black"
+                : $"{cropFilter},scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black";
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = ffmpegPath,
+                Arguments = $"-hide_banner -loglevel error -ss {seconds} -i \"{videoPath}\" -frames:v 1 -vf \"{filterChain}\" -f image2pipe -vcodec mjpeg pipe:1",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true
+            };
+
+            using var process = Process.Start(startInfo);
+            if (process is null)
+            {
+                return null;
+            }
+
+            using var stream = process.StandardOutput.BaseStream;
+            using var imageStream = new MemoryStream();
+            stream.CopyTo(imageStream);
+            process.WaitForExit(10000);
+            if (process.ExitCode != 0 || imageStream.Length == 0)
+            {
+                return null;
+            }
+
+            imageStream.Position = 0;
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.StreamSource = imageStream;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string CalculateCropFilter(int sourceWidth, int sourceHeight, CropMode cropMode, double manualOffset)
+    {
+        if (cropMode == CropMode.None)
+        {
+            return string.Empty;
+        }
+
+        // Berechne Crop-Breite für 9:16 aus der Quellhöhe
+        var targetRatio = 9.0 / 16.0;
+        var cropWidth = (int)Math.Round(sourceHeight * targetRatio);
+
+        if (cropWidth >= sourceWidth)
+        {
+            // Video ist bereits schmal genug, kein Crop nötig
+            return string.Empty;
+        }
+
+        int cropX;
+        switch (cropMode)
+        {
+            case CropMode.Center:
+                cropX = (sourceWidth - cropWidth) / 2;
+                break;
+            case CropMode.Manual:
+                var maxShift = (sourceWidth - cropWidth) / 2.0;
+                var centerX = sourceWidth / 2.0 + Math.Clamp(manualOffset, -1.0, 1.0) * maxShift;
+                cropX = (int)Math.Round(centerX - cropWidth / 2.0);
+                cropX = Math.Clamp(cropX, 0, sourceWidth - cropWidth);
+                break;
+            case CropMode.AutoDetect:
+            default:
+                // Für AutoDetect ohne Face-Detection: Center als Fallback
+                cropX = (sourceWidth - cropWidth) / 2;
+                break;
+        }
+
+        return $"crop={cropWidth}:{sourceHeight}:{cropX}:0";
     }
 
     private BitmapImage? ExtractFrameBitmap(string videoPath, TimeSpan timestamp)
@@ -1187,6 +1502,212 @@ public partial class ClipperView : UserControl
 
             _previewFrameCache[key] = bitmap;
         }
+    }
+
+    /// <summary>
+    /// Startet einen kontinuierlichen FFmpeg-Prozess der Frames mit Crop als MJPEG-Stream ausgibt.
+    /// </summary>
+    private void StartFfmpegPreviewProcess(string videoPath, TimeSpan start, TimeSpan end)
+    {
+        StopFfmpegPreviewProcess();
+
+        var ffmpegPath = FindFfmpeg();
+        if (string.IsNullOrWhiteSpace(ffmpegPath))
+        {
+            return;
+        }
+
+        var cropMode = GetSelectedCropMode();
+        var manualOffset = ManualCropOffsetSlider.Value;
+        var cropRegion = _currentCropRegion;
+
+        string cropFilter;
+        if (cropMode == CropMode.AutoDetect && cropRegion is not null)
+        {
+            cropFilter = cropRegion.ToFfmpegCropFilter();
+        }
+        else
+        {
+            var (sourceWidth, sourceHeight) = GetVideoDimensions(videoPath);
+            cropFilter = CalculateCropFilter(sourceWidth, sourceHeight, cropMode, manualOffset);
+        }
+
+        // Filter-Chain: Crop + Scale auf 360x640 (klein für Performance)
+        var filterChain = string.IsNullOrEmpty(cropFilter)
+            ? "scale=360:640:flags=fast_bilinear"
+            : $"{cropFilter},scale=360:640:flags=fast_bilinear";
+
+        var startSeconds = start.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
+        var duration = (end - start).TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
+
+        // FFmpeg: Kontinuierlicher MJPEG-Stream mit 24 FPS
+        var args = $"-hide_banner -loglevel error -ss {startSeconds} -t {duration} -i \"{videoPath}\" " +
+                   $"-vf \"{filterChain},fps=24\" -f image2pipe -vcodec mjpeg -q:v 8 pipe:1";
+
+        _ffmpegPreviewCts = new CancellationTokenSource();
+        var ct = _ffmpegPreviewCts.Token;
+
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = ffmpegPath,
+                Arguments = args,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            lock (_ffmpegLock)
+            {
+                _ffmpegPreviewProcess = Process.Start(startInfo);
+            }
+
+            if (_ffmpegPreviewProcess is null)
+            {
+                return;
+            }
+
+            // Starte Task zum Lesen der Frames
+            _ffmpegFrameReaderTask = Task.Run(() => ReadFfmpegFramesAsync(_ffmpegPreviewProcess, ct), ct);
+        }
+        catch
+        {
+            StopFfmpegPreviewProcess();
+        }
+    }
+
+    private async Task ReadFfmpegFramesAsync(Process process, CancellationToken ct)
+    {
+        const int TargetFps = 24;
+        const int FrameIntervalMs = 1000 / TargetFps; // ~42ms pro Frame
+
+        try
+        {
+            using var stream = process.StandardOutput.BaseStream;
+            var buffer = new byte[1024 * 1024]; // 1MB Buffer
+            var frameBuffer = new MemoryStream();
+            var lastFrameTime = DateTime.UtcNow;
+
+            while (!ct.IsCancellationRequested && !process.HasExited)
+            {
+                var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, ct);
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+
+                // Schreibe in Frame-Buffer
+                frameBuffer.Write(buffer, 0, bytesRead);
+
+                // Suche nach JPEG-Ende-Marker (FFD9)
+                var data = frameBuffer.ToArray();
+                var frameEnd = FindJpegEndMarker(data);
+
+                while (frameEnd >= 0)
+                {
+                    // Warte bis genug Zeit für nächstes Frame vergangen ist (Echtzeit-Sync)
+                    var elapsed = (DateTime.UtcNow - lastFrameTime).TotalMilliseconds;
+                    if (elapsed < FrameIntervalMs)
+                    {
+                        await Task.Delay((int)(FrameIntervalMs - elapsed), ct);
+                    }
+                    lastFrameTime = DateTime.UtcNow;
+
+                    // Extrahiere Frame
+                    var frameData = new byte[frameEnd + 2];
+                    Array.Copy(data, frameData, frameEnd + 2);
+
+                    // Zeige Frame auf UI-Thread
+                    if (!ct.IsCancellationRequested)
+                    {
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            if (_isPlaying && !ct.IsCancellationRequested)
+                            {
+                                try
+                                {
+                                    using var ms = new MemoryStream(frameData);
+                                    var bitmap = new BitmapImage();
+                                    bitmap.BeginInit();
+                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                    bitmap.StreamSource = ms;
+                                    bitmap.EndInit();
+                                    bitmap.Freeze();
+                                    CroppedPreviewImage.Source = bitmap;
+                                    CroppedPreviewImage.Visibility = Visibility.Visible;
+                                }
+                                catch
+                                {
+                                    // Ignoriere fehlerhafte Frames
+                                }
+                            }
+                        }, System.Windows.Threading.DispatcherPriority.Render, ct);
+                    }
+
+                    // Entferne verarbeiteten Frame aus Buffer
+                    var remaining = data.Length - frameEnd - 2;
+                    frameBuffer = new MemoryStream();
+                    if (remaining > 0)
+                    {
+                        frameBuffer.Write(data, frameEnd + 2, remaining);
+                    }
+
+                    data = frameBuffer.ToArray();
+                    frameEnd = FindJpegEndMarker(data);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal bei Stop
+        }
+        catch
+        {
+            // Ignoriere Fehler
+        }
+    }
+
+    private static int FindJpegEndMarker(byte[] data)
+    {
+        // JPEG endet mit FFD9
+        for (int i = 0; i < data.Length - 1; i++)
+        {
+            if (data[i] == 0xFF && data[i + 1] == 0xD9)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void StopFfmpegPreviewProcess()
+    {
+        _ffmpegPreviewCts?.Cancel();
+
+        lock (_ffmpegLock)
+        {
+            if (_ffmpegPreviewProcess is not null)
+            {
+                try
+                {
+                    if (!_ffmpegPreviewProcess.HasExited)
+                    {
+                        _ffmpegPreviewProcess.Kill();
+                    }
+                    _ffmpegPreviewProcess.Dispose();
+                }
+                catch
+                {
+                    // Ignorieren
+                }
+                _ffmpegPreviewProcess = null;
+            }
+        }
+
+        _ffmpegPreviewCts?.Dispose();
+        _ffmpegPreviewCts = null;
     }
 }
 

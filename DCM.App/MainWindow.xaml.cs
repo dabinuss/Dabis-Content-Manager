@@ -3936,6 +3936,9 @@ public partial class MainWindow : Window
                 .Select(c => _clipRenderService.CreateJobFromCandidate(c, draft.VideoPath, outputFolder, convertToPortrait: true))
                 .ToList();
 
+            // Logo-Pfad aus der ClipperView holen
+            var logoPath = ClipperPageView.LogoPath;
+
             foreach (var job in jobs)
             {
                 var effectiveSettings = job.Candidate is not null
@@ -3950,6 +3953,11 @@ public partial class MainWindow : Window
                 job.OutputHeight = effectiveSettings.OutputHeight;
                 job.VideoQuality = effectiveSettings.VideoQuality;
                 job.AudioBitrate = effectiveSettings.AudioBitrate;
+
+                // Logo-Pfad setzen (aus UI oder Default-Settings)
+                job.LogoPath = !string.IsNullOrWhiteSpace(logoPath)
+                    ? logoPath
+                    : effectiveSettings.DefaultLogoPath;
             }
 
             _logger.Info($"Starte Rendering von {jobs.Count} Clips", "Clipper");

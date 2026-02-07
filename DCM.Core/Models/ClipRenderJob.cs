@@ -124,6 +124,23 @@ public sealed class ClipRenderJob
     /// Audio-Bitrate in kbps.
     /// </summary>
     public int AudioBitrate { get; set; } = 192;
+
+    /// <summary>
+    /// Optionaler Pfad zu einem Logo-Bild für Overlay.
+    /// </summary>
+    public string? LogoPath { get; set; }
+
+    /// <summary>
+    /// Logo-Größe in Pixeln (Breite). Höhe wird proportional skaliert.
+    /// Standard: 80 Pixel.
+    /// </summary>
+    public int LogoSize { get; set; } = 80;
+
+    /// <summary>
+    /// Abstand des Logos vom Rand in Pixeln.
+    /// Standard: 30 Pixel.
+    /// </summary>
+    public int LogoMargin { get; set; } = 30;
 }
 
 /// <summary>
