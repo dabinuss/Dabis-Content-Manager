@@ -43,6 +43,8 @@ public partial class ClipperView : UserControl
     private readonly Dictionary<string, BitmapSource> _previewFrameCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, BitmapSource> _portraitPreviewCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, CropRegionResult> _faceDetectionCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, IReadOnlyList<SplitFaceAnchor>> _splitFaceAnchorCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _splitFaceAutoSelectionProcessedKeys = new(StringComparer.OrdinalIgnoreCase);
     private List<ClipCandidate> _currentCandidates = new();
     private readonly Dictionary<Guid, ClipperSettings> _candidateSettings = new();
     private ClipperSettings _defaultClipperSettings = new();
@@ -829,10 +831,6 @@ public partial class ClipperView : UserControl
         }
 
         SetSplitRegion(_activeSplitRegion, updated.ClampToCanvas(0.05, 1.0));
-        if (_splitDuoMode)
-        {
-            SyncSplitDividerRatioFromRegions();
-        }
         UpdateSplitSelectionOverlay();
         UpdateSplitPortraitPreview();
     }
@@ -950,15 +948,19 @@ public partial class ClipperView : UserControl
         var primary = _splitPrimaryRegion.Clone();
         var secondary = _splitSecondaryRegion.Clone();
 
-        primary.Y = 0.0;
-        primary.Height = ratio;
-        primary.X = Math.Clamp(primary.X, 0.0, 1.0 - primary.Width);
-        primary.ClampToCanvas(0.05, 1.0);
+        const double minSize = 0.05;
+        var totalHeight = Math.Clamp(primary.Height + secondary.Height, minSize * 2.0, 1.8);
+        var desiredPrimaryHeight = Math.Clamp(totalHeight * ratio, minSize, 1.0);
+        var desiredSecondaryHeight = Math.Clamp(totalHeight - desiredPrimaryHeight, minSize, 1.0);
 
-        secondary.Y = ratio;
-        secondary.Height = 1.0 - ratio;
-        secondary.X = Math.Clamp(secondary.X, 0.0, 1.0 - secondary.Width);
-        secondary.ClampToCanvas(0.05, 1.0);
+        if (desiredPrimaryHeight + desiredSecondaryHeight < minSize * 2.0)
+        {
+            desiredPrimaryHeight = ratio;
+            desiredSecondaryHeight = 1.0 - ratio;
+        }
+
+        primary = ResizeRegionKeepingCenter(primary, desiredPrimaryHeight);
+        secondary = ResizeRegionKeepingCenter(secondary, desiredSecondaryHeight);
 
         _splitDividerRatio = ratio;
         _splitPrimaryRegion = primary;
@@ -993,6 +995,18 @@ public partial class ClipperView : UserControl
     private static double ClampSplitDividerRatio(double ratio)
     {
         return Math.Clamp(ratio, MinSplitDividerRatio, MaxSplitDividerRatio);
+    }
+
+    private static NormalizedRect ResizeRegionKeepingCenter(NormalizedRect region, double newHeight)
+    {
+        var safe = (region ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        var targetHeight = Math.Clamp(newHeight, 0.05, 1.0);
+        var centerY = safe.Y + (safe.Height / 2.0);
+
+        safe.Height = targetHeight;
+        safe.Y = centerY - (targetHeight / 2.0);
+        safe.X = Math.Clamp(safe.X, 0.0, 1.0 - safe.Width);
+        return safe.ClampToCanvas(0.05, 1.0);
     }
 
     private void UpdateSplitSelectionOverlay()
@@ -1073,22 +1087,59 @@ public partial class ClipperView : UserControl
             return false;
         }
 
-        resizeCorner = SplitResizeCorner.None;
+        var primaryHit = TryHitSingleRegion(point, _splitPrimaryRegion, out var primaryCorner);
+        var secondaryCorner = SplitResizeCorner.None;
+        var secondaryHit = _splitDuoMode && TryHitSingleRegion(point, _splitSecondaryRegion, out secondaryCorner);
 
-        if (_splitDuoMode && TryHitSingleRegion(point, _splitSecondaryRegion, out resizeCorner))
+        if (!primaryHit && !secondaryHit)
         {
-            region = SplitRegionTarget.Secondary;
+            resizeCorner = SplitResizeCorner.None;
+            region = SplitRegionTarget.Primary;
+            return false;
+        }
+
+        if (primaryHit && !secondaryHit)
+        {
+            region = SplitRegionTarget.Primary;
+            resizeCorner = primaryCorner;
             return true;
         }
 
-        if (TryHitSingleRegion(point, _splitPrimaryRegion, out resizeCorner))
+        if (secondaryHit && !primaryHit)
+        {
+            region = SplitRegionTarget.Secondary;
+            resizeCorner = secondaryCorner;
+            return true;
+        }
+
+        // Beide Regionen getroffen: priorisiere aktive Region, außer nur eine hat einen Resize-Hit.
+        var primaryIsResize = primaryCorner != SplitResizeCorner.None;
+        var secondaryIsResize = secondaryCorner != SplitResizeCorner.None;
+
+        if (primaryIsResize && !secondaryIsResize)
         {
             region = SplitRegionTarget.Primary;
+            resizeCorner = primaryCorner;
+            return true;
+        }
+
+        if (secondaryIsResize && !primaryIsResize)
+        {
+            region = SplitRegionTarget.Secondary;
+            resizeCorner = secondaryCorner;
+            return true;
+        }
+
+        if (_activeSplitRegion == SplitRegionTarget.Secondary)
+        {
+            region = SplitRegionTarget.Secondary;
+            resizeCorner = secondaryCorner;
             return true;
         }
 
         region = SplitRegionTarget.Primary;
-        return false;
+        resizeCorner = primaryCorner;
+        return true;
     }
 
     private bool TryHitSingleRegion(Point point, NormalizedRect region, out SplitResizeCorner resizeCorner)
@@ -1907,9 +1958,33 @@ public partial class ClipperView : UserControl
             _currentCropRegion = null;
             _splitSourceFrame = sourceFrame;
             SplitSourceImage.Source = sourceFrame;
+            var autoSelectionKey = BuildSplitFaceAutoSelectionKey(videoPath, clipStart);
+            var shouldRunAutoSelection = ShouldRunInitialSplitAutoSelection(autoSelectionKey);
+            var selectionApplied = false;
+
+            if (shouldRunAutoSelection && sourceFrame is not null)
+            {
+                ApplyNeutralSplitInitialSelection(sourceFrame);
+                selectionApplied = true;
+
+                var autoApplied = await TryApplyAutoSplitFaceSelectionAsync(
+                    videoPath,
+                    clipStart,
+                    clipEnd,
+                    sourceFrame,
+                    ct);
+                selectionApplied = selectionApplied || autoApplied;
+            }
+
             UpdatePreviewModePanels();
             UpdateSplitSelectionOverlay();
             UpdateSplitPortraitPreview();
+
+            if (selectionApplied)
+            {
+                CommitClipperSettingsChange();
+            }
+
             return;
         }
 
@@ -2012,6 +2087,321 @@ public partial class ClipperView : UserControl
         var startMs = (long)Math.Round(clipStart.TotalMilliseconds, MidpointRounding.AwayFromZero);
         var endMs = (long)Math.Round(clipEnd.TotalMilliseconds, MidpointRounding.AwayFromZero);
         return $"{videoPath}|face|{startMs}|{endMs}";
+    }
+
+    private string BuildSplitFaceAutoSelectionKey(string videoPath, TimeSpan clipStart)
+    {
+        var startMs = (long)Math.Round(clipStart.TotalMilliseconds, MidpointRounding.AwayFromZero);
+        var candidateKey = _editingCandidate?.Id.ToString("N") ?? "none";
+        return $"{videoPath}|split-face-auto|{candidateKey}|{startMs}";
+    }
+
+    private static string BuildSplitFaceAnchorCacheKey(string videoPath, TimeSpan clipStart, TimeSpan clipEnd)
+    {
+        var startMs = (long)Math.Round(clipStart.TotalMilliseconds, MidpointRounding.AwayFromZero);
+        var endMs = (long)Math.Round(clipEnd.TotalMilliseconds, MidpointRounding.AwayFromZero);
+        return $"{videoPath}|split-face-anchors|{startMs}|{endMs}";
+    }
+
+    private bool ShouldRunInitialSplitAutoSelection(string autoSelectionKey)
+    {
+        if (_splitFaceAutoSelectionProcessedKeys.Contains(autoSelectionKey))
+        {
+            return false;
+        }
+
+        return _editingCandidate is not null
+            && !_candidateSettings.ContainsKey(_editingCandidate.Id);
+    }
+
+    private void ApplyNeutralSplitInitialSelection(BitmapSource sourceFrame)
+    {
+        var sourceAspect = sourceFrame.PixelHeight > 0
+            ? (double)sourceFrame.PixelWidth / sourceFrame.PixelHeight
+            : (16.0 / 9.0);
+
+        if (_splitDuoMode)
+        {
+            var topShare = ClampSplitDividerRatio(_splitDividerRatio);
+            var bottomShare = 1.0 - topShare;
+
+            var topAnchor = new SplitFaceAnchor(0.50, 0.34, 0.15, 0.20, 0);
+            var bottomAnchor = new SplitFaceAnchor(0.50, 0.66, 0.15, 0.20, 0);
+            _splitPrimaryRegion = CreateSplitRegionFromFaceAnchor(topAnchor, sourceAspect, topShare);
+            _splitSecondaryRegion = CreateSplitRegionFromFaceAnchor(bottomAnchor, sourceAspect, bottomShare);
+            return;
+        }
+
+        var soloAnchor = new SplitFaceAnchor(0.50, 0.50, 0.16, 0.22, 0);
+        _splitPrimaryRegion = CreateSplitRegionFromFaceAnchor(soloAnchor, sourceAspect, 1.0);
+    }
+
+    private async Task<bool> TryApplyAutoSplitFaceSelectionAsync(
+        string videoPath,
+        TimeSpan clipStart,
+        TimeSpan clipEnd,
+        BitmapSource sourceFrame,
+        CancellationToken ct)
+    {
+        var autoSelectionKey = BuildSplitFaceAutoSelectionKey(videoPath, clipStart);
+        if (_splitFaceAutoSelectionProcessedKeys.Contains(autoSelectionKey))
+        {
+            return false;
+        }
+
+        if (_editingCandidate is null || _candidateSettings.ContainsKey(_editingCandidate.Id))
+        {
+            _splitFaceAutoSelectionProcessedKeys.Add(autoSelectionKey);
+            return false;
+        }
+
+        if (!_faceDetectionService.IsAvailable)
+        {
+            _splitFaceAutoSelectionProcessedKeys.Add(autoSelectionKey);
+            return false;
+        }
+
+        var quickDetectionEnd = clipStart + TimeSpan.FromSeconds(1.2);
+        if (clipEnd > clipStart)
+        {
+            quickDetectionEnd = TimeSpan.FromTicks(Math.Min(quickDetectionEnd.Ticks, clipEnd.Ticks));
+        }
+
+        if (quickDetectionEnd <= clipStart)
+        {
+            quickDetectionEnd = clipStart + TimeSpan.FromMilliseconds(250);
+        }
+
+        var anchorCacheKey = BuildSplitFaceAnchorCacheKey(videoPath, clipStart, quickDetectionEnd);
+        if (!_splitFaceAnchorCache.TryGetValue(anchorCacheKey, out var anchors))
+        {
+            var analyses = await _faceDetectionService.AnalyzeVideoAsync(
+                videoPath,
+                TimeSpan.FromSeconds(0.8),
+                clipStart,
+                quickDetectionEnd,
+                ct);
+
+            if (ct.IsCancellationRequested)
+            {
+                return false;
+            }
+
+            anchors = BuildSplitFaceAnchors(
+                analyses,
+                Math.Max(1, sourceFrame.PixelWidth),
+                Math.Max(1, sourceFrame.PixelHeight));
+            _splitFaceAnchorCache[anchorCacheKey] = anchors;
+        }
+
+        _splitFaceAutoSelectionProcessedKeys.Add(autoSelectionKey);
+
+        if (anchors.Count == 0)
+        {
+            return false;
+        }
+
+        var primaryAnchor = anchors[0];
+        var secondaryAnchor = FindSecondarySplitFaceAnchor(anchors, primaryAnchor);
+
+        if (_splitDuoMode)
+        {
+            var resolvedSecondaryAnchor = secondaryAnchor ?? CreateOppositeSplitFaceAnchor(primaryAnchor);
+            _splitPrimaryRegion = RecenterSplitRegionAroundFace(_splitPrimaryRegion, primaryAnchor);
+            _splitSecondaryRegion = RecenterSplitRegionAroundFace(_splitSecondaryRegion, resolvedSecondaryAnchor);
+        }
+        else
+        {
+            _splitPrimaryRegion = RecenterSplitRegionAroundFace(_splitPrimaryRegion, primaryAnchor);
+        }
+
+        _splitPrimaryRegion.ClampToCanvas(0.05, 1.0);
+        _splitSecondaryRegion.ClampToCanvas(0.05, 1.0);
+        return true;
+    }
+
+    private static IReadOnlyList<SplitFaceAnchor> BuildSplitFaceAnchors(
+        IReadOnlyList<FrameFaceAnalysis> analyses,
+        int sourceWidth,
+        int sourceHeight)
+    {
+        if (analyses is null || analyses.Count == 0 || sourceWidth <= 0 || sourceHeight <= 0)
+        {
+            return Array.Empty<SplitFaceAnchor>();
+        }
+
+        var samples = new List<SplitFaceSample>();
+        foreach (var analysis in analyses)
+        {
+            if (analysis?.Faces is null || analysis.Faces.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var face in analysis.Faces)
+            {
+                if (face.Confidence <= 0)
+                {
+                    continue;
+                }
+
+                var width = Math.Clamp(face.BoundingBox.Width / sourceWidth, 0.01f, 1.0f);
+                var height = Math.Clamp(face.BoundingBox.Height / sourceHeight, 0.01f, 1.0f);
+                if (width > 0.72 || height > 0.92 || (width * height) > 0.42)
+                {
+                    continue;
+                }
+                var centerX = Math.Clamp(face.BoundingBox.CenterX / sourceWidth, 0.0f, 1.0f);
+                var centerY = Math.Clamp(face.BoundingBox.CenterY / sourceHeight, 0.0f, 1.0f);
+                samples.Add(new SplitFaceSample(centerX, centerY, width, height, face.Confidence));
+            }
+        }
+
+        if (samples.Count == 0)
+        {
+            return Array.Empty<SplitFaceAnchor>();
+        }
+
+        const double clusterDistance = 0.16;
+        var clusters = new List<SplitFaceClusterAccumulator>();
+        foreach (var sample in samples.OrderByDescending(s => s.Weight))
+        {
+            SplitFaceClusterAccumulator? selectedCluster = null;
+            var selectedDistance = double.MaxValue;
+
+            foreach (var cluster in clusters)
+            {
+                var distance = cluster.DistanceTo(sample.CenterX, sample.CenterY);
+                if (distance <= clusterDistance && distance < selectedDistance)
+                {
+                    selectedCluster = cluster;
+                    selectedDistance = distance;
+                }
+            }
+
+            if (selectedCluster is null)
+            {
+                clusters.Add(new SplitFaceClusterAccumulator(sample));
+            }
+            else
+            {
+                selectedCluster.Add(sample);
+            }
+        }
+
+        return clusters
+            .Select(c => c.ToAnchor())
+            .OrderByDescending(a => a.Score)
+            .Take(6)
+            .ToList();
+    }
+
+    private static SplitFaceAnchor? FindSecondarySplitFaceAnchor(
+        IReadOnlyList<SplitFaceAnchor> anchors,
+        SplitFaceAnchor primary)
+    {
+        if (anchors.Count <= 1)
+        {
+            return null;
+        }
+
+        SplitFaceAnchor? best = null;
+        var bestDistance = 0.0;
+        foreach (var candidate in anchors.Skip(1))
+        {
+            var distance = SplitFaceAnchorDistance(primary, candidate);
+            if (distance > bestDistance)
+            {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+
+        if (!best.HasValue)
+        {
+            return anchors[1];
+        }
+
+        if (bestDistance >= 0.08)
+        {
+            return best;
+        }
+
+        return anchors[1];
+    }
+
+    private static double SplitFaceAnchorDistance(SplitFaceAnchor a, SplitFaceAnchor b)
+    {
+        var dx = Math.Abs(a.CenterX - b.CenterX);
+        var dy = Math.Abs(a.CenterY - b.CenterY);
+        return (dx * 1.7) + dy;
+    }
+
+    private static SplitFaceAnchor CreateOppositeSplitFaceAnchor(SplitFaceAnchor primary)
+    {
+        var oppositeX = primary.CenterX < 0.5 ? 0.78 : 0.22;
+        var oppositeY = Math.Clamp(primary.CenterY, 0.30, 0.70);
+        return new SplitFaceAnchor(
+            oppositeX,
+            oppositeY,
+            Math.Clamp(primary.FaceWidth, 0.08, 0.45),
+            Math.Clamp(primary.FaceHeight, 0.08, 0.45),
+            0);
+    }
+
+    private static NormalizedRect CreateSplitRegionFromFaceAnchor(
+        SplitFaceAnchor anchor,
+        double sourceAspect,
+        double segmentShare)
+    {
+        var safeSourceAspect = sourceAspect > 0 ? sourceAspect : (16.0 / 9.0);
+        var safeShare = Math.Clamp(segmentShare, 0.05, 1.0);
+        var targetAspect = 9.0 / (16.0 * safeShare);
+
+        var desiredHeight = Math.Clamp(
+            Math.Max(anchor.FaceHeight * 2.8, 0.42 + (safeShare * 0.35)),
+            0.35,
+            0.90);
+        var desiredWidth = desiredHeight * targetAspect / safeSourceAspect;
+
+        var minWidthForFace = anchor.FaceWidth * 2.2;
+        if (desiredWidth < minWidthForFace)
+        {
+            desiredWidth = minWidthForFace;
+            desiredHeight = desiredWidth * safeSourceAspect / targetAspect;
+        }
+
+        if (desiredHeight > 0.92)
+        {
+            desiredHeight = 0.92;
+            desiredWidth = desiredHeight * targetAspect / safeSourceAspect;
+        }
+
+        desiredWidth = Math.Clamp(desiredWidth, 0.18, 0.88);
+        desiredHeight = Math.Clamp(desiredHeight, 0.30, 0.92);
+
+        var x = anchor.CenterX - (desiredWidth / 2.0);
+        var y = anchor.CenterY - (desiredHeight / 2.0);
+
+        return new NormalizedRect
+        {
+            X = x,
+            Y = y,
+            Width = desiredWidth,
+            Height = desiredHeight
+        }.ClampToCanvas(0.05, 1.0);
+    }
+
+    private static NormalizedRect RecenterSplitRegionAroundFace(NormalizedRect region, SplitFaceAnchor anchor)
+    {
+        var safe = (region ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        return new NormalizedRect
+        {
+            X = anchor.CenterX - (safe.Width / 2.0),
+            Y = anchor.CenterY - (safe.Height / 2.0),
+            Width = safe.Width,
+            Height = safe.Height
+        }.ClampToCanvas(0.05, 1.0);
     }
 
     private (int width, int height) GetVideoDimensions(string videoPath)
@@ -2562,6 +2952,75 @@ public partial class ClipperView : UserControl
 
         _ffmpegPreviewCts?.Dispose();
         _ffmpegPreviewCts = null;
+    }
+
+    private readonly record struct SplitFaceAnchor(
+        double CenterX,
+        double CenterY,
+        double FaceWidth,
+        double FaceHeight,
+        double Score);
+
+    private readonly record struct SplitFaceSample(
+        double CenterX,
+        double CenterY,
+        double FaceWidth,
+        double FaceHeight,
+        double Confidence)
+    {
+        public double Weight => (FaceWidth * FaceHeight * 6.0) + Confidence;
+    }
+
+    private sealed class SplitFaceClusterAccumulator
+    {
+        private double _centerX;
+        private double _centerY;
+        private double _widthSum;
+        private double _heightSum;
+        private double _confidenceSum;
+        private int _count;
+
+        public SplitFaceClusterAccumulator(SplitFaceSample sample)
+        {
+            _centerX = sample.CenterX;
+            _centerY = sample.CenterY;
+            _widthSum = sample.FaceWidth;
+            _heightSum = sample.FaceHeight;
+            _confidenceSum = sample.Confidence;
+            _count = 1;
+        }
+
+        public void Add(SplitFaceSample sample)
+        {
+            _count++;
+            _centerX = ((_centerX * (_count - 1)) + sample.CenterX) / _count;
+            _centerY = ((_centerY * (_count - 1)) + sample.CenterY) / _count;
+            _widthSum += sample.FaceWidth;
+            _heightSum += sample.FaceHeight;
+            _confidenceSum += sample.Confidence;
+        }
+
+        public double DistanceTo(double centerX, double centerY)
+        {
+            var dx = _centerX - centerX;
+            var dy = _centerY - centerY;
+            return Math.Sqrt((dx * dx) + (dy * dy));
+        }
+
+        public SplitFaceAnchor ToAnchor()
+        {
+            var avgWidth = _widthSum / _count;
+            var avgHeight = _heightSum / _count;
+            var avgConfidence = _confidenceSum / _count;
+            var score = (_count * 1.6) + (avgWidth * avgHeight * 8.0) + avgConfidence;
+
+            return new SplitFaceAnchor(
+                _centerX,
+                _centerY,
+                avgWidth,
+                avgHeight,
+                score);
+        }
     }
 
     private enum SplitDragMode
