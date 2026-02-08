@@ -87,6 +87,8 @@ public sealed class ClipCandidateCacheService
 
     /// <summary>
     /// Speichert Kandidaten im Cache.
+    /// Disk-Cache wird zuerst geschrieben; nur bei Erfolg wird der Memory-Cache aktualisiert,
+    /// damit Memory- und Disk-Cache nie auseinanderlaufen.
     /// </summary>
     /// <param name="draftId">ID des Drafts.</param>
     /// <param name="transcriptHash">Hash des Transkripts.</param>
@@ -101,22 +103,36 @@ public sealed class ClipCandidateCacheService
             CachedAt = DateTimeOffset.UtcNow
         };
 
-        // Memory Cache aktualisieren
-        _memoryCache[draftId] = entry;
-
-        // Disk Cache aktualisieren
+        // Disk Cache zuerst aktualisieren (atomares Schreiben über Temp-Datei)
+        var diskWriteSucceeded = false;
         try
         {
             Directory.CreateDirectory(_cacheFolder);
             var cachePath = GetCachePath(draftId);
+            var tempPath = cachePath + ".tmp";
             var json = JsonSerializer.Serialize(entry, JsonOptions);
-            File.WriteAllText(cachePath, json);
 
+            // Atomares Schreiben: Temp-Datei → Rename
+            File.WriteAllText(tempPath, json, System.Text.Encoding.UTF8);
+            if (File.Exists(cachePath))
+            {
+                File.Delete(cachePath);
+            }
+            File.Move(tempPath, cachePath);
+
+            diskWriteSucceeded = true;
             _logger.Debug($"Kandidaten gecacht: {candidates.Count} für Draft {draftId:N}", "CandidateCache");
         }
         catch (Exception ex)
         {
             _logger.Warning($"Fehler beim Speichern des Kandidaten-Cache: {ex.Message}", "CandidateCache");
+        }
+
+        // Memory Cache nur aktualisieren wenn Disk-Write erfolgreich war,
+        // um Inkonsistenzen zwischen Memory- und Disk-Cache zu verhindern.
+        if (diskWriteSucceeded)
+        {
+            _memoryCache[draftId] = entry;
         }
     }
 
@@ -211,6 +227,13 @@ public sealed class ClipCandidateCacheService
             if (File.Exists(path))
             {
                 File.Delete(path);
+            }
+
+            // Auch eventuelle Temp-Dateien aufräumen
+            var tempPath = path + ".tmp";
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
             }
         }
         catch

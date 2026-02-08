@@ -19,6 +19,9 @@ namespace DCM.App.Services;
 
 /// <summary>
 /// Face-Detection-Service auf Basis von FaceAiSharp (SCRFD).
+/// Thread-safe: Der ONNX-Detector wird über einen SemaphoreSlim serialisiert,
+/// da ScrfdDetector nicht für parallelen Zugriff ausgelegt ist.
+/// FFmpeg-Pfade werden über den zentralen FFmpegPathResolver bezogen.
 /// </summary>
 public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDisposable
 {
@@ -27,9 +30,15 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
 
     private readonly MemoryCache _memoryCache = new(new MemoryCacheOptions());
     private readonly Lazy<IFaceDetector?> _detector;
+
+    /// <summary>
+    /// Serialisiert den Zugriff auf den ONNX-Detector, der nicht thread-safe ist.
+    /// </summary>
+    private readonly SemaphoreSlim _detectorLock = new(1, 1);
+
     private string? _modelPath;
-    private string? _ffmpegPath;
-    private string? _ffmpegDir;
+    private bool _ffmpegConfigured;
+    private readonly object _ffmpegConfigLock = new();
     private bool _disposed;
 
     public FaceAiSharpDetectionService()
@@ -37,7 +46,11 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
         _detector = new Lazy<IFaceDetector?>(CreateDetector, LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
-    public bool IsAvailable => !_disposed && EnsureFfmpegAvailable() && _detector.Value is not null;
+    /// <summary>
+    /// Gibt an, ob der Service einsatzbereit ist.
+    /// Thread-safe, keine mutierenden Seiteneffekte (verwendet FFmpegPathResolver).
+    /// </summary>
+    public bool IsAvailable => !_disposed && FFmpegPathResolver.IsAvailable && _detector.Value is not null;
 
     public async Task<IReadOnlyList<FrameFaceAnalysis>> AnalyzeVideoAsync(
         string videoPath,
@@ -55,6 +68,9 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
         {
             return Array.Empty<FrameFaceAnalysis>();
         }
+
+        // Sicherstellen, dass GlobalFFOptions konfiguriert ist (einmalig, thread-safe)
+        EnsureGlobalFFOptionsConfigured();
 
         var duration = await GetVideoDurationAsync(videoPath, ct).ConfigureAwait(false);
         if (!duration.HasValue || duration.Value <= TimeSpan.Zero)
@@ -105,6 +121,9 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
             return Array.Empty<FrameFaceAnalysis>();
         }
 
+        // Face Detection sequentiell ausführen, da der ONNX-Detector nicht thread-safe ist.
+        // Das Image.Load und die Ergebnis-Verarbeitung laufen weiterhin pro Frame,
+        // aber detector.Detect() wird über den SemaphoreSlim serialisiert.
         var analyses = new ConcurrentBag<FrameFaceAnalysis>();
         var options = new ParallelOptions
         {
@@ -113,15 +132,14 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
             MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount / 3)
         };
 
-        await Parallel.ForEachAsync(frames, options, (frame, token) =>
+        await Parallel.ForEachAsync(frames, options, async (frame, token) =>
         {
-            var faces = DetectFacesInFrame(frame.Data);
+            var faces = await DetectFacesInFrameAsync(frame.Data, token).ConfigureAwait(false);
             analyses.Add(new FrameFaceAnalysis
             {
                 Timestamp = frame.Timestamp,
                 Faces = faces
             });
-            return ValueTask.CompletedTask;
         }).ConfigureAwait(false);
 
         return analyses.OrderBy(a => a.Timestamp).ToList();
@@ -213,6 +231,34 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
         }
 
         _memoryCache.Dispose();
+        _detectorLock.Dispose();
+    }
+
+    /// <summary>
+    /// Konfiguriert GlobalFFOptions einmalig, thread-safe.
+    /// </summary>
+    private void EnsureGlobalFFOptionsConfigured()
+    {
+        if (_ffmpegConfigured)
+        {
+            return;
+        }
+
+        lock (_ffmpegConfigLock)
+        {
+            if (_ffmpegConfigured)
+            {
+                return;
+            }
+
+            var dir = FFmpegPathResolver.FFmpegDirectory;
+            if (dir is not null)
+            {
+                GlobalFFOptions.Configure(options => options.BinaryFolder = dir);
+            }
+
+            _ffmpegConfigured = true;
+        }
     }
 
     private IFaceDetector? CreateDetector()
@@ -234,7 +280,12 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
         return new ScrfdDetector(_memoryCache, options, new SessionOptions());
     }
 
-    private IReadOnlyList<FaceDetectionResult> DetectFacesInFrame(byte[] jpegData)
+    /// <summary>
+    /// Erkennt Gesichter in einem Frame. Thread-safe durch SemaphoreSlim-Lock
+    /// um den ONNX-Detector herum, da ScrfdDetector nicht für parallelen Zugriff
+    /// ausgelegt ist.
+    /// </summary>
+    private async Task<IReadOnlyList<FaceDetectionResult>> DetectFacesInFrameAsync(byte[] jpegData, CancellationToken ct)
     {
         var detector = _detector.Value;
         if (detector is null)
@@ -242,8 +293,20 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
             return Array.Empty<FaceDetectionResult>();
         }
 
+        // Bild laden kann parallel passieren (reines Decoding, kein shared state)
         using var image = Image.Load(jpegData);
-        var detections = detector.Detect(image);
+
+        // ONNX-Detector ist nicht thread-safe – Zugriff serialisieren
+        await _detectorLock.WaitAsync(ct).ConfigureAwait(false);
+        IReadOnlyCollection<FaceDetectorResult> detections;
+        try
+        {
+            detections = detector.Detect(image);
+        }
+        finally
+        {
+            _detectorLock.Release();
+        }
 
         if (detections is null || detections.Count == 0)
         {
@@ -364,10 +427,12 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
 
     private async Task<byte[]?> ExtractFrameAsync(string videoPath, TimeSpan timestamp, CancellationToken ct)
     {
-        if (!EnsureFfmpegAvailable())
+        if (!FFmpegPathResolver.IsAvailable)
         {
             return null;
         }
+
+        EnsureGlobalFFOptionsConfigured();
 
         var tempPath = Path.Combine(TempFolder, $"{Guid.NewGuid():N}.jpg");
         var timestampArg = timestamp.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
@@ -441,74 +506,6 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
         {
             return null;
         }
-    }
-
-    private bool EnsureFfmpegAvailable()
-    {
-        if (_ffmpegPath is not null && _ffmpegDir is not null)
-        {
-            return true;
-        }
-
-        _ffmpegPath = FindFFmpeg();
-        if (_ffmpegPath is null)
-        {
-            return false;
-        }
-
-        _ffmpegDir = Path.GetDirectoryName(_ffmpegPath);
-        if (_ffmpegDir is null)
-        {
-            return false;
-        }
-
-        GlobalFFOptions.Configure(options => options.BinaryFolder = _ffmpegDir);
-        return true;
-    }
-
-    private static string? FindFFmpeg()
-    {
-        var appFolder = Constants.FFmpegFolder;
-        if (Directory.Exists(appFolder))
-        {
-            try
-            {
-                var found = Directory.EnumerateFiles(appFolder, "ffmpeg.exe", SearchOption.AllDirectories)
-                    .FirstOrDefault();
-                if (found is not null)
-                {
-                    return found;
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        var pathEnv = Environment.GetEnvironmentVariable("PATH");
-        if (string.IsNullOrEmpty(pathEnv))
-        {
-            return null;
-        }
-
-        foreach (var path in pathEnv.Split(';'))
-        {
-            try
-            {
-                var fullPath = Path.Combine(path.Trim(), "ffmpeg.exe");
-                if (File.Exists(fullPath))
-                {
-                    return fullPath;
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-
-        return null;
     }
 
     private static void TryDelete(string path)

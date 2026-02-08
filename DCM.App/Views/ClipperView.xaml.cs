@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -25,12 +26,13 @@ namespace DCM.App.Views;
 public partial class ClipperView : UserControl
 {
     private readonly DispatcherTimer _previewTimer;
-    private ClipCandidate? _currentPreviewCandidate;
-    private string? _currentVideoPath;
-    private string? _loadedVideoPath;
-    private bool _isPlaying;
-    private bool _isMediaReady;
-    private bool _isSplitSourceMediaReady;
+    // Felder, die von Background-Tasks und UI-Thread gelesen/geschrieben werden, sind volatile.
+    private volatile ClipCandidate? _currentPreviewCandidate;
+    private volatile string? _currentVideoPath;
+    private volatile string? _loadedVideoPath;
+    private volatile bool _isPlaying;
+    private volatile bool _isMediaReady;
+    private volatile bool _isSplitSourceMediaReady;
     private bool _isDraggingSlider;
     private bool _isSliderThumbDragging;
     private bool _sliderSeekHandledOnMouseDown;
@@ -41,18 +43,19 @@ public partial class ClipperView : UserControl
     private double _subtitleStartTop;
     private Canvas? _activeSubtitleCanvas;
     private Border? _activeSubtitlePreview;
-    private bool _seekPendingAfterMediaOpen;
-    private bool _restartFromClipStartOnNextPlay;
-    private int _seekOperationVersion;
-    private int _previewFrameRequestVersion;
-    private int _previewPrefetchVersion;
-    private string? _ffmpegPath;
-    private readonly Dictionary<string, BitmapSource> _previewFrameCache = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, BitmapSource> _portraitPreviewCache = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, CropRegionResult> _faceDetectionCache = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, IReadOnlyList<SplitFaceAnchor>> _splitFaceAnchorCache = new(StringComparer.OrdinalIgnoreCase);
+    private volatile bool _seekPendingAfterMediaOpen;
+    private volatile bool _restartFromClipStartOnNextPlay;
+    private volatile int _seekOperationVersion;
+    private volatile int _previewFrameRequestVersion;
+    private volatile int _previewPrefetchVersion;
+    private volatile string? _ffmpegPath;
+    // Thread-sichere Caches: Werden von Background-Tasks und UI-Thread gleichzeitig benutzt.
+    private readonly ConcurrentDictionary<string, BitmapSource> _previewFrameCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, BitmapSource> _portraitPreviewCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, CropRegionResult> _faceDetectionCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IReadOnlyList<SplitFaceAnchor>> _splitFaceAnchorCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _splitFaceAutoSelectionProcessedKeys = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, (int Width, int Height)> _videoDimensionsCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, (int Width, int Height)> _videoDimensionsCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<Guid, int> _splitPrimaryFaceTrackLockByCandidate = new();
     private readonly Dictionary<Guid, int> _splitSecondaryFaceTrackLockByCandidate = new();
     private List<ClipCandidate> _currentCandidates = new();
@@ -4386,6 +4389,27 @@ public partial class ClipperView : UserControl
     {
         var ms = (long)Math.Round(timestamp.TotalMilliseconds, MidpointRounding.AwayFromZero);
         return $"{videoPath}|{ms}";
+    }
+
+    private static void AddOrUpdateCache<TKey, TValue>(
+        ConcurrentDictionary<TKey, TValue> cache,
+        TKey key,
+        TValue value,
+        int maxEntries) where TKey : notnull
+    {
+        if (!cache.ContainsKey(key) && cache.Count >= maxEntries)
+        {
+            // Evict one entry to stay under the limit.
+            // ConcurrentDictionary hat keine geordnete Iteration, daher wird ein beliebiger
+            // Eintrag entfernt. Für einen Preview-Cache ist das akzeptabel.
+            using var enumerator = cache.GetEnumerator();
+            if (enumerator.MoveNext())
+            {
+                cache.TryRemove(enumerator.Current.Key, out _);
+            }
+        }
+
+        cache[key] = value;
     }
 
     private static void AddOrUpdateCache<TKey, TValue>(

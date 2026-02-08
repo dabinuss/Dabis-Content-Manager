@@ -23,8 +23,6 @@ public sealed class ClipRenderService : IClipRenderService
     private readonly IFaceDetectionService _faceDetectionService;
     private readonly DraftTranscriptStore _segmentStore;
     private readonly IAppLogger _logger;
-    private string? _ffmpegPath;
-    private string? _ffmpegDir;
     private bool _isReady;
 
     public ClipRenderService() : this(null, null, null)
@@ -47,23 +45,20 @@ public sealed class ClipRenderService : IClipRenderService
     /// <inheritdoc/>
     public bool TryInitialize()
     {
-        // FFmpeg im App-Ordner oder PATH suchen
-        _ffmpegPath = FindFFmpeg();
-
-        if (_ffmpegPath is null)
+        // FFmpeg über den zentralen, thread-sicheren Resolver suchen
+        if (!FFmpegPathResolver.IsAvailable)
         {
             _isReady = false;
             return false;
         }
 
-        _ffmpegDir = Path.GetDirectoryName(_ffmpegPath);
-
-        // FFMpegCore konfigurieren
-        if (_ffmpegDir is not null)
+        // FFMpegCore global konfigurieren (Resolver liefert gecachten Pfad)
+        var ffmpegDir = FFmpegPathResolver.FFmpegDirectory;
+        if (ffmpegDir is not null)
         {
             GlobalFFOptions.Configure(options =>
             {
-                options.BinaryFolder = _ffmpegDir;
+                options.BinaryFolder = ffmpegDir;
             });
         }
 
@@ -986,53 +981,6 @@ public sealed class ClipRenderService : IClipRenderService
             _logger.Warning($"FFProbe fehlgeschlagen: {ex.Message}", "ClipRender");
             return null;
         }
-    }
-
-    private static string? FindFFmpeg()
-    {
-        // Im App-Ordner suchen
-        var appFolder = Constants.FFmpegFolder;
-        if (Directory.Exists(appFolder))
-        {
-            try
-            {
-                var found = Directory.EnumerateFiles(appFolder, "ffmpeg.exe", SearchOption.AllDirectories)
-                    .FirstOrDefault();
-                if (found is not null)
-                {
-                    return found;
-                }
-            }
-            catch
-            {
-                // Ignorieren
-            }
-        }
-
-        // Im PATH suchen
-        var pathEnv = Environment.GetEnvironmentVariable("PATH");
-        if (string.IsNullOrEmpty(pathEnv))
-        {
-            return null;
-        }
-
-        foreach (var path in pathEnv.Split(';'))
-        {
-            try
-            {
-                var fullPath = Path.Combine(path.Trim(), "ffmpeg.exe");
-                if (File.Exists(fullPath))
-                {
-                    return fullPath;
-                }
-            }
-            catch
-            {
-                // Ignorieren
-            }
-        }
-
-        return null;
     }
 
     private static void CleanupTempFile(string? path)
