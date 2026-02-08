@@ -5,6 +5,7 @@
     <ProjectReference Include="..\DCM.Llm\DCM.Llm.csproj" />
     <ProjectReference Include="..\DCM.Transcription\DCM.Transcription.csproj" />
     <ProjectReference Include="..\DCM.YouTube\DCM.YouTube.csproj" />
+    <Resource Include="Assets\appicon.ico" />
     <Resource Include="Assets\logo.png" />
     <Resource Include="Assets\Fonts\MaterialIcons-Regular.ttf" />
   </ItemGroup>

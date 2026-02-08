@@ -9,7 +9,7 @@ public static class ButtonIcon
             "Glyph",
             typeof(string),
             typeof(ButtonIcon),
-            new PropertyMetadata("\ue5d5"));
+            new PropertyMetadata(string.Empty));
 
     public static void SetGlyph(DependencyObject element, string value) =>
         element.SetValue(GlyphProperty, value);

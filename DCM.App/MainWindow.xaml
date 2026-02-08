@@ -15,6 +15,7 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="CanResize"
+        Icon="pack://application:,,,/DCM.App;component/Assets/appicon.ico"
         Background="{StaticResource BackgroundBrush}">
 
   <WindowChrome.WindowChrome>
@@ -724,7 +725,7 @@
               <Button x:Name="ClipperFindHighlightsButton"
                       Content="{DynamicResource Clipper.Actions.FindHighlights}"
                       Style="{StaticResource SecondaryButton}"
-                      ap:ButtonIcon.Glyph="&#xef47;"
+                      ap:ButtonIcon.Glyph="&#xe8b6;"
                       Click="ClipperFindHighlightsButton_Click"
                       Margin="0,0,8,0"/>
               <Button x:Name="ClipperRefreshButton"
@@ -736,7 +737,7 @@
               <Button x:Name="ClipperCutButton"
                       Content="{DynamicResource Clipper.Actions.Cut}"
                       Style="{StaticResource PrimaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe04a;"
+                      ap:ButtonIcon.Glyph="&#xe14e;"
                       Click="ClipperCutButton_Click"
                       />
             </StackPanel>

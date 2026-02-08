@@ -3080,6 +3080,50 @@ public partial class ClipperView : UserControl
             desired.Height <= 0 ? 20 : desired.Height);
     }
 
+    private void RoundedPreviewContentRoot_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (sender is not FrameworkElement element)
+        {
+            return;
+        }
+
+        var radius = 0.0;
+        if (ReferenceEquals(element, PortraitPreviewContentRoot))
+        {
+            radius = PortraitPreviewBorder.CornerRadius.TopLeft;
+        }
+        else if (ReferenceEquals(element, SplitPortraitContentRoot))
+        {
+            radius = SplitPortraitPreviewBorder.CornerRadius.TopLeft;
+        }
+        else if (ReferenceEquals(element, SplitSourceContentRoot))
+        {
+            radius = SplitSourcePreviewBorder.CornerRadius.TopLeft;
+        }
+
+        ApplyRoundedClip(element, radius);
+    }
+
+    private static void ApplyRoundedClip(FrameworkElement element, double radius)
+    {
+        if (element.ActualWidth <= 0 || element.ActualHeight <= 0)
+        {
+            return;
+        }
+
+        var safeRadius = Math.Max(0.0, radius);
+        var maxRadius = Math.Min(element.ActualWidth, element.ActualHeight) / 2.0;
+        if (safeRadius > maxRadius)
+        {
+            safeRadius = maxRadius;
+        }
+
+        element.Clip = new RectangleGeometry(
+            new Rect(0, 0, element.ActualWidth, element.ActualHeight),
+            safeRadius,
+            safeRadius);
+    }
+
     private void PreviewTimer_Tick(object? sender, EventArgs e)
     {
         if (_currentPreviewCandidate is null || !_isPlaying || !_isMediaReady)

@@ -188,6 +188,7 @@
                         </Border>
                         <Button Content="{DynamicResource Clipper.Actions.EditCandidate}"
                                 Style="{StaticResource TertiaryButton}"
+                                ap:ButtonIcon.Glyph="&#xe3c9;"
                                 Margin="0,8,0,0"
                                 Padding="10,4"
                                 Tag="{Binding}"
@@ -243,6 +244,7 @@
           <Button Grid.Column="0"
                   Content="{DynamicResource Clipper.Actions.BackToOverview}"
                   Style="{StaticResource TertiaryButton}"
+                  ap:ButtonIcon.Glyph="&#xe5c4;"
                   Click="BackToOverviewButton_Click"/>
 
           <StackPanel Grid.Column="2"
@@ -305,6 +307,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="SubtitleFontSizeSlider"
                       Grid.Column="0"
+                      Style="{StaticResource ClipperSettingsSlider}"
                       Minimum="48"
                       Maximum="300"
                       Value="96"
@@ -330,6 +333,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="SubtitlePositionXSlider"
                       Grid.Column="0"
+                      Style="{StaticResource ClipperSettingsSlider}"
                       Minimum="0"
                       Maximum="1"
                       Value="0.5"
@@ -355,6 +359,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="SubtitlePositionYSlider"
                       Grid.Column="0"
+                      Style="{StaticResource ClipperSettingsSlider}"
                       Minimum="0"
                       Maximum="1"
                       Value="0.7"
@@ -415,6 +420,7 @@
               <Button Grid.Column="1"
                       Content="{DynamicResource Clipper.Settings.SelectLogo}"
                       Style="{StaticResource TertiaryButton}"
+                      ap:ButtonIcon.Glyph="&#xe2c6;"
                       Margin="8,0,0,0"
                       Padding="10,4"
                       Click="SelectLogoButton_Click"/>
@@ -444,6 +450,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="LogoScaleSlider"
                       Grid.Column="0"
+                      Style="{StaticResource ClipperSettingsSlider}"
                       Minimum="0.05"
                       Maximum="0.4"
                       Value="0.15"
@@ -495,7 +502,8 @@
                           CornerRadius="{StaticResource RadiusM}"
                           MaxWidth="360"
                           ClipToBounds="True">
-                    <Grid>
+                    <Grid x:Name="PortraitPreviewContentRoot"
+                          SizeChanged="RoundedPreviewContentRoot_SizeChanged">
                       <!-- Viewbox for 9:16 aspect ratio -->
                       <Viewbox Stretch="Uniform" StretchDirection="Both">
                         <Border Width="1080" Height="1920" Background="Black">
@@ -568,137 +576,32 @@
 
                 <Grid x:Name="SplitWorkbenchPanel" Visibility="Collapsed">
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="{StaticResource SpacingM}"/>
                     <ColumnDefinition Width="280"/>
+                    <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                    <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
                   <StackPanel Grid.Column="0">
-                    <TextBlock Text="{DynamicResource Clipper.Split.Workbench.Landscape}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               Margin="0,0,0,6"/>
-                    <Border Background="Black"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusM}"
-                            ClipToBounds="True"
-                            MinHeight="240">
-                      <Grid>
-                        <Image x:Name="SplitSourceImage"
-                               Stretch="Uniform"/>
-                        <MediaElement x:Name="SplitSourceMediaElement"
-                                      LoadedBehavior="Manual"
-                                      UnloadedBehavior="Stop"
-                                      ScrubbingEnabled="True"
-                                      IsMuted="False"
-                                      Stretch="Uniform"
-                                      Visibility="Collapsed"
-                                      IsHitTestVisible="False"
-                                      MediaOpened="SplitSourceMediaElement_MediaOpened"
-                                      MediaEnded="SplitSourceMediaElement_MediaEnded"/>
-                        <Canvas x:Name="SplitSelectionCanvas"
-                                Background="Transparent"
-                                SizeChanged="SplitSelectionCanvas_SizeChanged"
-                                MouseLeftButtonDown="SplitSelectionCanvas_MouseLeftButtonDown"
-                                MouseMove="SplitSelectionCanvas_MouseMove"
-                                MouseLeftButtonUp="SplitSelectionCanvas_MouseLeftButtonUp">
-                          <Border x:Name="SplitPrimarySelectionBox"
-                                  BorderThickness="2"
-                                  BorderBrush="#FFFF66FF"
-                                  Background="#22FF66FF"/>
-                          <Border x:Name="SplitPrimaryResizeHandleTopLeft"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FFFF66FF"
-                                  Background="#FFFF66FF"/>
-                          <Border x:Name="SplitPrimaryResizeHandleTopRight"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FFFF66FF"
-                                  Background="#FFFF66FF"/>
-                          <Border x:Name="SplitPrimaryResizeHandleBottomLeft"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FFFF66FF"
-                                  Background="#FFFF66FF"/>
-                          <Border x:Name="SplitPrimaryResizeHandleBottomRight"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FFFF66FF"
-                                  Background="#FFFF66FF"/>
-
-                          <Border x:Name="SplitSecondarySelectionBox"
-                                  BorderThickness="2"
-                                  BorderBrush="#FF66FFFF"
-                                  Background="#2266FFFF"/>
-                          <Border x:Name="SplitSecondaryResizeHandleTopLeft"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FF66FFFF"
-                                  Background="#FF66FFFF"/>
-                          <Border x:Name="SplitSecondaryResizeHandleTopRight"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FF66FFFF"
-                                  Background="#FF66FFFF"/>
-                          <Border x:Name="SplitSecondaryResizeHandleBottomLeft"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FF66FFFF"
-                                  Background="#FF66FFFF"/>
-                          <Border x:Name="SplitSecondaryResizeHandleBottomRight"
-                                  Width="10"
-                                  Height="10"
-                                  BorderThickness="1"
-                                  BorderBrush="#FF66FFFF"
-                                  Background="#FF66FFFF"/>
-                        </Canvas>
-                      </Grid>
-                    </Border>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                      <Button x:Name="SplitLayoutEditButton"
-                              Content="{DynamicResource Clipper.Split.EditMode.EditLayout}"
-                              Style="{StaticResource TertiaryButton}"
-                              Click="SplitLayoutEditButton_Click"/>
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                      <Button x:Name="SplitSoloButton"
-                              Content="{DynamicResource Clipper.Split.Mode.Solo}"
-                              Style="{StaticResource TertiaryButton}"
-                              Click="SplitSoloButton_Click"/>
-                      <Button x:Name="SplitDuoButton"
-                              Content="{DynamicResource Clipper.Split.Mode.Duo}"
-                              Style="{StaticResource TertiaryButton}"
-                              Margin="8,0,0,0"
-                              Click="SplitDuoButton_Click"/>
-                    </StackPanel>
-                  </StackPanel>
-
-                  <StackPanel Grid.Column="2">
                     <TextBlock Text="{DynamicResource Clipper.Split.Workbench.Portrait}"
-                               FontSize="{StaticResource FontSizeXS}"
+                               FontSize="{StaticResource FontSizeS}"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{StaticResource TextPrimaryBrush}"
                                Margin="0,0,0,6"/>
-                    <Border Width="260"
+                    <TextBlock Text="{DynamicResource Clipper.Split.Workbench.PortraitHint}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="0,0,0,8"/>
+                    <Border x:Name="SplitPortraitPreviewBorder"
+                            Width="260"
                             Height="462"
                             Background="Black"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="1"
+                            BorderBrush="{StaticResource PrimaryBrush}"
+                            BorderThickness="2"
                             CornerRadius="{StaticResource RadiusM}"
                             ClipToBounds="True">
-                        <Grid Background="Black">
+                        <Grid x:Name="SplitPortraitContentRoot"
+                              Background="Black"
+                              SizeChanged="RoundedPreviewContentRoot_SizeChanged">
                           <Image x:Name="SplitPortraitSingleImage"
                                  Stretch="UniformToFill"/>
                         <Grid x:Name="SplitPortraitDuoGrid" Visibility="Collapsed">
@@ -822,6 +725,127 @@
                       </Grid>
                     </Border>
                   </StackPanel>
+
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="{DynamicResource Clipper.Split.Workbench.Landscape}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="0,0,0,6"/>
+                    <TextBlock Text="{DynamicResource Clipper.Split.Workbench.LandscapeHint}"
+                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="0,0,0,8"/>
+                    <Border x:Name="SplitSourcePreviewBorder"
+                            Background="Black"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource RadiusM}"
+                            ClipToBounds="True"
+                            MinHeight="240">
+                      <Grid x:Name="SplitSourceContentRoot"
+                            SizeChanged="RoundedPreviewContentRoot_SizeChanged">
+                        <Image x:Name="SplitSourceImage"
+                               Stretch="Uniform"/>
+                        <MediaElement x:Name="SplitSourceMediaElement"
+                                      LoadedBehavior="Manual"
+                                      UnloadedBehavior="Stop"
+                                      ScrubbingEnabled="True"
+                                      IsMuted="False"
+                                      Stretch="Uniform"
+                                      Visibility="Collapsed"
+                                      IsHitTestVisible="False"
+                                      MediaOpened="SplitSourceMediaElement_MediaOpened"
+                                      MediaEnded="SplitSourceMediaElement_MediaEnded"/>
+                        <Canvas x:Name="SplitSelectionCanvas"
+                                Background="Transparent"
+                                SizeChanged="SplitSelectionCanvas_SizeChanged"
+                                MouseLeftButtonDown="SplitSelectionCanvas_MouseLeftButtonDown"
+                                MouseMove="SplitSelectionCanvas_MouseMove"
+                                MouseLeftButtonUp="SplitSelectionCanvas_MouseLeftButtonUp">
+                          <Border x:Name="SplitPrimarySelectionBox"
+                                  BorderThickness="2"
+                                  BorderBrush="#FFFF66FF"
+                                  Background="#22FF66FF"/>
+                          <Border x:Name="SplitPrimaryResizeHandleTopLeft"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FFFF66FF"
+                                  Background="#FFFF66FF"/>
+                          <Border x:Name="SplitPrimaryResizeHandleTopRight"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FFFF66FF"
+                                  Background="#FFFF66FF"/>
+                          <Border x:Name="SplitPrimaryResizeHandleBottomLeft"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FFFF66FF"
+                                  Background="#FFFF66FF"/>
+                          <Border x:Name="SplitPrimaryResizeHandleBottomRight"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FFFF66FF"
+                                  Background="#FFFF66FF"/>
+
+                          <Border x:Name="SplitSecondarySelectionBox"
+                                  BorderThickness="2"
+                                  BorderBrush="#FF66FFFF"
+                                  Background="#2266FFFF"/>
+                          <Border x:Name="SplitSecondaryResizeHandleTopLeft"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FF66FFFF"
+                                  Background="#FF66FFFF"/>
+                          <Border x:Name="SplitSecondaryResizeHandleTopRight"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FF66FFFF"
+                                  Background="#FF66FFFF"/>
+                          <Border x:Name="SplitSecondaryResizeHandleBottomLeft"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FF66FFFF"
+                                  Background="#FF66FFFF"/>
+                          <Border x:Name="SplitSecondaryResizeHandleBottomRight"
+                                  Width="10"
+                                  Height="10"
+                                  BorderThickness="1"
+                                  BorderBrush="#FF66FFFF"
+                                  Background="#FF66FFFF"/>
+                        </Canvas>
+                      </Grid>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                      <Button x:Name="SplitLayoutEditButton"
+                              Content="{DynamicResource Clipper.Split.EditMode.EditLayout}"
+                              Style="{StaticResource TertiaryButton}"
+                              ap:ButtonIcon.Glyph="&#xe3c9;"
+                              Click="SplitLayoutEditButton_Click"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                      <Button x:Name="SplitSoloButton"
+                              Content="{DynamicResource Clipper.Split.Mode.Solo}"
+                              Style="{StaticResource TertiaryButton}"
+                              ap:ButtonIcon.Glyph="&#xe400;"
+                              Click="SplitSoloButton_Click"/>
+                      <Button x:Name="SplitDuoButton"
+                              Content="{DynamicResource Clipper.Split.Mode.Duo}"
+                              Style="{StaticResource TertiaryButton}"
+                              ap:ButtonIcon.Glyph="&#xe401;"
+                              Margin="8,0,0,0"
+                              Click="SplitDuoButton_Click"/>
+                    </StackPanel>
+                  </StackPanel>
                 </Grid>
               </Grid>
 
@@ -852,6 +876,7 @@
 
                   <Slider x:Name="PreviewProgressSlider"
                           Grid.Column="2"
+                          Style="{StaticResource ClipperTimelineSlider}"
                           VerticalAlignment="Center"
                           IsEnabled="True"
                           IsMoveToPointEnabled="True"
@@ -872,39 +897,34 @@
                 </Grid>
 
                 <!-- Buttons -->
-                <StackPanel Grid.Row="2"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Center">
+                <Border Grid.Row="2"
+                        Style="{StaticResource ClipperMediaGroupCard}">
+                  <StackPanel Orientation="Horizontal"
+                              HorizontalAlignment="Center">
                   <Button x:Name="PreviewPlayButton"
                           Click="PreviewPlayButton_Click"
-                          Style="{StaticResource TertiaryButton}"
-                          Width="40" Height="40"
-                          Padding="0"
+                          Style="{StaticResource ClipperMediaPrimaryIconButton}"
                           ToolTip="{DynamicResource Clipper.Preview.Play}">
                     <TextBlock x:Name="PreviewPlayButtonIcon"
-                               Style="{StaticResource IconM}"
+                               Style="{StaticResource ClipperMediaGlyph}"
                                Text="&#xe037;"/>
                   </Button>
 
                   <Button x:Name="PreviewStopButton"
                           Click="PreviewStopButton_Click"
-                          Style="{StaticResource TertiaryButton}"
-                          Width="40" Height="40"
-                          Padding="0"
+                          Style="{StaticResource ClipperMediaIconButton}"
                           Margin="8,0,0,0"
                           ToolTip="{DynamicResource Clipper.Preview.Stop}">
-                    <TextBlock Style="{StaticResource IconM}"
+                    <TextBlock Style="{StaticResource ClipperMediaGlyph}"
                                Text="&#xe047;"/>
                   </Button>
 
                   <Button x:Name="PreviewRestartButton"
                           Click="PreviewRestartButton_Click"
-                          Style="{StaticResource TertiaryButton}"
-                          Width="40" Height="40"
-                          Padding="0"
+                          Style="{StaticResource ClipperMediaIconButton}"
                           Margin="8,0,0,0"
                           ToolTip="{DynamicResource Clipper.Preview.Restart}">
-                    <TextBlock Style="{StaticResource IconM}"
+                    <TextBlock Style="{StaticResource ClipperMediaGlyph}"
                                Text="&#xe042;"/>
                   </Button>
 
@@ -917,16 +937,16 @@
                     <StackPanel Orientation="Horizontal">
                       <Button x:Name="PreviewMuteButton"
                               Click="PreviewMuteButton_Click"
-                              Style="{StaticResource TertiaryButton}"
-                              Width="32" Height="32"
-                              Padding="0"
+                              Style="{StaticResource ClipperMediaIconButton}"
+                              Width="36" Height="36"
                               ToolTip="{DynamicResource Clipper.Preview.Mute}">
                         <TextBlock x:Name="PreviewVolumeIcon"
-                                   Style="{StaticResource IconS}"
+                                   Style="{StaticResource ClipperMediaGlyph}"
                                    Text="&#xe04d;"/>
                       </Button>
                       <Slider x:Name="PreviewVolumeSlider"
-                              Width="80"
+                              Width="112"
+                              Style="{StaticResource ClipperVolumeSlider}"
                               Minimum="0"
                               Maximum="1"
                               Value="0.5"
@@ -934,7 +954,8 @@
                               ValueChanged="PreviewVolumeSlider_ValueChanged"/>
                     </StackPanel>
                   </Border>
-                </StackPanel>
+                  </StackPanel>
+                </Border>
               </Grid>
 
               <!-- Clip Details -->
