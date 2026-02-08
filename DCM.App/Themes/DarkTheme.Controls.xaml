@@ -1924,162 +1924,128 @@
   <!-- AUTO CLIPPER CONTROLS (theme-owned)                                 -->
   <!-- =================================================================== -->
 
-  <SolidColorBrush x:Key="ClipperSliderActiveBrush"
-                   Color="{StaticResource PrimaryColor}"/>
-  <SolidColorBrush x:Key="ClipperSliderInactiveBrush"
-                   Color="{StaticResource BorderColor}"/>
-
-  <Style x:Key="ClipperSliderTrackSegmentStyle"
-         TargetType="RepeatButton">
-    <Setter Property="Focusable"
-            Value="False"/>
-    <Setter Property="IsTabStop"
-            Value="False"/>
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="RepeatButton">
-          <Border Background="{TemplateBinding Background}"
-                  CornerRadius="2"
-                  Height="4"
-                  VerticalAlignment="Center"/>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
-  <Style x:Key="ClipperSliderThumbStyle"
-         TargetType="Thumb">
-    <Setter Property="Width"
-            Value="20"/>
-    <Setter Property="Height"
-            Value="20"/>
-    <Setter Property="Cursor"
-            Value="Hand"/>
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="Thumb">
-          <Grid Width="{TemplateBinding Width}"
-                Height="{TemplateBinding Height}">
-            <Ellipse x:Name="ThumbHalo"
-                    Fill="#7ABFE0FF"
-                    Margin="-6"
-                    Opacity="0"/>
-            <Ellipse x:Name="ThumbCore"
-                     Fill="#FFFFFFFF"
-                     Stroke="#FF9FD3FF"
-                     StrokeThickness="2"
-                     HorizontalAlignment="Center"
-                     VerticalAlignment="Center"/>
-          </Grid>
-          <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver"
-                     Value="True">
-              <Setter TargetName="ThumbHalo"
-                      Property="Opacity"
-                      Value="0.26"/>
-            </Trigger>
-            <Trigger Property="IsDragging"
-                     Value="True">
-              <Setter TargetName="ThumbHalo"
-                      Property="Opacity"
-                      Value="0.34"/>
-              <Setter TargetName="ThumbCore"
-                      Property="Fill"
-                      Value="#FFFFFFFF"/>
-              <Setter TargetName="ThumbCore"
-                      Property="Stroke"
-                      Value="#FF6AB8FF"/>
-            </Trigger>
-            <Trigger Property="IsEnabled"
-                     Value="False">
-              <Setter TargetName="ThumbCore"
-                      Property="Fill"
-                      Value="#FFF4F8FF"/>
-              <Setter TargetName="ThumbCore"
-                      Property="Stroke"
-                      Value="#FFC9D9F2"/>
-              <Setter TargetName="ThumbHalo"
-                      Property="Opacity"
-                      Value="0"/>
-            </Trigger>
-          </ControlTemplate.Triggers>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
-  <ControlTemplate x:Key="ClipperHorizontalSliderTemplate"
-                   TargetType="Slider">
-    <Grid Margin="0,8">
-      <Border x:Name="TrackSurface"
-              Height="4"
-              CornerRadius="2"
-              Background="{StaticResource SurfaceSunkenBrush}"
-              BorderBrush="{StaticResource BorderBrush}"
-              BorderThickness="0"
-              VerticalAlignment="Center"/>
-      <Track x:Name="PART_Track"
-             Minimum="{TemplateBinding Minimum}"
-             Maximum="{TemplateBinding Maximum}"
-             Value="{TemplateBinding Value}"
-             IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
-        <Track.DecreaseRepeatButton>
-          <RepeatButton Style="{StaticResource ClipperSliderTrackSegmentStyle}"
-                        Background="{StaticResource ClipperSliderActiveBrush}"
-                        Command="{x:Static Slider.DecreaseLarge}"/>
-        </Track.DecreaseRepeatButton>
-        <Track.Thumb>
-          <Thumb Style="{StaticResource ClipperSliderThumbStyle}"/>
-        </Track.Thumb>
-        <Track.IncreaseRepeatButton>
-          <RepeatButton Style="{StaticResource ClipperSliderTrackSegmentStyle}"
-                        Background="{StaticResource ClipperSliderInactiveBrush}"
-                        Command="{x:Static Slider.IncreaseLarge}"
-                        Opacity="0.65"/>
-        </Track.IncreaseRepeatButton>
-      </Track>
-    </Grid>
-    <ControlTemplate.Triggers>
-      <Trigger Property="IsMouseOver"
-               Value="True">
-        <Setter TargetName="TrackSurface"
-                Property="Background"
-                Value="{StaticResource SurfaceLightBrush}"/>
-      </Trigger>
-      <Trigger Property="IsEnabled"
-               Value="False">
-        <Setter TargetName="TrackSurface"
-                Property="Background"
-                Value="{StaticResource DisabledBackgroundBrush}"/>
-        <Setter TargetName="TrackSurface"
-                Property="BorderBrush"
-                Value="{StaticResource DisabledBorderBrush}"/>
-        <Setter TargetName="PART_Track"
-                Property="Opacity"
-                Value="0.95"/>
-      </Trigger>
-    </ControlTemplate.Triggers>
-  </ControlTemplate>
+  <SolidColorBrush x:Key="ClipperSliderForegroundBrush"
+                   Color="#FF7CC8FF"/>
+  <SolidColorBrush x:Key="ClipperSliderBackgroundBrush"
+                   Color="#FF2D3F58"/>
+  <SolidColorBrush x:Key="ClipperSliderBorderBrush"
+                   Color="#FF4A5A73"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbFillBrush"
+                   Color="#FFF6FBFF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbBorderBrush"
+                   Color="#FF7CC8FF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbHoverFillBrush"
+                   Color="#FFFFFFFF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbHoverBorderBrush"
+                   Color="#FF58B6F4"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbPressedFillBrush"
+                   Color="#FFFFFFFF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbPressedBorderBrush"
+                   Color="#FF3EA2E6"/>
+  <SolidColorBrush x:Key="ClipperSliderTrackHoverBrush"
+                   Color="#FF3A4E69"/>
+  <SolidColorBrush x:Key="ClipperSliderTrackPressedBrush"
+                   Color="#FF425A78"/>
+  <SolidColorBrush x:Key="ClipperSliderDisabledForegroundBrush"
+                   Color="#FFAFBED8"/>
+  <SolidColorBrush x:Key="ClipperSliderDisabledBackgroundBrush"
+                   Color="#FF253347"/>
+  <SolidColorBrush x:Key="ClipperSliderDisabledBorderBrush"
+                   Color="#FF5A6982"/>
 
   <Style x:Key="ClipperSettingsSlider"
          TargetType="Slider">
     <Setter Property="Foreground"
-            Value="{StaticResource PrimaryBrush}"/>
+            Value="{StaticResource ClipperSliderForegroundBrush}"/>
     <Setter Property="Background"
-            Value="{StaticResource SurfaceLightBrush}"/>
+            Value="{StaticResource ClipperSliderBackgroundBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource ClipperSliderBorderBrush}"/>
     <Setter Property="MinHeight"
             Value="24"/>
     <Setter Property="IsMoveToPointEnabled"
             Value="True"/>
     <Setter Property="Cursor"
             Value="Hand"/>
-    <Setter Property="Template"
-            Value="{StaticResource ClipperHorizontalSliderTemplate}"/>
+    <Style.Resources>
+      <Style TargetType="Thumb">
+        <Setter Property="Background"
+                Value="{StaticResource ClipperSliderThumbFillBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource ClipperSliderThumbBorderBrush}"/>
+        <Style.Triggers>
+          <Trigger Property="IsMouseOver"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderThumbHoverFillBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderThumbHoverBorderBrush}"/>
+          </Trigger>
+          <Trigger Property="IsDragging"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderThumbPressedFillBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderThumbPressedBorderBrush}"/>
+          </Trigger>
+          <Trigger Property="IsEnabled"
+                   Value="False">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderDisabledBackgroundBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderDisabledBorderBrush}"/>
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+
+      <Style TargetType="RepeatButton">
+        <Setter Property="Background"
+                Value="{StaticResource ClipperSliderBackgroundBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource ClipperSliderBorderBrush}"/>
+        <Style.Triggers>
+          <Trigger Property="IsMouseOver"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderTrackHoverBrush}"/>
+          </Trigger>
+          <Trigger Property="IsPressed"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderTrackPressedBrush}"/>
+          </Trigger>
+          <Trigger Property="IsEnabled"
+                   Value="False">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderDisabledBackgroundBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderDisabledBorderBrush}"/>
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+    </Style.Resources>
+    <Style.Triggers>
+      <Trigger Property="IsEnabled"
+               Value="False">
+        <Setter Property="Foreground"
+                Value="{StaticResource ClipperSliderDisabledForegroundBrush}"/>
+        <Setter Property="Background"
+                Value="{StaticResource ClipperSliderDisabledBackgroundBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource ClipperSliderDisabledBorderBrush}"/>
+      </Trigger>
+    </Style.Triggers>
   </Style>
 
   <Style x:Key="ClipperTimelineSlider"
          TargetType="Slider"
          BasedOn="{StaticResource ClipperSettingsSlider}">
+    <Setter Property="IsMoveToPointEnabled"
+            Value="True"/>
+    <Setter Property="SmallChange"
+            Value="0.25"/>
+    <Setter Property="LargeChange"
+            Value="1"/>
     <Setter Property="Height"
             Value="24"/>
   </Style>

@@ -32,6 +32,8 @@ public partial class ClipperView : UserControl
     private bool _isMediaReady;
     private bool _isSplitSourceMediaReady;
     private bool _isDraggingSlider;
+    private bool _isSliderThumbDragging;
+    private bool _sliderSeekHandledOnMouseDown;
     private bool _isApplyingSettings;
     private bool _isDraggingSubtitle;
     private Point _subtitleDragStart;
@@ -121,6 +123,13 @@ public partial class ClipperView : UserControl
     private long _lastPlaybackMetricsDroppedQueue;
     private bool _isSplitPreviewInitialized;
     private bool _splitAwaitingFirstPlayAlignment;
+    private DateTime _suppressTimelineUpdatesUntilUtc = DateTime.MinValue;
+    private TimeSpan? _pendingTimelineSeekTarget;
+    private DateTime _pendingTimelineSeekIssuedUtc = DateTime.MinValue;
+    private int _pendingTimelineSeekRetryCount;
+    private const int PendingTimelineSeekToleranceMs = 130;
+    private const int PendingTimelineSeekRetryDelayMs = 170;
+    private const int PendingTimelineSeekTimeoutMs = 950;
     private const int MaxPreviewFrameCacheEntries = 160;
     private const int MaxPortraitPreviewCacheEntries = 120;
     private const int MaxFaceDetectionCacheEntries = 80;
@@ -734,11 +743,37 @@ public partial class ClipperView : UserControl
 
     private void PreviewProgressSlider_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
+        if (e.ChangedButton != MouseButton.Left)
+        {
+            return;
+        }
+
         _isDraggingSlider = true;
+        _sliderSeekHandledOnMouseDown = false;
+        _isSliderThumbDragging = FindVisualAncestor<Thumb>(e.OriginalSource as DependencyObject) is not null;
+
+        // Track-Klick sofort als exakten Seek umsetzen.
+        if (!_isSliderThumbDragging && TrySetPreviewProgressFromPointer(e))
+        {
+            _sliderSeekHandledOnMouseDown = true;
+            SeekToSliderPosition();
+            _isDraggingSlider = false;
+            e.Handled = true;
+        }
     }
 
     private void PreviewProgressSlider_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
+        if (e.ChangedButton == MouseButton.Left &&
+            !_isSliderThumbDragging &&
+            !_sliderSeekHandledOnMouseDown &&
+            TrySetPreviewProgressFromPointer(e))
+        {
+            SeekToSliderPosition();
+            _sliderSeekHandledOnMouseDown = true;
+            e.Handled = true;
+        }
+
         CompleteSliderSeekInteraction();
     }
 
@@ -755,12 +790,21 @@ public partial class ClipperView : UserControl
             var clipDuration = _currentPreviewCandidate.Duration;
             var elapsed = TimeSpan.FromSeconds((e.NewValue / 100.0) * clipDuration.TotalSeconds);
             PreviewCurrentTimeText.Text = FormatTimeSpan(elapsed);
+
+            // Fallback: Wenn Track-Klick nicht direkt verarbeitet werden konnte,
+            // trotzdem beim Value-Update seeken (z.B. bei Template-Sonderfällen).
+            if (!_isSliderThumbDragging && !_sliderSeekHandledOnMouseDown)
+            {
+                SeekToSliderPosition();
+            }
         }
     }
 
     private void PreviewProgressSlider_DragStarted(object sender, DragStartedEventArgs e)
     {
         _isDraggingSlider = true;
+        _isSliderThumbDragging = true;
+        _sliderSeekHandledOnMouseDown = false;
     }
 
     private void PreviewProgressSlider_DragCompleted(object sender, DragCompletedEventArgs e)
@@ -788,7 +832,29 @@ public partial class ClipperView : UserControl
             newPosition = _currentPreviewCandidate.End;
         }
 
-        SetActivePlaybackPosition(newPosition);
+        if (_isPlaying)
+        {
+            _pendingTimelineSeekTarget = newPosition;
+            _pendingTimelineSeekIssuedUtc = DateTime.UtcNow;
+            _pendingTimelineSeekRetryCount = 0;
+            _suppressTimelineUpdatesUntilUtc = DateTime.UtcNow.AddMilliseconds(PendingTimelineSeekTimeoutMs);
+        }
+        else
+        {
+            _pendingTimelineSeekTarget = null;
+            _pendingTimelineSeekIssuedUtc = DateTime.MinValue;
+            _pendingTimelineSeekRetryCount = 0;
+            _suppressTimelineUpdatesUntilUtc = DateTime.MinValue;
+        }
+
+        if (_isPlaying && !IsSplitPlaybackMode())
+        {
+            SeekMainPlaybackMediaWhileRunning(newPosition);
+        }
+        else
+        {
+            SetActivePlaybackPosition(newPosition);
+        }
         SetPreviewAudioClock(newPosition);
         if (IsSplitPlaybackMode())
         {
@@ -807,7 +873,7 @@ public partial class ClipperView : UserControl
                     ffmpegStart = _currentPreviewCandidate.Start;
                 }
 
-                QueueFfmpegPreviewRestart(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
+                RestartFfmpegPreviewImmediately(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
             }
         }
         else
@@ -832,15 +898,107 @@ public partial class ClipperView : UserControl
         _lastPlaybackMetricsDroppedQueue = 0;
     }
 
-    private void CompleteSliderSeekInteraction()
+    private void SeekMainPlaybackMediaWhileRunning(TimeSpan position)
     {
-        if (!_isDraggingSlider)
+        try
+        {
+            PreviewMediaElement.Pause();
+            PreviewMediaElement.Position = position;
+            PreviewMediaElement.Play();
+        }
+        catch
+        {
+            SetActivePlaybackPosition(position);
+        }
+    }
+
+    private void UpdateTimelineUiFromAbsolutePosition(TimeSpan absolutePosition)
+    {
+        if (_currentPreviewCandidate is null)
         {
             return;
         }
 
+        var clipStart = _currentPreviewCandidate.Start;
+        var clipDuration = _currentPreviewCandidate.Duration;
+        var elapsed = absolutePosition - clipStart;
+        if (elapsed < TimeSpan.Zero)
+        {
+            elapsed = TimeSpan.Zero;
+        }
+
+        var progress = clipDuration.TotalSeconds > 0
+            ? (elapsed.TotalSeconds / clipDuration.TotalSeconds) * 100
+            : 0;
+
+        PreviewProgressSlider.Value = Math.Min(100, Math.Max(0, progress));
+        PreviewCurrentTimeText.Text = FormatTimeSpan(elapsed);
+    }
+
+    private void ClearPendingTimelineSeek()
+    {
+        _pendingTimelineSeekTarget = null;
+        _pendingTimelineSeekIssuedUtc = DateTime.MinValue;
+        _pendingTimelineSeekRetryCount = 0;
+        _suppressTimelineUpdatesUntilUtc = DateTime.MinValue;
+    }
+
+    private void CompleteSliderSeekInteraction()
+    {
+        if (!_isDraggingSlider && !_sliderSeekHandledOnMouseDown)
+        {
+            return;
+        }
+
+        var seekOnComplete = _isSliderThumbDragging && !_sliderSeekHandledOnMouseDown;
         _isDraggingSlider = false;
-        SeekToSliderPosition();
+        _isSliderThumbDragging = false;
+        _sliderSeekHandledOnMouseDown = false;
+
+        if (seekOnComplete)
+        {
+            SeekToSliderPosition();
+        }
+    }
+
+    private bool TrySetPreviewProgressFromPointer(MouseButtonEventArgs e)
+    {
+        if (PreviewProgressSlider.Template.FindName("PART_Track", PreviewProgressSlider) is not Track track)
+        {
+            return false;
+        }
+
+        if (track.ActualWidth <= 0)
+        {
+            return false;
+        }
+
+        var point = e.GetPosition(track);
+        var ratio = Math.Clamp(point.X / track.ActualWidth, 0, 1);
+        if (track.IsDirectionReversed)
+        {
+            ratio = 1 - ratio;
+        }
+
+        var range = PreviewProgressSlider.Maximum - PreviewProgressSlider.Minimum;
+        PreviewProgressSlider.Value = PreviewProgressSlider.Minimum + (range * ratio);
+        return true;
+    }
+
+    private static T? FindVisualAncestor<T>(DependencyObject? current)
+        where T : DependencyObject
+    {
+        while (current is not null)
+        {
+            if (current is T match)
+            {
+                return match;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
     }
 
     private void EnsureSplitSourceMediaLoaded()
@@ -1129,6 +1287,7 @@ public partial class ClipperView : UserControl
         }
 
         _isPlaying = true;
+        ClearPendingTimelineSeek();
         Interlocked.Increment(ref _playbackSessionVersion);
         SetPreviewAudioClock(playbackStart);
         _lastPlaybackMetricsLoggedUtc = DateTime.MinValue;
@@ -1306,6 +1465,7 @@ public partial class ClipperView : UserControl
     private void PausePlayback()
     {
         _isPlaying = false;
+        ClearPendingTimelineSeek();
         _splitAwaitingFirstPlayAlignment = false;
         Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
         Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
@@ -1346,6 +1506,7 @@ public partial class ClipperView : UserControl
     {
         _seekOperationVersion++;
         _isPlaying = false;
+        ClearPendingTimelineSeek();
         _splitAwaitingFirstPlayAlignment = false;
         Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
         Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
@@ -1389,6 +1550,7 @@ public partial class ClipperView : UserControl
         _previewPrefetchVersion++;
         _seekOperationVersion++;
         Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
+        ClearPendingTimelineSeek();
         SetPreviewAudioClock(TimeSpan.Zero);
         _lastSplitSourceHardSyncUtc = DateTime.MinValue;
         ReleaseFaceDetectionCts();
@@ -1493,6 +1655,12 @@ public partial class ClipperView : UserControl
         RunBackgroundTask(
             StartFfmpegPreviewProcessDeferredAsync(videoPath, start, end, playbackVersion, requestVersion),
             nameof(StartFfmpegPreviewProcessDeferredAsync));
+    }
+
+    private void RestartFfmpegPreviewImmediately(string videoPath, TimeSpan start, TimeSpan end)
+    {
+        Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
+        StartFfmpegPreviewProcess(videoPath, start, end);
     }
 
     private async Task StartFfmpegPreviewProcessDeferredAsync(
@@ -3137,7 +3305,53 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        var now = DateTime.UtcNow;
         var currentPosition = GetActivePlaybackPosition();
+
+        if (_pendingTimelineSeekTarget is TimeSpan pendingTarget)
+        {
+            var drift = (currentPosition - pendingTarget).Duration();
+            var elapsedSinceSeekMs = (now - _pendingTimelineSeekIssuedUtc).TotalMilliseconds;
+
+            if (drift <= TimeSpan.FromMilliseconds(PendingTimelineSeekToleranceMs))
+            {
+                currentPosition = pendingTarget;
+                ClearPendingTimelineSeek();
+            }
+            else
+            {
+                if (_pendingTimelineSeekRetryCount == 0 && elapsedSinceSeekMs >= PendingTimelineSeekRetryDelayMs)
+                {
+                    _pendingTimelineSeekRetryCount = 1;
+                    _pendingTimelineSeekIssuedUtc = now;
+                    if (!IsSplitPlaybackMode())
+                    {
+                        SeekMainPlaybackMediaWhileRunning(pendingTarget);
+                    }
+                    else
+                    {
+                        SetActivePlaybackPosition(pendingTarget);
+                        TrySyncSplitSourcePlaybackState(pendingTarget, play: true);
+                    }
+
+                    SetPreviewAudioClock(pendingTarget);
+                    currentPosition = pendingTarget;
+                }
+
+                if (elapsedSinceSeekMs < PendingTimelineSeekTimeoutMs)
+                {
+                    UpdateTimelineUiFromAbsolutePosition(pendingTarget);
+                    return;
+                }
+
+                ClearPendingTimelineSeek();
+            }
+        }
+        else if (now < _suppressTimelineUpdatesUntilUtc)
+        {
+            return;
+        }
+
         SetPreviewAudioClock(currentPosition);
         var clipStart = _currentPreviewCandidate.Start;
         var clipEnd = _currentPreviewCandidate.End;
