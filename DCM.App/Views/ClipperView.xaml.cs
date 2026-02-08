@@ -90,6 +90,7 @@ public partial class ClipperView : UserControl
     private CancellationTokenSource? _ffmpegPreviewCts;
     private Task? _ffmpegFrameReaderTask;
     private readonly object _ffmpegLock = new();
+    private long _previewFrameDispatchVersion;
     private const int MaxPreviewFrameCacheEntries = 160;
     private const int MaxPortraitPreviewCacheEntries = 120;
     private const int MaxFaceDetectionCacheEntries = 80;
@@ -3205,7 +3206,7 @@ public partial class ClipperView : UserControl
             var startInfo = new ProcessStartInfo
             {
                 FileName = ffmpegPath,
-                Arguments = $"-hide_banner -loglevel error -ss {seconds} -i \"{videoPath}\" -frames:v 1 -vf \"{filterChain}\" -f image2pipe -vcodec mjpeg pipe:1",
+                Arguments = $"-hide_banner -loglevel error -threads {GetPreviewThreadLimit()} -ss {seconds} -i \"{videoPath}\" -frames:v 1 -vf \"{filterChain}\" -f image2pipe -vcodec mjpeg pipe:1",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true
@@ -3308,7 +3309,7 @@ public partial class ClipperView : UserControl
             var startInfo = new ProcessStartInfo
             {
                 FileName = ffmpegPath,
-                Arguments = $"-hide_banner -loglevel error -ss {seconds} -i \"{videoPath}\" -frames:v 1 -vf \"scale=640:-1:flags=fast_bilinear\" -f image2pipe -vcodec mjpeg pipe:1",
+                Arguments = $"-hide_banner -loglevel error -threads {GetPreviewThreadLimit()} -ss {seconds} -i \"{videoPath}\" -frames:v 1 -vf \"scale=640:-1:flags=fast_bilinear\" -f image2pipe -vcodec mjpeg pipe:1",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true
@@ -3447,6 +3448,12 @@ public partial class ClipperView : UserControl
         return false;
     }
 
+    private static int GetPreviewThreadLimit()
+    {
+        // More aggressive than before to keep preview responsive, but still bounded.
+        return Math.Clamp(Environment.ProcessorCount / 2, 2, 8);
+    }
+
     private void ClearVideoScopedPreviewCaches()
     {
         _previewFrameCache.Clear();
@@ -3547,7 +3554,12 @@ public partial class ClipperView : UserControl
         var cropMode = GetSelectedCropMode();
         var manualOffset = 0.0;
         var cropRegion = _currentCropRegion;
-        var (sourceWidth, sourceHeight) = GetVideoDimensions(videoPath);
+        var sourceWidth = PreviewMediaElement.NaturalVideoWidth;
+        var sourceHeight = PreviewMediaElement.NaturalVideoHeight;
+        if (sourceWidth <= 0 || sourceHeight <= 0)
+        {
+            (sourceWidth, sourceHeight) = GetVideoDimensions(videoPath);
+        }
         if (end <= start)
         {
             return;
@@ -3579,7 +3591,7 @@ public partial class ClipperView : UserControl
 
         // FFmpeg: Kontinuierlicher MJPEG-Stream mit 24 FPS
         var args = $"-hide_banner -loglevel error -ss {startSeconds} -t {duration} -i \"{videoPath}\" " +
-                   $"-vf \"{filterChain},fps=24\" -f image2pipe -vcodec mjpeg -q:v 8 pipe:1";
+                   $"-threads {GetPreviewThreadLimit()} -vf \"{filterChain},fps=24\" -f image2pipe -vcodec mjpeg -q:v 8 pipe:1";
 
         _ffmpegPreviewCts = new CancellationTokenSource();
         var ct = _ffmpegPreviewCts.Token;
@@ -3607,6 +3619,15 @@ public partial class ClipperView : UserControl
             }
 
             var previewProcess = _ffmpegPreviewProcess;
+            try
+            {
+                previewProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch
+            {
+                // ignore priority assignment failures
+            }
+
             _ = Task.Run(async () =>
             {
                 try
@@ -3725,39 +3746,48 @@ public partial class ClipperView : UserControl
                     var frameData = new byte[frameLength];
                     Buffer.BlockCopy(pendingBuffer, 0, frameData, 0, frameLength);
 
-                    // Zeige Frame auf UI-Thread
-                    if (!ct.IsCancellationRequested)
+                    BitmapImage? bitmap = null;
+                    try
                     {
-                        await Dispatcher.InvokeAsync(() =>
+                        using var ms = new MemoryStream(frameData);
+                        bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.StreamSource = ms;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                    }
+                    catch
+                    {
+                        // Ignore invalid frame payload
+                    }
+
+                    if (!ct.IsCancellationRequested && bitmap is not null)
+                    {
+                        var dispatchVersion = Interlocked.Increment(ref _previewFrameDispatchVersion);
+                        _ = Dispatcher.InvokeAsync(() =>
                         {
-                            if (_isPlaying && !ct.IsCancellationRequested)
+                            if (!_isPlaying || ct.IsCancellationRequested)
                             {
-                                try
-                                {
-                                    using var ms = new MemoryStream(frameData);
-                                    var bitmap = new BitmapImage();
-                                    bitmap.BeginInit();
-                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                                    bitmap.StreamSource = ms;
-                                    bitmap.EndInit();
-                                    bitmap.Freeze();
-                                    if (GetSelectedCropMode() == CropMode.SplitLayout)
-                                    {
-                                        SplitPlaybackImage.Source = bitmap;
-                                        SplitPlaybackImage.Visibility = Visibility.Visible;
-                                    }
-                                    else
-                                    {
-                                        CroppedPreviewImage.Source = bitmap;
-                                        CroppedPreviewImage.Visibility = Visibility.Visible;
-                                    }
-                                }
-                                catch
-                                {
-                                    // Ignoriere fehlerhafte Frames
-                                }
+                                return;
                             }
-                        }, System.Windows.Threading.DispatcherPriority.Render, ct);
+
+                            if (dispatchVersion != Interlocked.Read(ref _previewFrameDispatchVersion))
+                            {
+                                return;
+                            }
+
+                            if (GetSelectedCropMode() == CropMode.SplitLayout)
+                            {
+                                SplitPlaybackImage.Source = bitmap;
+                                SplitPlaybackImage.Visibility = Visibility.Visible;
+                            }
+                            else
+                            {
+                                CroppedPreviewImage.Source = bitmap;
+                                CroppedPreviewImage.Visibility = Visibility.Visible;
+                            }
+                        }, System.Windows.Threading.DispatcherPriority.Background, ct);
                     }
 
                     // Entferne verarbeiteten Frame aus Buffer

@@ -109,7 +109,8 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
         var options = new ParallelOptions
         {
             CancellationToken = ct,
-            MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount / 2)
+            // Leave CPU headroom so the WPF UI stays responsive during auto-detect.
+            MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount / 3)
         };
 
         await Parallel.ForEachAsync(frames, options, (frame, token) =>
@@ -377,6 +378,7 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
                 .FromFileInput(videoPath, verifyExists: true, options => options
                     .WithCustomArgument($"-ss {timestampArg}"))
                 .OutputToFile(tempPath, overwrite: true, options => options
+                    .WithCustomArgument("-threads 1")
                     .WithCustomArgument("-frames:v 1")
                     .WithCustomArgument("-q:v 2")
                     .ForceFormat("mjpeg"))

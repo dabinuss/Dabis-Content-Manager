@@ -392,6 +392,7 @@ public sealed class ClipRenderService : IClipRenderService
 
                 // Preset für Geschwindigkeit/Qualität Balance
                 options.WithCustomArgument("-preset medium");
+                options.WithCustomArgument($"-threads {GetRenderThreadLimit()}");
 
                 // Audio
                 options.WithAudioCodec(job.AudioCodec);
@@ -1024,5 +1025,10 @@ public sealed class ClipRenderService : IClipRenderService
         {
             // Ignorieren
         }
+    }
+
+    private static int GetRenderThreadLimit()
+    {
+        return Math.Max(1, Environment.ProcessorCount - 2);
     }
 }
