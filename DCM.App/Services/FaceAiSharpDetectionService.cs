@@ -232,6 +232,41 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
 
         _memoryCache.Dispose();
         _detectorLock.Dispose();
+
+        // TempFolder aufräumen: Verwaiste JPEGs löschen, die bei Abbrüchen/Crashes
+        // liegen geblieben sein können. Der Ordner selbst wird ebenfalls entfernt,
+        // sofern er danach leer ist.
+        CleanupTempFolder();
+    }
+
+    /// <summary>
+    /// Räumt den TempFolder auf: Löscht alle .jpg-Dateien und entfernt den Ordner,
+    /// falls er danach leer ist. Fehler werden stillschweigend ignoriert.
+    /// </summary>
+    private static void CleanupTempFolder()
+    {
+        try
+        {
+            if (!Directory.Exists(TempFolder))
+            {
+                return;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(TempFolder, "*.jpg"))
+            {
+                TryDelete(file);
+            }
+
+            // Ordner nur löschen, wenn er jetzt leer ist
+            if (!Directory.EnumerateFileSystemEntries(TempFolder).Any())
+            {
+                Directory.Delete(TempFolder, recursive: false);
+            }
+        }
+        catch
+        {
+            // Ignorieren – Cleanup ist best-effort
+        }
     }
 
     /// <summary>

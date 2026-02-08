@@ -91,6 +91,8 @@ public partial class ClipperView : UserControl
     private const double MinSplitDividerRatio = 0.05;
     private const double MaxSplitDividerRatio = 0.95;
 
+    private bool _resourcesDisposed;
+
     // Kontinuierlicher FFmpeg-Prozess für Echtzeit-Preview
     private Process? _ffmpegPreviewProcess;
     private CancellationTokenSource? _ffmpegPreviewCts;
@@ -1626,14 +1628,29 @@ public partial class ClipperView : UserControl
 
     private void ClipperView_Unloaded(object sender, RoutedEventArgs e)
     {
-        StopPreview();
-        _previewTimer.Stop();
-        ReleaseFaceDetectionCts();
+        DisposeResources();
     }
 
+    /// <summary>
+    /// Gibt alle Ressourcen frei (ONNX-Modell, FFmpeg-Prozess, Timer, CTS).
+    /// Idempotent: Mehrfache Aufrufe sind sicher (z.B. Unloaded + expliziter Aufruf).
+    /// </summary>
     public void DisposeResources()
     {
+        if (_resourcesDisposed)
+        {
+            return;
+        }
+        _resourcesDisposed = true;
+
         StopPreview();
+
+        // FFmpeg-Reader-Task mit Timeout abwarten, damit er nicht nach dem Dispose
+        // noch auf bereits freigegebene Ressourcen zugreift.
+        // StopPreview() ruft intern StopFfmpegPreviewProcess() auf (fire-and-forget),
+        // daher hier nochmal explizit mit awaitReaderTask=true.
+        StopFfmpegPreviewProcessCore(awaitReaderTask: true);
+
         _previewTimer.Stop();
         ReleaseFaceDetectionCts();
         if (_faceDetectionService is IDisposable disposable)
@@ -4872,7 +4889,18 @@ public partial class ClipperView : UserControl
 
     private void StopFfmpegPreviewProcess()
     {
+        StopFfmpegPreviewProcessCore(awaitReaderTask: false);
+    }
+
+    /// <summary>
+    /// Stoppt den FFmpeg-Preview-Prozess. Wenn <paramref name="awaitReaderTask"/> true ist,
+    /// wird der _ffmpegFrameReaderTask mit Timeout abgewartet, damit er nicht nach dem Dispose
+    /// noch auf freigegebene Ressourcen zugreift.
+    /// </summary>
+    private void StopFfmpegPreviewProcessCore(bool awaitReaderTask)
+    {
         _ffmpegPreviewCts?.Cancel();
+        var readerTask = _ffmpegFrameReaderTask;
         _ffmpegFrameReaderTask = null;
         Interlocked.Exchange(ref _pendingPreviewUiUpdate, 0);
 
@@ -4893,6 +4921,20 @@ public partial class ClipperView : UserControl
                     // Ignorieren
                 }
                 _ffmpegPreviewProcess = null;
+            }
+        }
+
+        // Bei Dispose: Reader-Task abwarten, damit er nicht nach dem Dispose
+        // noch auf bereits freigegebene Ressourcen zugreift.
+        if (awaitReaderTask && readerTask is not null)
+        {
+            try
+            {
+                readerTask.Wait(TimeSpan.FromSeconds(3));
+            }
+            catch
+            {
+                // Task-Exceptions oder Timeout ignorieren – der CTS wurde bereits gecancelt
             }
         }
 

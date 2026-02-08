@@ -73,6 +73,7 @@ public sealed class ClipRenderService : IClipRenderService
         CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
+        string? subtitlePath = null;
 
         try
         {
@@ -125,7 +126,6 @@ public sealed class ClipRenderService : IClipRenderService
             try
             {
                 // Phase: Untertitel generieren (falls aktiviert)
-                string? subtitlePath = null;
                 if (job.BurnSubtitles && job.SubtitleSegments is { Count: > 0 })
                 {
                     progress?.Report(new ClipRenderProgress
@@ -223,11 +223,13 @@ public sealed class ClipRenderService : IClipRenderService
             catch (OperationCanceledException)
             {
                 CleanupTempFile(tempOutputPath);
+                CleanupTempFile(subtitlePath);
                 throw;
             }
         }
         catch (OperationCanceledException)
         {
+            CleanupTempFile(subtitlePath);
             progress?.Report(new ClipRenderProgress
             {
                 JobId = job.Id,
@@ -240,6 +242,8 @@ public sealed class ClipRenderService : IClipRenderService
         }
         catch (Exception ex)
         {
+            // Subtitle-Datei aufräumen, die beim Crash sonst als Waise zurückbleibt
+            CleanupTempFile(subtitlePath);
             progress?.Report(ClipRenderProgress.Failed(job.Id, ex.Message));
             return ClipRenderResult.Fail(job.Id, ex.Message, stopwatch.Elapsed);
         }
