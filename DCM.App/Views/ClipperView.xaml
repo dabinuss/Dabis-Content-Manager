@@ -592,11 +592,12 @@
                                       LoadedBehavior="Manual"
                                       UnloadedBehavior="Stop"
                                       ScrubbingEnabled="True"
-                                      IsMuted="True"
+                                      IsMuted="False"
                                       Stretch="Uniform"
                                       Visibility="Collapsed"
                                       IsHitTestVisible="False"
-                                      MediaOpened="SplitSourceMediaElement_MediaOpened"/>
+                                      MediaOpened="SplitSourceMediaElement_MediaOpened"
+                                      MediaEnded="SplitSourceMediaElement_MediaEnded"/>
                         <Canvas x:Name="SplitSelectionCanvas"
                                 Background="Transparent"
                                 SizeChanged="SplitSelectionCanvas_SizeChanged"
@@ -715,6 +716,51 @@
                         <Image x:Name="SplitPlaybackImage"
                                Stretch="UniformToFill"
                                Visibility="Collapsed"/>
+                        <Grid x:Name="SplitLivePlaybackPanel"
+                              Visibility="Collapsed"
+                              IsHitTestVisible="False">
+                          <Border x:Name="SplitLiveSingleHost"
+                                  Visibility="Collapsed">
+                            <Border.Background>
+                              <VisualBrush x:Name="SplitLiveSingleBrush"
+                                           Visual="{Binding ElementName=SplitSourceMediaElement}"
+                                           Stretch="UniformToFill"
+                                           AlignmentX="Center"
+                                           AlignmentY="Center"
+                                           ViewboxUnits="RelativeToBoundingBox"
+                                           Viewbox="0,0,1,1"/>
+                            </Border.Background>
+                          </Border>
+                          <Grid x:Name="SplitLiveDuoGrid"
+                                Visibility="Collapsed">
+                            <Grid.RowDefinitions>
+                              <RowDefinition x:Name="SplitLiveTopRow" Height="*"/>
+                              <RowDefinition x:Name="SplitLiveBottomRow" Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0">
+                              <Border.Background>
+                                <VisualBrush x:Name="SplitLiveTopBrush"
+                                             Visual="{Binding ElementName=SplitSourceMediaElement}"
+                                             Stretch="UniformToFill"
+                                             AlignmentX="Center"
+                                             AlignmentY="Center"
+                                             ViewboxUnits="RelativeToBoundingBox"
+                                             Viewbox="0,0,1,0.5"/>
+                              </Border.Background>
+                            </Border>
+                            <Border Grid.Row="1">
+                              <Border.Background>
+                                <VisualBrush x:Name="SplitLiveBottomBrush"
+                                             Visual="{Binding ElementName=SplitSourceMediaElement}"
+                                             Stretch="UniformToFill"
+                                             AlignmentX="Center"
+                                             AlignmentY="Center"
+                                             ViewboxUnits="RelativeToBoundingBox"
+                                             Viewbox="0,0.5,1,0.5"/>
+                              </Border.Background>
+                            </Border>
+                          </Grid>
+                        </Grid>
                         <Canvas x:Name="SplitSubtitleOverlayCanvas"
                                 Background="{x:Null}"
                                 SizeChanged="SubtitleOverlayCanvas_SizeChanged"

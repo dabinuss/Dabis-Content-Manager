@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -91,6 +92,34 @@ public partial class ClipperView : UserControl
     private Task? _ffmpegFrameReaderTask;
     private readonly object _ffmpegLock = new();
     private long _previewFrameDispatchVersion;
+    private long _previewAudioClockTicks;
+    private int _pendingPreviewUiUpdate;
+    private long _previewFramesRendered;
+    private long _previewFramesDroppedLate;
+    private long _previewFramesDroppedQueue;
+    private WriteableBitmap? _previewPlaybackBitmap;
+    private DateTime _previewStreamStartedUtc = DateTime.UtcNow;
+    private const int PreviewFrameLateDropMs = 140;
+    private const int PreviewFrameEarlyToleranceMs = 14;
+    private const int PreviewOutputWidth = 360;
+    private const int PreviewOutputHeight = 640;
+    private const int PreviewOutputBytesPerPixel = 4;
+    private long _previewAudioClockUpdatedTimestamp;
+    private DateTime _lastSplitSourceHardSyncUtc = DateTime.MinValue;
+    private const int SplitSourceHardSyncThresholdMs = 420;
+    private const int SplitSourceHardSyncMinIntervalMs = 900;
+    private const int SplitSourceSpeedAdjustThresholdMs = 90;
+    private const double SplitSourceSpeedUpRatio = 1.04;
+    private const double SplitSourceSlowDownRatio = 0.96;
+    private int _playbackSessionVersion;
+    private int _ffmpegPreviewRequestVersion;
+    private DateTime _lastPlaybackMetricsLoggedUtc = DateTime.MinValue;
+    private TimeSpan _lastPlaybackMetricsPosition = TimeSpan.Zero;
+    private long _lastPlaybackMetricsRendered;
+    private long _lastPlaybackMetricsDroppedLate;
+    private long _lastPlaybackMetricsDroppedQueue;
+    private bool _isSplitPreviewInitialized;
+    private bool _splitAwaitingFirstPlayAlignment;
     private const int MaxPreviewFrameCacheEntries = 160;
     private const int MaxPortraitPreviewCacheEntries = 120;
     private const int MaxFaceDetectionCacheEntries = 80;
@@ -111,6 +140,7 @@ public partial class ClipperView : UserControl
 
         // Standard-Lautstärke
         PreviewMediaElement.Volume = 0.5;
+        SplitSourceMediaElement.Volume = 0.5;
 
         EnableSubtitlesCheckBox.IsChecked = true;
         WordHighlightCheckBox.IsChecked = true;
@@ -418,6 +448,42 @@ public partial class ClipperView : UserControl
         EditorColumn.Width = new GridLength(0);
     }
 
+    private bool IsSplitPlaybackMode()
+    {
+        return GetSelectedCropMode() == CropMode.SplitLayout;
+    }
+
+    private MediaElement GetActivePlaybackMediaElement()
+    {
+        return IsSplitPlaybackMode() ? SplitSourceMediaElement : PreviewMediaElement;
+    }
+
+    private TimeSpan GetActivePlaybackPosition()
+    {
+        try
+        {
+            return GetActivePlaybackMediaElement().Position;
+        }
+        catch
+        {
+            return TimeSpan.Zero;
+        }
+    }
+
+    private void SetActivePlaybackPosition(TimeSpan position)
+    {
+        var target = position < TimeSpan.Zero ? TimeSpan.Zero : position;
+        var active = GetActivePlaybackMediaElement();
+        try
+        {
+            active.Position = target;
+        }
+        catch
+        {
+            // ignore preview-only seek errors
+        }
+    }
+
     private void LoadCandidatePreview(ClipCandidate candidate)
     {
         if (string.IsNullOrWhiteSpace(_currentVideoPath))
@@ -432,6 +498,8 @@ public partial class ClipperView : UserControl
 
         _currentPreviewCandidate = candidate;
         _restartFromClipStartOnNextPlay = true;
+        _isSplitPreviewInitialized = false;
+        _splitAwaitingFirstPlayAlignment = false;
 
         // UI aktualisieren
         PreviewEndTimeText.Text = candidate.DurationFormatted;
@@ -447,26 +515,60 @@ public partial class ClipperView : UserControl
 
         try
         {
-            EnsureSplitSourceMediaLoaded();
-
-            // Prüfen ob das Video bereits geladen ist
-            if (_isMediaReady && string.Equals(_loadedVideoPath, _currentVideoPath, StringComparison.OrdinalIgnoreCase))
+            var splitMode = IsSplitPlaybackMode();
+            if (splitMode)
             {
-                // Video ist bereits geladen - nur Position ändern
-                PreviewMediaElement.Pause();
-                RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: true), nameof(SeekToClipStartAsync));
-                SeekSplitSourceMediaTo(_currentPreviewCandidate.Start);
+                _splitSourceFrame = null;
+                SplitSourceImage.Source = null;
+                SplitPortraitSingleImage.Source = null;
+                SplitPortraitTopImage.Source = null;
+                SplitPortraitBottomImage.Source = null;
+                SplitLivePlaybackPanel.Visibility = Visibility.Collapsed;
+                SplitLiveSingleHost.Visibility = Visibility.Collapsed;
+                SplitLiveDuoGrid.Visibility = Visibility.Collapsed;
+
+                try
+                {
+                    PreviewMediaElement.Stop();
+                    PreviewMediaElement.Source = null;
+                }
+                catch
+                {
+                    // ignore cleanup errors
+                }
+
+                EnsureSplitSourceMediaLoaded();
+                if (_isMediaReady && string.Equals(_loadedVideoPath, _currentVideoPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    TrySyncSplitSourcePlaybackState(_currentPreviewCandidate.Start, play: false);
+                    RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: true), nameof(SeekToClipStartAsync));
+                }
+                else
+                {
+                    _isMediaReady = false;
+                    _seekPendingAfterMediaOpen = true;
+                    _isSplitSourceMediaReady = false;
+                    SplitSourceMediaElement.Source = new Uri(_currentVideoPath);
+                    _loadedVideoPath = _currentVideoPath;
+                }
             }
             else
             {
-                // Video neu laden
-                _isMediaReady = false;
-                _seekPendingAfterMediaOpen = true;
-                PreviewMediaElement.Source = new Uri(_currentVideoPath);
-                _isSplitSourceMediaReady = false;
-                SplitSourceMediaElement.Source = new Uri(_currentVideoPath);
-                _loadedVideoPath = _currentVideoPath;
+                if (_isMediaReady && string.Equals(_loadedVideoPath, _currentVideoPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    PreviewMediaElement.Pause();
+                    RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: true), nameof(SeekToClipStartAsync));
+                }
+                else
+                {
+                    _isMediaReady = false;
+                    _seekPendingAfterMediaOpen = true;
+                    PreviewMediaElement.Source = new Uri(_currentVideoPath);
+                    _loadedVideoPath = _currentVideoPath;
+                }
             }
+
+            UpdateSplitLivePlaybackPreviewState();
         }
         catch
         {
@@ -476,7 +578,13 @@ public partial class ClipperView : UserControl
 
     private void PreviewMediaElement_MediaOpened(object sender, RoutedEventArgs e)
     {
+        if (IsSplitPlaybackMode())
+        {
+            return;
+        }
+
         _isMediaReady = true;
+        SetPreviewAudioClock(PreviewMediaElement.Position);
 
         if (_currentPreviewCandidate is null)
         {
@@ -495,26 +603,50 @@ public partial class ClipperView : UserControl
     private void SplitSourceMediaElement_MediaOpened(object sender, RoutedEventArgs e)
     {
         _isSplitSourceMediaReady = true;
+        var masterPosition = GetActivePlaybackPosition();
+        if (IsSplitPlaybackMode())
+        {
+            _isMediaReady = true;
+        }
+
         if (_currentPreviewCandidate is not null)
         {
-            SeekSplitSourceMediaTo(PreviewMediaElement.Position < _currentPreviewCandidate.Start
+            SeekSplitSourceMediaTo(masterPosition < _currentPreviewCandidate.Start
                 ? _currentPreviewCandidate.Start
-                : PreviewMediaElement.Position);
+                : masterPosition);
+        }
 
-            if (_isPlaying && GetSelectedCropMode() == CropMode.SplitLayout)
+        SyncSplitSourceToMasterClock(masterPosition, force: true);
+        TrySyncSplitSourcePlaybackState(masterPosition, play: _isPlaying);
+        if (!_splitAwaitingFirstPlayAlignment)
+        {
+            try
             {
-                try
-                {
-                    SplitSourceMediaElement.Play();
-                }
-                catch
-                {
-                    // ignore preview-only playback sync errors
-                }
+                SplitSourceMediaElement.IsMuted = false;
             }
+            catch
+            {
+                // ignore preview-only mute errors
+            }
+        }
+        SetPreviewAudioClock(SplitSourceMediaElement.Position);
+        if (_seekPendingAfterMediaOpen)
+        {
+            _seekPendingAfterMediaOpen = false;
+            RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: true), nameof(SeekToClipStartAsync));
         }
 
         SyncSplitSourceMediaVisibility();
+        UpdateSplitLivePlaybackPreviewState();
+        UpdateSubtitlePlacementPreview();
+    }
+
+    private void SplitSourceMediaElement_MediaEnded(object sender, RoutedEventArgs e)
+    {
+        if (IsSplitPlaybackMode())
+        {
+            StopPlayback();
+        }
     }
 
     private void PreviewMediaElement_MediaEnded(object sender, RoutedEventArgs e)
@@ -555,6 +687,10 @@ public partial class ClipperView : UserControl
         if (PreviewMediaElement is not null)
         {
             PreviewMediaElement.Volume = e.NewValue;
+        }
+        if (SplitSourceMediaElement is not null)
+        {
+            SplitSourceMediaElement.Volume = e.NewValue;
         }
 
         // Volume-Icon aktualisieren
@@ -650,32 +786,48 @@ public partial class ClipperView : UserControl
             newPosition = _currentPreviewCandidate.End;
         }
 
-        PreviewMediaElement.Position = newPosition;
-        SeekSplitSourceMediaTo(newPosition);
+        SetActivePlaybackPosition(newPosition);
+        SetPreviewAudioClock(newPosition);
+        if (IsSplitPlaybackMode())
+        {
+            TrySyncSplitSourcePlaybackState(newPosition, play: _isPlaying);
+        }
 
         if (_isPlaying && !string.IsNullOrWhiteSpace(_currentVideoPath))
         {
-            var ffmpegStart = newPosition >= _currentPreviewCandidate.End
-                ? _currentPreviewCandidate.End - TimeSpan.FromMilliseconds(80)
-                : newPosition;
-            if (ffmpegStart < _currentPreviewCandidate.Start)
+            if (!IsSplitPlaybackMode())
             {
-                ffmpegStart = _currentPreviewCandidate.Start;
-            }
+                var ffmpegStart = newPosition >= _currentPreviewCandidate.End
+                    ? _currentPreviewCandidate.End - TimeSpan.FromMilliseconds(80)
+                    : newPosition;
+                if (ffmpegStart < _currentPreviewCandidate.Start)
+                {
+                    ffmpegStart = _currentPreviewCandidate.Start;
+                }
 
-            StartFfmpegPreviewProcess(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
-            if (GetSelectedCropMode() == CropMode.SplitLayout)
-            {
-                TrySyncSplitSourcePlaybackState(newPosition, play: true);
+                QueueFfmpegPreviewRestart(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
             }
         }
         else
         {
-            RunBackgroundTask(RenderPausedPreviewFrameAtPositionAsync(newPosition), nameof(RenderPausedPreviewFrameAtPositionAsync));
+            if (IsSplitPlaybackMode())
+            {
+                TrySyncSplitSourcePlaybackState(newPosition, play: false);
+                UpdateSplitLivePlaybackPreviewState();
+            }
+            else
+            {
+                RunBackgroundTask(RenderPausedPreviewFrameAtPositionAsync(newPosition), nameof(RenderPausedPreviewFrameAtPositionAsync));
+            }
         }
 
         PreviewCurrentTimeText.Text = FormatTimeSpan(newPosition - clipStart);
         _restartFromClipStartOnNextPlay = false;
+        _lastPlaybackMetricsLoggedUtc = DateTime.MinValue;
+        _lastPlaybackMetricsPosition = TimeSpan.Zero;
+        _lastPlaybackMetricsRendered = 0;
+        _lastPlaybackMetricsDroppedLate = 0;
+        _lastPlaybackMetricsDroppedQueue = 0;
     }
 
     private void CompleteSliderSeekInteraction()
@@ -729,6 +881,71 @@ public partial class ClipperView : UserControl
         }
     }
 
+    private void SyncSplitSourceToMasterClock(TimeSpan masterPosition, bool force)
+    {
+        if (!_isSplitSourceMediaReady || GetSelectedCropMode() != CropMode.SplitLayout)
+        {
+            return;
+        }
+
+        // In Split mode the split media is the active playback source.
+        // Keep it as clock master and avoid correction loops.
+        if (IsSplitPlaybackMode())
+        {
+            return;
+        }
+
+        if (!_isPlaying && !force)
+        {
+            return;
+        }
+
+        if (!force)
+        {
+            var driftMs = (SplitSourceMediaElement.Position - masterPosition).TotalMilliseconds;
+            var absDriftMs = Math.Abs(driftMs);
+            if (absDriftMs < SplitSourceSpeedAdjustThresholdMs)
+            {
+                TrySetSplitSourceSpeedRatio(1.0);
+                return;
+            }
+
+            if (absDriftMs >= SplitSourceHardSyncThresholdMs)
+            {
+                var now = DateTime.UtcNow;
+                if ((now - _lastSplitSourceHardSyncUtc).TotalMilliseconds < SplitSourceHardSyncMinIntervalMs)
+                {
+                    return;
+                }
+
+                _lastSplitSourceHardSyncUtc = now;
+                SeekSplitSourceMediaTo(masterPosition);
+                TrySetSplitSourceSpeedRatio(1.0);
+                return;
+            }
+
+            // split behind master -> speed up, split ahead -> slow down
+            TrySetSplitSourceSpeedRatio(driftMs < 0 ? SplitSourceSpeedUpRatio : SplitSourceSlowDownRatio);
+            return;
+        }
+
+        _lastSplitSourceHardSyncUtc = DateTime.UtcNow;
+        SeekSplitSourceMediaTo(masterPosition);
+        TrySetSplitSourceSpeedRatio(1.0);
+    }
+
+    private void TrySetSplitSourceSpeedRatio(double ratio)
+    {
+        try
+        {
+            SplitSourceMediaElement.SpeedRatio = ratio;
+        }
+        catch
+        {
+            // ignore preview-only speed adjustment errors
+        }
+    }
+
     private void TrySyncSplitSourcePlaybackState(TimeSpan position, bool play)
     {
         if (GetSelectedCropMode() != CropMode.SplitLayout)
@@ -736,6 +953,7 @@ public partial class ClipperView : UserControl
             try
             {
                 SplitSourceMediaElement.Pause();
+                SplitSourceMediaElement.SpeedRatio = 1.0;
             }
             catch
             {
@@ -746,19 +964,30 @@ public partial class ClipperView : UserControl
         }
 
         EnsureSplitSourceMediaLoaded();
-        SeekSplitSourceMediaTo(position);
+        if (!play)
+        {
+            SeekSplitSourceMediaTo(position);
+        }
 
         if (_isSplitSourceMediaReady)
         {
             try
             {
+                var drift = (SplitSourceMediaElement.Position - position).Duration();
+                if (drift > TimeSpan.FromMilliseconds(45))
+                {
+                    SeekSplitSourceMediaTo(position);
+                }
+
                 if (play)
                 {
+                    SplitSourceMediaElement.SpeedRatio = 1.0;
                     SplitSourceMediaElement.Play();
                 }
                 else
                 {
                     SplitSourceMediaElement.Pause();
+                    SplitSourceMediaElement.SpeedRatio = 1.0;
                 }
             }
             catch
@@ -768,6 +997,7 @@ public partial class ClipperView : UserControl
         }
 
         SyncSplitSourceMediaVisibility();
+        UpdateSplitLivePlaybackPreviewState();
     }
 
     private void SyncSplitSourceMediaVisibility()
@@ -814,6 +1044,7 @@ public partial class ClipperView : UserControl
             if (frame is not null)
             {
                 _splitSourceFrame = frame;
+                _isSplitPreviewInitialized = true;
                 SplitSourceImage.Source = frame;
                 SplitPlaybackImage.Source = null;
                 SplitPlaybackImage.Visibility = Visibility.Collapsed;
@@ -870,48 +1101,137 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        var splitMode = IsSplitPlaybackMode();
+        var currentPosition = GetActivePlaybackPosition();
+        var forceSeekBeforePlay = _restartFromClipStartOnNextPlay;
+
         // Nach Kandidatenwechsel erzwingt der erste Play-Start einen exakten Seek.
         if (_restartFromClipStartOnNextPlay ||
-            IsOutsideCurrentClip(PreviewMediaElement.Position, _currentPreviewCandidate) ||
-            PreviewMediaElement.Position >= _currentPreviewCandidate.End)
+            IsOutsideCurrentClip(currentPosition, _currentPreviewCandidate) ||
+            currentPosition >= _currentPreviewCandidate.End)
         {
-            RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: false), nameof(SeekToClipStartAsync));
+            var clipStart = _currentPreviewCandidate.Start;
+            SetActivePlaybackPosition(clipStart);
+            SetPreviewAudioClock(clipStart);
             _restartFromClipStartOnNextPlay = false;
+            currentPosition = clipStart;
+            forceSeekBeforePlay = true;
         }
 
-        var playbackStart = PreviewMediaElement.Position;
+        var playbackStart = currentPosition;
         if (playbackStart < _currentPreviewCandidate.Start || playbackStart > _currentPreviewCandidate.End)
         {
             playbackStart = _currentPreviewCandidate.Start;
         }
 
         _isPlaying = true;
-
-        // Starte kontinuierlichen FFmpeg-Preview-Prozess
-        var ffmpegStart = playbackStart;
-        if (ffmpegStart >= _currentPreviewCandidate.End)
-        {
-            ffmpegStart = _currentPreviewCandidate.Start;
-        }
-
-        StartFfmpegPreviewProcess(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
-        TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: true);
+        Interlocked.Increment(ref _playbackSessionVersion);
+        SetPreviewAudioClock(playbackStart);
+        _lastPlaybackMetricsLoggedUtc = DateTime.MinValue;
+        _lastPlaybackMetricsPosition = playbackStart;
+        _lastPlaybackMetricsRendered = Interlocked.Read(ref _previewFramesRendered);
+        _lastPlaybackMetricsDroppedLate = Interlocked.Read(ref _previewFramesDroppedLate);
+        _lastPlaybackMetricsDroppedQueue = Interlocked.Read(ref _previewFramesDroppedQueue);
 
         PreviewFrameImage.Visibility = Visibility.Collapsed;
-        PreviewMediaElement.Play();
         _previewTimer.Start();
+        if (splitMode)
+        {
+            StopFfmpegPreviewProcess();
+            try
+            {
+                PreviewMediaElement.Pause();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            if (forceSeekBeforePlay)
+            {
+                // First play after clip load: ensure split decoder is positioned before Play to avoid a brief 00:00 flash.
+                TrySyncSplitSourcePlaybackState(playbackStart, play: false);
+                _splitAwaitingFirstPlayAlignment = true;
+                try
+                {
+                    SplitSourceMediaElement.IsMuted = true;
+                }
+                catch
+                {
+                    // ignore preview-only mute errors
+                }
+            }
+            else
+            {
+                _splitAwaitingFirstPlayAlignment = false;
+                try
+                {
+                    SplitSourceMediaElement.IsMuted = false;
+                }
+                catch
+                {
+                    // ignore preview-only mute errors
+                }
+            }
+
+            TrySyncSplitSourcePlaybackState(playbackStart, play: true);
+        }
+        else
+        {
+            PreviewMediaElement.Play();
+        }
+
+        if (!splitMode)
+        {
+            // Starte kontinuierlichen FFmpeg-Preview-Prozess
+            var ffmpegStart = playbackStart;
+            if (ffmpegStart >= _currentPreviewCandidate.End)
+            {
+                ffmpegStart = _currentPreviewCandidate.Start;
+            }
+
+            QueueFfmpegPreviewRestart(_currentVideoPath, ffmpegStart, _currentPreviewCandidate.End);
+        }
+
+        UpdateSplitLivePlaybackPreviewState();
         UpdatePlayButtonIcon(true);
     }
 
     private void PausePlayback()
     {
         _isPlaying = false;
-        PreviewMediaElement.Pause();
-        TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: false);
+        _splitAwaitingFirstPlayAlignment = false;
+        Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
+        var pausePosition = GetActivePlaybackPosition();
+        SetPreviewAudioClock(pausePosition);
+        if (IsSplitPlaybackMode())
+        {
+            TrySyncSplitSourcePlaybackState(pausePosition, play: false);
+        }
+        else
+        {
+            PreviewMediaElement.Pause();
+        }
         _previewTimer.Stop();
         StopFfmpegPreviewProcess();
-        RunBackgroundTask(RenderPausedPreviewFrameAtPositionAsync(PreviewMediaElement.Position), nameof(RenderPausedPreviewFrameAtPositionAsync));
+        if (!IsSplitPlaybackMode())
+        {
+            var pausedPosition = GetActivePlaybackPosition();
+            var playbackVersionAtPause = _playbackSessionVersion;
+            RunBackgroundTask(
+                RenderPausedPreviewFrameDeferredAsync(pausedPosition, playbackVersionAtPause),
+                nameof(RenderPausedPreviewFrameDeferredAsync));
+        }
 
+        UpdateSplitLivePlaybackPreviewState();
+        try
+        {
+            SplitSourceMediaElement.IsMuted = false;
+        }
+        catch
+        {
+            // ignore preview-only mute errors
+        }
         UpdatePlayButtonIcon(false);
     }
 
@@ -919,12 +1239,31 @@ public partial class ClipperView : UserControl
     {
         _seekOperationVersion++;
         _isPlaying = false;
+        _splitAwaitingFirstPlayAlignment = false;
+        Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
         _previewTimer.Stop();
-        PreviewMediaElement.Pause();
-        TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: false);
+        var pausePosition = GetActivePlaybackPosition();
+        SetPreviewAudioClock(pausePosition);
+        if (IsSplitPlaybackMode())
+        {
+            TrySyncSplitSourcePlaybackState(pausePosition, play: false);
+        }
+        else
+        {
+            PreviewMediaElement.Pause();
+        }
         StopFfmpegPreviewProcess();
         SplitPlaybackImage.Source = null;
         SplitPlaybackImage.Visibility = Visibility.Collapsed;
+        UpdateSplitLivePlaybackPreviewState();
+        try
+        {
+            SplitSourceMediaElement.IsMuted = false;
+        }
+        catch
+        {
+            // ignore preview-only mute errors
+        }
 
         if (_currentPreviewCandidate is not null && _isMediaReady)
         {
@@ -941,6 +1280,9 @@ public partial class ClipperView : UserControl
         _previewFrameRequestVersion++;
         _previewPrefetchVersion++;
         _seekOperationVersion++;
+        Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
+        SetPreviewAudioClock(TimeSpan.Zero);
+        _lastSplitSourceHardSyncUtc = DateTime.MinValue;
         ReleaseFaceDetectionCts();
         _isPlaying = false;
         _isMediaReady = false;
@@ -949,9 +1291,17 @@ public partial class ClipperView : UserControl
         _currentPreviewCandidate = null;
         _currentCropRegion = null;
         _loadedVideoPath = null;
+        Interlocked.Exchange(ref _previewAudioClockUpdatedTimestamp, 0);
         _isSplitSourceMediaReady = false;
         _seekPendingAfterMediaOpen = false;
         _restartFromClipStartOnNextPlay = false;
+        _isSplitPreviewInitialized = false;
+        _splitAwaitingFirstPlayAlignment = false;
+        _lastPlaybackMetricsLoggedUtc = DateTime.MinValue;
+        _lastPlaybackMetricsPosition = TimeSpan.Zero;
+        _lastPlaybackMetricsRendered = 0;
+        _lastPlaybackMetricsDroppedLate = 0;
+        _lastPlaybackMetricsDroppedQueue = 0;
 
         try
         {
@@ -972,7 +1322,11 @@ public partial class ClipperView : UserControl
         SplitPortraitBottomImage.Source = null;
         SplitPlaybackImage.Source = null;
         SplitPlaybackImage.Visibility = Visibility.Collapsed;
+        SplitLivePlaybackPanel.Visibility = Visibility.Collapsed;
+        SplitLiveSingleHost.Visibility = Visibility.Collapsed;
+        SplitLiveDuoGrid.Visibility = Visibility.Collapsed;
         SplitSourceMediaElement.Visibility = Visibility.Collapsed;
+        _previewPlaybackBitmap = null;
         _splitSourceFrame = null;
         PreviewFrameImage.Source = null;
         PreviewFrameImage.Visibility = Visibility.Collapsed;
@@ -1021,6 +1375,120 @@ public partial class ClipperView : UserControl
             CancellationToken.None,
             TaskContinuationOptions.OnlyOnFaulted,
             TaskScheduler.Default);
+    }
+
+    private void QueueFfmpegPreviewRestart(string videoPath, TimeSpan start, TimeSpan end)
+    {
+        var requestVersion = Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
+        var playbackVersion = _playbackSessionVersion;
+        RunBackgroundTask(
+            StartFfmpegPreviewProcessDeferredAsync(videoPath, start, end, playbackVersion, requestVersion),
+            nameof(StartFfmpegPreviewProcessDeferredAsync));
+    }
+
+    private async Task StartFfmpegPreviewProcessDeferredAsync(
+        string videoPath,
+        TimeSpan start,
+        TimeSpan end,
+        int playbackVersion,
+        int requestVersion)
+    {
+        // Let audio start first and coalesce rapid seek/restart bursts.
+        await Task.Delay(80);
+        if (!_isPlaying || _playbackSessionVersion != playbackVersion)
+        {
+            return;
+        }
+
+        if (requestVersion != Volatile.Read(ref _ffmpegPreviewRequestVersion))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(videoPath))
+        {
+            return;
+        }
+
+        StartFfmpegPreviewProcess(videoPath, start, end);
+    }
+
+    private async Task RenderPausedPreviewFrameDeferredAsync(TimeSpan position, int playbackVersionAtPause)
+    {
+        // Avoid expensive frame extraction if user resumes quickly.
+        await Task.Delay(120);
+        if (_isPlaying || _playbackSessionVersion != playbackVersionAtPause)
+        {
+            return;
+        }
+
+        await RenderPausedPreviewFrameAtPositionAsync(position);
+    }
+
+    private void SetPreviewAudioClock(TimeSpan position)
+    {
+        var ticks = position < TimeSpan.Zero ? 0 : position.Ticks;
+        Interlocked.Exchange(ref _previewAudioClockTicks, ticks);
+        Interlocked.Exchange(ref _previewAudioClockUpdatedTimestamp, Stopwatch.GetTimestamp());
+    }
+
+    private TimeSpan GetPreviewAudioClock()
+    {
+        var baseTicks = Interlocked.Read(ref _previewAudioClockTicks);
+        if (baseTicks <= 0)
+        {
+            return TimeSpan.Zero;
+        }
+
+        if (_isPlaying)
+        {
+            var updatedAt = Interlocked.Read(ref _previewAudioClockUpdatedTimestamp);
+            if (updatedAt > 0)
+            {
+                var now = Stopwatch.GetTimestamp();
+                var delta = now - updatedAt;
+                if (delta > 0)
+                {
+                    var extrapolated = baseTicks + (long)(delta * (double)TimeSpan.TicksPerSecond / Stopwatch.Frequency);
+                    if (extrapolated > baseTicks)
+                    {
+                        return TimeSpan.FromTicks(extrapolated);
+                    }
+                }
+            }
+        }
+
+        return TimeSpan.FromTicks(baseTicks);
+    }
+
+    private void MaybeLogPlaybackMetrics(TimeSpan currentPosition)
+    {
+        var now = DateTime.UtcNow;
+        if ((now - _lastPlaybackMetricsLoggedUtc).TotalMilliseconds < 1000)
+        {
+            return;
+        }
+
+        var currentAudioClock = GetPreviewAudioClock();
+        var driftMs = (currentPosition - currentAudioClock).TotalMilliseconds;
+        var rendered = Interlocked.Read(ref _previewFramesRendered);
+        var droppedLate = Interlocked.Read(ref _previewFramesDroppedLate);
+        var droppedQueue = Interlocked.Read(ref _previewFramesDroppedQueue);
+        var droppedLateDelta = droppedLate - _lastPlaybackMetricsDroppedLate;
+        var droppedQueueDelta = droppedQueue - _lastPlaybackMetricsDroppedQueue;
+        var fps = (currentPosition - _lastPlaybackMetricsPosition).TotalSeconds > 0
+            ? (rendered - _lastPlaybackMetricsRendered) / (currentPosition - _lastPlaybackMetricsPosition).TotalSeconds
+            : 0;
+
+        Debug.WriteLine(
+            $"ClipperPreview runtime: mode={(IsSplitPlaybackMode() ? "split" : "single")}, driftMs={driftMs:F1}, fps={fps:F1}, " +
+            $"rendered={rendered}, droppedLate={droppedLate} (+{droppedLateDelta}), droppedQueue={droppedQueue} (+{droppedQueueDelta})");
+
+        _lastPlaybackMetricsLoggedUtc = now;
+        _lastPlaybackMetricsPosition = currentPosition;
+        _lastPlaybackMetricsRendered = rendered;
+        _lastPlaybackMetricsDroppedLate = droppedLate;
+        _lastPlaybackMetricsDroppedQueue = droppedQueue;
     }
 
     private void ReleaseFaceDetectionCts()
@@ -1077,9 +1545,10 @@ public partial class ClipperView : UserControl
         StandardPreviewPanel.Visibility = isSplit ? Visibility.Collapsed : Visibility.Visible;
         if (!isSplit)
         {
-            TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: false);
+            TrySyncSplitSourcePlaybackState(GetActivePlaybackPosition(), play: false);
         }
         SyncSplitSourceMediaVisibility();
+        UpdateSplitLivePlaybackPreviewState();
         UpdateSubtitlePlacementPreview();
         UpdateLogoPosition();
     }
@@ -1817,6 +2286,7 @@ public partial class ClipperView : UserControl
             SplitPortraitBottomImage.Source = null;
             SplitPortraitDividerCanvas.Visibility = Visibility.Collapsed;
             SplitPortraitDividerCanvas.IsHitTestVisible = false;
+            UpdateSplitLivePlaybackPreviewState();
             return;
         }
 
@@ -1830,6 +2300,7 @@ public partial class ClipperView : UserControl
             SplitPortraitSingleImage.Source = primary;
             SplitPortraitTopImage.Source = null;
             SplitPortraitBottomImage.Source = null;
+            UpdateSplitLivePlaybackPreviewState();
             return;
         }
 
@@ -1845,6 +2316,55 @@ public partial class ClipperView : UserControl
         SplitPortraitTopImage.Source = primary;
         SplitPortraitBottomImage.Source = secondary;
         UpdateSplitDividerVisual();
+        UpdateSplitLivePlaybackPreviewState();
+    }
+
+    private void UpdateSplitLivePlaybackPreviewState()
+    {
+        if (!IsSplitPlaybackMode())
+        {
+            SplitLivePlaybackPanel.Visibility = Visibility.Collapsed;
+            SplitLiveSingleHost.Visibility = Visibility.Collapsed;
+            SplitLiveDuoGrid.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        UpdateSplitLivePlaybackBrushViewboxes();
+        var showLive = _isSplitSourceMediaReady &&
+                       _currentPreviewCandidate is not null &&
+                       (_isPlaying || _isSplitPreviewInitialized) &&
+                       !_splitAwaitingFirstPlayAlignment;
+        SplitLivePlaybackPanel.Visibility = showLive ? Visibility.Visible : Visibility.Collapsed;
+        SplitPlaybackImage.Visibility = Visibility.Collapsed;
+        if (!showLive)
+        {
+            SplitLiveSingleHost.Visibility = Visibility.Collapsed;
+            SplitLiveDuoGrid.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        if (_splitDuoMode)
+        {
+            var ratio = ClampSplitDividerRatio(_splitDividerRatio);
+            SplitLiveTopRow.Height = new GridLength(ratio, GridUnitType.Star);
+            SplitLiveBottomRow.Height = new GridLength(1.0 - ratio, GridUnitType.Star);
+            SplitLiveSingleHost.Visibility = Visibility.Collapsed;
+            SplitLiveDuoGrid.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            SplitLiveDuoGrid.Visibility = Visibility.Collapsed;
+            SplitLiveSingleHost.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void UpdateSplitLivePlaybackBrushViewboxes()
+    {
+        var primary = (_splitPrimaryRegion ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        var secondary = (_splitSecondaryRegion ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        SplitLiveSingleBrush.Viewbox = new Rect(primary.X, primary.Y, primary.Width, primary.Height);
+        SplitLiveTopBrush.Viewbox = new Rect(primary.X, primary.Y, primary.Width, primary.Height);
+        SplitLiveBottomBrush.Viewbox = new Rect(secondary.X, secondary.Y, secondary.Width, secondary.Height);
     }
 
     private static BitmapSource? CreateSplitCroppedBitmap(BitmapSource source, NormalizedRect region)
@@ -2402,10 +2922,35 @@ public partial class ClipperView : UserControl
             return;
         }
 
-        var currentPosition = PreviewMediaElement.Position;
+        var currentPosition = GetActivePlaybackPosition();
+        SetPreviewAudioClock(currentPosition);
         var clipStart = _currentPreviewCandidate.Start;
         var clipEnd = _currentPreviewCandidate.End;
         var clipDuration = _currentPreviewCandidate.Duration;
+
+        if (IsSplitPlaybackMode() && _splitAwaitingFirstPlayAlignment)
+        {
+            var alignThreshold = clipStart - TimeSpan.FromMilliseconds(80);
+            if (alignThreshold < TimeSpan.Zero)
+            {
+                alignThreshold = TimeSpan.Zero;
+            }
+
+            if (currentPosition >= alignThreshold)
+            {
+                _splitAwaitingFirstPlayAlignment = false;
+                try
+                {
+                    SplitSourceMediaElement.IsMuted = false;
+                }
+                catch
+                {
+                    // ignore preview-only mute errors
+                }
+
+                UpdateSplitLivePlaybackPreviewState();
+            }
+        }
 
         // Prüfen ob Endzeit erreicht
         if (currentPosition >= clipEnd)
@@ -2427,6 +2972,7 @@ public partial class ClipperView : UserControl
 
         PreviewProgressSlider.Value = Math.Min(100, Math.Max(0, progress));
         PreviewCurrentTimeText.Text = FormatTimeSpan(elapsed);
+        MaybeLogPlaybackMetrics(currentPosition);
     }
 
     private void UpdatePlayButtonIcon(bool isPlaying)
@@ -2453,11 +2999,33 @@ public partial class ClipperView : UserControl
 
         var target = _currentPreviewCandidate.Start;
         var seekVersion = ++_seekOperationVersion;
-        PreviewMediaElement.Position = target;
-        SeekSplitSourceMediaTo(target);
+        SetActivePlaybackPosition(target);
+        SetPreviewAudioClock(target);
+        if (IsSplitPlaybackMode())
+        {
+            TrySyncSplitSourcePlaybackState(target, play: false);
+        }
 
         if (!renderPreviewFrame)
         {
+            return;
+        }
+
+        if (IsSplitPlaybackMode())
+        {
+            _splitAwaitingFirstPlayAlignment = false;
+            try
+            {
+                SplitSourceMediaElement.IsMuted = false;
+            }
+            catch
+            {
+                // ignore preview-only mute errors
+            }
+            PreviewCurrentTimeText.Text = "0:00";
+            PreviewProgressSlider.Value = 0;
+            _isSplitPreviewInitialized = true;
+            UpdateSplitLivePlaybackPreviewState();
             return;
         }
 
@@ -2474,6 +3042,7 @@ public partial class ClipperView : UserControl
 
             PreviewMediaElement.Pause();
             PreviewMediaElement.Position = target;
+            SetPreviewAudioClock(target);
             SeekSplitSourceMediaTo(target);
             PreviewCurrentTimeText.Text = "0:00";
             PreviewProgressSlider.Value = 0;
@@ -3586,15 +4155,24 @@ public partial class ClipperView : UserControl
                 : $"{cropFilter},scale=360:640:flags=fast_bilinear";
         }
 
-        var startSeconds = start.TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
+        var fastSeekSecondsValue = Math.Max(0.0, start.TotalSeconds - 1.0);
+        var accurateSeekSecondsValue = Math.Max(0.0, start.TotalSeconds - fastSeekSecondsValue);
+        var fastSeekSeconds = fastSeekSecondsValue.ToString("F3", CultureInfo.InvariantCulture);
+        var accurateSeekSeconds = accurateSeekSecondsValue.ToString("F3", CultureInfo.InvariantCulture);
         var duration = (end - start).TotalSeconds.ToString("F3", CultureInfo.InvariantCulture);
 
-        // FFmpeg: Kontinuierlicher MJPEG-Stream mit 24 FPS
-        var args = $"-hide_banner -loglevel error -ss {startSeconds} -t {duration} -i \"{videoPath}\" " +
-                   $"-threads {GetPreviewThreadLimit()} -vf \"{filterChain},fps=24\" -f image2pipe -vcodec mjpeg -q:v 8 pipe:1";
+        // FFmpeg: fast seek + accurate seek to reduce initial drift.
+        var args = $"-hide_banner -loglevel error -ss {fastSeekSeconds} -i \"{videoPath}\" -ss {accurateSeekSeconds} -t {duration} " +
+                   $"-threads {GetPreviewThreadLimit()} -an -sn -vf \"{filterChain},fps=24,format=bgra\" -pix_fmt bgra -f rawvideo pipe:1";
 
         _ffmpegPreviewCts = new CancellationTokenSource();
         var ct = _ffmpegPreviewCts.Token;
+        _previewStreamStartedUtc = DateTime.UtcNow;
+        Interlocked.Exchange(ref _previewFramesRendered, 0);
+        Interlocked.Exchange(ref _previewFramesDroppedLate, 0);
+        Interlocked.Exchange(ref _previewFramesDroppedQueue, 0);
+        Interlocked.Exchange(ref _pendingPreviewUiUpdate, 0);
+        Interlocked.Exchange(ref _previewFrameDispatchVersion, 0);
 
         try
         {
@@ -3619,15 +4197,6 @@ public partial class ClipperView : UserControl
             }
 
             var previewProcess = _ffmpegPreviewProcess;
-            try
-            {
-                previewProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch
-            {
-                // ignore priority assignment failures
-            }
-
             _ = Task.Run(async () =>
             {
                 try
@@ -3641,7 +4210,7 @@ public partial class ClipperView : UserControl
             }, ct);
 
             // Starte Task zum Lesen der Frames
-            _ffmpegFrameReaderTask = Task.Run(() => ReadFfmpegFramesAsync(previewProcess, ct), ct);
+            _ffmpegFrameReaderTask = Task.Run(() => ReadFfmpegFramesAsync(previewProcess, ct, start), ct);
         }
         catch
         {
@@ -3692,80 +4261,94 @@ public partial class ClipperView : UserControl
         return new CropRectangle(x, y, width, height);
     }
 
-    private async Task ReadFfmpegFramesAsync(Process process, CancellationToken ct)
+    private async Task ReadFfmpegFramesAsync(Process process, CancellationToken ct, TimeSpan streamStart)
     {
         const int TargetFps = 24;
-        const int FrameIntervalMs = 1000 / TargetFps; // ~42ms pro Frame
+        var frameDuration = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / TargetFps);
+        var frameIndex = 0L;
+        var frameSize = PreviewOutputWidth * PreviewOutputHeight * PreviewOutputBytesPerPixel;
+        var stride = PreviewOutputWidth * PreviewOutputBytesPerPixel;
 
         try
         {
             using var stream = process.StandardOutput.BaseStream;
-            var readBuffer = new byte[64 * 1024];
-            var pendingBuffer = new byte[256 * 1024];
-            var pendingLength = 0;
-            var searchStart = 0;
-            var lastFrameTime = DateTime.UtcNow;
+            var lateDropThreshold = TimeSpan.FromMilliseconds(PreviewFrameLateDropMs);
+            var earlyTolerance = TimeSpan.FromMilliseconds(PreviewFrameEarlyToleranceMs);
 
             while (!ct.IsCancellationRequested && !process.HasExited)
             {
-                var bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length, ct);
-                if (bytesRead == 0)
+                var frameBuffer = ArrayPool<byte>.Shared.Rent(frameSize);
+                var bytesRead = 0;
+                try
                 {
+                    while (bytesRead < frameSize)
+                    {
+                        var read = await stream.ReadAsync(frameBuffer, bytesRead, frameSize - bytesRead, ct);
+                        if (read == 0)
+                        {
+                            break;
+                        }
+
+                        bytesRead += read;
+                    }
+                }
+                catch
+                {
+                    ArrayPool<byte>.Shared.Return(frameBuffer);
+                    throw;
+                }
+
+                if (bytesRead < frameSize)
+                {
+                    ArrayPool<byte>.Shared.Return(frameBuffer);
                     break;
                 }
 
-                var requiredLength = pendingLength + bytesRead;
-                if (requiredLength > pendingBuffer.Length)
+                var framePts = streamStart + TimeSpan.FromTicks(frameDuration.Ticks * frameIndex);
+                frameIndex++;
+                var audioClock = GetPreviewAudioClock();
+                if (framePts < audioClock - lateDropThreshold)
                 {
-                    var newLength = pendingBuffer.Length;
-                    while (newLength < requiredLength)
-                    {
-                        newLength *= 2;
-                    }
-
-                    Array.Resize(ref pendingBuffer, newLength);
+                    Interlocked.Increment(ref _previewFramesDroppedLate);
+                    ArrayPool<byte>.Shared.Return(frameBuffer);
+                    continue;
                 }
 
-                Buffer.BlockCopy(readBuffer, 0, pendingBuffer, pendingLength, bytesRead);
-                pendingLength += bytesRead;
-
-                var frameEnd = FindJpegEndMarker(pendingBuffer, pendingLength, Math.Max(0, searchStart));
-
-                while (frameEnd >= 0)
+                while (!ct.IsCancellationRequested)
                 {
-                    // Warte bis genug Zeit für nächstes Frame vergangen ist (Echtzeit-Sync)
-                    var elapsed = (DateTime.UtcNow - lastFrameTime).TotalMilliseconds;
-                    if (elapsed < FrameIntervalMs)
+                    audioClock = GetPreviewAudioClock();
+                    var lead = framePts - audioClock;
+                    if (lead <= earlyTolerance)
                     {
-                        await Task.Delay((int)(FrameIntervalMs - elapsed), ct);
-                    }
-                    lastFrameTime = DateTime.UtcNow;
-
-                    // Extrahiere Frame
-                    var frameLength = frameEnd + 2;
-                    var frameData = new byte[frameLength];
-                    Buffer.BlockCopy(pendingBuffer, 0, frameData, 0, frameLength);
-
-                    BitmapImage? bitmap = null;
-                    try
-                    {
-                        using var ms = new MemoryStream(frameData);
-                        bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.StreamSource = ms;
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-                    }
-                    catch
-                    {
-                        // Ignore invalid frame payload
+                        break;
                     }
 
-                    if (!ct.IsCancellationRequested && bitmap is not null)
+                    var waitMs = Math.Clamp((int)lead.TotalMilliseconds / 2, 1, 10);
+                    await Task.Delay(waitMs, ct);
+                }
+
+                audioClock = GetPreviewAudioClock();
+                if (framePts < audioClock - lateDropThreshold)
+                {
+                    Interlocked.Increment(ref _previewFramesDroppedLate);
+                    ArrayPool<byte>.Shared.Return(frameBuffer);
+                    continue;
+                }
+
+                if (Interlocked.CompareExchange(ref _pendingPreviewUiUpdate, 1, 0) != 0)
+                {
+                    Interlocked.Increment(ref _previewFramesDroppedQueue);
+                    ArrayPool<byte>.Shared.Return(frameBuffer);
+                    continue;
+                }
+
+                if (!ct.IsCancellationRequested)
+                {
+                    var dispatchVersion = Interlocked.Increment(ref _previewFrameDispatchVersion);
+                    var framePtsTicks = framePts.Ticks;
+                    _ = Dispatcher.InvokeAsync(() =>
                     {
-                        var dispatchVersion = Interlocked.Increment(ref _previewFrameDispatchVersion);
-                        _ = Dispatcher.InvokeAsync(() =>
+                        try
                         {
                             if (!_isPlaying || ct.IsCancellationRequested)
                             {
@@ -3777,67 +4360,91 @@ public partial class ClipperView : UserControl
                                 return;
                             }
 
+                            var currentAudioClock = GetPreviewAudioClock();
+                            if (TimeSpan.FromTicks(framePtsTicks) < currentAudioClock - lateDropThreshold)
+                            {
+                                Interlocked.Increment(ref _previewFramesDroppedLate);
+                                return;
+                            }
+
+                            var source = WriteRawPreviewFrameToBitmap(frameBuffer, stride);
+                            if (source is null)
+                            {
+                                return;
+                            }
+
                             if (GetSelectedCropMode() == CropMode.SplitLayout)
                             {
-                                SplitPlaybackImage.Source = bitmap;
+                                SplitPlaybackImage.Source = source;
                                 SplitPlaybackImage.Visibility = Visibility.Visible;
                             }
                             else
                             {
-                                CroppedPreviewImage.Source = bitmap;
+                                CroppedPreviewImage.Source = source;
                                 CroppedPreviewImage.Visibility = Visibility.Visible;
                             }
-                        }, System.Windows.Threading.DispatcherPriority.Background, ct);
-                    }
 
-                    // Entferne verarbeiteten Frame aus Buffer
-                    var remaining = pendingLength - frameLength;
-                    if (remaining > 0)
-                    {
-                        Buffer.BlockCopy(pendingBuffer, frameLength, pendingBuffer, 0, remaining);
-                    }
-                    pendingLength = Math.Max(0, remaining);
-                    searchStart = 0;
-                    frameEnd = FindJpegEndMarker(pendingBuffer, pendingLength, 0);
+                            Interlocked.Increment(ref _previewFramesRendered);
+                        }
+                        finally
+                        {
+                            ArrayPool<byte>.Shared.Return(frameBuffer);
+                            Interlocked.Exchange(ref _pendingPreviewUiUpdate, 0);
+                        }
+                    }, DispatcherPriority.Render);
                 }
-
-                searchStart = Math.Max(0, pendingLength - 1);
+                else
+                {
+                    ArrayPool<byte>.Shared.Return(frameBuffer);
+                    Interlocked.Exchange(ref _pendingPreviewUiUpdate, 0);
+                }
             }
         }
         catch (OperationCanceledException)
         {
-            // Normal bei Stop
+            // Normal on stop/seek.
         }
         catch
         {
-            // Ignoriere Fehler
+            // Preview failures should not break the editor.
         }
     }
 
-    private static int FindJpegEndMarker(byte[] data, int length, int startIndex)
+    private BitmapSource? WriteRawPreviewFrameToBitmap(byte[] frameBuffer, int stride)
     {
-        if (length <= 1)
+        try
         {
-            return -1;
-        }
-
-        var start = Math.Clamp(startIndex, 0, Math.Max(0, length - 2));
-
-        // JPEG endet mit FFD9
-        for (int i = start; i < length - 1; i++)
-        {
-            if (data[i] == 0xFF && data[i + 1] == 0xD9)
+            if (_previewPlaybackBitmap is null ||
+                _previewPlaybackBitmap.PixelWidth != PreviewOutputWidth ||
+                _previewPlaybackBitmap.PixelHeight != PreviewOutputHeight)
             {
-                return i;
+                _previewPlaybackBitmap = new WriteableBitmap(
+                    PreviewOutputWidth,
+                    PreviewOutputHeight,
+                    96,
+                    96,
+                    PixelFormats.Bgra32,
+                    null);
             }
+
+            _previewPlaybackBitmap.WritePixels(
+                new Int32Rect(0, 0, PreviewOutputWidth, PreviewOutputHeight),
+                frameBuffer,
+                PreviewOutputHeight * stride,
+                stride);
+            return _previewPlaybackBitmap;
         }
-        return -1;
+        catch
+        {
+            return null;
+        }
     }
 
     private void StopFfmpegPreviewProcess()
     {
         _ffmpegPreviewCts?.Cancel();
         _ffmpegFrameReaderTask = null;
+        Interlocked.Exchange(ref _pendingPreviewUiUpdate, 0);
 
         lock (_ffmpegLock)
         {
@@ -3861,6 +4468,16 @@ public partial class ClipperView : UserControl
 
         _ffmpegPreviewCts?.Dispose();
         _ffmpegPreviewCts = null;
+
+        var rendered = Interlocked.Read(ref _previewFramesRendered);
+        var droppedLate = Interlocked.Read(ref _previewFramesDroppedLate);
+        var droppedQueue = Interlocked.Read(ref _previewFramesDroppedQueue);
+        if (rendered + droppedLate + droppedQueue > 0)
+        {
+            var runtimeMs = (DateTime.UtcNow - _previewStreamStartedUtc).TotalMilliseconds;
+            Debug.WriteLine(
+                $"ClipperPreview metrics: rendered={rendered}, droppedLate={droppedLate}, droppedQueue={droppedQueue}, runtimeMs={runtimeMs:F0}");
+        }
     }
 
     private readonly record struct SplitFaceAnchor(
