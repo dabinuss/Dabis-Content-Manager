@@ -90,6 +90,11 @@ public partial class ClipperView : UserControl
     private CancellationTokenSource? _ffmpegPreviewCts;
     private Task? _ffmpegFrameReaderTask;
     private readonly object _ffmpegLock = new();
+    private const int MaxPreviewFrameCacheEntries = 160;
+    private const int MaxPortraitPreviewCacheEntries = 120;
+    private const int MaxFaceDetectionCacheEntries = 80;
+    private const int MaxSplitFaceAnchorCacheEntries = 80;
+    private const int MaxVideoDimensionsCacheEntries = 200;
 
     public ClipperView()
     {
@@ -120,6 +125,7 @@ public partial class ClipperView : UserControl
         PreviewProgressSlider.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(PreviewProgressSlider_DragCompleted));
 
         Loaded += ClipperView_Loaded;
+        Unloaded += ClipperView_Unloaded;
     }
 
     public event SelectionChangedEventHandler? DraftSelectionChanged;
@@ -284,7 +290,7 @@ public partial class ClipperView : UserControl
             EmptyStatePanel.Visibility = Visibility.Collapsed;
             CandidatesListBox.Visibility = Visibility.Visible;
             LoadingPanel.Visibility = Visibility.Collapsed;
-            StartPreviewFramePrefetch();
+            RunBackgroundTask(StartPreviewFramePrefetchAsync(), nameof(StartPreviewFramePrefetchAsync));
         }
         else
         {
@@ -340,7 +346,7 @@ public partial class ClipperView : UserControl
             _loadedVideoPath = null;
             _isMediaReady = false;
             ClearVideoScopedPreviewCaches();
-            StartPreviewFramePrefetch();
+            RunBackgroundTask(StartPreviewFramePrefetchAsync(), nameof(StartPreviewFramePrefetchAsync));
         }
     }
 
@@ -433,7 +439,7 @@ public partial class ClipperView : UserControl
 
         // Clip-Details aktualisieren
         UpdateClipDetails(candidate);
-        LoadClipStartFramePreviewAsync(_currentVideoPath, candidate.Start);
+        RunBackgroundTask(LoadClipStartFramePreviewAsync(_currentVideoPath, candidate.Start), nameof(LoadClipStartFramePreviewAsync));
 
         VideoPlayerPanel.Visibility = Visibility.Visible;
         VideoEmptyStatePanel.Visibility = Visibility.Collapsed;
@@ -447,7 +453,7 @@ public partial class ClipperView : UserControl
             {
                 // Video ist bereits geladen - nur Position ändern
                 PreviewMediaElement.Pause();
-                SeekToClipStart(renderPreviewFrame: true);
+                RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: true), nameof(SeekToClipStartAsync));
                 SeekSplitSourceMediaTo(_currentPreviewCandidate.Start);
             }
             else
@@ -479,7 +485,7 @@ public partial class ClipperView : UserControl
         if (_seekPendingAfterMediaOpen)
         {
             _seekPendingAfterMediaOpen = false;
-            SeekToClipStart(renderPreviewFrame: true);
+            RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: true), nameof(SeekToClipStartAsync));
         }
 
         UpdateSubtitlePlacementPreview();
@@ -664,7 +670,7 @@ public partial class ClipperView : UserControl
         }
         else
         {
-            RenderPausedPreviewFrameAtPositionAsync(newPosition);
+            RunBackgroundTask(RenderPausedPreviewFrameAtPositionAsync(newPosition), nameof(RenderPausedPreviewFrameAtPositionAsync));
         }
 
         PreviewCurrentTimeText.Text = FormatTimeSpan(newPosition - clipStart);
@@ -771,7 +777,7 @@ public partial class ClipperView : UserControl
         SplitSourceMediaElement.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private async void RenderPausedPreviewFrameAtPositionAsync(TimeSpan position)
+    private async Task RenderPausedPreviewFrameAtPositionAsync(TimeSpan position)
     {
         if (_isPlaying || _currentPreviewCandidate is null || string.IsNullOrWhiteSpace(_currentVideoPath))
         {
@@ -795,7 +801,7 @@ public partial class ClipperView : UserControl
                 frame = await Task.Run(() => ExtractFrameBitmap(videoPath, position));
                 if (frame is not null && requestVersion == _previewFrameRequestVersion)
                 {
-                    _previewFrameCache[key] = frame;
+                    AddOrUpdateCache(_previewFrameCache, key, frame, MaxPreviewFrameCacheEntries);
                 }
             }
 
@@ -837,7 +843,7 @@ public partial class ClipperView : UserControl
 
         if (portrait is not null)
         {
-            _portraitPreviewCache[portraitKey] = portrait;
+            AddOrUpdateCache(_portraitPreviewCache, portraitKey, portrait, MaxPortraitPreviewCacheEntries);
             CroppedPreviewImage.Source = portrait;
         }
     }
@@ -868,7 +874,7 @@ public partial class ClipperView : UserControl
             IsOutsideCurrentClip(PreviewMediaElement.Position, _currentPreviewCandidate) ||
             PreviewMediaElement.Position >= _currentPreviewCandidate.End)
         {
-            SeekToClipStart(renderPreviewFrame: false);
+            RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: false), nameof(SeekToClipStartAsync));
             _restartFromClipStartOnNextPlay = false;
         }
 
@@ -903,7 +909,7 @@ public partial class ClipperView : UserControl
         TrySyncSplitSourcePlaybackState(PreviewMediaElement.Position, play: false);
         _previewTimer.Stop();
         StopFfmpegPreviewProcess();
-        RenderPausedPreviewFrameAtPositionAsync(PreviewMediaElement.Position);
+        RunBackgroundTask(RenderPausedPreviewFrameAtPositionAsync(PreviewMediaElement.Position), nameof(RenderPausedPreviewFrameAtPositionAsync));
 
         UpdatePlayButtonIcon(false);
     }
@@ -921,7 +927,7 @@ public partial class ClipperView : UserControl
 
         if (_currentPreviewCandidate is not null && _isMediaReady)
         {
-            SeekToClipStart(renderPreviewFrame: true);
+            RunBackgroundTask(SeekToClipStartAsync(renderPreviewFrame: true), nameof(SeekToClipStartAsync));
         }
 
         PreviewCurrentTimeText.Text = "0:00";
@@ -934,6 +940,7 @@ public partial class ClipperView : UserControl
         _previewFrameRequestVersion++;
         _previewPrefetchVersion++;
         _seekOperationVersion++;
+        ReleaseFaceDetectionCts();
         _isPlaying = false;
         _isMediaReady = false;
         _previewTimer.Stop();
@@ -988,6 +995,53 @@ public partial class ClipperView : UserControl
         UpdateSettingsValueLabels();
     }
 
+    private void ClipperView_Unloaded(object sender, RoutedEventArgs e)
+    {
+        StopPreview();
+        _previewTimer.Stop();
+        ReleaseFaceDetectionCts();
+    }
+
+    public void DisposeResources()
+    {
+        StopPreview();
+        _previewTimer.Stop();
+        ReleaseFaceDetectionCts();
+        if (_faceDetectionService is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+    }
+
+    private static void RunBackgroundTask(Task task, string operationName)
+    {
+        _ = task.ContinueWith(
+            t => Debug.WriteLine($"Clipper background task '{operationName}' failed: {t.Exception}"),
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted,
+            TaskScheduler.Default);
+    }
+
+    private void ReleaseFaceDetectionCts()
+    {
+        if (_faceDetectionCts is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _faceDetectionCts.Cancel();
+        }
+        catch
+        {
+            // ignore cancellation errors
+        }
+
+        _faceDetectionCts.Dispose();
+        _faceDetectionCts = null;
+    }
+
     private void RefreshPortraitPreview()
     {
         if (_currentPreviewCandidate is null || string.IsNullOrWhiteSpace(_currentVideoPath))
@@ -1004,7 +1058,9 @@ public partial class ClipperView : UserControl
         }
 
         // Portrait-Preview mit neuen Crop-Einstellungen neu laden
-        LoadClipStartFramePreviewAsync(_currentVideoPath, _currentPreviewCandidate.Start);
+        RunBackgroundTask(
+            LoadClipStartFramePreviewAsync(_currentVideoPath, _currentPreviewCandidate.Start),
+            nameof(LoadClipStartFramePreviewAsync));
     }
 
     private void UpdateManualCropUi()
@@ -2387,7 +2443,7 @@ public partial class ClipperView : UserControl
         return $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}";
     }
 
-    private async void SeekToClipStart(bool renderPreviewFrame)
+    private async Task SeekToClipStartAsync(bool renderPreviewFrame)
     {
         if (_currentPreviewCandidate is null || !_isMediaReady)
         {
@@ -2420,7 +2476,7 @@ public partial class ClipperView : UserControl
             SeekSplitSourceMediaTo(target);
             PreviewCurrentTimeText.Text = "0:00";
             PreviewProgressSlider.Value = 0;
-            RenderPausedPreviewFrameAtPositionAsync(target);
+            await RenderPausedPreviewFrameAtPositionAsync(target);
         }
         catch
         {
@@ -2433,7 +2489,7 @@ public partial class ClipperView : UserControl
         return position < candidate.Start || position > candidate.End;
     }
 
-    private async void LoadClipStartFramePreviewAsync(string? videoPath, TimeSpan clipStart)
+    private async Task LoadClipStartFramePreviewAsync(string? videoPath, TimeSpan clipStart)
     {
         if (string.IsNullOrWhiteSpace(videoPath) || !File.Exists(videoPath))
         {
@@ -2445,7 +2501,7 @@ public partial class ClipperView : UserControl
         }
 
         // Cancel any ongoing face detection
-        _faceDetectionCts?.Cancel();
+        ReleaseFaceDetectionCts();
         _faceDetectionCts = new CancellationTokenSource();
         var ct = _faceDetectionCts.Token;
         var frameRequestVersion = ++_previewFrameRequestVersion;
@@ -2462,7 +2518,7 @@ public partial class ClipperView : UserControl
                 sourceFrame = await Task.Run(() => ExtractFrameBitmap(videoPath, clipStart), ct);
                 if (sourceFrame is not null)
                 {
-                    _previewFrameCache[frameCacheKey] = sourceFrame;
+                    AddOrUpdateCache(_previewFrameCache, frameCacheKey, sourceFrame, MaxPreviewFrameCacheEntries);
                 }
             }
 
@@ -2566,7 +2622,7 @@ public partial class ClipperView : UserControl
                                 new PixelSize(1080, 1920),
                                 CropStrategy.MultipleFaces);
 
-                            _faceDetectionCache[faceDetectionKey] = cropRegion;
+                            AddOrUpdateCache(_faceDetectionCache, faceDetectionKey, cropRegion, MaxFaceDetectionCacheEntries);
                         }
                     }
                 }
@@ -2591,7 +2647,7 @@ public partial class ClipperView : UserControl
 
             if (portraitBitmap is not null)
             {
-                _portraitPreviewCache[portraitCacheKey] = portraitBitmap;
+                AddOrUpdateCache(_portraitPreviewCache, portraitCacheKey, portraitBitmap, MaxPortraitPreviewCacheEntries);
                 CroppedPreviewImage.Source = portraitBitmap;
             }
         }
@@ -2721,7 +2777,7 @@ public partial class ClipperView : UserControl
                 analyses,
                 Math.Max(1, sourceFrame.PixelWidth),
                 Math.Max(1, sourceFrame.PixelHeight));
-            _splitFaceAnchorCache[anchorCacheKey] = anchors;
+            AddOrUpdateCache(_splitFaceAnchorCache, anchorCacheKey, anchors, MaxSplitFaceAnchorCacheEntries);
         }
 
         _splitFaceAutoSelectionProcessedKeys.Add(autoSelectionKey);
@@ -3063,7 +3119,7 @@ public partial class ClipperView : UserControl
         if (!File.Exists(ffprobePath))
         {
             var fallback = (1920, 1080);
-            _videoDimensionsCache[videoPath] = fallback;
+            AddOrUpdateCache(_videoDimensionsCache, videoPath, fallback, MaxVideoDimensionsCacheEntries);
             return fallback; // Default fallback
         }
 
@@ -3081,15 +3137,22 @@ public partial class ClipperView : UserControl
             using var probeProcess = Process.Start(probeInfo);
             if (probeProcess is not null)
             {
-                var output = probeProcess.StandardOutput.ReadToEnd();
-                probeProcess.WaitForExit(3000);
+                var outputTask = probeProcess.StandardOutput.ReadToEndAsync();
+                if (!WaitForExitOrKill(probeProcess, 3000))
+                {
+                    var timeoutFallback = (1920, 1080);
+                    AddOrUpdateCache(_videoDimensionsCache, videoPath, timeoutFallback, MaxVideoDimensionsCacheEntries);
+                    return timeoutFallback;
+                }
+
+                var output = outputTask.GetAwaiter().GetResult();
                 var parts = output.Trim().Split(',');
                 if (parts.Length >= 2 &&
                     int.TryParse(parts[0], out var w) &&
                     int.TryParse(parts[1], out var h))
                 {
                     var result = (w, h);
-                    _videoDimensionsCache[videoPath] = result;
+                    AddOrUpdateCache(_videoDimensionsCache, videoPath, result, MaxVideoDimensionsCacheEntries);
                     return result;
                 }
             }
@@ -3100,7 +3163,7 @@ public partial class ClipperView : UserControl
         }
 
         var defaultResult = (1920, 1080);
-        _videoDimensionsCache[videoPath] = defaultResult;
+        AddOrUpdateCache(_videoDimensionsCache, videoPath, defaultResult, MaxVideoDimensionsCacheEntries);
         return defaultResult;
     }
 
@@ -3156,8 +3219,18 @@ public partial class ClipperView : UserControl
 
             using var stream = process.StandardOutput.BaseStream;
             using var imageStream = new MemoryStream();
-            stream.CopyTo(imageStream);
-            process.WaitForExit(10000);
+            var copyTask = stream.CopyToAsync(imageStream);
+            if (!copyTask.Wait(10000))
+            {
+                WaitForExitOrKill(process, 500);
+                return null;
+            }
+
+            if (!WaitForExitOrKill(process, 2000))
+            {
+                return null;
+            }
+
             if (process.ExitCode != 0 || imageStream.Length == 0)
             {
                 return null;
@@ -3249,8 +3322,18 @@ public partial class ClipperView : UserControl
 
             using var stream = process.StandardOutput.BaseStream;
             using var imageStream = new MemoryStream();
-            stream.CopyTo(imageStream);
-            process.WaitForExit(5000);
+            var copyTask = stream.CopyToAsync(imageStream);
+            if (!copyTask.Wait(5000))
+            {
+                WaitForExitOrKill(process, 500);
+                return null;
+            }
+
+            if (!WaitForExitOrKill(process, 2000))
+            {
+                return null;
+            }
+
             if (process.ExitCode != 0 || imageStream.Length == 0)
             {
                 return null;
@@ -3329,6 +3412,41 @@ public partial class ClipperView : UserControl
         return $"{videoPath}|{ms}";
     }
 
+    private static void AddOrUpdateCache<TKey, TValue>(
+        Dictionary<TKey, TValue> cache,
+        TKey key,
+        TValue value,
+        int maxEntries) where TKey : notnull
+    {
+        if (!cache.ContainsKey(key) && cache.Count >= maxEntries)
+        {
+            var oldestKey = cache.Keys.First();
+            cache.Remove(oldestKey);
+        }
+
+        cache[key] = value;
+    }
+
+    private static bool WaitForExitOrKill(Process process, int timeoutMs)
+    {
+        if (process.WaitForExit(timeoutMs))
+        {
+            return true;
+        }
+
+        try
+        {
+            process.Kill(entireProcessTree: true);
+            process.WaitForExit(2000);
+        }
+        catch
+        {
+            // ignore cleanup errors
+        }
+
+        return false;
+    }
+
     private void ClearVideoScopedPreviewCaches()
     {
         _previewFrameCache.Clear();
@@ -3374,7 +3492,7 @@ public partial class ClipperView : UserControl
         target.CustomScoringPrompt = copy.CustomScoringPrompt;
     }
 
-    private async void StartPreviewFramePrefetch()
+    private async Task StartPreviewFramePrefetchAsync()
     {
         if (string.IsNullOrWhiteSpace(_currentVideoPath) || _currentCandidates.Count == 0)
         {
@@ -3409,7 +3527,7 @@ public partial class ClipperView : UserControl
                 continue;
             }
 
-            _previewFrameCache[key] = bitmap;
+            AddOrUpdateCache(_previewFrameCache, key, bitmap, MaxPreviewFrameCacheEntries);
         }
     }
 
@@ -3488,8 +3606,21 @@ public partial class ClipperView : UserControl
                 return;
             }
 
+            var previewProcess = _ffmpegPreviewProcess;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await previewProcess.StandardError.ReadToEndAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignore stderr read errors
+                }
+            }, ct);
+
             // Starte Task zum Lesen der Frames
-            _ffmpegFrameReaderTask = Task.Run(() => ReadFfmpegFramesAsync(_ffmpegPreviewProcess, ct), ct);
+            _ffmpegFrameReaderTask = Task.Run(() => ReadFfmpegFramesAsync(previewProcess, ct), ct);
         }
         catch
         {
@@ -3676,6 +3807,7 @@ public partial class ClipperView : UserControl
     private void StopFfmpegPreviewProcess()
     {
         _ffmpegPreviewCts?.Cancel();
+        _ffmpegFrameReaderTask = null;
 
         lock (_ffmpegLock)
         {

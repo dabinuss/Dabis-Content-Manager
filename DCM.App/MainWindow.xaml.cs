@@ -129,7 +129,8 @@ public partial class MainWindow : Window
     private IHighlightScoringService? _highlightScoringService;
     private ClipRenderService? _clipRenderService;
     private ClipToDraftConverter? _clipToDraftConverter;
-    private CancellationTokenSource? _clipperCts;
+    private CancellationTokenSource? _clipperAnalysisCts;
+    private CancellationTokenSource? _clipperRenderCts;
     private bool _isClipperRunning;
     private bool _isClipperRendering;
     private string? _lastClipperPrompt;
@@ -633,6 +634,22 @@ public partial class MainWindow : Window
 
         // LLM-Operationen abbrechen
         CancelCurrentLlmOperation();
+
+        try
+        {
+            _clipperAnalysisCts?.Cancel();
+            _clipperRenderCts?.Cancel();
+        }
+        catch
+        {
+            // ignore cancellation errors during shutdown
+        }
+
+        _clipperAnalysisCts?.Dispose();
+        _clipperAnalysisCts = null;
+        _clipperRenderCts?.Dispose();
+        _clipperRenderCts = null;
+        ClipperPageView?.DisposeResources();
 
         // Transkription abbrechen und aufräumen
         DisposeTranscriptionService();
@@ -3754,7 +3771,7 @@ public partial class MainWindow : Window
 
         // UI vorbereiten
         _isClipperRunning = true;
-        _clipperCts = new CancellationTokenSource();
+        _clipperAnalysisCts = new CancellationTokenSource();
         ClipperPageView.ShowLoading(LocalizationHelper.Get("Clipper.Analyzing"));
 
         try
@@ -3765,7 +3782,7 @@ public partial class MainWindow : Window
                 draft.Id,
                 windows,
                 contentContext,
-                _clipperCts.Token);
+                _clipperAnalysisCts.Token);
             candidates = candidates.Take(maxCandidates).ToList();
 
             // In Cache speichern
@@ -3799,8 +3816,8 @@ public partial class MainWindow : Window
         finally
         {
             _isClipperRunning = false;
-            _clipperCts?.Dispose();
-            _clipperCts = null;
+            _clipperAnalysisCts?.Dispose();
+            _clipperAnalysisCts = null;
         }
     }
 
@@ -3923,7 +3940,7 @@ public partial class MainWindow : Window
         }
 
         _isClipperRendering = true;
-        _clipperCts = new CancellationTokenSource();
+        _clipperRenderCts = new CancellationTokenSource();
 
         try
         {
@@ -3979,7 +3996,7 @@ public partial class MainWindow : Window
             });
 
             // Rendern
-            var results = await _clipRenderService.RenderClipsAsync(jobs, progress, _clipperCts.Token);
+            var results = await _clipRenderService.RenderClipsAsync(jobs, progress, _clipperRenderCts.Token);
 
             // Ergebnisse auswerten
             var successCount = results.Count(r => r.Success);
@@ -4079,8 +4096,8 @@ public partial class MainWindow : Window
         finally
         {
             _isClipperRendering = false;
-            _clipperCts?.Dispose();
-            _clipperCts = null;
+            _clipperRenderCts?.Dispose();
+            _clipperRenderCts = null;
         }
     }
 
