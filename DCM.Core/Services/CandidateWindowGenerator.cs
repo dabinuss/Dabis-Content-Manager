@@ -36,11 +36,16 @@ public sealed class CandidateWindowGenerator
         var windows = new List<CandidateWindow>();
         var totalDuration = ordered[^1].End;
         var windowStart = TimeSpan.Zero;
+        var startIndex = 0;
 
         while (windowStart < totalDuration)
         {
-            var startIndex = FindStartIndex(ordered, windowStart);
-            if (startIndex < 0)
+            while (startIndex < ordered.Count && ordered[startIndex].End <= windowStart)
+            {
+                startIndex++;
+            }
+
+            if (startIndex >= ordered.Count)
             {
                 break;
             }
@@ -112,19 +117,6 @@ public sealed class CandidateWindowGenerator
         return DeduplicateWindows(windows);
     }
 
-    private static int FindStartIndex(IReadOnlyList<ITimedSegment> segments, TimeSpan windowStart)
-    {
-        for (var i = 0; i < segments.Count; i++)
-        {
-            if (segments[i].End > windowStart)
-            {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
     private static IReadOnlyList<CandidateWindow> DeduplicateWindows(List<CandidateWindow> windows)
     {
         if (windows.Count <= 1)
@@ -133,11 +125,14 @@ public sealed class CandidateWindowGenerator
         }
 
         var deduplicated = new List<CandidateWindow>();
+        var active = new List<CandidateWindow>();
         var sorted = windows.OrderBy(w => w.Start).ThenBy(w => w.Duration).ToList();
 
         foreach (var window in sorted)
         {
-            var isDuplicate = deduplicated.Any(existing =>
+            active.RemoveAll(existing => existing.End <= window.Start);
+
+            var isDuplicate = active.Any(existing =>
             {
                 var overlapStart = TimeSpan.FromTicks(Math.Max(existing.Start.Ticks, window.Start.Ticks));
                 var overlapEnd = TimeSpan.FromTicks(Math.Min(existing.End.Ticks, window.End.Ticks));
@@ -148,12 +143,18 @@ public sealed class CandidateWindowGenerator
                 }
 
                 var shorter = TimeSpan.FromTicks(Math.Min(existing.Duration.Ticks, window.Duration.Ticks));
+                if (shorter <= TimeSpan.Zero)
+                {
+                    return false;
+                }
+
                 return overlap.TotalSeconds / shorter.TotalSeconds > 0.8;
             });
 
             if (!isDuplicate)
             {
                 deduplicated.Add(window);
+                active.Add(window);
             }
         }
 

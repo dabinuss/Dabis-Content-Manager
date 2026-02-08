@@ -105,6 +105,7 @@ public partial class ClipperView : UserControl
     private const int PreviewOutputHeight = 640;
     private const int PreviewOutputBytesPerPixel = 4;
     private long _previewAudioClockUpdatedTimestamp;
+    private long _splitPendingAlignmentTargetTicks;
     private DateTime _lastSplitSourceHardSyncUtc = DateTime.MinValue;
     private const int SplitSourceHardSyncThresholdMs = 420;
     private const int SplitSourceHardSyncMinIntervalMs = 900;
@@ -500,6 +501,7 @@ public partial class ClipperView : UserControl
         _restartFromClipStartOnNextPlay = true;
         _isSplitPreviewInitialized = false;
         _splitAwaitingFirstPlayAlignment = false;
+        Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
 
         // UI aktualisieren
         PreviewEndTimeText.Text = candidate.DurationFormatted;
@@ -1005,7 +1007,8 @@ public partial class ClipperView : UserControl
         var show = GetSelectedCropMode() == CropMode.SplitLayout &&
                    _currentPreviewCandidate is not null &&
                    _isSplitSourceMediaReady &&
-                   !_splitAwaitingFirstPlayAlignment;
+                   !_splitAwaitingFirstPlayAlignment &&
+                   !_restartFromClipStartOnNextPlay;
         SplitSourceMediaElement.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -1152,6 +1155,7 @@ public partial class ClipperView : UserControl
                 // First play after clip load: ensure split decoder is positioned before Play to avoid a brief 00:00 flash.
                 TrySyncSplitSourcePlaybackState(playbackStart, play: false);
                 _splitAwaitingFirstPlayAlignment = true;
+                Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, playbackStart.Ticks);
                 try
                 {
                     SplitSourceMediaElement.IsMuted = true;
@@ -1170,6 +1174,7 @@ public partial class ClipperView : UserControl
             else
             {
                 _splitAwaitingFirstPlayAlignment = false;
+                Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
                 try
                 {
                     SplitSourceMediaElement.IsMuted = false;
@@ -1209,10 +1214,20 @@ public partial class ClipperView : UserControl
     {
         try
         {
-            if (!_isPlaying || _playbackSessionVersion != playbackVersion)
+            if (!_isPlaying || _playbackSessionVersion != playbackVersion || !_isSplitSourceMediaReady)
             {
                 return;
             }
+
+            var pendingTargetTicks = Interlocked.Read(ref _splitPendingAlignmentTargetTicks);
+            if (pendingTargetTicks > 0 && pendingTargetTicks != playbackStart.Ticks)
+            {
+                return;
+            }
+
+            // Seek/Pause zuerst erzwingen, dann kurze Play-Phase für Decoder-Warmup.
+            TrySyncSplitSourcePlaybackState(playbackStart, play: false);
+            SetPreviewAudioClock(playbackStart);
 
             try
             {
@@ -1223,22 +1238,24 @@ public partial class ClipperView : UserControl
                 // ignore playback bootstrap errors
             }
 
-            var alignmentThreshold = playbackStart - TimeSpan.FromMilliseconds(80);
-            if (alignmentThreshold < TimeSpan.Zero)
-            {
-                alignmentThreshold = TimeSpan.Zero;
-            }
-
-            var timeoutUtc = DateTime.UtcNow + TimeSpan.FromMilliseconds(320);
+            var alignmentTolerance = TimeSpan.FromMilliseconds(55);
+            var timeoutUtc = DateTime.UtcNow + TimeSpan.FromMilliseconds(620);
+            var lastSeekUtc = DateTime.MinValue;
             while (_isPlaying && _playbackSessionVersion == playbackVersion && DateTime.UtcNow < timeoutUtc)
             {
                 var pos = GetActivePlaybackPosition();
-                if (pos >= alignmentThreshold)
+                if ((pos - playbackStart).Duration() <= alignmentTolerance)
                 {
                     break;
                 }
 
-                await Task.Delay(15);
+                if ((DateTime.UtcNow - lastSeekUtc).TotalMilliseconds >= 130)
+                {
+                    SeekSplitSourceMediaTo(playbackStart);
+                    lastSeekUtc = DateTime.UtcNow;
+                }
+
+                await Task.Delay(16);
             }
 
             if (!_isPlaying || _playbackSessionVersion != playbackVersion)
@@ -1248,6 +1265,7 @@ public partial class ClipperView : UserControl
 
             TrySyncSplitSourcePlaybackState(playbackStart, play: false);
             _splitAwaitingFirstPlayAlignment = false;
+            Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
             SyncSplitSourceMediaVisibility();
             UpdateSplitLivePlaybackPreviewState();
             try
@@ -1265,6 +1283,7 @@ public partial class ClipperView : UserControl
         catch
         {
             _splitAwaitingFirstPlayAlignment = false;
+            Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
             SyncSplitSourceMediaVisibility();
             UpdateSplitLivePlaybackPreviewState();
             try
@@ -1288,6 +1307,7 @@ public partial class ClipperView : UserControl
     {
         _isPlaying = false;
         _splitAwaitingFirstPlayAlignment = false;
+        Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
         Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
         var pausePosition = GetActivePlaybackPosition();
         SetPreviewAudioClock(pausePosition);
@@ -1327,6 +1347,7 @@ public partial class ClipperView : UserControl
         _seekOperationVersion++;
         _isPlaying = false;
         _splitAwaitingFirstPlayAlignment = false;
+        Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
         Interlocked.Increment(ref _ffmpegPreviewRequestVersion);
         _previewTimer.Stop();
         var pausePosition = GetActivePlaybackPosition();
@@ -1384,6 +1405,7 @@ public partial class ClipperView : UserControl
         _restartFromClipStartOnNextPlay = false;
         _isSplitPreviewInitialized = false;
         _splitAwaitingFirstPlayAlignment = false;
+        Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
         _lastPlaybackMetricsLoggedUtc = DateTime.MinValue;
         _lastPlaybackMetricsPosition = TimeSpan.Zero;
         _lastPlaybackMetricsRendered = 0;
@@ -2420,7 +2442,8 @@ public partial class ClipperView : UserControl
         var showLive = _isSplitSourceMediaReady &&
                        _currentPreviewCandidate is not null &&
                        (_isPlaying || _isSplitPreviewInitialized) &&
-                       !_splitAwaitingFirstPlayAlignment;
+                       !_splitAwaitingFirstPlayAlignment &&
+                       !_restartFromClipStartOnNextPlay;
         SplitLivePlaybackPanel.Visibility = showLive ? Visibility.Visible : Visibility.Collapsed;
         SplitPlaybackImage.Visibility = Visibility.Collapsed;
         if (!showLive)
@@ -2449,9 +2472,70 @@ public partial class ClipperView : UserControl
     {
         var primary = (_splitPrimaryRegion ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
         var secondary = (_splitSecondaryRegion ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
-        SplitLiveSingleBrush.Viewbox = new Rect(primary.X, primary.Y, primary.Width, primary.Height);
-        SplitLiveTopBrush.Viewbox = new Rect(primary.X, primary.Y, primary.Width, primary.Height);
-        SplitLiveBottomBrush.Viewbox = new Rect(secondary.X, secondary.Y, secondary.Width, secondary.Height);
+        var viewport = GetSplitSourceMediaViewportNormalizedRect();
+        SplitLiveSingleBrush.Viewbox = MapRegionToSplitSourceViewbox(primary, viewport);
+        SplitLiveTopBrush.Viewbox = MapRegionToSplitSourceViewbox(primary, viewport);
+        SplitLiveBottomBrush.Viewbox = MapRegionToSplitSourceViewbox(secondary, viewport);
+    }
+
+    private Rect GetSplitSourceMediaViewportNormalizedRect()
+    {
+        var hostWidth = SplitSourceMediaElement.ActualWidth;
+        var hostHeight = SplitSourceMediaElement.ActualHeight;
+        if (hostWidth <= 0 || hostHeight <= 0)
+        {
+            return new Rect(0, 0, 1, 1);
+        }
+
+        var sourceWidth = _splitSourceFrame?.PixelWidth ?? 0;
+        var sourceHeight = _splitSourceFrame?.PixelHeight ?? 0;
+        if (sourceWidth <= 0 || sourceHeight <= 0)
+        {
+            try
+            {
+                sourceWidth = SplitSourceMediaElement.NaturalVideoWidth;
+                sourceHeight = SplitSourceMediaElement.NaturalVideoHeight;
+            }
+            catch
+            {
+                sourceWidth = 0;
+                sourceHeight = 0;
+            }
+        }
+
+        if (sourceWidth <= 0 || sourceHeight <= 0)
+        {
+            return new Rect(0, 0, 1, 1);
+        }
+
+        var sourceAspect = (double)sourceWidth / sourceHeight;
+        var hostAspect = hostWidth / hostHeight;
+
+        if (sourceAspect >= hostAspect)
+        {
+            var visibleHeight = hostWidth / sourceAspect;
+            var y = (hostHeight - visibleHeight) / 2.0;
+            return new Rect(0.0, y / hostHeight, 1.0, visibleHeight / hostHeight);
+        }
+
+        var visibleWidth = hostHeight * sourceAspect;
+        var x = (hostWidth - visibleWidth) / 2.0;
+        return new Rect(x / hostWidth, 0.0, visibleWidth / hostWidth, 1.0);
+    }
+
+    private static Rect MapRegionToSplitSourceViewbox(NormalizedRect region, Rect viewport)
+    {
+        var safeRegion = (region ?? NormalizedRect.FullFrame()).Clone().ClampToCanvas(0.05, 1.0);
+        var x = viewport.X + (safeRegion.X * viewport.Width);
+        var y = viewport.Y + (safeRegion.Y * viewport.Height);
+        var width = safeRegion.Width * viewport.Width;
+        var height = safeRegion.Height * viewport.Height;
+
+        x = Math.Clamp(x, 0.0, 1.0);
+        y = Math.Clamp(y, 0.0, 1.0);
+        width = Math.Clamp(width, 0.0001, 1.0 - x);
+        height = Math.Clamp(height, 0.0001, 1.0 - y);
+        return new Rect(x, y, width, height);
     }
 
     private static BitmapSource? CreateSplitCroppedBitmap(BitmapSource source, NormalizedRect region)
@@ -3015,30 +3099,6 @@ public partial class ClipperView : UserControl
         var clipEnd = _currentPreviewCandidate.End;
         var clipDuration = _currentPreviewCandidate.Duration;
 
-        if (IsSplitPlaybackMode() && _splitAwaitingFirstPlayAlignment)
-        {
-            var alignThreshold = clipStart - TimeSpan.FromMilliseconds(80);
-            if (alignThreshold < TimeSpan.Zero)
-            {
-                alignThreshold = TimeSpan.Zero;
-            }
-
-            if (currentPosition >= alignThreshold)
-            {
-                _splitAwaitingFirstPlayAlignment = false;
-                try
-                {
-                    SplitSourceMediaElement.IsMuted = false;
-                }
-                catch
-                {
-                    // ignore preview-only mute errors
-                }
-
-                UpdateSplitLivePlaybackPreviewState();
-            }
-        }
-
         // Prüfen ob Endzeit erreicht
         if (currentPosition >= clipEnd)
         {
@@ -3101,6 +3161,7 @@ public partial class ClipperView : UserControl
         if (IsSplitPlaybackMode())
         {
             _splitAwaitingFirstPlayAlignment = false;
+            Interlocked.Exchange(ref _splitPendingAlignmentTargetTicks, 0);
             try
             {
                 SplitSourceMediaElement.IsMuted = false;

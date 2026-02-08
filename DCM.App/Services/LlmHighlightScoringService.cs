@@ -24,6 +24,8 @@ public sealed class HighlightScoringService : IHighlightScoringService
 
     private const int ChunkSize = 3500;
     private const int MinScore = 60;
+    private static readonly TimeSpan MinClipDuration = TimeSpan.FromSeconds(CandidateWindowGenerator.MinDurationSeconds);
+    private static readonly TimeSpan MaxClipDuration = TimeSpan.FromSeconds(CandidateWindowGenerator.MaxDurationSeconds);
 
     private const string DefaultScoringPrompt = @"Du bist ein Experte für Social-Media-Content. Analysiere die folgenden 
 Transkript-Abschnitte und bewerte sie als potenzielle Highlights für 
@@ -229,11 +231,11 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
 
                 var start = ReadTimestamp(element, "start") ?? window.Start;
                 var end = ReadTimestamp(element, "end") ?? window.End;
+                (start, end) = NormalizeCandidateRange(start, end, window);
 
                 if (end <= start)
                 {
-                    start = window.Start;
-                    end = window.End;
+                    continue;
                 }
 
                 results.Add(new ClipCandidate
@@ -337,5 +339,64 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
         }
 
         return text[..(maxLength - 3)] + "...";
+    }
+
+    private static (TimeSpan Start, TimeSpan End) NormalizeCandidateRange(
+        TimeSpan start,
+        TimeSpan end,
+        CandidateWindow window)
+    {
+        var rangeStart = window.Start;
+        var rangeEnd = window.End;
+
+        if (rangeEnd <= rangeStart)
+        {
+            return (start, end);
+        }
+
+        start = start < rangeStart ? rangeStart : start;
+        end = end > rangeEnd ? rangeEnd : end;
+
+        if (end <= start)
+        {
+            return (rangeStart, rangeEnd);
+        }
+
+        var duration = end - start;
+        if (duration < MinClipDuration)
+        {
+            end = start + MinClipDuration;
+            if (end > rangeEnd)
+            {
+                end = rangeEnd;
+                start = end - MinClipDuration;
+                if (start < rangeStart)
+                {
+                    start = rangeStart;
+                }
+            }
+        }
+
+        duration = end - start;
+        if (duration > MaxClipDuration)
+        {
+            end = start + MaxClipDuration;
+            if (end > rangeEnd)
+            {
+                end = rangeEnd;
+                start = end - MaxClipDuration;
+                if (start < rangeStart)
+                {
+                    start = rangeStart;
+                }
+            }
+        }
+
+        if (end <= start)
+        {
+            return (rangeStart, rangeEnd);
+        }
+
+        return (start, end);
     }
 }

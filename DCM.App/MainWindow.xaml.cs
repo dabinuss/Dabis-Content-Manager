@@ -3724,51 +3724,6 @@ public partial class MainWindow : Window
             }
         }
 
-        // Lade Segmente (ohne expliziten Pfad, LoadSegments verwendet den Standard-Pfad)
-        var segments = _draftTranscriptStore.LoadSegments(draft.Id);
-
-        IReadOnlyList<ITimedSegment> timedSegments;
-        if (segments is not null && segments.Count > 0)
-        {
-            // Konvertiere zu ITimedSegment
-            timedSegments = segments.Select(s => new TimedSegment
-            {
-                Text = s.Text,
-                Start = s.Start,
-                End = s.End
-            } as ITimedSegment).ToList();
-        }
-        else
-        {
-            // Fallback: Simuliere ein einziges Segment aus dem gesamten Transkript
-            _logger.Warning("Keine Segmente gefunden, verwende Fallback", "Clipper");
-            timedSegments = new List<ITimedSegment>
-            {
-                new TimedSegment
-                {
-                    Text = draft.Transcript,
-                    Start = TimeSpan.Zero,
-                    End = ParseDuration(draft.VideoDuration) ?? TimeSpan.FromMinutes(10)
-                }
-            };
-        }
-
-        // Erstelle Candidate Windows
-        var minDuration = TimeSpan.FromSeconds(_settings.Clipper.MinClipDurationSeconds);
-        var maxDuration = TimeSpan.FromSeconds(_settings.Clipper.MaxClipDurationSeconds);
-
-        var windowGenerator = new CandidateWindowGenerator();
-        var windows = windowGenerator.GenerateWindows(timedSegments, minDuration, maxDuration);
-
-        if (windows.Count == 0)
-        {
-            StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoWindowsFound");
-            ClipperPageView.ShowEmptyState();
-            return;
-        }
-
-        _logger.Info($"Erstellt {windows.Count} Candidate Windows für Scoring", "Clipper");
-
         // UI vorbereiten
         _isClipperRunning = true;
         _clipperAnalysisCts = new CancellationTokenSource();
@@ -3776,6 +3731,52 @@ public partial class MainWindow : Window
 
         try
         {
+            // Lade Segmente (ohne expliziten Pfad, LoadSegments verwendet den Standard-Pfad)
+            var segments = _draftTranscriptStore.LoadSegments(draft.Id);
+
+            IReadOnlyList<ITimedSegment> timedSegments;
+            if (segments is not null && segments.Count > 0)
+            {
+                // Konvertiere zu ITimedSegment
+                timedSegments = segments.Select(s => new TimedSegment
+                {
+                    Text = s.Text,
+                    Start = s.Start,
+                    End = s.End
+                } as ITimedSegment).ToList();
+            }
+            else
+            {
+                // Fallback: Simuliere ein einziges Segment aus dem gesamten Transkript
+                _logger.Warning("Keine Segmente gefunden, verwende Fallback", "Clipper");
+                timedSegments = new List<ITimedSegment>
+                {
+                    new TimedSegment
+                    {
+                        Text = draft.Transcript,
+                        Start = TimeSpan.Zero,
+                        End = ParseDuration(draft.VideoDuration) ?? TimeSpan.FromMinutes(10)
+                    }
+                };
+            }
+
+            // Erstelle Candidate Windows im Hintergrund, um den UI-Thread flüssig zu halten.
+            var minDuration = TimeSpan.FromSeconds(_settings.Clipper.MinClipDurationSeconds);
+            var maxDuration = TimeSpan.FromSeconds(_settings.Clipper.MaxClipDurationSeconds);
+            var windowGenerator = new CandidateWindowGenerator();
+            var windows = await Task.Run(
+                () => windowGenerator.GenerateWindows(timedSegments, minDuration, maxDuration),
+                _clipperAnalysisCts.Token);
+
+            if (windows.Count == 0)
+            {
+                StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoWindowsFound");
+                ClipperPageView.ShowEmptyState();
+                return;
+            }
+
+            _logger.Info($"Erstellt {windows.Count} Candidate Windows für Scoring", "Clipper");
+
             var contentContext = BuildClipperContentContext(draft);
             var maxCandidates = Math.Clamp(_settings.Clipper.MaxCandidates, 1, 20);
             var candidates = await _highlightScoringService.ScoreHighlightsAsync(
@@ -3976,6 +3977,9 @@ public partial class MainWindow : Window
                 job.LogoPath = !string.IsNullOrWhiteSpace(logoPath)
                     ? logoPath
                     : effectiveSettings.DefaultLogoPath;
+                job.LogoScale = Math.Clamp(effectiveSettings.LogoScale, 0.05, 0.5);
+                job.LogoPositionX = Math.Clamp(effectiveSettings.LogoPositionX, 0.0, 1.0);
+                job.LogoPositionY = Math.Clamp(effectiveSettings.LogoPositionY, 0.0, 1.0);
             }
 
             _logger.Info($"Starte Rendering von {jobs.Count} Clips", "Clipper");

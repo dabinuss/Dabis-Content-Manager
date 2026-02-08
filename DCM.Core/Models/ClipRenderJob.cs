@@ -137,15 +137,30 @@ public sealed class ClipRenderJob
 
     /// <summary>
     /// Logo-Größe in Pixeln (Breite). Höhe wird proportional skaliert.
-    /// Standard: 80 Pixel.
+    /// Fallback-Wert, falls keine relative Skalierung gesetzt ist.
     /// </summary>
     public int LogoSize { get; set; } = 80;
 
     /// <summary>
     /// Abstand des Logos vom Rand in Pixeln.
-    /// Standard: 30 Pixel.
+    /// Fallback-Wert für ältere Renderpfade.
     /// </summary>
     public int LogoMargin { get; set; } = 30;
+
+    /// <summary>
+    /// Relative Logo-Größe zur Ausgabebreite (0.05 - 0.5).
+    /// </summary>
+    public double LogoScale { get; set; } = 0.15;
+
+    /// <summary>
+    /// Relative X-Position (0-1), bezogen auf das Zentrum des Logos.
+    /// </summary>
+    public double LogoPositionX { get; set; } = 0.9;
+
+    /// <summary>
+    /// Relative Y-Position (0-1), bezogen auf das Zentrum des Logos.
+    /// </summary>
+    public double LogoPositionY { get; set; } = 0.05;
 }
 
 /// <summary>

@@ -489,11 +489,10 @@ public sealed class ClipRenderService : IClipRenderService
         {
             sb.Append("[main];");
 
-            // Logo skalieren
-            sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
+            // Logo skalieren und mit relativer Position in den Ausgabeframe legen.
+            sb.Append($"[1:v]scale={BuildLogoScaleFilter(job, job.OutputWidth, sourceWidth)}[logo];");
 
-            // Logo-Overlay (unten rechts mit Margin)
-            sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+            sb.Append($"[main][logo]{BuildLogoOverlayFilter(job)}[out]");
         }
         else
         {
@@ -576,8 +575,8 @@ public sealed class ClipRenderService : IClipRenderService
             if (hasLogo)
             {
                 sb.Append("[main];");
-                sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
-                sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+                sb.Append($"[1:v]scale={BuildLogoScaleFilter(job, outputWidth, sourceWidth)}[logo];");
+                sb.Append($"[main][logo]{BuildLogoOverlayFilter(job)}[out]");
             }
             else
             {
@@ -605,8 +604,8 @@ public sealed class ClipRenderService : IClipRenderService
         if (hasLogo)
         {
             sb.Append("[main];");
-            sb.Append($"[1:v]scale={job.LogoSize}:-1[logo];");
-            sb.Append($"[main][logo]overlay=W-w-{job.LogoMargin}:H-h-{job.LogoMargin}[out]");
+            sb.Append($"[1:v]scale={BuildLogoScaleFilter(job, outputWidth, sourceWidth)}[logo];");
+            sb.Append($"[main][logo]{BuildLogoOverlayFilter(job)}[out]");
         }
         else
         {
@@ -707,6 +706,35 @@ public sealed class ClipRenderService : IClipRenderService
         return path
             .Replace("\\", "/")
             .Replace(":", "\\:");
+    }
+
+    private static string BuildLogoScaleFilter(ClipRenderJob job, int outputWidth, int sourceWidth)
+    {
+        if (job.LogoScale <= 0)
+        {
+            return $"{Math.Max(16, job.LogoSize)}:-1";
+        }
+
+        var referenceWidth = outputWidth > 0 ? outputWidth : sourceWidth;
+        if (referenceWidth <= 0)
+        {
+            return $"{Math.Max(16, job.LogoSize)}:-1";
+        }
+
+        var relativeScale = Math.Clamp(job.LogoScale, 0.05, 0.5);
+        var targetWidth = Math.Clamp(
+            (int)Math.Round(referenceWidth * relativeScale, MidpointRounding.AwayFromZero),
+            16,
+            Math.Max(16, referenceWidth));
+
+        return $"{targetWidth}:-1";
+    }
+
+    private static string BuildLogoOverlayFilter(ClipRenderJob job)
+    {
+        var x = Math.Clamp(job.LogoPositionX, 0.0, 1.0).ToString("0.###", CultureInfo.InvariantCulture);
+        var y = Math.Clamp(job.LogoPositionY, 0.0, 1.0).ToString("0.###", CultureInfo.InvariantCulture);
+        return $"overlay='max(0,min(W-w,(W*{x})-(w/2)))':'max(0,min(H-h,(H*{y})-(h/2)))'";
     }
 
     private async Task<string?> GenerateSubtitleFileAsync(
