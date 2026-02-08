@@ -1004,7 +1004,8 @@ public partial class ClipperView : UserControl
     {
         var show = GetSelectedCropMode() == CropMode.SplitLayout &&
                    _currentPreviewCandidate is not null &&
-                   _isSplitSourceMediaReady;
+                   _isSplitSourceMediaReady &&
+                   !_splitAwaitingFirstPlayAlignment;
         SplitSourceMediaElement.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -1134,7 +1135,6 @@ public partial class ClipperView : UserControl
         _lastPlaybackMetricsDroppedQueue = Interlocked.Read(ref _previewFramesDroppedQueue);
 
         PreviewFrameImage.Visibility = Visibility.Collapsed;
-        _previewTimer.Start();
         if (splitMode)
         {
             StopFfmpegPreviewProcess();
@@ -1160,6 +1160,12 @@ public partial class ClipperView : UserControl
                 {
                     // ignore preview-only mute errors
                 }
+
+                SyncSplitSourceMediaVisibility();
+                UpdateSplitLivePlaybackPreviewState();
+                RunBackgroundTask(
+                    StartSplitPlaybackAlignedAsync(playbackStart, _playbackSessionVersion),
+                    nameof(StartSplitPlaybackAlignedAsync));
             }
             else
             {
@@ -1172,13 +1178,15 @@ public partial class ClipperView : UserControl
                 {
                     // ignore preview-only mute errors
                 }
-            }
 
-            TrySyncSplitSourcePlaybackState(playbackStart, play: true);
+                TrySyncSplitSourcePlaybackState(playbackStart, play: true);
+                _previewTimer.Start();
+            }
         }
         else
         {
             PreviewMediaElement.Play();
+            _previewTimer.Start();
         }
 
         if (!splitMode)
@@ -1195,6 +1203,85 @@ public partial class ClipperView : UserControl
 
         UpdateSplitLivePlaybackPreviewState();
         UpdatePlayButtonIcon(true);
+    }
+
+    private async Task StartSplitPlaybackAlignedAsync(TimeSpan playbackStart, int playbackVersion)
+    {
+        try
+        {
+            if (!_isPlaying || _playbackSessionVersion != playbackVersion)
+            {
+                return;
+            }
+
+            try
+            {
+                SplitSourceMediaElement.Play();
+            }
+            catch
+            {
+                // ignore playback bootstrap errors
+            }
+
+            var alignmentThreshold = playbackStart - TimeSpan.FromMilliseconds(80);
+            if (alignmentThreshold < TimeSpan.Zero)
+            {
+                alignmentThreshold = TimeSpan.Zero;
+            }
+
+            var timeoutUtc = DateTime.UtcNow + TimeSpan.FromMilliseconds(320);
+            while (_isPlaying && _playbackSessionVersion == playbackVersion && DateTime.UtcNow < timeoutUtc)
+            {
+                var pos = GetActivePlaybackPosition();
+                if (pos >= alignmentThreshold)
+                {
+                    break;
+                }
+
+                await Task.Delay(15);
+            }
+
+            if (!_isPlaying || _playbackSessionVersion != playbackVersion)
+            {
+                return;
+            }
+
+            TrySyncSplitSourcePlaybackState(playbackStart, play: false);
+            _splitAwaitingFirstPlayAlignment = false;
+            SyncSplitSourceMediaVisibility();
+            UpdateSplitLivePlaybackPreviewState();
+            try
+            {
+                SplitSourceMediaElement.IsMuted = false;
+            }
+            catch
+            {
+                // ignore preview-only mute errors
+            }
+
+            TrySyncSplitSourcePlaybackState(playbackStart, play: true);
+            _previewTimer.Start();
+        }
+        catch
+        {
+            _splitAwaitingFirstPlayAlignment = false;
+            SyncSplitSourceMediaVisibility();
+            UpdateSplitLivePlaybackPreviewState();
+            try
+            {
+                SplitSourceMediaElement.IsMuted = false;
+            }
+            catch
+            {
+                // ignore preview-only mute errors
+            }
+
+            if (_isPlaying && _playbackSessionVersion == playbackVersion)
+            {
+                TrySyncSplitSourcePlaybackState(playbackStart, play: true);
+                _previewTimer.Start();
+            }
+        }
     }
 
     private void PausePlayback()

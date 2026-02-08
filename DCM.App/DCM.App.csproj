@@ -23,6 +23,11 @@
     <Version>0.18</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- Avoid apphost .exe in local debug runs; some environments block unsigned executables. -->
+    <UseAppHost>false</UseAppHost>
+  </PropertyGroup>
+
   <PropertyGroup>
     <!-- Bevorzugte CPU-Variante der LLamaSharp-Natives -->
     <PreferredLlamaCpuVariant>avx2</PreferredLlamaCpuVariant>
