@@ -53,11 +53,8 @@
       <ResourceDictionary.MergedDictionaries>
         <!-- Localization -->
         <ResourceDictionary Source="Localization/Strings.xaml"/>
-        <!-- Theme resources in correct order -->
-        <ResourceDictionary Source="Themes/DarkTheme.Visual.xaml"/>
-        <ResourceDictionary Source="Themes/DarkTheme.Layout.xaml"/>
-        <ResourceDictionary Source="Themes/DarkTheme.Controls.xaml"/>
-        <ResourceDictionary Source="Themes/DarkTheme.Effects.xaml"/>
+        <!-- Default Theme -->
+        <ResourceDictionary Source="Themes/DarkTheme.xaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

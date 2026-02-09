@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
@@ -727,6 +727,7 @@
   <sys:String x:Key="Settings.Language.Restart.Hint">Restart may be required</sys:String>
   <sys:String x:Key="Settings.Theme">Color Scheme</sys:String>
   <sys:String x:Key="Settings.Theme.Dark">Dark</sys:String>
+  <sys:String x:Key="Settings.Theme.Light">Light</sys:String>
 
   <!-- Settings: Folders -->
   <sys:String x:Key="Settings.StandardFolders">Default Folders</sys:String>

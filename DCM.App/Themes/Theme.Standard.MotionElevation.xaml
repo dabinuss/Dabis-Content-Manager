@@ -1,0 +1,51 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+  <!-- =================================================================== -->
+  <!-- MOTION TOKENS                                                        -->
+  <!-- =================================================================== -->
+
+  <Duration x:Key="Motion.Fast">0:0:0.12</Duration>
+  <Duration x:Key="Motion.Normal">0:0:0.20</Duration>
+  <Duration x:Key="Motion.Slow">0:0:0.28</Duration>
+
+  <CubicEase x:Key="Motion.Ease.Standard"
+             EasingMode="EaseOut"/>
+  <QuadraticEase x:Key="Motion.Ease.Emphasis"
+                 EasingMode="EaseOut"/>
+
+  <!-- =================================================================== -->
+  <!-- ELEVATION TOKENS                                                     -->
+  <!-- =================================================================== -->
+
+  <DropShadowEffect x:Key="Elevation.0"
+                    BlurRadius="0"
+                    ShadowDepth="0"
+                    Opacity="0"/>
+
+  <DropShadowEffect x:Key="Elevation.1"
+                    BlurRadius="8"
+                    ShadowDepth="1"
+                    Color="#55000000"
+                    Opacity="0.22"/>
+
+  <DropShadowEffect x:Key="Elevation.2"
+                    BlurRadius="14"
+                    ShadowDepth="2"
+                    Color="#66000000"
+                    Opacity="0.26"/>
+
+  <DropShadowEffect x:Key="Elevation.3"
+                    BlurRadius="20"
+                    ShadowDepth="4"
+                    Color="#77000000"
+                    Opacity="0.30"/>
+
+  <DropShadowEffect x:Key="Elevation.4"
+                    BlurRadius="28"
+                    ShadowDepth="6"
+                    Color="#99000000"
+                    Opacity="0.34"/>
+
+</ResourceDictionary>

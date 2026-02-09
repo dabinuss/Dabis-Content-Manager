@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:win="clr-namespace:System.Windows;assembly=PresentationFramework"
@@ -7,11 +7,12 @@
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="Theme.Standard.Base.Tokens.xaml" />
     <ResourceDictionary Source="Theme.Standard.Tokens.xaml" />
+    <ResourceDictionary Source="Theme.Standard.Tokens.Light.xaml" />
     <ResourceDictionary Source="Theme.Standard.Base.Layout.xaml" />
     <ResourceDictionary Source="Theme.Standard.Layout.xaml" />
-    <ResourceDictionary Source="Theme.Standard.Base.Controls.xaml" />
+    <ResourceDictionary Source="Theme.Standard.Base.Controls.Light.xaml" />
     <ResourceDictionary Source="Theme.Standard.MotionElevation.xaml" />
-    <ResourceDictionary Source="Theme.Standard.Controls.xaml" />
+    <ResourceDictionary Source="Theme.Standard.Controls.Light.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

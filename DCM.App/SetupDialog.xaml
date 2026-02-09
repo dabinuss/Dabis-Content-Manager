@@ -57,7 +57,7 @@
             </ControlTemplate.Triggers>
           </ControlTemplate>
         </Button.Template>
-        <TextBlock Style="{StaticResource IconL}"
+        <TextBlock Style="{StaticResource Control.Icon.L}"
                    Text="&#xe5cd;"
                    Foreground="{StaticResource TextMutedBrush}"
                    Margin="0"
@@ -79,13 +79,13 @@
 
           <!-- App Name -->
           <TextBlock Text="{DynamicResource App.Name}"
-                     Style="{StaticResource TextHeadingXL}"
+                     Style="{StaticResource Control.Text.Heading.XL}"
                      HorizontalAlignment="Center"
                      Margin="0,0,0,12"/>
 
           <!-- App Description -->
           <TextBlock Text="{DynamicResource Setup.AppDescription}"
-                     Style="{StaticResource TextSecondary}"
+                     Style="{StaticResource Control.Text.Secondary}"
                      TextAlignment="Center"
                      TextWrapping="Wrap"
                      MaxWidth="420"
@@ -95,13 +95,13 @@
           <!-- Privacy Note -->
           <StackPanel Orientation="Horizontal"
                       HorizontalAlignment="Center">
-            <TextBlock Style="{StaticResource IconM}"
+            <TextBlock Style="{StaticResource Control.Icon.M}"
                        Text="&#xe897;"
                        Foreground="{StaticResource SuccessBrush}"
                        VerticalAlignment="Center"
                        Margin="0,0,6,0"/>
             <TextBlock Text="{DynamicResource Setup.PrivacyNote}"
-                       Style="{StaticResource TextCaption}"
+                       Style="{StaticResource Control.Text.Caption}"
                        Foreground="{StaticResource SuccessBrush}"
                        VerticalAlignment="Center"/>
           </StackPanel>
@@ -122,7 +122,7 @@
         <StackPanel>
           <!-- Transcription Card -->
           <Border x:Name="TranscriptionCard"
-                  Style="{StaticResource SurfaceCard}"
+                  Style="{StaticResource Control.Container.SurfaceCard}"
                   Padding="16"
                   Margin="0,0,0,16">
             <Grid>
@@ -146,7 +146,7 @@
                       Background="{StaticResource SurfaceLightBrush}"
                       VerticalAlignment="Top"
                       Margin="0,0,14,0">
-                <TextBlock Style="{StaticResource IconXL}"
+                <TextBlock Style="{StaticResource Control.Icon.XL}"
                            Text="&#xe029;"
                            Foreground="{StaticResource PrimaryBrush}"
                            HorizontalAlignment="Center"
@@ -160,11 +160,11 @@
                           Orientation="Horizontal"
                           Margin="0,0,0,4">
                 <TextBlock Text="{DynamicResource Setup.Transcription.Title}"
-                           Style="{StaticResource SectionHeader}"
+                           Style="{StaticResource Control.Text.SectionHeader}"
                            VerticalAlignment="Center"/>
                 <TextBlock x:Name="TranscriptionSizeText"
                            Text="~466 MB"
-                           Style="{StaticResource TextCaption}"
+                           Style="{StaticResource Control.Text.Caption}"
                            VerticalAlignment="Center"
                            Margin="10,0,0,0"/>
               </StackPanel>
@@ -173,7 +173,7 @@
               <TextBlock Grid.Column="1"
                          Grid.Row="1"
                          Text="{DynamicResource Setup.Transcription.Description}"
-                         Style="{StaticResource TextSecondary}"
+                         Style="{StaticResource Control.Text.Secondary}"
                          TextWrapping="Wrap"
                          Margin="0,0,12,0"/>
 
@@ -194,12 +194,12 @@
                            Margin="0,0,6,0"/>
                   <TextBlock x:Name="TranscriptionStatusText"
                              Text="{DynamicResource Setup.Status.NotInstalled}"
-                             Style="{StaticResource TextCaption}"
+                             Style="{StaticResource Control.Text.Caption}"
                              VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button x:Name="TranscriptionInstallButton"
                         Content="{DynamicResource Setup.Button.Install}"
-                        Style="{StaticResource SecondaryButton}"
+                        Style="{StaticResource Control.Button.Secondary}"
                         MinWidth="100"
                         Click="TranscriptionInstallButton_Click"/>
               </StackPanel>
@@ -216,7 +216,7 @@
                              Value="0"
                              Visibility="Collapsed"/>
                 <TextBlock x:Name="TranscriptionProgressText"
-                           Style="{StaticResource TextCaption}"
+                           Style="{StaticResource Control.Text.Caption}"
                            HorizontalAlignment="Right"
                            Margin="0,10,0,0"
                            Visibility="Collapsed"/>
@@ -226,7 +226,7 @@
 
           <!-- LLM Card -->
           <Border x:Name="LlmCard"
-                  Style="{StaticResource SurfaceCard}"
+                  Style="{StaticResource Control.Container.SurfaceCard}"
                   Padding="16"
                   Margin="0,0,0,16">
             <Grid>
@@ -250,7 +250,7 @@
                       Background="{StaticResource SurfaceLightBrush}"
                       VerticalAlignment="Top"
                       Margin="0,0,14,0">
-                <TextBlock Style="{StaticResource IconXL}"
+                <TextBlock Style="{StaticResource Control.Icon.XL}"
                            Text="&#xe90b;"
                            Foreground="{StaticResource MagicAIBrush}"
                            HorizontalAlignment="Center"
@@ -264,11 +264,11 @@
                           Orientation="Horizontal"
                           Margin="0,0,0,4">
                 <TextBlock Text="{DynamicResource Setup.LLM.Title}"
-                           Style="{StaticResource SectionHeader}"
+                           Style="{StaticResource Control.Text.SectionHeader}"
                            VerticalAlignment="Center"/>
                 <TextBlock x:Name="LlmSizeText"
                            Text="~2.2 GB"
-                           Style="{StaticResource TextCaption}"
+                           Style="{StaticResource Control.Text.Caption}"
                            VerticalAlignment="Center"
                            Margin="10,0,0,0"/>
               </StackPanel>
@@ -277,7 +277,7 @@
               <TextBlock Grid.Column="1"
                          Grid.Row="1"
                          Text="{DynamicResource Setup.LLM.Description}"
-                         Style="{StaticResource TextSecondary}"
+                         Style="{StaticResource Control.Text.Secondary}"
                          TextWrapping="Wrap"
                          Margin="0,0,12,0"/>
 
@@ -298,12 +298,12 @@
                            Margin="0,0,6,0"/>
                   <TextBlock x:Name="LlmStatusText"
                              Text="{DynamicResource Setup.Status.NotInstalled}"
-                             Style="{StaticResource TextCaption}"
+                             Style="{StaticResource Control.Text.Caption}"
                              VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button x:Name="LlmInstallButton"
                         Content="{DynamicResource Setup.Button.Install}"
-                        Style="{StaticResource SecondaryButton}"
+                        Style="{StaticResource Control.Button.Secondary}"
                         MinWidth="100"
                         Click="LlmInstallButton_Click"/>
               </StackPanel>
@@ -320,7 +320,7 @@
                              Value="0"
                              Visibility="Collapsed"/>
                 <TextBlock x:Name="LlmProgressText"
-                           Style="{StaticResource TextCaption}"
+                           Style="{StaticResource Control.Text.Caption}"
                            HorizontalAlignment="Right"
                            Margin="0,10,0,0"
                            Visibility="Collapsed"/>
@@ -334,13 +334,13 @@
                   Padding="12"
                   Margin="0,0,0,8">
             <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource IconM}"
+              <TextBlock Style="{StaticResource Control.Icon.M}"
                          Text="&#xe88e;"
                          Foreground="{StaticResource TextMutedBrush}"
                          VerticalAlignment="Top"
                          Margin="0,2,8,0"/>
               <TextBlock Text="{DynamicResource Setup.InfoNote}"
-                         Style="{StaticResource TextCaption}"
+                         Style="{StaticResource Control.Text.Caption}"
                          TextWrapping="Wrap"
                          VerticalAlignment="Center"/>
             </StackPanel>
@@ -371,7 +371,7 @@
                       Orientation="Horizontal">
             <Button x:Name="ContinueButton"
                     Content="{DynamicResource Setup.Button.Continue}"
-                    Style="{StaticResource PrimaryButton}"
+                    Style="{StaticResource Control.Button.Primary}"
                     MinWidth="140"
                     ap:ButtonIcon.Glyph="&#xe5c8;"
                     Click="ContinueButton_Click"/>

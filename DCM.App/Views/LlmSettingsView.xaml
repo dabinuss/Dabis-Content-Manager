@@ -39,7 +39,7 @@
 
           <!-- BOX 1: KI-Modell -->
           <GroupBox Grid.Row="0"
-                    Style="{StaticResource SettingsSectionGroupBox}">
+                    Style="{StaticResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -47,9 +47,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Model}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.LlmMode.Example}">
-                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>
@@ -71,7 +71,7 @@
               <!-- Aktivierung -->
               <TextBlock Grid.Row="0"
                          Text="{DynamicResource Settings.LLM.Status.Label}"
-                         Style="{StaticResource TextLabel}"/>
+                         Style="{StaticResource Control.Text.Label}"/>
               <ComboBox Grid.Row="1"
                         x:Name="LlmModeComboBox"
                         MinWidth="{StaticResource InputMinWidthM}"
@@ -85,7 +85,7 @@
               <!-- Modell-Auswahl -->
               <TextBlock Grid.Row="2"
                          Text="{DynamicResource Settings.LLM.Model.Select}"
-                         Style="{StaticResource TextLabel}"
+                         Style="{StaticResource Control.Text.Label}"
                          Margin="{StaticResource LabelMarginTop}"/>
               <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
@@ -104,7 +104,7 @@
                 <Button x:Name="LlmModelDownloadButton"
                         Grid.Column="1"
                         Content="{DynamicResource Settings.LLM.Download}"
-                        Style="{StaticResource SecondaryButton}"
+                        Style="{StaticResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe2c4;"
                         Margin="8,0,0,0"
                         Click="LlmModelDownloadButton_Click"/>
@@ -136,7 +136,7 @@
               <TextBlock Grid.Row="5"
                          x:Name="LlmCustomPathLabel"
                          Text="{DynamicResource Settings.LLM.Model.Path}"
-                         Style="{StaticResource TextLabel}"
+                         Style="{StaticResource Control.Text.Label}"
                          Margin="{StaticResource LabelMarginTop}"
                          Visibility="Collapsed"/>
               <Grid Grid.Row="6"
@@ -154,7 +154,7 @@
                 <Button x:Name="LlmModelPathBrowseButton"
                         Grid.Column="1"
                         Content="{DynamicResource Settings.ChoosePath}"
-                        Style="{StaticResource SecondaryButton}"
+                        Style="{StaticResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe2c8;"
                         Margin="8,0,0,0"
                         Click="LlmModelPathBrowseButton_Click"/>
@@ -164,7 +164,7 @@
               <TextBlock Grid.Row="7"
                          x:Name="LlmModelTypeLabel"
                          Text="{DynamicResource Settings.LLM.Model.Type}"
-                         Style="{StaticResource TextLabel}"
+                         Style="{StaticResource Control.Text.Label}"
                          Margin="{StaticResource LabelMarginTop}"
                          Visibility="Collapsed"/>
               <ComboBox Grid.Row="8"
@@ -201,7 +201,7 @@
 
           <!-- BOX 2: Generierung -->
           <GroupBox Grid.Row="2"
-                    Style="{StaticResource SettingsSectionGroupBox}">
+                    Style="{StaticResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -209,9 +209,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Generation}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.LlmParameters.Example}">
-                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>
@@ -277,7 +277,7 @@
               <!-- System Prompt -->
               <TextBlock Grid.Row="2"
                          Text="{DynamicResource Settings.LLM.Generation.SystemPrompt}"
-                         Style="{StaticResource TextLabel}"
+                         Style="{StaticResource Control.Text.Label}"
                          Margin="{StaticResource LabelMarginTop}"/>
               <TextBox Grid.Row="3"
                        x:Name="LlmSystemPromptTextBox"
@@ -300,7 +300,7 @@
 
           <!-- BOX 3: Anweisungen -->
           <GroupBox Grid.Row="0"
-                    Style="{StaticResource SettingsSectionGroupBox}">
+                    Style="{StaticResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -308,9 +308,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Instructions}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.LlmPrompts.Example}">
-                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>
@@ -327,7 +327,7 @@
               <!-- Titel-Anweisungen -->
               <TextBlock Grid.Row="0"
                          Text="{DynamicResource Settings.LLM.Instructions.Title}"
-                         Style="{StaticResource TextLabel}"/>
+                         Style="{StaticResource Control.Text.Label}"/>
               <TextBox Grid.Row="1"
                        x:Name="LlmTitleCustomPromptTextBox"
                        Height="60"
@@ -339,7 +339,7 @@
               <!-- Beschreibungs-Anweisungen -->
               <TextBlock Grid.Row="2"
                          Text="{DynamicResource Settings.LLM.Instructions.Description}"
-                         Style="{StaticResource TextLabel}"
+                         Style="{StaticResource Control.Text.Label}"
                          Margin="{StaticResource LabelMarginTop}"/>
               <TextBox Grid.Row="3"
                        x:Name="LlmDescriptionCustomPromptTextBox"
@@ -352,7 +352,7 @@
               <!-- Tags-Anweisungen -->
               <TextBlock Grid.Row="4"
                          Text="{DynamicResource Settings.LLM.Instructions.Tags}"
-                         Style="{StaticResource TextLabel}"
+                         Style="{StaticResource Control.Text.Label}"
                          Margin="{StaticResource LabelMarginTop}"/>
               <TextBox Grid.Row="5"
                        x:Name="LlmTagsCustomPromptTextBox"
@@ -366,7 +366,7 @@
 
           <!-- BOX 4: Vorschläge -->
           <GroupBox Grid.Row="2"
-                    Style="{StaticResource SettingsSectionGroupBox}">
+                    Style="{StaticResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -374,9 +374,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Suggestions}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.SuggestionCount.Example}">
-                  <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>

@@ -32,7 +32,7 @@
 
         <!-- BOX 1: Darstellung -->
         <GroupBox Grid.Row="0"
-                  Style="{StaticResource SettingsSectionGroupBox}">
+                  Style="{StaticResource Control.GroupBox.Settings.Section}">
           <GroupBox.Header>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -40,9 +40,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Appearance}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.Appearance.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
@@ -58,7 +58,7 @@
             <!-- Sprache -->
             <TextBlock Grid.Row="0"
                        Text="{DynamicResource Settings.Language}"
-                       Style="{StaticResource TextLabel}"/>
+                       Style="{StaticResource Control.Text.Label}"/>
             <Grid Grid.Row="1">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -79,7 +79,7 @@
             <!-- Theme -->
             <TextBlock Grid.Row="3"
                        Text="{DynamicResource Settings.Theme}"
-                       Style="{StaticResource TextLabel}"/>
+                       Style="{StaticResource Control.Text.Label}"/>
             <ComboBox Grid.Row="4"
                       x:Name="ThemeComboBox"
                       MinWidth="{StaticResource InputMinWidthM}"
@@ -87,13 +87,15 @@
               <ComboBoxItem Content="{DynamicResource Settings.Theme.Dark}"
                             Tag="Dark"
                             IsSelected="True"/>
+              <ComboBoxItem Content="{DynamicResource Settings.Theme.Light}"
+                            Tag="Light"/>
             </ComboBox>
           </Grid>
         </GroupBox>
 
         <!-- BOX 2: Standard-Ordner -->
         <GroupBox Grid.Row="2"
-                  Style="{StaticResource SettingsSectionGroupBox}">
+                  Style="{StaticResource Control.GroupBox.Settings.Section}">
           <GroupBox.Header>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -101,9 +103,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Folders}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.StandardFolders.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
@@ -119,7 +121,7 @@
             <!-- Video-Ordner -->
             <TextBlock Grid.Row="0"
                        Text="{DynamicResource Settings.VideoFolder}"
-                       Style="{StaticResource TextLabel}"/>
+                       Style="{StaticResource Control.Text.Label}"/>
             <Grid Grid.Row="1">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -131,7 +133,7 @@
               <Button x:Name="DefaultVideoFolderBrowseButton"
                       Grid.Column="1"
                       Content="{DynamicResource Settings.ChoosePath}"
-                      Style="{StaticResource SecondaryButton}"
+                      Style="{StaticResource Control.Button.Secondary}"
                       ap:ButtonIcon.Glyph="&#xe2c8;"
                       Margin="8,0,0,0"
                       Click="DefaultVideoFolderBrowseButton_Click"/>
@@ -140,7 +142,7 @@
             <!-- Thumbnail-Ordner -->
             <TextBlock Grid.Row="3"
                        Text="{DynamicResource Settings.ThumbnailFolder}"
-                       Style="{StaticResource TextLabel}"/>
+                       Style="{StaticResource Control.Text.Label}"/>
             <Grid Grid.Row="4">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -152,7 +154,7 @@
               <Button x:Name="DefaultThumbnailFolderBrowseButton"
                       Grid.Column="1"
                       Content="{DynamicResource Settings.ChoosePath}"
-                      Style="{StaticResource SecondaryButton}"
+                      Style="{StaticResource Control.Button.Secondary}"
                       ap:ButtonIcon.Glyph="&#xe2c8;"
                       Margin="8,0,0,0"
                       Click="DefaultThumbnailFolderBrowseButton_Click"/>
@@ -162,7 +164,7 @@
 
         <!-- BOX 3: Transkription -->
         <GroupBox Grid.Row="4"
-                  Style="{StaticResource SettingsSectionGroupBox}">
+                  Style="{StaticResource Control.GroupBox.Settings.Section}">
           <GroupBox.Header>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -170,9 +172,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Transcription}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.Transcription.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
@@ -256,7 +258,7 @@
               <Button Grid.Column="1"
                       x:Name="TranscriptionDownloadButton"
                       Content="{DynamicResource Settings.Whisper.Download}"
-                      Style="{StaticResource SecondaryButton}"
+                      Style="{StaticResource Control.Button.Secondary}"
                       ap:ButtonIcon.Glyph="&#xe2c4;"
                       Click="TranscriptionDownloadButton_Click"/>
             </Grid>
@@ -282,7 +284,7 @@
 
         <!-- BOX 4: Upload-Verhalten -->
         <GroupBox Grid.Row="0"
-                  Style="{StaticResource SettingsSectionGroupBox}">
+                  Style="{StaticResource Control.GroupBox.Settings.Section}">
           <GroupBox.Header>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -290,9 +292,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Upload}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.UploadSettings.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
@@ -326,7 +328,7 @@
 
         <!-- BOX 5: Entwürfe -->
         <GroupBox Grid.Row="2"
-                  Style="{StaticResource SettingsSectionGroupBox}">
+                  Style="{StaticResource Control.GroupBox.Settings.Section}">
           <GroupBox.Header>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -334,9 +336,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Settings.Section.Drafts}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource HelpIconButton}"
+              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Settings.Tooltip.Drafts.Example}">
-                <TextBlock Style="{StaticResource HelpIconGlyph}"/>
+                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>

@@ -106,7 +106,6 @@ public partial class MainWindow : Window
     private int _lastSettingsPageIndex = 4;
 
     // OPTIMIZATION: Cached theme dictionary for faster theme switching
-    private ResourceDictionary? _currentThemeDictionary;
     private readonly UiDispatcher _ui;
     private static readonly TimeSpan UiProgressThrottleInterval = TimeSpan.FromMilliseconds(350);
     private static readonly TimeSpan UiLogThrottleInterval = TimeSpan.FromMilliseconds(500);
@@ -991,37 +990,26 @@ public partial class MainWindow : Window
 
         try
         {
+            var newThemeDictionary = new ResourceDictionary { Source = themeUri };
             var dictionaries = Application.Current.Resources.MergedDictionaries;
-            
-            // OPTIMIZATION: Remove cached theme dictionary if it exists
-            if (_currentThemeDictionary != null)
+
+            // Remove all previously applied theme dictionaries (including startup default).
+            for (var i = dictionaries.Count - 1; i >= 0; i--)
             {
-                dictionaries.Remove(_currentThemeDictionary);
+                var source = dictionaries[i].Source?.OriginalString ?? string.Empty;
+                if (source.EndsWith("Theme.xaml", StringComparison.OrdinalIgnoreCase))
+                {
+                    dictionaries.RemoveAt(i);
+                }
             }
 
-            // OPTIMIZATION: Create and cache new theme dictionary
-            _currentThemeDictionary = new ResourceDictionary { Source = themeUri };
-            dictionaries.Add(_currentThemeDictionary);
+            // Create and cache active theme dictionary.
+            dictionaries.Add(newThemeDictionary);
         }
         catch (Exception ex)
         {
             _logger.Error($"Failed to apply theme '{target}': {ex.Message}", SettingsLogSource, ex);
         }
-    }
-
-    private static int FindThemeDictionaryIndex(IList<ResourceDictionary> dictionaries)
-    {
-        for (var i = 0; i < dictionaries.Count; i++)
-        {
-            var source = dictionaries[i].Source?.OriginalString ?? string.Empty;
-            if (source.Contains("/Themes/", StringComparison.OrdinalIgnoreCase) ||
-                source.EndsWith("Theme.xaml", StringComparison.OrdinalIgnoreCase))
-            {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     #endregion

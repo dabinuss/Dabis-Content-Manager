@@ -1,0 +1,83 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+  <!-- =================================================================== -->
+  <!-- SPACING TOKENS (Spacing.*)                                           -->
+  <!-- =================================================================== -->
+
+  <sys:Double x:Key="Spacing.2">2</sys:Double>
+  <sys:Double x:Key="Spacing.4">4</sys:Double>
+  <sys:Double x:Key="Spacing.8">8</sys:Double>
+  <sys:Double x:Key="Spacing.12">12</sys:Double>
+  <sys:Double x:Key="Spacing.16">16</sys:Double>
+  <sys:Double x:Key="Spacing.24">24</sys:Double>
+  <sys:Double x:Key="Spacing.32">32</sys:Double>
+
+  <Thickness x:Key="Spacing.XS">2</Thickness>
+  <Thickness x:Key="Spacing.S">4</Thickness>
+  <Thickness x:Key="Spacing.M">8</Thickness>
+  <Thickness x:Key="Spacing.L">12</Thickness>
+  <Thickness x:Key="Spacing.XL">16</Thickness>
+  <Thickness x:Key="Spacing.XXL">24</Thickness>
+
+  <Thickness x:Key="Spacing.Inline.S">4,0</Thickness>
+  <Thickness x:Key="Spacing.Inline.M">8,0</Thickness>
+  <Thickness x:Key="Spacing.Inline.L">12,0</Thickness>
+  <Thickness x:Key="Spacing.Stack.S">0,4</Thickness>
+  <Thickness x:Key="Spacing.Stack.M">0,8</Thickness>
+  <Thickness x:Key="Spacing.Stack.L">0,12</Thickness>
+
+  <!-- =================================================================== -->
+  <!-- RADIUS TOKENS (Radius.*)                                             -->
+  <!-- =================================================================== -->
+
+  <CornerRadius x:Key="Radius.S">6</CornerRadius>
+  <CornerRadius x:Key="Radius.M">10</CornerRadius>
+  <CornerRadius x:Key="Radius.L">12</CornerRadius>
+  <CornerRadius x:Key="Radius.XL">16</CornerRadius>
+  <CornerRadius x:Key="Radius.Pill">999</CornerRadius>
+
+  <!-- =================================================================== -->
+  <!-- CONTROL TOKENS (Control.*)                                           -->
+  <!-- =================================================================== -->
+
+  <Thickness x:Key="Control.Button.Padding.S">8,4</Thickness>
+  <Thickness x:Key="Control.Button.Padding.M">16,5</Thickness>
+  <Thickness x:Key="Control.Button.Padding.L">24,10</Thickness>
+
+  <sys:Double x:Key="Control.Button.Height.S">28</sys:Double>
+  <sys:Double x:Key="Control.Button.Height.M">30</sys:Double>
+  <sys:Double x:Key="Control.Button.Height.L">44</sys:Double>
+
+  <sys:Double x:Key="Control.Input.Height.S">28</sys:Double>
+  <sys:Double x:Key="Control.Input.Height.M">34</sys:Double>
+  <sys:Double x:Key="Control.Input.Height.L">44</sys:Double>
+
+  <Thickness x:Key="Control.Input.Padding.S">3,3</Thickness>
+  <Thickness x:Key="Control.Input.Padding.M">4,4</Thickness>
+
+  <!-- =================================================================== -->
+  <!-- DENSITY TOKENS                                                       -->
+  <!-- =================================================================== -->
+
+  <sys:Double x:Key="Control.Density.Compact.Scale">0.9</sys:Double>
+  <sys:Double x:Key="Control.Density.Default.Scale">1.0</sys:Double>
+  <sys:Double x:Key="Control.Density.Comfortable.Scale">1.15</sys:Double>
+
+  <!-- =================================================================== -->
+  <!-- LAYOUT GRID RULES                                                    -->
+  <!-- =================================================================== -->
+
+  <sys:Double x:Key="Layout.Grid.Base">8</sys:Double>
+  <sys:Double x:Key="Layout.Grid.Half">4</sys:Double>
+  <sys:Double x:Key="Layout.MaxWidth.Form">1200</sys:Double>
+
+  <!-- =================================================================== -->
+  <!-- APP MIGRATION KEYS                                                   -->
+  <!-- =================================================================== -->
+
+  <Thickness x:Key="Spacing.Section.Header.Bottom">0,0,0,10</Thickness>
+  <Thickness x:Key="Control.Text.SectionHeaderMarginBottom">0,0,0,10</Thickness>
+
+</ResourceDictionary>

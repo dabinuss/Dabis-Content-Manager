@@ -1,9 +1,0 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
-                    xmlns:win="clr-namespace:System.Windows;assembly=PresentationFramework"
-                    xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core">
-
-  <!-- Theme effects (animations, blur etc.) -->
-
-</ResourceDictionary>

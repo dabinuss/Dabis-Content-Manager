@@ -4,11 +4,6 @@
                     xmlns:win="clr-namespace:System.Windows;assembly=PresentationFramework"
                     xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core">
 
-  <!-- Layout relies on Visual tokens (Brushes, Fonts, Sizes, etc.) -->
-  <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="DarkTheme.Visual.xaml" />
-  </ResourceDictionary.MergedDictionaries>
-
   <!-- =================================================================== -->
   <!-- SPACING SYSTEM - consistent spacing                                  -->
   <!-- =================================================================== -->

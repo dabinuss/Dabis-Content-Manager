@@ -8,8 +8,9 @@
                     xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
 
   <ResourceDictionary.MergedDictionaries>
-    <!-- Visual is merged by Layout -->
-    <ResourceDictionary Source="DarkTheme.Layout.xaml"/>
+    <ResourceDictionary Source="Theme.Standard.Base.Tokens.xaml"/>
+    <ResourceDictionary Source="Theme.Standard.Tokens.Light.xaml"/>
+    <ResourceDictionary Source="Theme.Standard.Base.Layout.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
   <conv:IsStringToVisibilityConverter x:Key="IsStringToVisibilityConverter"/>
