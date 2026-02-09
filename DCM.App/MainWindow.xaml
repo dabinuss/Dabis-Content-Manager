@@ -720,26 +720,58 @@
             </StackPanel>
 
             <StackPanel x:Name="PageActionsClipper"
-                        Orientation="Horizontal"
+                        Orientation="Vertical"
                         Visibility="Collapsed">
-              <Button x:Name="ClipperFindHighlightsButton"
-                      Content="{DynamicResource Clipper.Actions.FindHighlights}"
-                      Style="{StaticResource SecondaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe8b6;"
-                      Click="ClipperFindHighlightsButton_Click"
-                      Margin="0,0,8,0"/>
-              <Button x:Name="ClipperRefreshButton"
-                      Content="{DynamicResource Clipper.Actions.Refresh}"
-                      Style="{StaticResource SecondaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe5d5;"
-                      Click="ClipperRefreshButton_Click"
-                      Margin="0,0,8,0"/>
-              <Button x:Name="ClipperCutButton"
-                      Content="{DynamicResource Clipper.Actions.Cut}"
-                      Style="{StaticResource PrimaryButton}"
-                      ap:ButtonIcon.Glyph="&#xe14e;"
-                      Click="ClipperCutButton_Click"
-                      />
+              <StackPanel x:Name="ClipperHeaderProgressPanel"
+                          Orientation="Vertical"
+                          Visibility="Collapsed"
+                          Margin="0,0,0,8">
+                <ProgressBar x:Name="ClipperHeaderProgressBar"
+                             Width="340"
+                             Height="8"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="0"/>
+                <TextBlock x:Name="ClipperHeaderProgressTextBlock"
+                           Margin="0,4,0,0"
+                           FontSize="{StaticResource FontSizeXS}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           Text=""/>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal">
+                <Button x:Name="ClipperFindHighlightsButton"
+                        Content="{DynamicResource Clipper.Actions.FindHighlights}"
+                        Style="{StaticResource SecondaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe8b6;"
+                        Click="ClipperFindHighlightsButton_Click"
+                        Margin="0,0,8,0"/>
+                <Button x:Name="ClipperRefreshButton"
+                        Content="{DynamicResource Clipper.Actions.Refresh}"
+                        Style="{StaticResource SecondaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe5d5;"
+                        Click="ClipperRefreshButton_Click"
+                        Margin="0,0,8,0"/>
+                <Button x:Name="ClipperCutButton"
+                        Content="{DynamicResource Clipper.Actions.Cut}"
+                        Style="{StaticResource PrimaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe14e;"
+                        Click="ClipperCutButton_Click"
+                        Margin="0,0,8,0"/>
+                <Button x:Name="ClipperCancelAnalysisButton"
+                        Content="{DynamicResource Clipper.Actions.CancelAnalysis}"
+                        Style="{StaticResource SecondaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe5cd;"
+                        Click="ClipperCancelAnalysisButton_Click"
+                        Margin="0,0,8,0"
+                        Visibility="Collapsed"/>
+                <Button x:Name="ClipperCancelRenderButton"
+                        Content="{DynamicResource Clipper.Actions.CancelRender}"
+                        Style="{StaticResource SecondaryButton}"
+                        ap:ButtonIcon.Glyph="&#xe5cd;"
+                        Click="ClipperCancelRenderButton_Click"
+                        Visibility="Collapsed"/>
+              </StackPanel>
             </StackPanel>
           </Grid>
         </Grid>

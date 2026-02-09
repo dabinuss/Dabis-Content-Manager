@@ -4,6 +4,11 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
   <Grid Margin="{StaticResource ViewRootMargin}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="{StaticResource SpacingM}"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="280"/>
       <ColumnDefinition Width="{StaticResource SpacingM}"/>
@@ -12,8 +17,35 @@
       <ColumnDefinition x:Name="EditorColumn" Width="0" MinWidth="0"/>
     </Grid.ColumnDefinitions>
 
+    <Border x:Name="ClipperStatusPanel"
+            Grid.Row="0"
+            Grid.ColumnSpan="5"
+            Style="{StaticResource SurfaceCard}"
+            Padding="12"
+            Visibility="Collapsed">
+      <Border x:Name="RenderResultsPanel"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              CornerRadius="{StaticResource RadiusM}"
+              Padding="10"
+              Visibility="Collapsed">
+        <StackPanel>
+          <TextBlock Text="{DynamicResource Clipper.Results.Title}"
+                     FontWeight="SemiBold"
+                     FontSize="{StaticResource FontSizeS}"
+                     Foreground="{StaticResource TextPrimaryBrush}"/>
+          <TextBlock x:Name="RenderResultsSummaryText"
+                     FontSize="{StaticResource FontSizeXS}"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     Margin="0,4,0,0"/>
+          <StackPanel x:Name="RenderResultsListPanel"
+                      Margin="0,8,0,0"/>
+        </StackPanel>
+      </Border>
+    </Border>
+
     <!-- Left Panel: Draft Selection -->
-    <Grid Grid.Column="0">
+    <Grid Grid.Row="2"
+          Grid.Column="0">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="{StaticResource SpacingM}"/>
@@ -67,6 +99,7 @@
     </Grid>
 
     <GridSplitter x:Name="EditorGridSplitter"
+                  Grid.Row="2"
                   Grid.Column="3"
                   HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch"
@@ -77,6 +110,7 @@
 
     <!-- Right Panel: Candidates -->
     <Grid x:Name="OverviewPanel"
+          Grid.Row="2"
           Grid.Column="2">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
@@ -123,7 +157,7 @@
                    HorizontalContentAlignment="Stretch"
                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                    ScrollViewer.VerticalScrollBarVisibility="Auto"
-                   SelectionMode="Extended">
+                   SelectionMode="Single">
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <Border Padding="12"
@@ -140,6 +174,9 @@
 
                     <CheckBox Grid.Column="0"
                               IsChecked="{Binding IsSelected}"
+                              PreviewMouseDown="CandidateSelectionCheckBox_PreviewMouseDown"
+                              Checked="CandidateSelectionCheckBox_Changed"
+                              Unchecked="CandidateSelectionCheckBox_Changed"
                               VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="2">
@@ -206,7 +243,8 @@
                       VerticalAlignment="Center"
                       HorizontalAlignment="Center"
                       Visibility="Collapsed">
-            <ProgressBar IsIndeterminate="True"
+            <ProgressBar x:Name="AnalysisProgressBar"
+                         IsIndeterminate="True"
                          Width="200"
                          Height="4"/>
             <TextBlock x:Name="LoadingStatusText"
@@ -215,6 +253,19 @@
                        Foreground="{StaticResource TextMutedBrush}"
                        HorizontalAlignment="Center"
                        Margin="0,16,0,0"/>
+            <TextBlock x:Name="AnalysisProgressText"
+                       Text="0%"
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,6,0,0"/>
+            <TextBlock x:Name="AnalysisEtaText"
+                       Text=""
+                       FontSize="{StaticResource FontSizeXS}"
+                       Foreground="{StaticResource TextMutedBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,2,0,0"
+                       Visibility="Collapsed"/>
           </StackPanel>
         </Grid>
       </Border>
@@ -222,6 +273,7 @@
 
     <!-- Right Panel: Candidate Editor -->
     <Grid x:Name="EditorPanel"
+          Grid.Row="2"
           Grid.Column="2"
           Grid.ColumnSpan="3"
           Visibility="Collapsed">

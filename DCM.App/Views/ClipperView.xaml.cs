@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using DCM.App;
 using DCM.App.Models;
 using DCM.App.Services;
 using DCM.Core;
@@ -37,6 +38,7 @@ public partial class ClipperView : UserControl
     private bool _isSliderThumbDragging;
     private bool _sliderSeekHandledOnMouseDown;
     private bool _isApplyingSettings;
+    private bool _suppressSelectionPreviewOnce;
     private bool _isDraggingSubtitle;
     private Point _subtitleDragStart;
     private double _subtitleStartLeft;
@@ -176,6 +178,8 @@ public partial class ClipperView : UserControl
 
     public event SelectionChangedEventHandler? DraftSelectionChanged;
     public event EventHandler? SettingsChanged;
+    public event EventHandler? CandidateSelectionChanged;
+    public event EventHandler<Guid>? RenderResultDraftRequested;
 
     public UploadDraft? SelectedDraft => (DraftListBox.SelectedItem as ClipperDraftItem)?.Draft;
 
@@ -315,6 +319,97 @@ public partial class ClipperView : UserControl
             ? candidates.Where(c => c.IsSelected).ToList()
             : Array.Empty<ClipCandidate>();
 
+    public void ShowRenderResults(
+        int successCount,
+        int failCount,
+        IEnumerable<ClipperRenderedDraftResult>? createdDrafts)
+    {
+        if (RenderResultsPanel is null || RenderResultsListPanel is null || RenderResultsSummaryText is null)
+        {
+            return;
+        }
+
+        if (successCount <= 0)
+        {
+            ClearRenderResults();
+            return;
+        }
+
+        ClipperStatusPanel.Visibility = Visibility.Visible;
+        RenderResultsPanel.Visibility = Visibility.Visible;
+        RenderResultsSummaryText.Text = LocalizationHelper.Format("Clipper.Results.Summary", successCount, failCount);
+        RenderResultsListPanel.Children.Clear();
+
+        var drafts = createdDrafts?.ToList() ?? new List<ClipperRenderedDraftResult>();
+        if (drafts.Count == 0)
+        {
+            RenderResultsListPanel.Children.Add(new TextBlock
+            {
+                Text = LocalizationHelper.Get("Clipper.Results.NoDraftLinks"),
+                FontSize = (double)FindResource("FontSizeXS"),
+                Foreground = (Brush)FindResource("TextMutedBrush")
+            });
+            return;
+        }
+
+        foreach (var draft in drafts.Take(5))
+        {
+            var row = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 6)
+            };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var title = new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(draft.Title) ? draft.DraftId.ToString("N") : draft.Title,
+                Foreground = (Brush)FindResource("TextPrimaryBrush"),
+                FontSize = (double)FindResource("FontSizeXS"),
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+
+            var jumpButton = new Button
+            {
+                Content = LocalizationHelper.Get("Clipper.Results.JumpToDraft"),
+                Style = (Style)FindResource("TertiaryButton"),
+                Tag = draft.DraftId,
+                Padding = new Thickness(8, 2, 8, 2),
+                Margin = new Thickness(8, 0, 0, 0)
+            };
+            jumpButton.Click += JumpToRenderedDraftButton_Click;
+
+            Grid.SetColumn(title, 0);
+            Grid.SetColumn(jumpButton, 1);
+            row.Children.Add(title);
+            row.Children.Add(jumpButton);
+            RenderResultsListPanel.Children.Add(row);
+        }
+
+        if (drafts.Count > 5)
+        {
+            RenderResultsListPanel.Children.Add(new TextBlock
+            {
+                Text = LocalizationHelper.Format("Clipper.Results.MoreDrafts", drafts.Count - 5),
+                FontSize = (double)FindResource("FontSizeXS"),
+                Foreground = (Brush)FindResource("TextMutedBrush")
+            });
+        }
+    }
+
+    public void ClearRenderResults()
+    {
+        if (RenderResultsPanel is null || RenderResultsListPanel is null)
+        {
+            return;
+        }
+
+        RenderResultsListPanel.Children.Clear();
+        RenderResultsPanel.Visibility = Visibility.Collapsed;
+        ClipperStatusPanel.Visibility = Visibility.Collapsed;
+    }
+
     public void SetDrafts(IEnumerable<ClipperDraftItem> drafts)
     {
         DraftListBox.ItemsSource = drafts?.ToList() ?? new List<ClipperDraftItem>();
@@ -348,6 +443,8 @@ public partial class ClipperView : UserControl
             ExitCandidateEditor();
             StopPreview();
         }
+
+        CandidateSelectionChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void ShowLoading(string? statusText = null)
@@ -362,7 +459,45 @@ public partial class ClipperView : UserControl
             LoadingStatusText.Text = statusText;
         }
 
+        AnalysisProgressBar.IsIndeterminate = true;
+        AnalysisProgressBar.Minimum = 0;
+        AnalysisProgressBar.Maximum = 100;
+        AnalysisProgressBar.Value = 0;
+        AnalysisProgressText.Text = "0%";
+        AnalysisEtaText.Text = string.Empty;
+        AnalysisEtaText.Visibility = Visibility.Collapsed;
+
         StopPreview();
+    }
+
+    public void UpdateLoadingProgress(
+        double progressPercent,
+        string? statusText = null,
+        string? etaText = null)
+    {
+        var clamped = Math.Clamp(progressPercent, 0, 100);
+        LoadingPanel.Visibility = Visibility.Visible;
+        AnalysisProgressBar.IsIndeterminate = false;
+        AnalysisProgressBar.Minimum = 0;
+        AnalysisProgressBar.Maximum = 100;
+        AnalysisProgressBar.Value = clamped;
+        AnalysisProgressText.Text = $"{clamped:F0}%";
+
+        if (!string.IsNullOrWhiteSpace(statusText))
+        {
+            LoadingStatusText.Text = statusText;
+        }
+
+        if (!string.IsNullOrWhiteSpace(etaText))
+        {
+            AnalysisEtaText.Text = etaText;
+            AnalysisEtaText.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            AnalysisEtaText.Text = string.Empty;
+            AnalysisEtaText.Visibility = Visibility.Collapsed;
+        }
     }
 
     public void ShowEmptyState()
@@ -408,10 +543,26 @@ public partial class ClipperView : UserControl
 
     private void CandidatesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (EditorPanel.Visibility == Visibility.Visible && CandidatesListBox.SelectedItem is ClipCandidate candidate)
+        if (CandidatesListBox.SelectedItem is not ClipCandidate candidate)
+        {
+            CandidateSelectionChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        if (EditorPanel.Visibility == Visibility.Visible)
         {
             LoadCandidatePreview(candidate);
         }
+        else if (_suppressSelectionPreviewOnce)
+        {
+            _suppressSelectionPreviewOnce = false;
+        }
+        else
+        {
+            OpenCandidateEditor(candidate);
+        }
+
+        CandidateSelectionChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void CandidateSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -421,8 +572,16 @@ public partial class ClipperView : UserControl
             return;
         }
 
+        OpenCandidateEditor(candidate);
+    }
+
+    private void OpenCandidateEditor(ClipCandidate candidate)
+    {
         _editingCandidate = candidate;
-        CandidatesListBox.SelectedItem = candidate;
+        if (!ReferenceEquals(CandidatesListBox.SelectedItem, candidate))
+        {
+            CandidatesListBox.SelectedItem = candidate;
+        }
 
         EditorCandidateTitleText.Text = candidate.PreviewText;
         EditorCandidateTimeText.Text = $"{candidate.StartFormatted} - {candidate.EndFormatted} ({candidate.DurationFormatted})";
@@ -438,6 +597,26 @@ public partial class ClipperView : UserControl
 
         EnterCandidateEditor();
         LoadCandidatePreview(candidate);
+    }
+
+    private void CandidateSelectionCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        CandidateSelectionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void CandidateSelectionCheckBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _suppressSelectionPreviewOnce = true;
+    }
+
+    private void JumpToRenderedDraftButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: Guid draftId })
+        {
+            return;
+        }
+
+        RenderResultDraftRequested?.Invoke(this, draftId);
     }
 
     private void BackToOverviewButton_Click(object sender, RoutedEventArgs e)
@@ -5087,4 +5266,10 @@ public sealed class ClipperDraftItem
     public string? VideoDuration { get; init; }
     public bool HasTranscript { get; init; }
     public UploadDraft? Draft { get; init; }
+}
+
+public sealed class ClipperRenderedDraftResult
+{
+    public Guid DraftId { get; init; }
+    public string Title { get; init; } = string.Empty;
 }
