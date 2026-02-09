@@ -73,6 +73,10 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         List<TranscriptionSegment> Segments,
         bool IsStuck);
 
+    private sealed record TranscriptionInternalResult(
+        string Text,
+        List<TranscriptionSegment> Segments);
+
     private sealed record AudioChunk(
         TimeSpan Start,
         TimeSpan Duration,
@@ -255,7 +259,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
             // Transkribieren - jetzt komplett im Hintergrund
             progress?.Report(TranscriptionProgress.Transcribing(0));
-            var text = await TranscribeAudioInBackgroundAsync(
+            var result = await TranscribeAudioInBackgroundAsync(
                 audioFilePath,
                 modelPath,
                 language,
@@ -264,7 +268,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
             stopwatch.Stop();
 
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(result.Text))
             {
                 return TranscriptionResult.Failed(
                     "Transkription ergab keinen Text.",
@@ -273,7 +277,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
             progress?.Report(TranscriptionProgress.Completed());
 
-            return TranscriptionResult.Ok(text, stopwatch.Elapsed);
+            return TranscriptionResult.Ok(result.Text, result.Segments, stopwatch.Elapsed);
         }
         catch (OperationCanceledException)
         {
@@ -293,7 +297,7 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         }
     }
 
-    private async Task<string> TranscribeAudioInBackgroundAsync(
+    private async Task<TranscriptionInternalResult> TranscribeAudioInBackgroundAsync(
         string audioFilePath,
         string modelPath,
         string? language,
@@ -437,7 +441,8 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
                 99,
                 "Formatiere Text..."));
 
-            return _postProcessor.Process(segments);
+            var processedText = _postProcessor.Process(segments);
+            return new TranscriptionInternalResult(processedText, segments);
 
         }, cancellationToken).ConfigureAwait(false);
     }
@@ -651,11 +656,14 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
                 lastNormalizedText = normalizedText;
             }
 
+            var words = ExtractWords(segment.Tokens, segmentStart, segmentEnd);
+
             segments.Add(new TranscriptionSegment
             {
                 Text = segment.Text ?? string.Empty,
                 Start = segmentStart,
-                End = segmentEnd
+                End = segmentEnd,
+                Words = words
             });
 
             segmentsSinceLastReport++;
@@ -720,6 +728,131 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         }
 
         return builder.ToString();
+    }
+
+    private static IReadOnlyList<TranscriptionWord>? ExtractWords(
+        WhisperToken[]? tokens,
+        TimeSpan segmentStart,
+        TimeSpan segmentEnd)
+    {
+        if (tokens is null || tokens.Length == 0)
+        {
+            return null;
+        }
+
+        var words = new List<TranscriptionWord>();
+        WordBuilder? current = null;
+
+        void Flush()
+        {
+            if (current is null)
+            {
+                return;
+            }
+
+            if (current.Text.Length > 0 && current.End > current.Start)
+            {
+                words.Add(new TranscriptionWord
+                {
+                    Text = current.Text.ToString(),
+                    Start = current.Start,
+                    End = current.End,
+                    Probability = current.AverageProbability
+                });
+            }
+
+            current = null;
+        }
+
+        foreach (var token in tokens)
+        {
+            var tokenText = token.Text ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(tokenText))
+            {
+                Flush();
+                continue;
+            }
+
+            var tokenStart = ConvertTokenTimestamp(token.Start);
+            var tokenEnd = ConvertTokenTimestamp(token.End);
+
+            if (tokenStart < segmentStart)
+            {
+                tokenStart = segmentStart;
+            }
+            if (tokenEnd > segmentEnd)
+            {
+                tokenEnd = segmentEnd;
+            }
+
+            if (tokenEnd <= tokenStart)
+            {
+                continue;
+            }
+
+            var trimmed = tokenText.Trim();
+            if (trimmed.Length == 0)
+            {
+                Flush();
+                continue;
+            }
+
+            var startsWithSpace = char.IsWhiteSpace(tokenText[0]);
+            if (startsWithSpace && current is not null)
+            {
+                Flush();
+            }
+
+            if (current is null)
+            {
+                current = new WordBuilder(tokenStart, tokenEnd, token.Probability, trimmed);
+            }
+            else
+            {
+                current.Append(tokenEnd, token.Probability, trimmed);
+            }
+        }
+
+        Flush();
+
+        return words.Count > 0 ? words : null;
+    }
+
+    private static TimeSpan ConvertTokenTimestamp(long tokenTimestamp)
+    {
+        // whisper.cpp token timestamps are in centiseconds (10 ms).
+        return TimeSpan.FromMilliseconds(tokenTimestamp * 10.0);
+    }
+
+    private sealed class WordBuilder
+    {
+        private double _probabilitySum;
+        private int _tokenCount;
+
+        public WordBuilder(TimeSpan start, TimeSpan end, float probability, string text)
+        {
+            Start = start;
+            End = end;
+            Text = new StringBuilder(text);
+            _probabilitySum = probability;
+            _tokenCount = 1;
+        }
+
+        public TimeSpan Start { get; }
+        public TimeSpan End { get; private set; }
+        public StringBuilder Text { get; }
+
+        public float AverageProbability => _tokenCount > 0
+            ? (float)(_probabilitySum / _tokenCount)
+            : 1.0f;
+
+        public void Append(TimeSpan end, float probability, string text)
+        {
+            Text.Append(text);
+            End = end;
+            _probabilitySum += probability;
+            _tokenCount++;
+        }
     }
 
     private static void ReportTranscribingProgress(
@@ -990,6 +1123,9 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
         {
             builder.WithNoSpeechThreshold(settings.NoSpeechThreshold.Value);
         }
+
+        // Token-Timestamps aktivieren für Word-Level-Untertitel.
+        builder.WithTokenTimestamps();
     }
 
     private async Task<List<string>?> ExtractAudioChunksAsync(

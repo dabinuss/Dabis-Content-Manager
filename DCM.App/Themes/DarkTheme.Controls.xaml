@@ -13,7 +13,6 @@
   </ResourceDictionary.MergedDictionaries>
 
   <conv:IsStringToVisibilityConverter x:Key="IsStringToVisibilityConverter"/>
-  <sys:String x:Key="ButtonDefaultIconGlyph">&#xe5d5;</sys:String>
 
   <!-- =================================================================== -->
   <!-- SHARED RESOURCES (safe dedup, no breaking changes)                    -->
@@ -668,6 +667,7 @@
                      Foreground="{TemplateBinding Foreground}"
                      Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(ap:ButtonIcon.Glyph)}"
                      Margin="0,0,6,0"
+                     Visibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(ap:ButtonIcon.Glyph), Converter={StaticResource IsStringToVisibilityConverter}}"
                      VerticalAlignment="Center"/>
           <TextBlock Grid.Column="1"
                      Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Content}"
@@ -1919,6 +1919,285 @@
   <!-- =================================================================== -->
   <!-- MISC                                                                -->
   <!-- =================================================================== -->
+
+  <!-- =================================================================== -->
+  <!-- AUTO CLIPPER CONTROLS (theme-owned)                                 -->
+  <!-- =================================================================== -->
+
+  <SolidColorBrush x:Key="ClipperSliderForegroundBrush"
+                   Color="#FF7CC8FF"/>
+  <SolidColorBrush x:Key="ClipperSliderBackgroundBrush"
+                   Color="#FF2D3F58"/>
+  <SolidColorBrush x:Key="ClipperSliderBorderBrush"
+                   Color="#FF4A5A73"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbFillBrush"
+                   Color="#FFF6FBFF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbBorderBrush"
+                   Color="#FF7CC8FF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbHoverFillBrush"
+                   Color="#FFFFFFFF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbHoverBorderBrush"
+                   Color="#FF58B6F4"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbPressedFillBrush"
+                   Color="#FFFFFFFF"/>
+  <SolidColorBrush x:Key="ClipperSliderThumbPressedBorderBrush"
+                   Color="#FF3EA2E6"/>
+  <SolidColorBrush x:Key="ClipperSliderTrackHoverBrush"
+                   Color="#FF3A4E69"/>
+  <SolidColorBrush x:Key="ClipperSliderTrackPressedBrush"
+                   Color="#FF425A78"/>
+  <SolidColorBrush x:Key="ClipperSliderDisabledForegroundBrush"
+                   Color="#FFAFBED8"/>
+  <SolidColorBrush x:Key="ClipperSliderDisabledBackgroundBrush"
+                   Color="#FF253347"/>
+  <SolidColorBrush x:Key="ClipperSliderDisabledBorderBrush"
+                   Color="#FF5A6982"/>
+
+  <Style x:Key="ClipperSettingsSlider"
+         TargetType="Slider">
+    <Setter Property="Foreground"
+            Value="{StaticResource ClipperSliderForegroundBrush}"/>
+    <Setter Property="Background"
+            Value="{StaticResource ClipperSliderBackgroundBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource ClipperSliderBorderBrush}"/>
+    <Setter Property="MinHeight"
+            Value="24"/>
+    <Setter Property="IsMoveToPointEnabled"
+            Value="True"/>
+    <Setter Property="Cursor"
+            Value="Hand"/>
+    <Style.Resources>
+      <Style TargetType="Thumb">
+        <Setter Property="Background"
+                Value="{StaticResource ClipperSliderThumbFillBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource ClipperSliderThumbBorderBrush}"/>
+        <Style.Triggers>
+          <Trigger Property="IsMouseOver"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderThumbHoverFillBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderThumbHoverBorderBrush}"/>
+          </Trigger>
+          <Trigger Property="IsDragging"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderThumbPressedFillBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderThumbPressedBorderBrush}"/>
+          </Trigger>
+          <Trigger Property="IsEnabled"
+                   Value="False">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderDisabledBackgroundBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderDisabledBorderBrush}"/>
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+
+      <Style TargetType="RepeatButton">
+        <Setter Property="Background"
+                Value="{StaticResource ClipperSliderBackgroundBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource ClipperSliderBorderBrush}"/>
+        <Style.Triggers>
+          <Trigger Property="IsMouseOver"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderTrackHoverBrush}"/>
+          </Trigger>
+          <Trigger Property="IsPressed"
+                   Value="True">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderTrackPressedBrush}"/>
+          </Trigger>
+          <Trigger Property="IsEnabled"
+                   Value="False">
+            <Setter Property="Background"
+                    Value="{StaticResource ClipperSliderDisabledBackgroundBrush}"/>
+            <Setter Property="BorderBrush"
+                    Value="{StaticResource ClipperSliderDisabledBorderBrush}"/>
+          </Trigger>
+        </Style.Triggers>
+      </Style>
+    </Style.Resources>
+    <Style.Triggers>
+      <Trigger Property="IsEnabled"
+               Value="False">
+        <Setter Property="Foreground"
+                Value="{StaticResource ClipperSliderDisabledForegroundBrush}"/>
+        <Setter Property="Background"
+                Value="{StaticResource ClipperSliderDisabledBackgroundBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource ClipperSliderDisabledBorderBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="ClipperTimelineSlider"
+         TargetType="Slider"
+         BasedOn="{StaticResource ClipperSettingsSlider}">
+    <Setter Property="IsMoveToPointEnabled"
+            Value="True"/>
+    <Setter Property="SmallChange"
+            Value="0.25"/>
+    <Setter Property="LargeChange"
+            Value="1"/>
+    <Setter Property="Height"
+            Value="24"/>
+  </Style>
+
+  <Style x:Key="ClipperVolumeSlider"
+         TargetType="Slider"
+         BasedOn="{StaticResource ClipperSettingsSlider}">
+    <Setter Property="MinWidth"
+            Value="108"/>
+    <Setter Property="Height"
+            Value="24"/>
+  </Style>
+
+  <Style x:Key="ClipperMediaGlyph"
+         TargetType="TextBlock">
+    <Setter Property="FontFamily"
+            Value="{StaticResource MaterialIconsFont}"/>
+    <Setter Property="FontSize"
+            Value="20"/>
+    <Setter Property="Margin"
+            Value="0"/>
+    <Setter Property="TextOptions.TextFormattingMode"
+            Value="Display"/>
+    <Setter Property="TextOptions.TextRenderingMode"
+            Value="ClearType"/>
+    <Setter Property="HorizontalAlignment"
+            Value="Center"/>
+    <Setter Property="VerticalAlignment"
+            Value="Center"/>
+  </Style>
+
+  <ControlTemplate x:Key="ClipperMediaButtonTemplate"
+                   TargetType="Button">
+    <Border x:Name="MediaButtonChrome"
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            CornerRadius="{StaticResource RadiusCircle}">
+      <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+    </Border>
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsEnabled"
+               Value="False">
+        <Setter TargetName="MediaButtonChrome"
+                Property="Opacity"
+                Value="0.45"/>
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+
+  <Style x:Key="ClipperMediaIconButton"
+         TargetType="Button"
+         BasedOn="{StaticResource ButtonBaseCommon}">
+    <Setter Property="Width"
+            Value="40"/>
+    <Setter Property="Height"
+            Value="40"/>
+    <Setter Property="Padding"
+            Value="0"/>
+    <Setter Property="Background"
+            Value="{StaticResource SurfaceSunkenBrush}"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource TextPrimaryBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="1"/>
+    <Setter Property="HorizontalContentAlignment"
+            Value="Center"/>
+    <Setter Property="VerticalContentAlignment"
+            Value="Center"/>
+    <Setter Property="Template"
+            Value="{StaticResource ClipperMediaButtonTemplate}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource SurfaceHoverBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource BorderStrongBrush}"/>
+      </Trigger>
+      <Trigger Property="IsPressed"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource SurfacePressedBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource PrimaryPressedBrush}"/>
+      </Trigger>
+      <Trigger Property="IsEnabled"
+               Value="False">
+        <Setter Property="Foreground"
+                Value="{StaticResource TextDisabledBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="ClipperMediaPrimaryIconButton"
+         TargetType="Button"
+         BasedOn="{StaticResource ClipperMediaIconButton}">
+    <Setter Property="Width"
+            Value="46"/>
+    <Setter Property="Height"
+            Value="46"/>
+    <Setter Property="Background"
+            Value="{StaticResource PrimaryBrush}"/>
+    <Setter Property="Foreground"
+            Value="{StaticResource PrimaryTextBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource PrimaryPressedBrush}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource PrimaryHoverBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource PrimaryHoverBrush}"/>
+      </Trigger>
+      <Trigger Property="IsPressed"
+               Value="True">
+        <Setter Property="Background"
+                Value="{StaticResource PrimaryPressedBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource PrimaryPressedBrush}"/>
+      </Trigger>
+      <Trigger Property="IsEnabled"
+               Value="False">
+        <Setter Property="Background"
+                Value="{StaticResource DisabledBackgroundBrush}"/>
+        <Setter Property="BorderBrush"
+                Value="{StaticResource DisabledBorderBrush}"/>
+        <Setter Property="Foreground"
+                Value="{StaticResource TextDisabledBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="ClipperMediaGroupCard"
+         TargetType="Border">
+    <Setter Property="Background"
+            Value="{StaticResource SurfaceSunkenBrush}"/>
+    <Setter Property="BorderBrush"
+            Value="{StaticResource BorderBrush}"/>
+    <Setter Property="BorderThickness"
+            Value="1"/>
+    <Setter Property="CornerRadius"
+            Value="{StaticResource RadiusPill}"/>
+    <Setter Property="Padding"
+            Value="10,6"/>
+    <Setter Property="HorizontalAlignment"
+            Value="Center"/>
+  </Style>
 
   <!-- Slider -->
   <Style TargetType="Slider">

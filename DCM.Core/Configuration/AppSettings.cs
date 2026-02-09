@@ -35,6 +35,7 @@ public sealed class AppSettings
     public List<OptionEntry> YouTubeLanguageOptions { get; set; } = new();
     public DateTime? YouTubeLastSyncUtc { get; set; }
     public bool SkipSetupDialog { get; set; }
+    public ClipperSettings Clipper { get; set; } = new();
 
     public AppSettings DeepCopy()
     {
@@ -103,6 +104,7 @@ public sealed class AppSettings
                     ThumbnailPath = d.ThumbnailPath,
                     Transcript = d.Transcript,
                     TranscriptPath = d.TranscriptPath,
+                    TranscriptSegmentsPath = d.TranscriptSegmentsPath,
                     ChaptersText = d.ChaptersText,
                     PresetId = d.PresetId,
                     VideoResolution = d.VideoResolution,
@@ -128,6 +130,8 @@ public sealed class AppSettings
                     UploadStatus = d.UploadStatus,
                     TranscriptionState = d.TranscriptionState,
                     TranscriptionStatus = d.TranscriptionStatus,
+                    IsGeneratedClipDraft = d.IsGeneratedClipDraft,
+                    SourceDraftId = d.SourceDraftId,
                     LastUpdated = d.LastUpdated
                 }).ToList() ?? new List<UploadDraftSnapshot>(),
             PendingTranscriptionQueue = PendingTranscriptionQueue?.ToList() ?? new List<Guid>(),
@@ -139,7 +143,8 @@ public sealed class AppSettings
                 .Select(o => new OptionEntry { Code = o.Code, Name = o.Name })
                 .ToList() ?? new List<OptionEntry>(),
             YouTubeLastSyncUtc = YouTubeLastSyncUtc,
-            SkipSetupDialog = SkipSetupDialog
+            SkipSetupDialog = SkipSetupDialog,
+            Clipper = (Clipper ?? new ClipperSettings()).DeepCopy()
         };
     }
 }

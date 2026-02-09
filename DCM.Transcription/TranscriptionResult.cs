@@ -1,4 +1,6 @@
-﻿namespace DCM.Transcription;
+﻿using DCM.Transcription.PostProcessing;
+
+namespace DCM.Transcription;
 
 /// <summary>
 /// Enthält das Ergebnis einer Transkription.
@@ -14,6 +16,12 @@ public sealed class TranscriptionResult
     /// Der transkribierte Text (bei Erfolg).
     /// </summary>
     public string? Text { get; init; }
+
+    /// <summary>
+    /// Die einzelnen Transkriptions-Segmente mit Zeitstempeln (bei Erfolg).
+    /// Enthält präzisere Timing-Informationen als der reine Text.
+    /// </summary>
+    public IReadOnlyList<TranscriptionSegment>? Segments { get; init; }
 
     /// <summary>
     /// Dauer der Transkription.
@@ -33,6 +41,18 @@ public sealed class TranscriptionResult
         {
             Success = true,
             Text = text,
+            Duration = duration
+        };
+
+    /// <summary>
+    /// Erstellt ein erfolgreiches Ergebnis mit Segmenten.
+    /// </summary>
+    public static TranscriptionResult Ok(string text, IReadOnlyList<TranscriptionSegment> segments, TimeSpan duration)
+        => new()
+        {
+            Success = true,
+            Text = text,
+            Segments = segments,
             Duration = duration
         };
 

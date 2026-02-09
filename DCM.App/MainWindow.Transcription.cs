@@ -463,6 +463,22 @@ public partial class MainWindow
                 UploadView.TranscriptTextBox.Text = result.Text;
             }
 
+            // Speichere Segmente für Clipper-Feature
+            if (result.Segments is not null && result.Segments.Count > 0)
+            {
+                var segmentsPath = _draftTranscriptStore.SaveSegments(draft.Id, result.Segments);
+                draft.TranscriptSegmentsPath = segmentsPath;
+                if (!string.IsNullOrWhiteSpace(segmentsPath))
+                {
+                    _logger.Debug($"Transkript-Segmente gespeichert: {result.Segments.Count} Segmente", TranscriptionLogSource);
+                }
+            }
+            else
+            {
+                draft.TranscriptSegmentsPath = null;
+                _draftTranscriptStore.DeleteSegments(draft.Id);
+            }
+
             var completedStatus = LocalizationHelper.Format(
                 "Status.Transcription.Completed",
                 result.Duration.TotalSeconds);
