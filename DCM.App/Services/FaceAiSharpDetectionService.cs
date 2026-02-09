@@ -105,16 +105,25 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
 
         Directory.CreateDirectory(TempFolder);
 
-        var frames = new List<(TimeSpan Timestamp, byte[] Data)>(timestamps.Count);
-        foreach (var timestamp in timestamps)
+        // Frame-Extraktion parallelisieren: Jeder FFmpeg-Aufruf ist unabhängig.
+        // Parallelität begrenzen, um CPU/IO nicht zu überlasten.
+        var extractionParallelism = Math.Max(1, Math.Min(4, Environment.ProcessorCount / 2));
+        var extractedFrames = new ConcurrentBag<(TimeSpan Timestamp, byte[] Data)>();
+
+        await Parallel.ForEachAsync(timestamps, new ParallelOptions
         {
-            ct.ThrowIfCancellationRequested();
-            var bytes = await ExtractFrameAsync(videoPath, timestamp, ct).ConfigureAwait(false);
+            CancellationToken = ct,
+            MaxDegreeOfParallelism = extractionParallelism
+        }, async (timestamp, token) =>
+        {
+            var bytes = await ExtractFrameAsync(videoPath, timestamp, token).ConfigureAwait(false);
             if (bytes is not null)
             {
-                frames.Add((timestamp, bytes));
+                extractedFrames.Add((timestamp, bytes));
             }
-        }
+        }).ConfigureAwait(false);
+
+        var frames = extractedFrames.ToList();
 
         if (frames.Count == 0)
         {

@@ -3628,14 +3628,10 @@ public partial class MainWindow : Window
         _clipCandidateStore ??= new ClipCandidateStore(_logger);
 
         var transcriptHash = ClipCandidateStore.ComputeTranscriptHash(draft.Transcript);
-        var cached = _clipCandidateStore.LoadCache(draft.Id);
+        var cached = _clipCandidateStore.TryLoadValidCache(draft.Id, transcriptHash);
         if (cached is null)
         {
-            return false;
-        }
-
-        if (!cached.IsValidFor(transcriptHash))
-        {
+            // Cache ungültig oder nicht vorhanden – invalidieren falls Datei existiert
             _clipCandidateStore.InvalidateCache(draft.Id);
             return false;
         }
@@ -3710,15 +3706,15 @@ public partial class MainWindow : Window
         var transcriptHash = ClipCandidateStore.ComputeTranscriptHash(draft.Transcript);
         if (_settings.Clipper.UseCandidateCache && _clipCandidateStore is not null)
         {
-            var cached = _clipCandidateStore.LoadCache(draft.Id);
-            if (cached is not null && cached.IsValidFor(transcriptHash) && cached.Candidates.Count > 0)
+            var cached = _clipCandidateStore.TryLoadValidCache(draft.Id, transcriptHash);
+            if (cached is not null && cached.Candidates.Count > 0)
             {
                 ClipperPageView.SetCandidates(cached.Candidates);
                 StatusTextBlock.Text = string.Format(LocalizationHelper.Get("Clipper.CandidatesFromCache"), cached.Candidates.Count);
                 return;
             }
 
-            if (cached is not null && !cached.IsValidFor(transcriptHash))
+            if (cached is null)
             {
                 _clipCandidateStore.InvalidateCache(draft.Id);
             }

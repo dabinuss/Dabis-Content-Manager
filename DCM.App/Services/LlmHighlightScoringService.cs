@@ -95,24 +95,42 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
         }
 
         var chunks = CreateChunks(windows);
-        var scoredCandidates = new List<ClipCandidate>();
+
+        // Chunks parallel an das LLM schicken (unabhängige Anfragen).
+        // Parallelität auf 3 begrenzt, um Rate-Limits zu vermeiden.
+        var chunkTasks = new List<Task<List<ClipCandidate>>>();
+        var throttle = new SemaphoreSlim(3, 3);
 
         foreach (var chunk in chunks)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var prompt = BuildPrompt(chunk, contentContext);
-            var response = await _llmClient.CompleteAsync(prompt, cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(response) || response.StartsWith("[LLM", StringComparison.OrdinalIgnoreCase))
+            var capturedChunk = chunk;
+            chunkTasks.Add(Task.Run(async () =>
             {
-                _logger.Warning("Leere oder Fehler-Antwort vom LLM", "HighlightScoring");
-                continue;
-            }
+                await throttle.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var prompt = BuildPrompt(capturedChunk, contentContext);
+                    var response = await _llmClient.CompleteAsync(prompt, cancellationToken).ConfigureAwait(false);
 
-            var candidates = ParseLlmResponse(response, chunk, draftId);
-            scoredCandidates.AddRange(candidates);
+                    if (string.IsNullOrWhiteSpace(response) || response.StartsWith("[LLM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.Warning("Leere oder Fehler-Antwort vom LLM", "HighlightScoring");
+                        return new List<ClipCandidate>();
+                    }
+
+                    return ParseLlmResponse(response, capturedChunk, draftId);
+                }
+                finally
+                {
+                    throttle.Release();
+                }
+            }, cancellationToken));
         }
+
+        var chunkResults = await Task.WhenAll(chunkTasks).ConfigureAwait(false);
+        throttle.Dispose();
+        var scoredCandidates = chunkResults.SelectMany(r => r).ToList();
 
         if (scoredCandidates.Count == 0)
         {

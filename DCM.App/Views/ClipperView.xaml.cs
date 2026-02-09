@@ -4416,11 +4416,13 @@ public partial class ClipperView : UserControl
     {
         if (!cache.ContainsKey(key) && cache.Count >= maxEntries)
         {
-            // Evict one entry to stay under the limit.
-            // ConcurrentDictionary hat keine geordnete Iteration, daher wird ein beliebiger
-            // Eintrag entfernt. Für einen Preview-Cache ist das akzeptabel.
+            // Mehrere Einträge evicten, um unter das Limit zu kommen.
+            // Durch concurrent Zugriffe kann Count über maxEntries gewachsen sein.
+            // Eviction entfernt bis zu 25% der Einträge, um wiederholte
+            // Einzelevictions bei hoher Last zu vermeiden.
+            var evictCount = Math.Max(1, cache.Count - maxEntries + maxEntries / 4);
             using var enumerator = cache.GetEnumerator();
-            if (enumerator.MoveNext())
+            for (var i = 0; i < evictCount && enumerator.MoveNext(); i++)
             {
                 cache.TryRemove(enumerator.Current.Key, out _);
             }

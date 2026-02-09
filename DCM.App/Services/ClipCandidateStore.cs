@@ -108,8 +108,37 @@ public sealed class ClipCandidateStore
 
     public bool IsCacheValid(Guid draftId, string currentTranscriptHash)
     {
+        // Schnelle Prüfung: Nur Datei-Existenz, ohne vollständige Deserialisierung.
+        // Für Laden + Validierung in einem Schritt stattdessen TryLoadValidCache verwenden.
+        var path = GetCachePath(draftId);
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
         var cache = LoadCache(draftId);
         return cache?.IsValidFor(currentTranscriptHash) == true;
+    }
+
+    /// <summary>
+    /// Lädt und validiert den Cache in einem einzigen Durchgang.
+    /// Vermeidet doppeltes Deserialisieren bei "erst prüfen, dann laden"-Patterns.
+    /// Gibt null zurück wenn kein valider Cache vorhanden ist.
+    /// </summary>
+    public ClipCandidateCache? TryLoadValidCache(Guid draftId, string currentTranscriptHash)
+    {
+        var cache = LoadCache(draftId);
+        if (cache is null)
+        {
+            return null;
+        }
+
+        if (!cache.IsValidFor(currentTranscriptHash))
+        {
+            return null;
+        }
+
+        return cache;
     }
 
     public string GetCachePath(Guid draftId)
