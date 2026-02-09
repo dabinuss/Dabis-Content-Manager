@@ -9,7 +9,7 @@ public sealed class IsStringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var isString = value is string;
+        var isString = value is string text && !string.IsNullOrWhiteSpace(text);
         var invert = string.Equals(parameter as string, "invert", StringComparison.OrdinalIgnoreCase);
         if (invert)
         {

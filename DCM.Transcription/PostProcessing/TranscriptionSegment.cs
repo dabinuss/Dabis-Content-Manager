@@ -24,4 +24,10 @@ public sealed class TranscriptionSegment
     /// Dauer des Segments.
     /// </summary>
     public TimeSpan Duration => End - Start;
+
+    /// <summary>
+    /// Einzelne Wörter mit präzisen Zeitstempeln (Word-Level Timestamps).
+    /// Kann null sein, wenn keine Word-Level-Daten verfügbar sind.
+    /// </summary>
+    public IReadOnlyList<TranscriptionWord>? Words { get; init; }
 }

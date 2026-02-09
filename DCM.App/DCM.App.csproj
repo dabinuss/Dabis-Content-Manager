@@ -5,8 +5,13 @@
     <ProjectReference Include="..\DCM.Llm\DCM.Llm.csproj" />
     <ProjectReference Include="..\DCM.Transcription\DCM.Transcription.csproj" />
     <ProjectReference Include="..\DCM.YouTube\DCM.YouTube.csproj" />
+    <Resource Include="Assets\appicon.ico" />
     <Resource Include="Assets\logo.png" />
     <Resource Include="Assets\Fonts\MaterialIcons-Regular.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FaceAiSharp.Bundle" Version="0.1.12" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -17,6 +22,11 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\appicon.ico</ApplicationIcon>
     <Version>0.18</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- Avoid apphost .exe in local debug runs; some environments block unsigned executables. -->
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -33,31 +43,16 @@
   <!-- 1) Beim Asset-Resolve: nur die gewünschte Variante behalten (Slash-robust) -->
   <Target Name="FilterLlamaCpuNativeAssets" AfterTargets="ResolvePackageAssets">
     <ItemGroup>
-      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)"
-        Condition="
-          $([System.String]::Copy('%(Identity)').ToLowerInvariant().Contains('llamasharp.backend.cpu'))
-          and $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('/runtimes/win-x64/native/'))
-          and ! $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('$(_PreferredLlamaCpuVariantToken)'))
-        " />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="&#xD;&#xA;          $([System.String]::Copy('%(Identity)').ToLowerInvariant().Contains('llamasharp.backend.cpu'))&#xD;&#xA;          and $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('/runtimes/win-x64/native/'))&#xD;&#xA;          and ! $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('$(_PreferredLlamaCpuVariantToken)'))&#xD;&#xA;        " />
 
-      <NativePublishItems Remove="@(NativePublishItems)"
-        Condition="
-          $([System.String]::Copy('%(Identity)').ToLowerInvariant().Contains('llamasharp.backend.cpu'))
-          and $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('/runtimes/win-x64/native/'))
-          and ! $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('$(_PreferredLlamaCpuVariantToken)'))
-        " />
+      <NativePublishItems Remove="@(NativePublishItems)" Condition="&#xD;&#xA;          $([System.String]::Copy('%(Identity)').ToLowerInvariant().Contains('llamasharp.backend.cpu'))&#xD;&#xA;          and $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('/runtimes/win-x64/native/'))&#xD;&#xA;          and ! $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('$(_PreferredLlamaCpuVariantToken)'))&#xD;&#xA;        " />
     </ItemGroup>
   </Target>
 
   <!-- 2) Beim Publish: finalen File-Set nochmal filtern (hier passieren oft die Kollisionen) -->
   <Target Name="FilterLlamaCpuFilesToPublish" AfterTargets="ComputeFilesToPublish" Condition="'$(PublishDir)' != ''">
     <ItemGroup>
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
-        Condition="
-          $([System.String]::Copy('%(Identity)').ToLowerInvariant().Contains('llamasharp.backend.cpu'))
-          and $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('/runtimes/win-x64/native/'))
-          and ! $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('$(_PreferredLlamaCpuVariantToken)'))
-        " />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="&#xD;&#xA;          $([System.String]::Copy('%(Identity)').ToLowerInvariant().Contains('llamasharp.backend.cpu'))&#xD;&#xA;          and $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('/runtimes/win-x64/native/'))&#xD;&#xA;          and ! $([System.String]::Copy('%(Identity)').Replace('\','/').ToLowerInvariant().Contains('$(_PreferredLlamaCpuVariantToken)'))&#xD;&#xA;        " />
     </ItemGroup>
   </Target>
 
@@ -72,9 +67,7 @@
       <_LlamaNativeRootFiles Include="$(TargetDir)mtmd.dll" Condition="Exists('$(TargetDir)mtmd.dll')" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(_LlamaNativeRootFiles)"
-          DestinationFolder="$(PublishDir)"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LlamaNativeRootFiles)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

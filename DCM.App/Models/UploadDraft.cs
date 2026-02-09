@@ -17,6 +17,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private string _tagsCsv = string.Empty;
     private string _thumbnailPath = string.Empty;
     private string _transcript = string.Empty;
+    private string? _transcriptSegmentsPath;
     private string _chaptersText = string.Empty;
     private string? _presetId;
     private string _fileName = string.Empty;
@@ -48,6 +49,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
     private bool _uploadProgressIsIndeterminate = true;
     private double _transcriptionProgress;
     private bool _transcriptionProgressIsIndeterminate = true;
+    private bool _isGeneratedClipDraft;
+    private Guid? _sourceDraftId;
     private DateTimeOffset _lastUpdated = DateTimeOffset.UtcNow;
     private bool _transcriptDirty;
     private bool _suppressTranscriptDirty;
@@ -115,6 +118,12 @@ public sealed class UploadDraft : INotifyPropertyChanged
                 }
             }
         }
+    }
+
+    public string? TranscriptSegmentsPath
+    {
+        get => _transcriptSegmentsPath;
+        set => SetProperty(ref _transcriptSegmentsPath, value);
     }
 
     public string ChaptersText
@@ -305,6 +314,18 @@ public sealed class UploadDraft : INotifyPropertyChanged
         set => SetProperty(ref _transcriptionProgressIsIndeterminate, value);
     }
 
+    public bool IsGeneratedClipDraft
+    {
+        get => _isGeneratedClipDraft;
+        set => SetProperty(ref _isGeneratedClipDraft, value);
+    }
+
+    public Guid? SourceDraftId
+    {
+        get => _sourceDraftId;
+        set => SetProperty(ref _sourceDraftId, value);
+    }
+
     public DateTimeOffset LastUpdated => _lastUpdated;
 
     public bool TranscriptDirty => _transcriptDirty;
@@ -416,6 +437,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
             TagsCsv = TagsCsv,
             ThumbnailPath = ThumbnailPath,
             Transcript = Transcript,
+            TranscriptSegmentsPath = TranscriptSegmentsPath,
             ChaptersText = ChaptersText,
             PresetId = PresetId,
             VideoResolution = VideoResolution,
@@ -441,6 +463,8 @@ public sealed class UploadDraft : INotifyPropertyChanged
             UploadStatus = UploadStatus,
             TranscriptionState = TranscriptionState.ToString(),
             TranscriptionStatus = TranscriptionStatus,
+            IsGeneratedClipDraft = IsGeneratedClipDraft,
+            SourceDraftId = SourceDraftId,
             LastUpdated = _lastUpdated
         };
     }
@@ -468,6 +492,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
             TagsCsv = snapshot.TagsCsv ?? string.Empty,
             ThumbnailPath = snapshot.ThumbnailPath ?? string.Empty,
             ChaptersText = snapshot.ChaptersText ?? string.Empty,
+            TranscriptSegmentsPath = snapshot.TranscriptSegmentsPath,
             PresetId = snapshot.PresetId,
             VideoResolution = snapshot.VideoResolution,
             VideoFps = snapshot.VideoFps,
@@ -483,7 +508,9 @@ public sealed class UploadDraft : INotifyPropertyChanged
             Language = snapshot.Language,
             ScheduleEnabled = snapshot.ScheduleEnabled,
             ScheduledDate = snapshot.ScheduledDate,
-            ScheduledTimeText = snapshot.ScheduledTimeText
+            ScheduledTimeText = snapshot.ScheduledTimeText,
+            IsGeneratedClipDraft = snapshot.IsGeneratedClipDraft,
+            SourceDraftId = snapshot.SourceDraftId
         };
 
         draft.Id = snapshot.Id == Guid.Empty ? Guid.NewGuid() : snapshot.Id;

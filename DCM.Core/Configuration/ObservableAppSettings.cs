@@ -255,6 +255,7 @@ public sealed class ObservableAppSettings : ObservableObject
                 ThumbnailPath = d.ThumbnailPath,
                 Transcript = d.Transcript,
                 TranscriptPath = d.TranscriptPath,
+                TranscriptSegmentsPath = d.TranscriptSegmentsPath,
                 ChaptersText = d.ChaptersText,
                 PresetId = d.PresetId,
                 VideoResolution = d.VideoResolution,
@@ -280,6 +281,8 @@ public sealed class ObservableAppSettings : ObservableObject
                 UploadStatus = d.UploadStatus,
                 TranscriptionState = d.TranscriptionState,
                 TranscriptionStatus = d.TranscriptionStatus,
+                IsGeneratedClipDraft = d.IsGeneratedClipDraft,
+                SourceDraftId = d.SourceDraftId,
                 LastUpdated = d.LastUpdated
             }).ToList(),
             PendingTranscriptionQueue = PendingTranscriptionQueue.ToList(),

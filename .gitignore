@@ -82,3 +82,4 @@ docs/
 # Agents
 .claude/
 claude.md
+AutoClipper.md
