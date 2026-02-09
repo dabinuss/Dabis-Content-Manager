@@ -3,15 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
-  <Grid Margin="{StaticResource ViewRootMargin}">
+  <Grid Margin="{DynamicResource ViewRootMargin}">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="{StaticResource SpacingM}"/>
+      <RowDefinition Height="{DynamicResource SpacingM}"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="280"/>
-      <ColumnDefinition Width="{StaticResource SpacingM}"/>
+      <ColumnDefinition Width="{DynamicResource SpacingM}"/>
       <ColumnDefinition Width="*"/>
       <ColumnDefinition x:Name="EditorSplitterColumn" Width="0"/>
       <ColumnDefinition x:Name="EditorColumn" Width="0" MinWidth="0"/>
@@ -20,22 +20,22 @@
     <Border x:Name="ClipperStatusPanel"
             Grid.Row="0"
             Grid.ColumnSpan="5"
-            Style="{StaticResource Control.Container.SurfaceCard}"
+            Style="{DynamicResource Control.Container.SurfaceCard}"
             Padding="12"
             Visibility="Collapsed">
       <Border x:Name="RenderResultsPanel"
-              Background="{StaticResource SurfaceElevatedBrush}"
-              CornerRadius="{StaticResource RadiusM}"
+              Background="{DynamicResource SurfaceElevatedBrush}"
+              CornerRadius="{DynamicResource RadiusM}"
               Padding="10"
               Visibility="Collapsed">
         <StackPanel>
           <TextBlock Text="{DynamicResource Clipper.Results.Title}"
                      FontWeight="SemiBold"
-                     FontSize="{StaticResource FontSizeS}"
-                     Foreground="{StaticResource TextPrimaryBrush}"/>
+                     FontSize="{DynamicResource FontSizeS}"
+                     Foreground="{DynamicResource TextPrimaryBrush}"/>
           <TextBlock x:Name="RenderResultsSummaryText"
-                     FontSize="{StaticResource FontSizeXS}"
-                     Foreground="{StaticResource TextMutedBrush}"
+                     FontSize="{DynamicResource FontSizeXS}"
+                     Foreground="{DynamicResource TextMutedBrush}"
                      Margin="0,4,0,0"/>
           <StackPanel x:Name="RenderResultsListPanel"
                       Margin="0,8,0,0"/>
@@ -48,16 +48,16 @@
           Grid.Column="0">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingM}"/>
+        <RowDefinition Height="{DynamicResource SpacingM}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
       <TextBlock Grid.Row="0"
                  Text="{DynamicResource Clipper.SelectDraft}"
-                 Style="{StaticResource Control.Text.SectionHeader}"/>
+                 Style="{DynamicResource Control.Text.SectionHeader}"/>
 
       <Border Grid.Row="2"
-              Style="{StaticResource Control.Container.SurfaceCard}">
+              Style="{DynamicResource Control.Container.SurfaceCard}">
         <ListBox x:Name="DraftListBox"
                  SelectionChanged="DraftListBox_SelectionChanged"
                  Background="Transparent"
@@ -70,25 +70,25 @@
               <StackPanel Margin="8">
                 <TextBlock Text="{Binding Title}"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
                            TextWrapping="Wrap"/>
                 <TextBlock Text="{Binding VideoDuration}"
-                           FontSize="{StaticResource FontSizeXS}"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="{DynamicResource FontSizeXS}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            Margin="0,4,0,0"/>
                 <WrapPanel Margin="0,4,0,0">
-                  <TextBlock Style="{StaticResource Control.Icon.S}"
+                  <TextBlock Style="{DynamicResource Control.Icon.S}"
                              Text="&#xe873;"
-                             Foreground="{StaticResource SuccessBrush}"
+                             Foreground="{DynamicResource SuccessBrush}"
                              Visibility="{Binding HasTranscript, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                   <TextBlock Text="{DynamicResource Clipper.HasTranscript}"
-                             FontSize="{StaticResource FontSizeXS}"
-                             Foreground="{StaticResource SuccessBrush}"
+                             FontSize="{DynamicResource FontSizeXS}"
+                             Foreground="{DynamicResource SuccessBrush}"
                              Margin="4,0,0,0"
                              Visibility="{Binding HasTranscript, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                   <TextBlock Text="{DynamicResource Clipper.NoTranscript}"
-                             FontSize="{StaticResource FontSizeXS}"
-                             Foreground="{StaticResource TextMutedBrush}"
+                             FontSize="{DynamicResource FontSizeXS}"
+                             Foreground="{DynamicResource TextMutedBrush}"
                              Visibility="{Binding HasTranscript, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
                 </WrapPanel>
               </StackPanel>
@@ -105,7 +105,7 @@
                   VerticalAlignment="Stretch"
                   ResizeBehavior="PreviousAndNext"
                   ShowsPreview="True"
-                  Background="{StaticResource BorderBrush}"
+                  Background="{DynamicResource BorderBrush}"
                   Visibility="Collapsed"/>
 
     <!-- Right Panel: Candidates -->
@@ -114,35 +114,35 @@
           Grid.Column="2">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingM}"/>
+        <RowDefinition Height="{DynamicResource SpacingM}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
       <TextBlock Grid.Row="0"
                  Text="{DynamicResource Clipper.Candidates}"
-                 Style="{StaticResource Control.Text.SectionHeader}"/>
+                 Style="{DynamicResource Control.Text.SectionHeader}"/>
 
       <Border Grid.Row="2"
-              Style="{StaticResource Control.Container.SurfaceCard}">
+              Style="{DynamicResource Control.Container.SurfaceCard}">
         <Grid>
           <!-- Empty State -->
           <StackPanel x:Name="EmptyStatePanel"
                       VerticalAlignment="Center"
                       HorizontalAlignment="Center"
                       Visibility="Visible">
-            <TextBlock Style="{StaticResource Control.Icon.64}"
+            <TextBlock Style="{DynamicResource Control.Icon.64}"
                        Text="&#xe04a;"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        HorizontalAlignment="Center"/>
             <TextBlock Text="{DynamicResource Clipper.EmptyState.Title}"
-                       FontSize="{StaticResource FontSizeL}"
+                       FontSize="{DynamicResource FontSizeL}"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
                        HorizontalAlignment="Center"
                        Margin="0,16,0,0"/>
             <TextBlock Text="{DynamicResource Clipper.EmptyState.Description}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        HorizontalAlignment="Center"
                        TextWrapping="Wrap"
                        MaxWidth="400"
@@ -162,12 +162,12 @@
               <DataTemplate>
                 <Border Padding="12"
                         Margin="0,0,0,8"
-                        Background="{StaticResource SurfaceElevatedBrush}"
-                        CornerRadius="{StaticResource RadiusM}">
+                        Background="{DynamicResource SurfaceElevatedBrush}"
+                        CornerRadius="{DynamicResource RadiusM}">
                   <Grid>
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="Auto"/>
-                      <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                      <ColumnDefinition Width="{DynamicResource SpacingM}"/>
                       <ColumnDefinition Width="*"/>
                       <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
@@ -182,32 +182,32 @@
                     <StackPanel Grid.Column="2">
                       <TextBlock Text="{Binding PreviewText}"
                                  FontWeight="SemiBold"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
                                  TextWrapping="Wrap"/>
                       <WrapPanel Margin="0,8,0,0">
                         <TextBlock Text="{Binding StartFormatted}"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text=" - "
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text="{Binding EndFormatted}"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text=" ("
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    Margin="8,0,0,0"/>
                         <TextBlock Text="{Binding DurationFormatted}"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text=")"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
                       </WrapPanel>
                       <TextBlock Text="{Binding Reason}"
-                                 FontSize="{StaticResource FontSizeXS}"
-                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{DynamicResource FontSizeXS}"
+                                 Foreground="{DynamicResource TextMutedBrush}"
                                  TextWrapping="Wrap"
                                  Margin="0,4,0,0"/>
                     </StackPanel>
@@ -215,16 +215,16 @@
                     <Border Grid.Column="3"
                             VerticalAlignment="Center">
                       <StackPanel>
-                        <Border Background="{StaticResource PrimaryBrush}"
-                                CornerRadius="{StaticResource RadiusS}"
+                        <Border Background="{DynamicResource PrimaryBrush}"
+                                CornerRadius="{DynamicResource RadiusS}"
                                 Padding="8,4"
                                 HorizontalAlignment="Right">
                           <TextBlock Text="{Binding Score, StringFormat={}{0:F1}}"
                                      FontWeight="SemiBold"
-                                     Foreground="{StaticResource PrimaryTextBrush}"/>
+                                     Foreground="{DynamicResource PrimaryTextBrush}"/>
                         </Border>
                         <Button Content="{DynamicResource Clipper.Actions.EditCandidate}"
-                                Style="{StaticResource Control.Button.Tertiary}"
+                                Style="{DynamicResource Control.Button.Tertiary}"
                                 ap:ButtonIcon.Glyph="&#xe3c9;"
                                 Margin="0,8,0,0"
                                 Padding="10,4"
@@ -249,20 +249,20 @@
                          Height="4"/>
             <TextBlock x:Name="LoadingStatusText"
                        Text="{DynamicResource Clipper.Loading}"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        HorizontalAlignment="Center"
                        Margin="0,16,0,0"/>
             <TextBlock x:Name="AnalysisProgressText"
                        Text="0%"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        HorizontalAlignment="Center"
                        Margin="0,6,0,0"/>
             <TextBlock x:Name="AnalysisEtaText"
                        Text=""
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        HorizontalAlignment="Center"
                        Margin="0,2,0,0"
                        Visibility="Collapsed"/>
@@ -279,23 +279,23 @@
           Visibility="Collapsed">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingM}"/>
+        <RowDefinition Height="{DynamicResource SpacingM}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
       <Border Grid.Row="0"
-              Style="{StaticResource Control.Container.SurfaceCard}"
+              Style="{DynamicResource Control.Container.SurfaceCard}"
               Padding="12">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="{StaticResource SpacingM}"/>
+            <ColumnDefinition Width="{DynamicResource SpacingM}"/>
             <ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
 
           <Button Grid.Column="0"
                   Content="{DynamicResource Clipper.Actions.BackToOverview}"
-                  Style="{StaticResource Control.Button.Tertiary}"
+                  Style="{DynamicResource Control.Button.Tertiary}"
                   ap:ButtonIcon.Glyph="&#xe5c4;"
                   Click="BackToOverviewButton_Click"/>
 
@@ -303,12 +303,12 @@
                       VerticalAlignment="Center">
             <TextBlock x:Name="EditorCandidateTitleText"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
                        TextWrapping="Wrap"/>
             <TextBlock x:Name="EditorCandidateTimeText"
                        Margin="0,3,0,0"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"/>
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"/>
           </StackPanel>
         </Grid>
       </Border>
@@ -316,31 +316,31 @@
       <Grid Grid.Row="2">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="360" MinWidth="300"/>
-          <ColumnDefinition Width="{StaticResource SpacingM}"/>
+          <ColumnDefinition Width="{DynamicResource SpacingM}"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0"
-                Style="{StaticResource Control.Container.SurfaceCard}"
+                Style="{DynamicResource Control.Container.SurfaceCard}"
                 Padding="12">
           <ScrollViewer VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
             <TextBlock Text="{DynamicResource Clipper.Settings}"
                        FontWeight="SemiBold"
-                       FontSize="{StaticResource FontSizeS}"
-                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                       FontSize="{DynamicResource FontSizeS}"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
             <TextBlock Text="{DynamicResource Clipper.Settings.ApplyHint}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,4,0,0"/>
 
             <Separator Margin="0,14,0,12"/>
 
             <TextBlock Text="{DynamicResource Clipper.Settings.Subtitles}"
-                       FontSize="{StaticResource FontSizeXS}"
+                       FontSize="{DynamicResource FontSizeXS}"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
             <CheckBox x:Name="EnableSubtitlesCheckBox"
                       Content="{DynamicResource Clipper.Settings.EnableSubtitles}"
                       Margin="0,8,0,0"/>
@@ -349,8 +349,8 @@
                       Margin="0,6,0,0"/>
 
             <TextBlock Text="{DynamicResource Clipper.Settings.FontSize}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,12,0,6"/>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -359,7 +359,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="SubtitleFontSizeSlider"
                       Grid.Column="0"
-                      Style="{StaticResource Control.Slider.Clipper.Settings}"
+                      Style="{DynamicResource Control.Slider.Clipper.Settings}"
                       Minimum="48"
                       Maximum="300"
                       Value="96"
@@ -369,14 +369,14 @@
                          Grid.Column="1"
                          Margin="8,0,0,0"
                          VerticalAlignment="Center"
-                         FontSize="{StaticResource FontSizeXS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeXS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          Text="72"/>
             </Grid>
 
             <TextBlock Text="{DynamicResource Clipper.Settings.PositionX}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,12,0,6"/>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -385,7 +385,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="SubtitlePositionXSlider"
                       Grid.Column="0"
-                      Style="{StaticResource Control.Slider.Clipper.Settings}"
+                      Style="{DynamicResource Control.Slider.Clipper.Settings}"
                       Minimum="0"
                       Maximum="1"
                       Value="0.5"
@@ -395,14 +395,14 @@
                          Grid.Column="1"
                          Margin="8,0,0,0"
                          VerticalAlignment="Center"
-                         FontSize="{StaticResource FontSizeXS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeXS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          Text="0.50"/>
             </Grid>
 
             <TextBlock Text="{DynamicResource Clipper.Settings.PositionY}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,12,0,6"/>
             <Grid>
               <Grid.ColumnDefinitions>
@@ -411,7 +411,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="SubtitlePositionYSlider"
                       Grid.Column="0"
-                      Style="{StaticResource Control.Slider.Clipper.Settings}"
+                      Style="{DynamicResource Control.Slider.Clipper.Settings}"
                       Minimum="0"
                       Maximum="1"
                       Value="0.7"
@@ -421,30 +421,30 @@
                          Grid.Column="1"
                          Margin="8,0,0,0"
                          VerticalAlignment="Center"
-                         FontSize="{StaticResource FontSizeXS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeXS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          Text="0.70"/>
             </Grid>
 
             <TextBlock Text="{DynamicResource Clipper.Settings.Presets}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,12,0,6"/>
             <UniformGrid Columns="4">
               <Button Content="{DynamicResource Clipper.Settings.Preset.Top}"
-                      Style="{StaticResource Control.Button.Tertiary}"
+                      Style="{DynamicResource Control.Button.Tertiary}"
                       Margin="0,0,6,0"
                       Click="SubtitlePresetTopButton_Click"/>
               <Button Content="{DynamicResource Clipper.Settings.Preset.Middle}"
-                      Style="{StaticResource Control.Button.Tertiary}"
+                      Style="{DynamicResource Control.Button.Tertiary}"
                       Margin="0,0,6,0"
                       Click="SubtitlePresetMiddleButton_Click"/>
               <Button Content="{DynamicResource Clipper.Settings.Preset.Bottom}"
-                      Style="{StaticResource Control.Button.Tertiary}"
+                      Style="{DynamicResource Control.Button.Tertiary}"
                       Margin="0,0,6,0"
                       Click="SubtitlePresetBottomButton_Click"/>
               <Button Content="{DynamicResource Clipper.Settings.Preset.Reset}"
-                      Style="{StaticResource Control.Button.Tertiary}"
+                      Style="{DynamicResource Control.Button.Tertiary}"
                       Click="SubtitlePresetResetButton_Click"/>
             </UniformGrid>
 
@@ -452,9 +452,9 @@
 
             <!-- Logo Section -->
             <TextBlock Text="{DynamicResource Clipper.Settings.Logo}"
-                       FontSize="{StaticResource FontSizeXS}"
+                       FontSize="{DynamicResource FontSizeXS}"
                        FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
             <Grid Margin="0,8,0,0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -465,25 +465,25 @@
               <TextBlock x:Name="LogoPathText"
                          Grid.Column="0"
                          Text="{DynamicResource Clipper.Settings.NoLogo}"
-                         FontSize="{StaticResource FontSizeXS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeXS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center"
                          TextTrimming="CharacterEllipsis"/>
               <Button Grid.Column="1"
                       Content="{DynamicResource Clipper.Settings.SelectLogo}"
-                      Style="{StaticResource Control.Button.Tertiary}"
+                      Style="{DynamicResource Control.Button.Tertiary}"
                       ap:ButtonIcon.Glyph="&#xe2c6;"
                       Margin="8,0,0,0"
                       Padding="10,4"
                       Click="SelectLogoButton_Click"/>
               <Button x:Name="ClearLogoButton"
                       Grid.Column="2"
-                      Style="{StaticResource Control.Button.Tertiary}"
+                      Style="{DynamicResource Control.Button.Tertiary}"
                       Margin="4,0,0,0"
                       Padding="6,4"
                       Visibility="Collapsed"
                       Click="ClearLogoButton_Click">
-                <TextBlock Style="{StaticResource Control.Icon.S}"
+                <TextBlock Style="{DynamicResource Control.Icon.S}"
                            Text="&#xe5cd;"/>
               </Button>
             </Grid>
@@ -491,8 +491,8 @@
             <!-- Logo Scale Slider -->
             <TextBlock x:Name="LogoScaleLabel"
                        Text="{DynamicResource Clipper.Settings.LogoScale}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,12,0,6"
                        Visibility="Collapsed"/>
             <Grid x:Name="LogoScalePanel" Visibility="Collapsed">
@@ -502,7 +502,7 @@
               </Grid.ColumnDefinitions>
               <Slider x:Name="LogoScaleSlider"
                       Grid.Column="0"
-                      Style="{StaticResource Control.Slider.Clipper.Settings}"
+                      Style="{DynamicResource Control.Slider.Clipper.Settings}"
                       Minimum="0.05"
                       Maximum="0.4"
                       Value="0.15"
@@ -513,13 +513,13 @@
                          Grid.Column="1"
                          Margin="8,0,0,0"
                          VerticalAlignment="Center"
-                         FontSize="{StaticResource FontSizeXS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeXS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          Text="15%"/>
             </Grid>
 
-            <TextBlock FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+            <TextBlock FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,4,0,0"
                        Text="{DynamicResource Clipper.Settings.LogoDragHint}"
                        TextWrapping="Wrap"
@@ -530,7 +530,7 @@
         </Border>
 
         <Border Grid.Column="2"
-                Style="{StaticResource Control.Container.SurfaceCard}">
+                Style="{DynamicResource Control.Container.SurfaceCard}">
           <Grid>
             <!-- Video Player -->
             <Grid x:Name="VideoPlayerPanel"
@@ -551,7 +551,7 @@
                   <!-- Container with 9:16 aspect ratio -->
                   <Border x:Name="PortraitPreviewBorder"
                           Background="Black"
-                          CornerRadius="{StaticResource RadiusM}"
+                          CornerRadius="{DynamicResource RadiusM}"
                           MaxWidth="360"
                           ClipToBounds="True">
                     <Grid x:Name="PortraitPreviewContentRoot"
@@ -582,8 +582,8 @@
                                     MouseMove="SubtitleOverlayCanvas_MouseMove"
                                     MouseLeftButtonUp="SubtitleOverlayCanvas_MouseLeftButtonUp">
                               <Border x:Name="SubtitlePlacementPreview"
-                                      Background="{StaticResource Brush.Overlay.Scrim}"
-                                      BorderBrush="{StaticResource Brush.Overlay.ContrastBorder}"
+                                      Background="{DynamicResource Brush.Overlay.Scrim}"
+                                      BorderBrush="{DynamicResource Brush.Overlay.ContrastBorder}"
                                       BorderThickness="1"
                                       Padding="8,4"
                                       CornerRadius="4"
@@ -629,27 +629,27 @@
                 <Grid x:Name="SplitWorkbenchPanel" Visibility="Collapsed">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="280"/>
-                    <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                    <ColumnDefinition Width="{DynamicResource SpacingM}"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
                   <StackPanel Grid.Column="0">
                     <TextBlock Text="{DynamicResource Clipper.Split.Workbench.Portrait}"
-                               FontSize="{StaticResource FontSizeS}"
+                               FontSize="{DynamicResource FontSizeS}"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,0,6"/>
                     <TextBlock Text="{DynamicResource Clipper.Split.Workbench.PortraitHint}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                Margin="0,0,0,8"/>
                     <Border x:Name="SplitPortraitPreviewBorder"
                             Width="260"
                             Height="462"
                             Background="Black"
-                            BorderBrush="{StaticResource PrimaryBrush}"
+                            BorderBrush="{DynamicResource PrimaryBrush}"
                             BorderThickness="2"
-                            CornerRadius="{StaticResource RadiusM}"
+                            CornerRadius="{DynamicResource RadiusM}"
                             ClipToBounds="True">
                         <Grid x:Name="SplitPortraitContentRoot"
                               Background="Black"
@@ -723,8 +723,8 @@
                                 MouseMove="SubtitleOverlayCanvas_MouseMove"
                                 MouseLeftButtonUp="SubtitleOverlayCanvas_MouseLeftButtonUp">
                           <Border x:Name="SplitSubtitlePlacementPreview"
-                                  Background="{StaticResource Brush.Overlay.Scrim}"
-                                  BorderBrush="{StaticResource Brush.Overlay.ContrastBorder}"
+                                  Background="{DynamicResource Brush.Overlay.Scrim}"
+                                  BorderBrush="{DynamicResource Brush.Overlay.ContrastBorder}"
                                   BorderThickness="1"
                                   Padding="8,4"
                                   CornerRadius="4"
@@ -761,8 +761,8 @@
                           <Border x:Name="SplitPortraitDividerHandle"
                                   Width="72"
                                   Height="24"
-                                  Background="{StaticResource Brush.Overlay.Handle.Background}"
-                                  BorderBrush="{StaticResource Brush.Overlay.Handle.Border}"
+                                  Background="{DynamicResource Brush.Overlay.Handle.Background}"
+                                  BorderBrush="{DynamicResource Brush.Overlay.Handle.Border}"
                                   BorderThickness="1"
                                   CornerRadius="12"
                                   Cursor="SizeNS"
@@ -770,7 +770,7 @@
                             <TextBlock Text="::"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       Foreground="{StaticResource Brush.Overlay.Handle.Foreground}"
+                                       Foreground="{DynamicResource Brush.Overlay.Handle.Foreground}"
                                        FontSize="14"/>
                           </Border>
                         </Canvas>
@@ -780,19 +780,19 @@
 
                   <StackPanel Grid.Column="2">
                     <TextBlock Text="{DynamicResource Clipper.Split.Workbench.Landscape}"
-                               FontSize="{StaticResource FontSizeXS}"
+                               FontSize="{DynamicResource FontSizeXS}"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                Margin="0,0,0,6"/>
                     <TextBlock Text="{DynamicResource Clipper.Split.Workbench.LandscapeHint}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                Margin="0,0,0,8"/>
                     <Border x:Name="SplitSourcePreviewBorder"
                             Background="Black"
-                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="{StaticResource RadiusM}"
+                            CornerRadius="{DynamicResource RadiusM}"
                             ClipToBounds="True"
                             MinHeight="240">
                       <Grid x:Name="SplitSourceContentRoot"
@@ -817,61 +817,61 @@
                                 MouseLeftButtonUp="SplitSelectionCanvas_MouseLeftButtonUp">
                           <Border x:Name="SplitPrimarySelectionBox"
                                   BorderThickness="2"
-                                  BorderBrush="{StaticResource Brush.Selection.Primary.Border}"
-                                  Background="{StaticResource Brush.Selection.Primary.Fill}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Primary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Primary.Fill}"/>
                           <Border x:Name="SplitPrimaryResizeHandleTopLeft"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Primary.Border}"
-                                  Background="{StaticResource Brush.Selection.Primary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Primary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Primary.Border}"/>
                           <Border x:Name="SplitPrimaryResizeHandleTopRight"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Primary.Border}"
-                                  Background="{StaticResource Brush.Selection.Primary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Primary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Primary.Border}"/>
                           <Border x:Name="SplitPrimaryResizeHandleBottomLeft"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Primary.Border}"
-                                  Background="{StaticResource Brush.Selection.Primary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Primary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Primary.Border}"/>
                           <Border x:Name="SplitPrimaryResizeHandleBottomRight"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Primary.Border}"
-                                  Background="{StaticResource Brush.Selection.Primary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Primary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Primary.Border}"/>
 
                           <Border x:Name="SplitSecondarySelectionBox"
                                   BorderThickness="2"
-                                  BorderBrush="{StaticResource Brush.Selection.Secondary.Border}"
-                                  Background="{StaticResource Brush.Selection.Secondary.Fill}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Secondary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Secondary.Fill}"/>
                           <Border x:Name="SplitSecondaryResizeHandleTopLeft"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Secondary.Border}"
-                                  Background="{StaticResource Brush.Selection.Secondary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Secondary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Secondary.Border}"/>
                           <Border x:Name="SplitSecondaryResizeHandleTopRight"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Secondary.Border}"
-                                  Background="{StaticResource Brush.Selection.Secondary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Secondary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Secondary.Border}"/>
                           <Border x:Name="SplitSecondaryResizeHandleBottomLeft"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Secondary.Border}"
-                                  Background="{StaticResource Brush.Selection.Secondary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Secondary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Secondary.Border}"/>
                           <Border x:Name="SplitSecondaryResizeHandleBottomRight"
                                   Width="10"
                                   Height="10"
                                   BorderThickness="1"
-                                  BorderBrush="{StaticResource Brush.Selection.Secondary.Border}"
-                                  Background="{StaticResource Brush.Selection.Secondary.Border}"/>
+                                  BorderBrush="{DynamicResource Brush.Selection.Secondary.Border}"
+                                  Background="{DynamicResource Brush.Selection.Secondary.Border}"/>
                         </Canvas>
                       </Grid>
                     </Border>
@@ -879,7 +879,7 @@
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                       <Button x:Name="SplitLayoutEditButton"
                               Content="{DynamicResource Clipper.Split.EditMode.EditLayout}"
-                              Style="{StaticResource Control.Button.Tertiary}"
+                              Style="{DynamicResource Control.Button.Tertiary}"
                               ap:ButtonIcon.Glyph="&#xe3c9;"
                               Click="SplitLayoutEditButton_Click"/>
                     </StackPanel>
@@ -887,12 +887,12 @@
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                       <Button x:Name="SplitSoloButton"
                               Content="{DynamicResource Clipper.Split.Mode.Solo}"
-                              Style="{StaticResource Control.Button.Tertiary}"
+                              Style="{DynamicResource Control.Button.Tertiary}"
                               ap:ButtonIcon.Glyph="&#xe400;"
                               Click="SplitSoloButton_Click"/>
                       <Button x:Name="SplitDuoButton"
                               Content="{DynamicResource Clipper.Split.Mode.Duo}"
-                              Style="{StaticResource Control.Button.Tertiary}"
+                              Style="{DynamicResource Control.Button.Tertiary}"
                               ap:ButtonIcon.Glyph="&#xe401;"
                               Margin="8,0,0,0"
                               Click="SplitDuoButton_Click"/>
@@ -905,7 +905,7 @@
               <Grid Grid.Row="1" Margin="0,12,0,0">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
-                  <RowDefinition Height="{StaticResource SpacingS}"/>
+                  <RowDefinition Height="{DynamicResource SpacingS}"/>
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -913,22 +913,22 @@
                 <Grid Grid.Row="0">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="{StaticResource SpacingS}"/>
+                    <ColumnDefinition Width="{DynamicResource SpacingS}"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="{StaticResource SpacingS}"/>
+                    <ColumnDefinition Width="{DynamicResource SpacingS}"/>
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
 
                   <TextBlock x:Name="PreviewCurrentTimeText"
                              Grid.Column="0"
                              Text="0:00"
-                             FontSize="{StaticResource FontSizeXS}"
-                             Foreground="{StaticResource TextMutedBrush}"
+                             FontSize="{DynamicResource FontSizeXS}"
+                             Foreground="{DynamicResource TextMutedBrush}"
                              VerticalAlignment="Center"/>
 
                   <Slider x:Name="PreviewProgressSlider"
                           Grid.Column="2"
-                          Style="{StaticResource Control.Slider.Clipper.Timeline}"
+                          Style="{DynamicResource Control.Slider.Clipper.Timeline}"
                           VerticalAlignment="Center"
                           IsEnabled="True"
                           IsMoveToPointEnabled="True"
@@ -943,62 +943,62 @@
                   <TextBlock x:Name="PreviewEndTimeText"
                              Grid.Column="4"
                              Text="0:00"
-                             FontSize="{StaticResource FontSizeXS}"
-                             Foreground="{StaticResource TextMutedBrush}"
+                             FontSize="{DynamicResource FontSizeXS}"
+                             Foreground="{DynamicResource TextMutedBrush}"
                              VerticalAlignment="Center"/>
                 </Grid>
 
                 <!-- Buttons -->
                 <Border Grid.Row="2"
-                        Style="{StaticResource Control.Container.Clipper.MediaGroupCard}">
+                        Style="{DynamicResource Control.Container.Clipper.MediaGroupCard}">
                   <StackPanel Orientation="Horizontal"
                               HorizontalAlignment="Center">
                   <Button x:Name="PreviewPlayButton"
                           Click="PreviewPlayButton_Click"
-                          Style="{StaticResource Control.Button.Clipper.Icon.Primary}"
+                          Style="{DynamicResource Control.Button.Clipper.Icon.Primary}"
                           ToolTip="{DynamicResource Clipper.Preview.Play}">
                     <TextBlock x:Name="PreviewPlayButtonIcon"
-                               Style="{StaticResource Control.Text.Clipper.MediaGlyph}"
+                               Style="{DynamicResource Control.Text.Clipper.MediaGlyph}"
                                Text="&#xe037;"/>
                   </Button>
 
                   <Button x:Name="PreviewStopButton"
                           Click="PreviewStopButton_Click"
-                          Style="{StaticResource Control.Button.Clipper.Icon}"
+                          Style="{DynamicResource Control.Button.Clipper.Icon}"
                           Margin="8,0,0,0"
                           ToolTip="{DynamicResource Clipper.Preview.Stop}">
-                    <TextBlock Style="{StaticResource Control.Text.Clipper.MediaGlyph}"
+                    <TextBlock Style="{DynamicResource Control.Text.Clipper.MediaGlyph}"
                                Text="&#xe047;"/>
                   </Button>
 
                   <Button x:Name="PreviewRestartButton"
                           Click="PreviewRestartButton_Click"
-                          Style="{StaticResource Control.Button.Clipper.Icon}"
+                          Style="{DynamicResource Control.Button.Clipper.Icon}"
                           Margin="8,0,0,0"
                           ToolTip="{DynamicResource Clipper.Preview.Restart}">
-                    <TextBlock Style="{StaticResource Control.Text.Clipper.MediaGlyph}"
+                    <TextBlock Style="{DynamicResource Control.Text.Clipper.MediaGlyph}"
                                Text="&#xe042;"/>
                   </Button>
 
                   <!-- Volume Controls -->
-                  <Border Background="{StaticResource SurfaceElevatedBrush}"
-                          CornerRadius="{StaticResource RadiusS}"
+                  <Border Background="{DynamicResource SurfaceElevatedBrush}"
+                          CornerRadius="{DynamicResource RadiusS}"
                           Padding="4,0"
                           Margin="24,0,0,0"
                           VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                       <Button x:Name="PreviewMuteButton"
                               Click="PreviewMuteButton_Click"
-                              Style="{StaticResource Control.Button.Clipper.Icon}"
+                              Style="{DynamicResource Control.Button.Clipper.Icon}"
                               Width="36" Height="36"
                               ToolTip="{DynamicResource Clipper.Preview.Mute}">
                         <TextBlock x:Name="PreviewVolumeIcon"
-                                   Style="{StaticResource Control.Text.Clipper.MediaGlyph}"
+                                   Style="{DynamicResource Control.Text.Clipper.MediaGlyph}"
                                    Text="&#xe04d;"/>
                       </Button>
                       <Slider x:Name="PreviewVolumeSlider"
                               Width="112"
-                              Style="{StaticResource Control.Slider.Clipper.Volume}"
+                              Style="{DynamicResource Control.Slider.Clipper.Volume}"
                               Minimum="0"
                               Maximum="1"
                               Value="0.5"
@@ -1014,25 +1014,25 @@
               <Border Grid.Row="2"
                       Margin="0,16,0,0"
                       BorderThickness="0,1,0,0"
-                      BorderBrush="{StaticResource BorderBrush}"
+                      BorderBrush="{DynamicResource BorderBrush}"
                       Padding="0,16,0,0">
                 <StackPanel x:Name="ClipDetailsPanel">
                   <!-- Score Badge -->
                   <StackPanel Orientation="Horizontal"
                               Margin="0,0,0,12">
                     <TextBlock Text="{DynamicResource Clipper.Score}"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                VerticalAlignment="Center"/>
-                    <Border Background="{StaticResource PrimaryBrush}"
-                            CornerRadius="{StaticResource RadiusS}"
+                    <Border Background="{DynamicResource PrimaryBrush}"
+                            CornerRadius="{DynamicResource RadiusS}"
                             Padding="12,6"
                             Margin="12,0,0,0">
                       <TextBlock x:Name="ClipScoreText"
                                  Text="0.0"
                                  FontWeight="Bold"
-                                 FontSize="{StaticResource FontSizeL}"
-                                 Foreground="{StaticResource PrimaryTextBrush}"/>
+                                 FontSize="{DynamicResource FontSizeL}"
+                                 Foreground="{DynamicResource PrimaryTextBrush}"/>
                     </Border>
                   </StackPanel>
 
@@ -1045,26 +1045,26 @@
 
                     <TextBlock Grid.Column="0"
                                Text="{DynamicResource Clipper.Duration}"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                Width="70"/>
                     <TextBlock x:Name="ClipTimeRangeText"
                                Grid.Column="1"
                                Text="0:00 - 0:00 (0s)"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeS}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </Grid>
 
                   <!-- Reason -->
                   <StackPanel>
                     <TextBlock Text="{DynamicResource Clipper.Reason}"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                Margin="0,0,0,6"/>
                     <TextBlock x:Name="ClipReasonText"
                                Text=""
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
                                TextWrapping="Wrap"
                                LineHeight="22"/>
                   </StackPanel>
@@ -1077,13 +1077,13 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Visibility="Visible">
-              <TextBlock Style="{StaticResource Control.Icon.64}"
+              <TextBlock Style="{DynamicResource Control.Icon.64}"
                          Text="&#xe04b;"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{DynamicResource Clipper.Preview.EmptyState}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Center"
                          TextWrapping="Wrap"
                          MaxWidth="300"
@@ -1095,3 +1095,4 @@
     </Grid>
   </Grid>
 </UserControl>
+

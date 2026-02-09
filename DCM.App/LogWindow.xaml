@@ -8,7 +8,7 @@
         MinHeight="300"
         MinWidth="500"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
 
   <Grid Margin="12">
     <Grid.RowDefinitions>
@@ -21,39 +21,39 @@
 
     <!-- Header mit Filter -->
     <Border Grid.Row="0"
-            Style="{StaticResource Control.Container.SurfaceCard}"
+            Style="{DynamicResource Control.Container.SurfaceCard}"
             Padding="10,8">
       <DockPanel>
         <StackPanel Orientation="Horizontal"
             DockPanel.Dock="Left">
           <TextBlock Text="{DynamicResource LogWindow.FilterLabel}"
-                     Foreground="{StaticResource TextMutedBrush}"
+                     Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center"
                      Margin="0,0,8,0"/>
           <CheckBox x:Name="ShowDebugCheckBox"
                     Content="{DynamicResource LogWindow.Filter.Debug}"
-                    Foreground="{StaticResource TextMutedBrush}"
+                    Foreground="{DynamicResource TextMutedBrush}"
                     IsChecked="False"
                     Margin="0,0,12,0"
                     Checked="Filter_Changed"
                     Unchecked="Filter_Changed"/>
           <CheckBox x:Name="ShowInfoCheckBox"
                     Content="{DynamicResource LogWindow.Filter.Info}"
-                    Foreground="{StaticResource SuccessBrush}"
+                    Foreground="{DynamicResource SuccessBrush}"
                     IsChecked="True"
                     Margin="0,0,12,0"
                     Checked="Filter_Changed"
                     Unchecked="Filter_Changed"/>
           <CheckBox x:Name="ShowWarningCheckBox"
                     Content="{DynamicResource LogWindow.Filter.Warning}"
-                    Foreground="{StaticResource WarningBrush}"
+                    Foreground="{DynamicResource WarningBrush}"
                     IsChecked="True"
                     Margin="0,0,12,0"
                     Checked="Filter_Changed"
                     Unchecked="Filter_Changed"/>
           <CheckBox x:Name="ShowErrorCheckBox"
                     Content="{DynamicResource LogWindow.Filter.Error}"
-                    Foreground="{StaticResource DangerBrush}"
+                    Foreground="{DynamicResource DangerBrush}"
                     IsChecked="True"
                     Checked="Filter_Changed"
                     Unchecked="Filter_Changed"/>
@@ -63,13 +63,13 @@
             DockPanel.Dock="Right"
             HorizontalAlignment="Right">
           <TextBlock x:Name="EntryCountText"
-                     Foreground="{StaticResource TextMutedBrush}"
+                     Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center"
                      Margin="0,0,12,0"
                      Text="{DynamicResource LogWindow.EntryCountPlaceholder}"/>
           <CheckBox x:Name="AutoScrollCheckBox"
                     Content="{DynamicResource LogWindow.AutoScroll}"
-                    Foreground="{StaticResource TextMutedBrush}"
+                    Foreground="{DynamicResource TextMutedBrush}"
                     IsChecked="True"/>
         </StackPanel>
       </DockPanel>
@@ -77,7 +77,7 @@
 
     <!-- Log-Liste -->
     <Border Grid.Row="2"
-            Style="{StaticResource Control.Container.SurfaceCard}"
+            Style="{DynamicResource Control.Container.SurfaceCard}"
             Padding="0">
       <ListBox x:Name="LogListBox"
                Background="Transparent"
@@ -88,34 +88,34 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <TextBlock Text="{Binding FormattedMessage}"
-                       FontFamily="{StaticResource LogFont}"
-                       FontSize="{StaticResource FontSizeS}"
+                       FontFamily="{DynamicResource LogFont}"
+                       FontSize="{DynamicResource FontSizeS}"
                        Padding="4,2"
                        TextWrapping="NoWrap">
               <TextBlock.Style>
                 <Style TargetType="TextBlock">
                   <Setter Property="Foreground"
-                      Value="{StaticResource TextPrimaryBrush}"/>
+                      Value="{DynamicResource TextPrimaryBrush}"/>
                   <Style.Triggers>
                     <DataTrigger Binding="{Binding Level}"
                         Value="Debug">
                       <Setter Property="Foreground"
-                          Value="{StaticResource TextMutedBrush}"/>
+                          Value="{DynamicResource TextMutedBrush}"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}"
                         Value="Info">
                       <Setter Property="Foreground"
-                          Value="{StaticResource TextPrimaryBrush}"/>
+                          Value="{DynamicResource TextPrimaryBrush}"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}"
                         Value="Warning">
                       <Setter Property="Foreground"
-                          Value="{StaticResource WarningBrush}"/>
+                          Value="{DynamicResource WarningBrush}"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}"
                         Value="Error">
                       <Setter Property="Foreground"
-                          Value="{StaticResource DangerBrush}"/>
+                          Value="{DynamicResource DangerBrush}"/>
                     </DataTrigger>
                   </Style.Triggers>
                 </Style>
@@ -144,7 +144,7 @@
                     <Trigger Property="IsMouseOver"
                         Value="True">
                       <Setter Property="Background"
-                          Value="{StaticResource SurfaceHoverBrush}"/>
+                          Value="{DynamicResource SurfaceHoverBrush}"/>
                     </Trigger>
                   </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -157,7 +157,7 @@
 
     <!-- Footer mit Buttons -->
     <Border Grid.Row="4"
-            Style="{StaticResource Control.Container.SurfaceCard}"
+            Style="{DynamicResource Control.Container.SurfaceCard}"
             Padding="10,8">
       <DockPanel>
         <StackPanel Orientation="Horizontal"
@@ -166,13 +166,13 @@
                   Content="{DynamicResource LogWindow.Clear}"
                   ap:ButtonIcon.Glyph="&#xe872;"
                   Click="ClearButton_Click"
-                  Style="{StaticResource Control.Button.Secondary}"
+                  Style="{DynamicResource Control.Button.Secondary}"
                   Margin="0,0,8,0"/>
           <Button x:Name="OpenLogFileButton"
                   Content="{DynamicResource LogWindow.OpenFile}"
                   ap:ButtonIcon.Glyph="&#xe89e;"
                   Click="OpenLogFileButton_Click"
-                  Style="{StaticResource Control.Button.Secondary}"/>
+                  Style="{DynamicResource Control.Button.Secondary}"/>
         </StackPanel>
 
         <Button x:Name="CloseButton"
@@ -181,8 +181,9 @@
                 Click="CloseButton_Click"
                 DockPanel.Dock="Right"
                 HorizontalAlignment="Right"
-                Style="{StaticResource Control.Button.Primary}"/>
+                Style="{DynamicResource Control.Button.Primary}"/>
       </DockPanel>
     </Border>
   </Grid>
 </Window>
+

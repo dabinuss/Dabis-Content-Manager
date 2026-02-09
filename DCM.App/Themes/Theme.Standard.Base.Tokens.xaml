@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     xmlns:win="clr-namespace:System.Windows;assembly=PresentationFramework"
@@ -42,6 +42,7 @@
   <Color x:Key="SurfacePressedColor">#222A3B</Color>
   <Color x:Key="SurfaceElevatedColor">#1A2130</Color>
   <Color x:Key="SurfaceSunkenColor">#0C0F15</Color>
+  <Color x:Key="AppHeaderColor">#1A2130</Color>
   <Color x:Key="InputBackgroundColor">#121722</Color>
   <Color x:Key="InputFocusColor">#161D2B</Color>
 
@@ -87,60 +88,62 @@
   <!-- BRUSHES                                                          -->
 
   <SolidColorBrush x:Key="BackgroundBrush"
-                   Color="{StaticResource BackgroundColor}"/>
+                   Color="{DynamicResource BackgroundColor}"/>
   <SolidColorBrush x:Key="SurfaceBrush"
-                   Color="{StaticResource SurfaceColor}"/>
+                   Color="{DynamicResource SurfaceColor}"/>
   <SolidColorBrush x:Key="SurfaceLightBrush"
-                   Color="{StaticResource SurfaceLightColor}"/>
+                   Color="{DynamicResource SurfaceLightColor}"/>
   <SolidColorBrush x:Key="SurfaceHoverBrush"
-                   Color="{StaticResource SurfaceHoverColor}"/>
+                   Color="{DynamicResource SurfaceHoverColor}"/>
   <SolidColorBrush x:Key="SurfacePressedBrush"
-                   Color="{StaticResource SurfacePressedColor}"/>
+                   Color="{DynamicResource SurfacePressedColor}"/>
   <SolidColorBrush x:Key="SurfaceElevatedBrush"
-                   Color="{StaticResource SurfaceElevatedColor}"/>
+                   Color="{DynamicResource SurfaceElevatedColor}"/>
   <SolidColorBrush x:Key="SurfaceSunkenBrush"
-                   Color="{StaticResource SurfaceSunkenColor}"/>
+                   Color="{DynamicResource SurfaceSunkenColor}"/>
+  <SolidColorBrush x:Key="AppHeaderBrush"
+                   Color="{DynamicResource AppHeaderColor}"/>
   <SolidColorBrush x:Key="InputBackgroundBrush"
-                   Color="{StaticResource InputBackgroundColor}"/>
+                   Color="{DynamicResource InputBackgroundColor}"/>
   <SolidColorBrush x:Key="InputFocusBrush"
-                   Color="{StaticResource InputFocusColor}"/>
+                   Color="{DynamicResource InputFocusColor}"/>
 
   <SolidColorBrush x:Key="BorderBrush"
-                   Color="{StaticResource BorderColor}"/>
+                   Color="{DynamicResource BorderColor}"/>
   <SolidColorBrush x:Key="BorderHoverBrush"
-                   Color="{StaticResource BorderHoverColor}"/>
+                   Color="{DynamicResource BorderHoverColor}"/>
   <SolidColorBrush x:Key="BorderStrongBrush"
-                   Color="{StaticResource BorderStrongColor}"/>
+                   Color="{DynamicResource BorderStrongColor}"/>
 
   <SolidColorBrush x:Key="PrimaryBrush"
-                   Color="{StaticResource PrimaryColor}"/>
+                   Color="{DynamicResource PrimaryColor}"/>
   <SolidColorBrush x:Key="PrimaryHoverBrush"
-                   Color="{StaticResource PrimaryHoverColor}"/>
+                   Color="{DynamicResource PrimaryHoverColor}"/>
   <SolidColorBrush x:Key="PrimaryPressedBrush"
-                   Color="{StaticResource PrimaryPressedColor}"/>
+                   Color="{DynamicResource PrimaryPressedColor}"/>
   <SolidColorBrush x:Key="PrimaryTextBrush"
-                   Color="{StaticResource PrimaryTextColor}"/>
+                   Color="{DynamicResource PrimaryTextColor}"/>
 
   <SolidColorBrush x:Key="SuccessBrush"
-                   Color="{StaticResource SuccessColor}"/>
+                   Color="{DynamicResource SuccessColor}"/>
   <SolidColorBrush x:Key="DangerBrush"
-                   Color="{StaticResource DangerColor}"/>
+                   Color="{DynamicResource DangerColor}"/>
   <SolidColorBrush x:Key="WarningBrush"
-                   Color="{StaticResource WarningColor}"/>
+                   Color="{DynamicResource WarningColor}"/>
   <SolidColorBrush x:Key="AccentRedBrush"
-                   Color="{StaticResource AccentRedColor}"/>
+                   Color="{DynamicResource AccentRedColor}"/>
   <SolidColorBrush x:Key="AccentRedHoverBrush"
-                   Color="{StaticResource AccentRedHoverColor}"/>
+                   Color="{DynamicResource AccentRedHoverColor}"/>
   <SolidColorBrush x:Key="PlatformYouTubeBrush"
-                   Color="{StaticResource PlatformYouTubeColor}"/>
+                   Color="{DynamicResource PlatformYouTubeColor}"/>
   <SolidColorBrush x:Key="PlatformInstagramBrush"
-                   Color="{StaticResource PlatformInstagramColor}"/>
+                   Color="{DynamicResource PlatformInstagramColor}"/>
   <SolidColorBrush x:Key="OverlayDimBrush"
-                   Color="{StaticResource OverlayDimColor}"/>
+                   Color="{DynamicResource OverlayDimColor}"/>
   <SolidColorBrush x:Key="OverlayMediumBrush"
-                   Color="{StaticResource OverlayMediumColor}"/>
+                   Color="{DynamicResource OverlayMediumColor}"/>
   <SolidColorBrush x:Key="MagicAIBrush"
-                   Color="{StaticResource MagicAIColor}"/>
+                   Color="{DynamicResource MagicAIColor}"/>
   <LinearGradientBrush x:Key="MagicAIGradientBrush"
                        StartPoint="0,0"
                        EndPoint="1,1">
@@ -151,36 +154,36 @@
   </LinearGradientBrush>
 
   <SolidColorBrush x:Key="TextPrimaryBrush"
-                   Color="{StaticResource TextPrimaryColor}"/>
+                   Color="{DynamicResource TextPrimaryColor}"/>
   <SolidColorBrush x:Key="TextSecondaryBrush"
-                   Color="{StaticResource TextSecondaryColor}"/>
+                   Color="{DynamicResource TextSecondaryColor}"/>
   <SolidColorBrush x:Key="TextMutedBrush"
-                   Color="{StaticResource TextMutedColor}"/>
+                   Color="{DynamicResource TextMutedColor}"/>
   <SolidColorBrush x:Key="TextDisabledBrush"
-                   Color="{StaticResource TextDisabledColor}"/>
+                   Color="{DynamicResource TextDisabledColor}"/>
 
   <SolidColorBrush x:Key="SidebarBrush"
-                   Color="{StaticResource SidebarColor}"/>
+                   Color="{DynamicResource SidebarColor}"/>
   <SolidColorBrush x:Key="SidebarHoverBrush"
-                   Color="{StaticResource SidebarHoverColor}"/>
+                   Color="{DynamicResource SidebarHoverColor}"/>
 
   <SolidColorBrush x:Key="DisabledBackgroundBrush"
-                   Color="{StaticResource DisabledBackgroundColor}"/>
+                   Color="{DynamicResource DisabledBackgroundColor}"/>
   <SolidColorBrush x:Key="DisabledBorderBrush"
-                   Color="{StaticResource DisabledBorderColor}"/>
+                   Color="{DynamicResource DisabledBorderColor}"/>
   <SolidColorBrush x:Key="ScrollBarTrackBrush"
-                   Color="{StaticResource ScrollBarTrackColor}"/>
+                   Color="{DynamicResource ScrollBarTrackColor}"/>
   <SolidColorBrush x:Key="ScrollBarThumbBrush"
-                   Color="{StaticResource ScrollBarThumbColor}"/>
+                   Color="{DynamicResource ScrollBarThumbColor}"/>
 
   <!-- Master-Detail List Colors (used by Upload, Accounts, Presets views) -->
   <Color x:Key="ListItemSelectedColor">#2A3448</Color>
   <Color x:Key="ListDividerColor">#4D596F</Color>
 
   <SolidColorBrush x:Key="ListItemSelectedBrush"
-                   Color="{StaticResource ListItemSelectedColor}"/>
+                   Color="{DynamicResource ListItemSelectedColor}"/>
   <SolidColorBrush x:Key="ListDividerBrush"
-                   Color="{StaticResource ListDividerColor}"/>
+                   Color="{DynamicResource ListDividerColor}"/>
 
   <!-- Master-Detail List Corner Radius -->
   <CornerRadius x:Key="ListItemSelectedCornerRadius">6,0,0,6</CornerRadius>
@@ -194,120 +197,120 @@
   <Color x:Key="SuccessSelectedColor">#1A4CAF50</Color>
 
   <SolidColorBrush x:Key="ToggleTrackBrush"
-                   Color="{StaticResource ToggleTrackColor}"/>
+                   Color="{DynamicResource ToggleTrackColor}"/>
   <SolidColorBrush x:Key="ToggleThumbOffBrush"
-                   Color="{StaticResource ToggleThumbOffColor}"/>
+                   Color="{DynamicResource ToggleThumbOffColor}"/>
   <SolidColorBrush x:Key="ToggleThumbTextBrush"
-                   Color="{StaticResource ToggleThumbTextColor}"/>
+                   Color="{DynamicResource ToggleThumbTextColor}"/>
   <SolidColorBrush x:Key="SuccessSubtleBrush"
-                   Color="{StaticResource SuccessSubtleColor}"/>
+                   Color="{DynamicResource SuccessSubtleColor}"/>
   <SolidColorBrush x:Key="SuccessOverlayBrush"
-                   Color="{StaticResource SuccessOverlayColor}"/>
+                   Color="{DynamicResource SuccessOverlayColor}"/>
   <SolidColorBrush x:Key="SuccessSelectedBrush"
-                   Color="{StaticResource SuccessSelectedColor}"/>
+                   Color="{DynamicResource SuccessSelectedColor}"/>
 
   <!-- Section Divider (lighter than ListDivider) -->
   <Color x:Key="SectionDividerColor">#6A768C</Color>
   <SolidColorBrush x:Key="SectionDividerBrush"
-                   Color="{StaticResource SectionDividerColor}"/>
+                   Color="{DynamicResource SectionDividerColor}"/>
 
   <!-- TEXT STYLES                                                      -->
 
   <Style x:Key="TextHeadingXL"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeXL}"/>
+            Value="{DynamicResource FontSizeXL}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightSemiBold}"/>
+            Value="{DynamicResource FontWeightSemiBold}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextPrimaryBrush}"/>
+            Value="{DynamicResource TextPrimaryBrush}"/>
   </Style>
 
   <Style x:Key="TextHeadingL"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeL}"/>
+            Value="{DynamicResource FontSizeL}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightSemiBold}"/>
+            Value="{DynamicResource FontWeightSemiBold}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextPrimaryBrush}"/>
+            Value="{DynamicResource TextPrimaryBrush}"/>
   </Style>
 
   <Style x:Key="TextBody"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeM}"/>
+            Value="{DynamicResource FontSizeM}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightNormal}"/>
+            Value="{DynamicResource FontWeightNormal}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextPrimaryBrush}"/>
+            Value="{DynamicResource TextPrimaryBrush}"/>
   </Style>
 
   <Style x:Key="TextSecondary"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeS}"/>
+            Value="{DynamicResource FontSizeS}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightNormal}"/>
+            Value="{DynamicResource FontWeightNormal}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextSecondaryBrush}"/>
+            Value="{DynamicResource TextSecondaryBrush}"/>
   </Style>
 
   <Style x:Key="TextCaption"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeXS}"/>
+            Value="{DynamicResource FontSizeXS}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightNormal}"/>
+            Value="{DynamicResource FontWeightNormal}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextMutedBrush}"/>
+            Value="{DynamicResource TextMutedBrush}"/>
   </Style>
 
   <Style x:Key="TextLabel"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeS}"/>
+            Value="{DynamicResource FontSizeS}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightSemiBold}"/>
+            Value="{DynamicResource FontWeightSemiBold}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextMutedBrush}"/>
+            Value="{DynamicResource TextMutedBrush}"/>
   </Style>
 
   <Style x:Key="SectionHeader"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeM}"/>
+            Value="{DynamicResource FontSizeM}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightSemiBold}"/>
+            Value="{DynamicResource FontWeightSemiBold}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextPrimaryBrush}"/>
+            Value="{DynamicResource TextPrimaryBrush}"/>
   </Style>
 
   <!-- Large Section Header - for main areas -->
   <Style x:Key="SectionHeaderLarge"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource PrimaryFont}"/>
+            Value="{DynamicResource PrimaryFont}"/>
     <Setter Property="FontSize"
-            Value="{StaticResource FontSizeL}"/>
+            Value="{DynamicResource FontSizeL}"/>
     <Setter Property="FontWeight"
-            Value="{StaticResource FontWeightSemiBold}"/>
+            Value="{DynamicResource FontWeightSemiBold}"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextPrimaryBrush}"/>
+            Value="{DynamicResource TextPrimaryBrush}"/>
     <Setter Property="Margin"
             Value="0,0,0,12"/>
   </Style>
@@ -318,7 +321,7 @@
     <Setter Property="Height"
             Value="1"/>
     <Setter Property="Background"
-            Value="{StaticResource BorderBrush}"/>
+            Value="{DynamicResource BorderBrush}"/>
     <Setter Property="Margin"
             Value="0,16,0,16"/>
     <Setter Property="HorizontalAlignment"
@@ -338,7 +341,7 @@
     <Setter Property="Stretch"
             Value="Uniform"/>
     <Setter Property="Fill"
-            Value="{StaticResource TextMutedBrush}"/>
+            Value="{DynamicResource TextMutedBrush}"/>
     <Setter Property="Margin"
             Value="0,0,24,0"/>
   </Style>
@@ -348,7 +351,7 @@
   <Style x:Key="Icon"
          TargetType="TextBlock">
     <Setter Property="FontFamily"
-            Value="{StaticResource MaterialIconsFont}"/>
+            Value="{DynamicResource MaterialIconsFont}"/>
     <!-- Value="Segoe Fluent Icons"/> -->
     <Setter Property="FontSize"
             Value="16"/>
@@ -361,7 +364,7 @@
     <Setter Property="Margin"
             Value="0,0,10,0"/>
     <Setter Property="Foreground"
-            Value="{StaticResource TextSecondaryBrush}"/>
+            Value="{DynamicResource TextSecondaryBrush}"/>
   </Style>
 
   <Style x:Key="IconS"
@@ -402,3 +405,4 @@
   </Style>
 
 </ResourceDictionary>
+

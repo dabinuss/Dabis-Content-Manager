@@ -292,15 +292,15 @@ public partial class AccountsView : UserControl
 
         if (_isYouTubeConnected)
         {
-            YouTubeServiceChipBorder.Background = new SolidColorBrush(Color.FromArgb(0x26, 0x4C, 0xAF, 0x50));
-            YouTubeServiceChipBorder.BorderBrush = (Brush)FindResource("SuccessBrush");
-            YouTubeServiceChip.Foreground = (Brush)FindResource("SuccessBrush");
+            YouTubeServiceChipBorder.SetResourceReference(Border.BackgroundProperty, "SuccessSubtleBrush");
+            YouTubeServiceChipBorder.SetResourceReference(Border.BorderBrushProperty, "SuccessBrush");
+            YouTubeServiceChip.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
         }
         else
         {
-            YouTubeServiceChipBorder.Background = (Brush)FindResource("SurfaceHoverBrush");
-            YouTubeServiceChipBorder.BorderBrush = (Brush)FindResource("BorderBrush");
-            YouTubeServiceChip.Foreground = (Brush)FindResource("TextMutedBrush");
+            YouTubeServiceChipBorder.SetResourceReference(Border.BackgroundProperty, "SurfaceHoverBrush");
+            YouTubeServiceChipBorder.SetResourceReference(Border.BorderBrushProperty, "BorderBrush");
+            YouTubeServiceChip.SetResourceReference(TextBlock.ForegroundProperty, "TextMutedBrush");
         }
     }
 

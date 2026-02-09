@@ -178,12 +178,12 @@ public partial class ChannelView : UserControl
         if (isValid)
         {
             validationGlyph.Text = "\ue5ca"; // check icon
-            validationGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+            validationGlyph.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
         }
         else
         {
             validationGlyph.Text = "\ue5cd"; // close/X icon
-            validationGlyph.Foreground = (Brush)FindResource("DangerBrush");
+            validationGlyph.SetResourceReference(TextBlock.ForegroundProperty, "DangerBrush");
         }
     }
 

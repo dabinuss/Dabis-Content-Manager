@@ -343,12 +343,13 @@ public partial class ClipperView : UserControl
         var drafts = createdDrafts?.ToList() ?? new List<ClipperRenderedDraftResult>();
         if (drafts.Count == 0)
         {
-            RenderResultsListPanel.Children.Add(new TextBlock
+            var noDraftText = new TextBlock
             {
                 Text = LocalizationHelper.Get("Clipper.Results.NoDraftLinks"),
-                FontSize = (double)FindResource("FontSizeXS"),
-                Foreground = (Brush)FindResource("TextMutedBrush")
-            });
+                FontSize = (double)FindResource("FontSizeXS")
+            };
+            noDraftText.SetResourceReference(TextBlock.ForegroundProperty, "TextMutedBrush");
+            RenderResultsListPanel.Children.Add(noDraftText);
             return;
         }
 
@@ -364,20 +365,20 @@ public partial class ClipperView : UserControl
             var title = new TextBlock
             {
                 Text = string.IsNullOrWhiteSpace(draft.Title) ? draft.DraftId.ToString("N") : draft.Title,
-                Foreground = (Brush)FindResource("TextPrimaryBrush"),
                 FontSize = (double)FindResource("FontSizeXS"),
                 VerticalAlignment = VerticalAlignment.Center,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
+            title.SetResourceReference(TextBlock.ForegroundProperty, "TextPrimaryBrush");
 
             var jumpButton = new Button
             {
                 Content = LocalizationHelper.Get("Clipper.Results.JumpToDraft"),
-                Style = (Style)FindResource("TertiaryButton"),
                 Tag = draft.DraftId,
                 Padding = new Thickness(8, 2, 8, 2),
                 Margin = new Thickness(8, 0, 0, 0)
             };
+            jumpButton.SetResourceReference(StyleProperty, "TertiaryButton");
             jumpButton.Click += JumpToRenderedDraftButton_Click;
 
             Grid.SetColumn(title, 0);
@@ -389,12 +390,13 @@ public partial class ClipperView : UserControl
 
         if (drafts.Count > 5)
         {
-            RenderResultsListPanel.Children.Add(new TextBlock
+            var moreDraftsText = new TextBlock
             {
                 Text = LocalizationHelper.Format("Clipper.Results.MoreDrafts", drafts.Count - 5),
-                FontSize = (double)FindResource("FontSizeXS"),
-                Foreground = (Brush)FindResource("TextMutedBrush")
-            });
+                FontSize = (double)FindResource("FontSizeXS")
+            };
+            moreDraftsText.SetResourceReference(TextBlock.ForegroundProperty, "TextMutedBrush");
+            RenderResultsListPanel.Children.Add(moreDraftsText);
         }
     }
 

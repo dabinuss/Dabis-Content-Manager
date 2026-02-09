@@ -4,33 +4,33 @@
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:config="clr-namespace:DCM.Core.Configuration;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
-  <Grid Margin="{StaticResource ViewRootMargin}">
+  <Grid Margin="{DynamicResource ViewRootMargin}">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="{StaticResource SpacingL}"/>
+      <RowDefinition Height="{DynamicResource SpacingL}"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0"
                Text="{DynamicResource Section.Filters}"
-               Style="{StaticResource Control.Text.SectionHeader}"
-               Margin="{StaticResource LabelMarginBottom}"/>
+               Style="{DynamicResource Control.Text.SectionHeader}"
+               Margin="{DynamicResource LabelMarginBottom}"/>
 
     <Border Grid.Row="1"
-            Style="{StaticResource Control.Container.SurfaceCard}"
-            Padding="{StaticResource SpacingAllM}">
+            Style="{DynamicResource Control.Container.SurfaceCard}"
+            Padding="{DynamicResource SpacingAllM}">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="{StaticResource SpacingM}"/>
+          <ColumnDefinition Width="{DynamicResource SpacingM}"/>
           <ColumnDefinition Width="120"/>
-          <ColumnDefinition Width="{StaticResource SpacingL}"/>
+          <ColumnDefinition Width="{DynamicResource SpacingL}"/>
           <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="{StaticResource SpacingM}"/>
+          <ColumnDefinition Width="{DynamicResource SpacingM}"/>
           <ColumnDefinition Width="120"/>
-          <ColumnDefinition Width="{StaticResource SpacingL}"/>
+          <ColumnDefinition Width="{DynamicResource SpacingL}"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Column="0"
@@ -63,12 +63,12 @@
                 Content="{DynamicResource History.Filter.Reset}"
                 Click="HistoryResetFilters_Click"
                 ap:ButtonIcon.Glyph="&#xe5d5;"
-                Style="{StaticResource Control.Button.Secondary}"
+                Style="{DynamicResource Control.Button.Secondary}"
                 Background="Transparent"
-                BorderThickness="{StaticResource BorderThickness0}"
+                BorderThickness="{DynamicResource BorderThickness0}"
                 Padding="0"
-                FontSize="{StaticResource FontSizeS}"
-                Foreground="{StaticResource PrimaryBrush}"
+                FontSize="{DynamicResource FontSizeS}"
+                Foreground="{DynamicResource PrimaryBrush}"
                 Cursor="Hand"
                 VerticalAlignment="Center"/>
 
@@ -77,11 +77,11 @@
 
     <TextBlock Grid.Row="3"
                Text="{DynamicResource Section.HistoryList}"
-               Style="{StaticResource Control.Text.SectionHeader}"
-               Margin="{StaticResource LabelMarginBottom}"/>
+               Style="{DynamicResource Control.Text.SectionHeader}"
+               Margin="{DynamicResource LabelMarginBottom}"/>
 
     <Border Grid.Row="4"
-            Style="{StaticResource Control.Container.SurfaceCard}"
+            Style="{DynamicResource Control.Container.SurfaceCard}"
             Padding="1">
       <DataGrid x:Name="HistoryDataGrid"
                 AutoGenerateColumns="False"
@@ -127,3 +127,4 @@
     </Border>
   </Grid>
 </UserControl>
+

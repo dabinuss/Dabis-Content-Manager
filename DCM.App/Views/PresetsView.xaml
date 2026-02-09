@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:DCM.Core.Models;assembly=DCM.Core"
              xmlns:ap="clr-namespace:DCM.App.Infrastructure.AttachedProperties">
-  <Grid Margin="{StaticResource ViewRootMargin}">
+  <Grid Margin="{DynamicResource ViewRootMargin}">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="320"/>
       <ColumnDefinition Width="1"/>
@@ -11,15 +11,15 @@
     </Grid.ColumnDefinitions>
 
     <Border Grid.Column="1"
-            Style="{StaticResource Control.Divider.MasterDetail}"/>
+            Style="{DynamicResource Control.Divider.MasterDetail}"/>
 
     <Grid Grid.Column="0"
           Margin="8,8,0,8">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingS}"/>
+        <RowDefinition Height="{DynamicResource SpacingS}"/>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingS}"/>
+        <RowDefinition Height="{DynamicResource SpacingS}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
@@ -27,34 +27,34 @@
                  VerticalAlignment="Top"
                  Margin="0,0,8,0">
         <Button Content="{DynamicResource Common.Add}"
-                Style="{StaticResource Control.Button.Secondary}"
+                Style="{DynamicResource Control.Button.Secondary}"
                 ap:ButtonIcon.Glyph="&#xe145;"
                 Click="PresetNewButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="{StaticResource ButtonMinWidthM}"/>
+                MinWidth="{DynamicResource ButtonMinWidthM}"/>
         <Button Content="{DynamicResource Common.Edit}"
-                Style="{StaticResource Control.Button.Secondary}"
+                Style="{DynamicResource Control.Button.Secondary}"
                 ap:ButtonIcon.Glyph="&#xe3c9;"
                 Click="PresetEditButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="{StaticResource ButtonMinWidthM}"/>
+                MinWidth="{DynamicResource ButtonMinWidthM}"/>
         <Button Content="{DynamicResource Common.Delete}"
-                Style="{StaticResource Control.Button.Danger}"
+                Style="{DynamicResource Control.Button.Danger}"
                 ap:ButtonIcon.Glyph="&#xe872;"
                 Click="PresetDeleteButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="{StaticResource ButtonMinWidthM}"/>
+                MinWidth="{DynamicResource ButtonMinWidthM}"/>
         <Button Content="{DynamicResource Common.Save}"
-                Style="{StaticResource Control.Button.Primary}"
+                Style="{DynamicResource Control.Button.Primary}"
                 ap:ButtonIcon.Glyph="&#xe161;"
                 Click="PresetSaveButton_Click"
                 Margin="0,0,8,8"
-                MinWidth="{StaticResource ButtonMinWidthM}"/>
+                MinWidth="{DynamicResource ButtonMinWidthM}"/>
       </WrapPanel>
 
       <TextBlock Grid.Row="2"
                  Text="{DynamicResource Presets.Header}"
-                 Style="{StaticResource Control.Text.SectionHeader}"
+                 Style="{DynamicResource Control.Text.SectionHeader}"
                  Margin="0,0,8,0"/>
 
       <Border Grid.Row="4"
@@ -102,25 +102,25 @@
                 <Border.Style>
                   <Style TargetType="Border">
                     <Setter Property="Background"
-                            Value="{StaticResource SurfaceElevatedBrush}"/>
+                            Value="{DynamicResource SurfaceElevatedBrush}"/>
                     <Setter Property="BorderBrush"
-                            Value="{StaticResource BorderBrush}"/>
+                            Value="{DynamicResource BorderBrush}"/>
                     <Setter Property="CornerRadius"
-                            Value="{StaticResource RadiusS}"/>
+                            Value="{DynamicResource RadiusS}"/>
                     <Style.Triggers>
                       <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}"
                                    Value="True">
                         <Setter Property="Background"
-                                Value="{StaticResource SurfaceHoverBrush}"/>
+                                Value="{DynamicResource SurfaceHoverBrush}"/>
                         <Setter Property="BorderBrush"
-                                Value="{StaticResource BorderHoverBrush}"/>
+                                Value="{DynamicResource BorderHoverBrush}"/>
                       </DataTrigger>
                       <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}"
                                    Value="True">
                         <Setter Property="Background"
-                                Value="{StaticResource SurfacePressedBrush}"/>
+                                Value="{DynamicResource SurfacePressedBrush}"/>
                         <Setter Property="BorderBrush"
-                                Value="{StaticResource BorderStrongBrush}"/>
+                                Value="{DynamicResource BorderStrongBrush}"/>
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
@@ -131,8 +131,8 @@
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
                   <TextBlock Text="{Binding Name}"
-                             FontSize="{StaticResource FontSizeS}"
-                             Foreground="{StaticResource TextPrimaryBrush}"
+                             FontSize="{DynamicResource FontSizeS}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              TextTrimming="CharacterEllipsis"
                              VerticalAlignment="Center"/>
                   <Button Grid.Column="1"
@@ -145,11 +145,11 @@
                           CommandParameter="{Binding}"
                           PreviewMouseLeftButtonDown="PresetDefaultToggleButton_PreviewMouseLeftButtonDown"
                           Click="PresetDefaultToggleButton_Click">
-                    <Border Padding="{StaticResource PaddingCompact}"
-                            CornerRadius="{StaticResource RadiusS}"
-                            Background="{StaticResource SurfaceHoverBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="{StaticResource BorderThickness1}"
+                    <Border Padding="{DynamicResource PaddingCompact}"
+                            CornerRadius="{DynamicResource RadiusS}"
+                            Background="{DynamicResource SurfaceHoverBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="{DynamicResource BorderThickness1}"
                             VerticalAlignment="Center">
                       <Border.Style>
                         <Style TargetType="Border">
@@ -161,15 +161,15 @@
                               <Setter Property="Opacity"
                                       Value="1"/>
                               <Setter Property="BorderBrush"
-                                      Value="{StaticResource BorderStrongBrush}"/>
+                                      Value="{DynamicResource BorderStrongBrush}"/>
                             </DataTrigger>
                           </Style.Triggers>
                         </Style>
                       </Border.Style>
                       <StackPanel Orientation="Horizontal">
-                        <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
-                                   FontSize="{StaticResource FontSizeM}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                        <TextBlock FontFamily="{DynamicResource MaterialIconsFont}"
+                                   FontSize="{DynamicResource FontSizeM}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="0,0,4,0">
                           <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -186,8 +186,8 @@
                           </TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="{DynamicResource Presets.Badge.Default}"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextSecondaryBrush}">
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}">
                           <TextBlock.Style>
                             <Style TargetType="TextBlock">
                               <Setter Property="Visibility"
@@ -217,7 +217,7 @@
           Margin="8,8,8,8">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <RowDefinition Height="{StaticResource SpacingXL}"/>
+        <RowDefinition Height="{DynamicResource SpacingXL}"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
 
@@ -227,26 +227,26 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <TextBlock Text="{DynamicResource Presets.Edit}"
-                   Style="{StaticResource Control.Text.SectionHeader}"/>
+                   Style="{DynamicResource Control.Text.SectionHeader}"/>
         <Border x:Name="PresetDirtyBadge"
                 Grid.Column="1"
-                Padding="{StaticResource PaddingCompact}"
+                Padding="{DynamicResource PaddingCompact}"
                 Margin="8,0,0,0"
-                CornerRadius="{StaticResource RadiusS}"
-                Background="{StaticResource SurfaceHoverBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="{StaticResource BorderThickness1}"
+                CornerRadius="{DynamicResource RadiusS}"
+                Background="{DynamicResource SurfaceHoverBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="{DynamicResource BorderThickness1}"
                 VerticalAlignment="Center"
                 Visibility="Collapsed">
           <StackPanel Orientation="Horizontal">
-            <TextBlock FontFamily="{StaticResource MaterialIconsFont}"
+            <TextBlock FontFamily="{DynamicResource MaterialIconsFont}"
                        Text="&#xe001;"
-                       FontSize="{StaticResource FontSizeM}"
-                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="{DynamicResource FontSizeM}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
                        Margin="0,0,4,0"/>
             <TextBlock Text="{DynamicResource Presets.Badge.Unsaved}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"/>
           </StackPanel>
         </Border>
       </Grid>
@@ -282,14 +282,14 @@
           </Grid.Style>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
+          <ColumnDefinition Width="{DynamicResource SpacingXXL}"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingXL}"/>
+          <RowDefinition Height="{DynamicResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
-          <RowDefinition Height="{StaticResource SpacingXL}"/>
+          <RowDefinition Height="{DynamicResource SpacingXL}"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -304,9 +304,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Presets.Section.Info}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+              <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Presets.Tooltip.SectionInfo.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
@@ -317,17 +317,17 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
               <Label Content="{DynamicResource Presets.Fields.Name}" Padding="0"/>
-              <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+              <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                       ToolTip="{DynamicResource Presets.Tooltip.Name.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </StackPanel>
             <TextBox x:Name="PresetNameTextBox"
@@ -369,9 +369,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Presets.Section.Basic}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+              <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Presets.Tooltip.SectionBasic.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
@@ -382,15 +382,15 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
               <Label Content="{DynamicResource Presets.Fields.TitlePrefix}" Padding="0"/>
-              <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+              <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                       ToolTip="{DynamicResource Presets.Tooltip.TitlePrefix.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </StackPanel>
             <TextBox x:Name="PresetTitlePrefixTextBox"
@@ -400,9 +400,9 @@
 
             <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
               <Label Content="{DynamicResource Presets.Fields.Tags}" Padding="0"/>
-              <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+              <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                       ToolTip="{DynamicResource Presets.Tooltip.Tags.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </StackPanel>
             <TextBox x:Name="PresetTagsTextBox"
@@ -422,9 +422,9 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Presets.Section.Publishing}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+              <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Presets.Tooltip.SectionPublishing.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
@@ -435,15 +435,15 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
@@ -540,35 +540,35 @@
                 <ColumnDefinition Width="Auto"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Text="{DynamicResource Presets.Section.Template}" VerticalAlignment="Center"/>
-              <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+              <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                       ToolTip="{DynamicResource Presets.Tooltip.SectionTemplate.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </Grid>
           </GroupBox.Header>
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="*"/>
-              <RowDefinition Height="{StaticResource SpacingM}"/>
+              <RowDefinition Height="{DynamicResource SpacingM}"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Orientation="Horizontal">
               <TextBlock Text="{DynamicResource Presets.Fields.TemplateBody}"
-                         Foreground="{StaticResource TextMutedBrush}"
-                         FontSize="{StaticResource FontSizeM}"/>
-              <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeM}"/>
+              <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                       ToolTip="{DynamicResource Presets.Tooltip.DescriptionTemplate.Example}">
-                <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
               </Border>
             </StackPanel>
             <TextBox x:Name="PresetDescriptionTemplateTextBox"
                      Grid.Row="2"
                      AcceptsReturn="True"
                      TextWrapping="Wrap"
-                     MinHeight="{StaticResource CardMinHeightM}"
+                     MinHeight="{DynamicResource CardMinHeightM}"
                      TextChanged="PresetEditorField_Changed"
                      VerticalScrollBarVisibility="Auto"
                      ToolTip="{DynamicResource Presets.DescriptionTemplate.Tooltip}"/>
@@ -576,13 +576,13 @@
             <Grid Grid.Row="4">
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{StaticResource SpacingS}"/>
+                <RowDefinition Height="{DynamicResource SpacingS}"/>
                 <RowDefinition Height="Auto"/>
               </Grid.RowDefinitions>
               <TextBlock Grid.Row="0"
                          Text="{DynamicResource Presets.Placeholders.Insert}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"/>
+                         FontSize="{DynamicResource FontSizeS}"
+                         Foreground="{DynamicResource TextMutedBrush}"/>
               <ItemsControl x:Name="PlaceholderItemsControl"
                             Grid.Row="2">
                 <ItemsControl.ItemsPanel>
@@ -594,9 +594,9 @@
                   <DataTemplate>
                     <Button Content="{Binding}"
                             Margin="0,0,8,8"
-                            Style="{StaticResource Control.Button.Secondary}"
+                            Style="{DynamicResource Control.Button.Secondary}"
                             ap:ButtonIcon.Glyph="&#xe892;"
-                            Padding="{StaticResource CardPaddingS}"
+                            Padding="{DynamicResource CardPaddingS}"
                             Click="PlaceholderButton_Click"/>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -625,7 +625,7 @@
               </Style.Triggers>
             </Style>
           </Border.Style>
-          <Grid MinHeight="{StaticResource DetailPanelMinHeight}"
+          <Grid MinHeight="{DynamicResource DetailPanelMinHeight}"
                 VerticalAlignment="Stretch"
                 HorizontalAlignment="Stretch">
             <Grid.RowDefinitions>
@@ -636,24 +636,24 @@
             <StackPanel Grid.Row="1"
                         HorizontalAlignment="Center"
                         Margin="32">
-              <TextBlock Style="{StaticResource Control.Icon.Base}"
+              <TextBlock Style="{DynamicResource Control.Icon.Base}"
                          Text="&#xe8b8;"
-                         FontSize="{StaticResource FontSizeXXXXL}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeXXXXL}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Center"
-                         Margin="{StaticResource LabelMarginBottomXL}"/>
+                         Margin="{DynamicResource LabelMarginBottomXL}"/>
               <TextBlock Text="{DynamicResource Presets.Empty.Title}"
-                         FontSize="{StaticResource FontSizeXXL}"
-                         FontWeight="{StaticResource FontWeightSemiBold}"
-                         Foreground="{StaticResource TextPrimaryBrush}"
+                         FontSize="{DynamicResource FontSizeXXL}"
+                         FontWeight="{DynamicResource FontWeightSemiBold}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{DynamicResource Presets.Empty.Subtitle}"
-                         FontSize="{StaticResource FontSizeM}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeM}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Center"
-                         Margin="{StaticResource LabelMarginTopL}"/>
+                         Margin="{DynamicResource LabelMarginTopL}"/>
               <Button Content="{DynamicResource Presets.Empty.Action}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xe145;"
                       Click="PresetNewButton_Click"
                       Margin="0,16,0,0"
@@ -666,3 +666,4 @@
     </Grid>
   </Grid>
 </UserControl>
+

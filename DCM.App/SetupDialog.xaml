@@ -15,10 +15,10 @@
         MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
   <Border x:Name="RootBorder"
-          BorderBrush="{StaticResource BorderBrush}"
+          BorderBrush="{DynamicResource BorderBrush}"
           BorderThickness="1"
-          CornerRadius="{StaticResource RadiusM}"
-          Background="{StaticResource BackgroundBrush}">
+          CornerRadius="{DynamicResource RadiusM}"
+          Background="{DynamicResource BackgroundBrush}">
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
@@ -43,23 +43,23 @@
         <Button.Template>
           <ControlTemplate TargetType="Button">
             <Border Background="{TemplateBinding Background}"
-                    CornerRadius="{StaticResource RadiusS}">
+                    CornerRadius="{DynamicResource RadiusS}">
               <ContentPresenter HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
               </Trigger>
               <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource SurfacePressedBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource SurfacePressedBrush}"/>
               </Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
         </Button.Template>
-        <TextBlock Style="{StaticResource Control.Icon.L}"
+        <TextBlock Style="{DynamicResource Control.Icon.L}"
                    Text="&#xe5cd;"
-                   Foreground="{StaticResource TextMutedBrush}"
+                   Foreground="{DynamicResource TextMutedBrush}"
                    Margin="0"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
@@ -79,13 +79,13 @@
 
           <!-- App Name -->
           <TextBlock Text="{DynamicResource App.Name}"
-                     Style="{StaticResource Control.Text.Heading.XL}"
+                     Style="{DynamicResource Control.Text.Heading.XL}"
                      HorizontalAlignment="Center"
                      Margin="0,0,0,12"/>
 
           <!-- App Description -->
           <TextBlock Text="{DynamicResource Setup.AppDescription}"
-                     Style="{StaticResource Control.Text.Secondary}"
+                     Style="{DynamicResource Control.Text.Secondary}"
                      TextAlignment="Center"
                      TextWrapping="Wrap"
                      MaxWidth="420"
@@ -95,14 +95,14 @@
           <!-- Privacy Note -->
           <StackPanel Orientation="Horizontal"
                       HorizontalAlignment="Center">
-            <TextBlock Style="{StaticResource Control.Icon.M}"
+            <TextBlock Style="{DynamicResource Control.Icon.M}"
                        Text="&#xe897;"
-                       Foreground="{StaticResource SuccessBrush}"
+                       Foreground="{DynamicResource SuccessBrush}"
                        VerticalAlignment="Center"
                        Margin="0,0,6,0"/>
             <TextBlock Text="{DynamicResource Setup.PrivacyNote}"
-                       Style="{StaticResource Control.Text.Caption}"
-                       Foreground="{StaticResource SuccessBrush}"
+                       Style="{DynamicResource Control.Text.Caption}"
+                       Foreground="{DynamicResource SuccessBrush}"
                        VerticalAlignment="Center"/>
           </StackPanel>
         </StackPanel>
@@ -111,7 +111,7 @@
       <!-- Divider -->
       <Border Grid.Row="0"
               Height="1"
-              Background="{StaticResource BorderBrush}"
+              Background="{DynamicResource BorderBrush}"
               VerticalAlignment="Bottom"
               Margin="24,0"/>
 
@@ -122,7 +122,7 @@
         <StackPanel>
           <!-- Transcription Card -->
           <Border x:Name="TranscriptionCard"
-                  Style="{StaticResource Control.Container.SurfaceCard}"
+                  Style="{DynamicResource Control.Container.SurfaceCard}"
                   Padding="16"
                   Margin="0,0,0,16">
             <Grid>
@@ -142,13 +142,13 @@
                       Grid.RowSpan="2"
                       Width="48"
                       Height="48"
-                      CornerRadius="{StaticResource RadiusS}"
-                      Background="{StaticResource SurfaceLightBrush}"
+                      CornerRadius="{DynamicResource RadiusS}"
+                      Background="{DynamicResource SurfaceLightBrush}"
                       VerticalAlignment="Top"
                       Margin="0,0,14,0">
-                <TextBlock Style="{StaticResource Control.Icon.XL}"
+                <TextBlock Style="{DynamicResource Control.Icon.XL}"
                            Text="&#xe029;"
-                           Foreground="{StaticResource PrimaryBrush}"
+                           Foreground="{DynamicResource PrimaryBrush}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Margin="0"/>
@@ -160,11 +160,11 @@
                           Orientation="Horizontal"
                           Margin="0,0,0,4">
                 <TextBlock Text="{DynamicResource Setup.Transcription.Title}"
-                           Style="{StaticResource Control.Text.SectionHeader}"
+                           Style="{DynamicResource Control.Text.SectionHeader}"
                            VerticalAlignment="Center"/>
                 <TextBlock x:Name="TranscriptionSizeText"
                            Text="~466 MB"
-                           Style="{StaticResource Control.Text.Caption}"
+                           Style="{DynamicResource Control.Text.Caption}"
                            VerticalAlignment="Center"
                            Margin="10,0,0,0"/>
               </StackPanel>
@@ -173,7 +173,7 @@
               <TextBlock Grid.Column="1"
                          Grid.Row="1"
                          Text="{DynamicResource Setup.Transcription.Description}"
-                         Style="{StaticResource Control.Text.Secondary}"
+                         Style="{DynamicResource Control.Text.Secondary}"
                          TextWrapping="Wrap"
                          Margin="0,0,12,0"/>
 
@@ -189,17 +189,17 @@
                   <Ellipse x:Name="TranscriptionStatusIndicator"
                            Width="8"
                            Height="8"
-                           Fill="{StaticResource TextMutedBrush}"
+                           Fill="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center"
                            Margin="0,0,6,0"/>
                   <TextBlock x:Name="TranscriptionStatusText"
                              Text="{DynamicResource Setup.Status.NotInstalled}"
-                             Style="{StaticResource Control.Text.Caption}"
+                             Style="{DynamicResource Control.Text.Caption}"
                              VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button x:Name="TranscriptionInstallButton"
                         Content="{DynamicResource Setup.Button.Install}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         MinWidth="100"
                         Click="TranscriptionInstallButton_Click"/>
               </StackPanel>
@@ -216,7 +216,7 @@
                              Value="0"
                              Visibility="Collapsed"/>
                 <TextBlock x:Name="TranscriptionProgressText"
-                           Style="{StaticResource Control.Text.Caption}"
+                           Style="{DynamicResource Control.Text.Caption}"
                            HorizontalAlignment="Right"
                            Margin="0,10,0,0"
                            Visibility="Collapsed"/>
@@ -226,7 +226,7 @@
 
           <!-- LLM Card -->
           <Border x:Name="LlmCard"
-                  Style="{StaticResource Control.Container.SurfaceCard}"
+                  Style="{DynamicResource Control.Container.SurfaceCard}"
                   Padding="16"
                   Margin="0,0,0,16">
             <Grid>
@@ -246,13 +246,13 @@
                       Grid.RowSpan="2"
                       Width="48"
                       Height="48"
-                      CornerRadius="{StaticResource RadiusS}"
-                      Background="{StaticResource SurfaceLightBrush}"
+                      CornerRadius="{DynamicResource RadiusS}"
+                      Background="{DynamicResource SurfaceLightBrush}"
                       VerticalAlignment="Top"
                       Margin="0,0,14,0">
-                <TextBlock Style="{StaticResource Control.Icon.XL}"
+                <TextBlock Style="{DynamicResource Control.Icon.XL}"
                            Text="&#xe90b;"
-                           Foreground="{StaticResource MagicAIBrush}"
+                           Foreground="{DynamicResource MagicAIBrush}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Margin="0"/>
@@ -264,11 +264,11 @@
                           Orientation="Horizontal"
                           Margin="0,0,0,4">
                 <TextBlock Text="{DynamicResource Setup.LLM.Title}"
-                           Style="{StaticResource Control.Text.SectionHeader}"
+                           Style="{DynamicResource Control.Text.SectionHeader}"
                            VerticalAlignment="Center"/>
                 <TextBlock x:Name="LlmSizeText"
                            Text="~2.2 GB"
-                           Style="{StaticResource Control.Text.Caption}"
+                           Style="{DynamicResource Control.Text.Caption}"
                            VerticalAlignment="Center"
                            Margin="10,0,0,0"/>
               </StackPanel>
@@ -277,7 +277,7 @@
               <TextBlock Grid.Column="1"
                          Grid.Row="1"
                          Text="{DynamicResource Setup.LLM.Description}"
-                         Style="{StaticResource Control.Text.Secondary}"
+                         Style="{DynamicResource Control.Text.Secondary}"
                          TextWrapping="Wrap"
                          Margin="0,0,12,0"/>
 
@@ -293,17 +293,17 @@
                   <Ellipse x:Name="LlmStatusIndicator"
                            Width="8"
                            Height="8"
-                           Fill="{StaticResource TextMutedBrush}"
+                           Fill="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center"
                            Margin="0,0,6,0"/>
                   <TextBlock x:Name="LlmStatusText"
                              Text="{DynamicResource Setup.Status.NotInstalled}"
-                             Style="{StaticResource Control.Text.Caption}"
+                             Style="{DynamicResource Control.Text.Caption}"
                              VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button x:Name="LlmInstallButton"
                         Content="{DynamicResource Setup.Button.Install}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         MinWidth="100"
                         Click="LlmInstallButton_Click"/>
               </StackPanel>
@@ -320,7 +320,7 @@
                              Value="0"
                              Visibility="Collapsed"/>
                 <TextBlock x:Name="LlmProgressText"
-                           Style="{StaticResource Control.Text.Caption}"
+                           Style="{DynamicResource Control.Text.Caption}"
                            HorizontalAlignment="Right"
                            Margin="0,10,0,0"
                            Visibility="Collapsed"/>
@@ -329,18 +329,18 @@
           </Border>
 
           <!-- Info Note -->
-          <Border Background="{StaticResource SurfaceLightBrush}"
-                  CornerRadius="{StaticResource RadiusS}"
+          <Border Background="{DynamicResource SurfaceLightBrush}"
+                  CornerRadius="{DynamicResource RadiusS}"
                   Padding="12"
                   Margin="0,0,0,8">
             <StackPanel Orientation="Horizontal">
-              <TextBlock Style="{StaticResource Control.Icon.M}"
+              <TextBlock Style="{DynamicResource Control.Icon.M}"
                          Text="&#xe88e;"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Top"
                          Margin="0,2,8,0"/>
               <TextBlock Text="{DynamicResource Setup.InfoNote}"
-                         Style="{StaticResource Control.Text.Caption}"
+                         Style="{DynamicResource Control.Text.Caption}"
                          TextWrapping="Wrap"
                          VerticalAlignment="Center"/>
             </StackPanel>
@@ -350,7 +350,7 @@
 
       <!-- Footer Section -->
       <Border Grid.Row="2"
-              BorderBrush="{StaticResource BorderBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
               BorderThickness="0,1,0,0"
               Padding="24,16">
         <Grid>
@@ -363,7 +363,7 @@
           <CheckBox x:Name="DontShowAgainCheckBox"
                     Grid.Column="0"
                     Content="{DynamicResource Setup.DontShowAgain}"
-                    Foreground="{StaticResource TextMutedBrush}"
+                    Foreground="{DynamicResource TextMutedBrush}"
                     VerticalAlignment="Center"/>
 
           <!-- Buttons -->
@@ -371,7 +371,7 @@
                       Orientation="Horizontal">
             <Button x:Name="ContinueButton"
                     Content="{DynamicResource Setup.Button.Continue}"
-                    Style="{StaticResource Control.Button.Primary}"
+                    Style="{DynamicResource Control.Button.Primary}"
                     MinWidth="140"
                     ap:ButtonIcon.Glyph="&#xe5c8;"
                     Click="ContinueButton_Click"/>
@@ -381,3 +381,4 @@
     </Grid>
   </Border>
 </Window>
+

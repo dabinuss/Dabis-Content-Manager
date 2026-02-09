@@ -96,21 +96,21 @@ public partial class SetupDialog : Window
     {
         if (_transcriptionInstalled)
         {
-            TranscriptionStatusIndicator.Fill = (Brush)FindResource("SuccessBrush");
+            TranscriptionStatusIndicator.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "SuccessBrush");
             TranscriptionStatusText.Text = LocalizationHelper.Get("Setup.Status.Installed");
             TranscriptionInstallButton.Content = LocalizationHelper.Get("Setup.Button.Installed");
             TranscriptionInstallButton.IsEnabled = false;
         }
         else if (_isTranscriptionDownloading)
         {
-            TranscriptionStatusIndicator.Fill = (Brush)FindResource("PrimaryBrush");
+            TranscriptionStatusIndicator.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "PrimaryBrush");
             TranscriptionStatusText.Text = LocalizationHelper.Get("Setup.Status.Downloading");
             TranscriptionInstallButton.Content = LocalizationHelper.Get("Setup.Button.Cancel");
             TranscriptionInstallButton.IsEnabled = true;
         }
         else
         {
-            TranscriptionStatusIndicator.Fill = (Brush)FindResource("TextMutedBrush");
+            TranscriptionStatusIndicator.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "TextMutedBrush");
             TranscriptionStatusText.Text = LocalizationHelper.Get("Setup.Status.NotInstalled");
             TranscriptionInstallButton.Content = LocalizationHelper.Get("Setup.Button.Install");
             TranscriptionInstallButton.IsEnabled = true;
@@ -121,21 +121,21 @@ public partial class SetupDialog : Window
     {
         if (_llmInstalled)
         {
-            LlmStatusIndicator.Fill = (Brush)FindResource("SuccessBrush");
+            LlmStatusIndicator.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "SuccessBrush");
             LlmStatusText.Text = LocalizationHelper.Get("Setup.Status.Installed");
             LlmInstallButton.Content = LocalizationHelper.Get("Setup.Button.Installed");
             LlmInstallButton.IsEnabled = false;
         }
         else if (_isLlmDownloading)
         {
-            LlmStatusIndicator.Fill = (Brush)FindResource("PrimaryBrush");
+            LlmStatusIndicator.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "PrimaryBrush");
             LlmStatusText.Text = LocalizationHelper.Get("Setup.Status.Downloading");
             LlmInstallButton.Content = LocalizationHelper.Get("Setup.Button.Cancel");
             LlmInstallButton.IsEnabled = true;
         }
         else
         {
-            LlmStatusIndicator.Fill = (Brush)FindResource("TextMutedBrush");
+            LlmStatusIndicator.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "TextMutedBrush");
             LlmStatusText.Text = LocalizationHelper.Get("Setup.Status.NotInstalled");
             LlmInstallButton.Content = LocalizationHelper.Get("Setup.Button.Install");
             LlmInstallButton.IsEnabled = true;

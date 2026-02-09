@@ -13,7 +13,7 @@
       <sys:Int32>5</sys:Int32>
     </x:Array>
   </UserControl.Resources>
-  <Grid Margin="{StaticResource ViewRootMargin}">
+  <Grid Margin="{DynamicResource ViewRootMargin}">
     <Grid.RowDefinitions>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
@@ -21,11 +21,11 @@
     <ScrollViewer Grid.Row="0"
                   VerticalScrollBarVisibility="Auto">
       <Grid HorizontalAlignment="Stretch"
-            MaxWidth="{StaticResource SettingsContentMaxWidth}"
+            MaxWidth="{DynamicResource SettingsContentMaxWidth}"
             VerticalAlignment="Top">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="{StaticResource SpacingXXL}"/>
+          <ColumnDefinition Width="{DynamicResource SpacingXXL}"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -33,13 +33,13 @@
         <Grid Grid.Column="0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="{StaticResource SpacingXL}"/>
+            <RowDefinition Height="{DynamicResource SpacingXL}"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
 
           <!-- BOX 1: KI-Modell -->
           <GroupBox Grid.Row="0"
-                    Style="{StaticResource Control.GroupBox.Settings.Section}">
+                    Style="{DynamicResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -47,9 +47,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Model}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+                <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.LlmMode.Example}">
-                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                  <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>
@@ -71,10 +71,10 @@
               <!-- Aktivierung -->
               <TextBlock Grid.Row="0"
                          Text="{DynamicResource Settings.LLM.Status.Label}"
-                         Style="{StaticResource Control.Text.Label}"/>
+                         Style="{DynamicResource Control.Text.Label}"/>
               <ComboBox Grid.Row="1"
                         x:Name="LlmModeComboBox"
-                        MinWidth="{StaticResource InputMinWidthM}"
+                        MinWidth="{DynamicResource InputMinWidthM}"
                         SelectionChanged="LlmModeComboBox_SelectionChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.LLM.Off}"
                               Tag="Off"/>
@@ -85,8 +85,8 @@
               <!-- Modell-Auswahl -->
               <TextBlock Grid.Row="2"
                          Text="{DynamicResource Settings.LLM.Model.Select}"
-                         Style="{StaticResource Control.Text.Label}"
-                         Margin="{StaticResource LabelMarginTop}"/>
+                         Style="{DynamicResource Control.Text.Label}"
+                         Margin="{DynamicResource LabelMarginTop}"/>
               <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
@@ -94,7 +94,7 @@
                 </Grid.ColumnDefinitions>
                 <ComboBox x:Name="LlmModelPresetComboBox"
                           Grid.Column="0"
-                          MinWidth="{StaticResource InputMinWidthM}"
+                          MinWidth="{DynamicResource InputMinWidthM}"
                           SelectionChanged="LlmModelPresetComboBox_SelectionChanged">
                   <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelPreset.Phi3Mini}"
                                 Tag="Phi3Mini4kQ4"/>
@@ -104,7 +104,7 @@
                 <Button x:Name="LlmModelDownloadButton"
                         Grid.Column="1"
                         Content="{DynamicResource Settings.LLM.Download}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe2c4;"
                         Margin="8,0,0,0"
                         Click="LlmModelDownloadButton_Click"/>
@@ -114,30 +114,30 @@
               <Grid Grid.Row="4"
                     x:Name="LlmDownloadProgressPanel"
                     Visibility="Collapsed"
-                    Margin="{StaticResource LabelMarginTop}">
+                    Margin="{DynamicResource LabelMarginTop}">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
                   <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <ProgressBar Grid.Row="0"
                              x:Name="LlmDownloadProgressBar"
-                             Height="{StaticResource ProgressBarHeight}"
+                             Height="{DynamicResource ProgressBarHeight}"
                              Minimum="0"
                              Maximum="100"
                              Value="0"/>
                 <TextBlock Grid.Row="1"
                            x:Name="LlmDownloadProgressText"
-                           FontSize="{StaticResource FontSizeS}"
-                           Foreground="{StaticResource TextMutedBrush}"
-                           Margin="{StaticResource LabelMarginTopSmall}"/>
+                           FontSize="{DynamicResource FontSizeS}"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           Margin="{DynamicResource LabelMarginTopSmall}"/>
               </Grid>
 
               <!-- Eigenes Modell: Pfad -->
               <TextBlock Grid.Row="5"
                          x:Name="LlmCustomPathLabel"
                          Text="{DynamicResource Settings.LLM.Model.Path}"
-                         Style="{StaticResource Control.Text.Label}"
-                         Margin="{StaticResource LabelMarginTop}"
+                         Style="{DynamicResource Control.Text.Label}"
+                         Margin="{DynamicResource LabelMarginTop}"
                          Visibility="Collapsed"/>
               <Grid Grid.Row="6"
                     x:Name="LlmCustomPathPanel"
@@ -148,13 +148,13 @@
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="LlmModelPathTextBox"
                          Grid.Column="0"
-                         MinWidth="{StaticResource InputMinWidthXL}"
+                         MinWidth="{DynamicResource InputMinWidthXL}"
                          HorizontalAlignment="Stretch"
                          TextChanged="OnSettingChanged"/>
                 <Button x:Name="LlmModelPathBrowseButton"
                         Grid.Column="1"
                         Content="{DynamicResource Settings.ChoosePath}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe2c8;"
                         Margin="8,0,0,0"
                         Click="LlmModelPathBrowseButton_Click"/>
@@ -164,12 +164,12 @@
               <TextBlock Grid.Row="7"
                          x:Name="LlmModelTypeLabel"
                          Text="{DynamicResource Settings.LLM.Model.Type}"
-                         Style="{StaticResource Control.Text.Label}"
-                         Margin="{StaticResource LabelMarginTop}"
+                         Style="{DynamicResource Control.Text.Label}"
+                         Margin="{DynamicResource LabelMarginTop}"
                          Visibility="Collapsed"/>
               <ComboBox Grid.Row="8"
                         x:Name="LlmModelTypeComboBox"
-                        MinWidth="{StaticResource InputMinWidthM}"
+                        MinWidth="{DynamicResource InputMinWidthM}"
                         Visibility="Collapsed"
                         SelectionChanged="OnComboBoxSettingChanged">
                 <ComboBoxItem Content="{DynamicResource Settings.LLM.ModelType.Detect}"
@@ -182,26 +182,26 @@
               </ComboBox>
 
               <!-- Status -->
-              <Grid Grid.Row="9" Margin="{StaticResource LabelMarginTop}">
+              <Grid Grid.Row="9" Margin="{DynamicResource LabelMarginTop}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0"
                            Text="{DynamicResource Settings.LLM.Model.Status}"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            Margin="0,0,8,0"/>
                 <TextBlock Grid.Column="1"
                            x:Name="LlmStatusTextBlock"
                            Text="{DynamicResource Settings.LLM.Status}"
-                           Foreground="{StaticResource TextMutedBrush}"/>
+                           Foreground="{DynamicResource TextMutedBrush}"/>
               </Grid>
             </Grid>
           </GroupBox>
 
           <!-- BOX 2: Generierung -->
           <GroupBox Grid.Row="2"
-                    Style="{StaticResource Control.GroupBox.Settings.Section}">
+                    Style="{DynamicResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -209,9 +209,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Generation}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+                <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.LlmParameters.Example}">
-                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                  <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>
@@ -231,34 +231,34 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0"
                            Text="{DynamicResource Settings.LLM.Generation.MaxTokens}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                   <TextBox x:Name="LlmMaxTokensTextBox"
-                           Width="{StaticResource InputMinWidthXS}"
+                           Width="{DynamicResource InputMinWidthXS}"
                            Text="{DynamicResource Settings.LLM.Parameters.MaxToken.Default}"
                            TextChanged="OnSettingChanged"/>
                   <TextBlock Text="{DynamicResource Settings.LLM.MaxTokensHint}"
-                             FontSize="{StaticResource FontSizeXS}"
-                             Foreground="{StaticResource TextMutedBrush}"
+                             FontSize="{DynamicResource FontSizeXS}"
+                             Foreground="{DynamicResource TextMutedBrush}"
                              VerticalAlignment="Center"
                              Margin="8,0,0,0"/>
                 </StackPanel>
               </Grid>
 
               <!-- Temperatur -->
-              <Grid Grid.Row="1" Margin="{StaticResource LabelMarginTop}">
+              <Grid Grid.Row="1" Margin="{DynamicResource LabelMarginTop}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0"
                            Text="{DynamicResource Settings.LLM.Generation.Creativity}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                   <Slider x:Name="LlmTemperatureSlider"
-                          Width="{StaticResource SliderWidth}"
+                          Width="{DynamicResource SliderWidth}"
                           Minimum="0"
                           Maximum="1"
                           Value="0.3"
@@ -277,8 +277,8 @@
               <!-- System Prompt -->
               <TextBlock Grid.Row="2"
                          Text="{DynamicResource Settings.LLM.Generation.SystemPrompt}"
-                         Style="{StaticResource Control.Text.Label}"
-                         Margin="{StaticResource LabelMarginTop}"/>
+                         Style="{DynamicResource Control.Text.Label}"
+                         Margin="{DynamicResource LabelMarginTop}"/>
               <TextBox Grid.Row="3"
                        x:Name="LlmSystemPromptTextBox"
                        AcceptsReturn="True"
@@ -294,13 +294,13 @@
         <Grid Grid.Column="2">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="{StaticResource SpacingXL}"/>
+            <RowDefinition Height="{DynamicResource SpacingXL}"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
 
           <!-- BOX 3: Anweisungen -->
           <GroupBox Grid.Row="0"
-                    Style="{StaticResource Control.GroupBox.Settings.Section}">
+                    Style="{DynamicResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -308,9 +308,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Instructions}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+                <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.LlmPrompts.Example}">
-                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                  <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>
@@ -327,7 +327,7 @@
               <!-- Titel-Anweisungen -->
               <TextBlock Grid.Row="0"
                          Text="{DynamicResource Settings.LLM.Instructions.Title}"
-                         Style="{StaticResource Control.Text.Label}"/>
+                         Style="{DynamicResource Control.Text.Label}"/>
               <TextBox Grid.Row="1"
                        x:Name="LlmTitleCustomPromptTextBox"
                        Height="60"
@@ -339,8 +339,8 @@
               <!-- Beschreibungs-Anweisungen -->
               <TextBlock Grid.Row="2"
                          Text="{DynamicResource Settings.LLM.Instructions.Description}"
-                         Style="{StaticResource Control.Text.Label}"
-                         Margin="{StaticResource LabelMarginTop}"/>
+                         Style="{DynamicResource Control.Text.Label}"
+                         Margin="{DynamicResource LabelMarginTop}"/>
               <TextBox Grid.Row="3"
                        x:Name="LlmDescriptionCustomPromptTextBox"
                        Height="60"
@@ -352,8 +352,8 @@
               <!-- Tags-Anweisungen -->
               <TextBlock Grid.Row="4"
                          Text="{DynamicResource Settings.LLM.Instructions.Tags}"
-                         Style="{StaticResource Control.Text.Label}"
-                         Margin="{StaticResource LabelMarginTop}"/>
+                         Style="{DynamicResource Control.Text.Label}"
+                         Margin="{DynamicResource LabelMarginTop}"/>
               <TextBox Grid.Row="5"
                        x:Name="LlmTagsCustomPromptTextBox"
                        Height="60"
@@ -366,7 +366,7 @@
 
           <!-- BOX 4: Vorschläge -->
           <GroupBox Grid.Row="2"
-                    Style="{StaticResource Control.GroupBox.Settings.Section}">
+                    Style="{DynamicResource Control.GroupBox.Settings.Section}">
             <GroupBox.Header>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -374,9 +374,9 @@
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{DynamicResource Settings.LLM.Section.Suggestions}" VerticalAlignment="Center"/>
-                <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+                <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                         ToolTip="{DynamicResource Settings.Tooltip.SuggestionCount.Example}">
-                  <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                  <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                 </Border>
               </Grid>
             </GroupBox.Header>
@@ -395,45 +395,45 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0"
                            Text="{DynamicResource Settings.LLM.Suggestions.Title}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"/>
                 <ComboBox Grid.Column="1"
                           x:Name="TitleSuggestionCountComboBox"
-                          Width="{StaticResource InputMinWidthXS}"
+                          Width="{DynamicResource InputMinWidthXS}"
                           ItemsSource="{StaticResource SuggestionCountOptions}"
                           SelectionChanged="OnComboBoxSettingChanged"/>
               </Grid>
 
               <!-- Beschreibung -->
-              <Grid Grid.Row="1" Margin="{StaticResource LabelMarginTop}">
+              <Grid Grid.Row="1" Margin="{DynamicResource LabelMarginTop}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0"
                            Text="{DynamicResource Settings.LLM.Suggestions.Description}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"/>
                 <ComboBox Grid.Column="1"
                           x:Name="DescriptionSuggestionCountComboBox"
-                          Width="{StaticResource InputMinWidthXS}"
+                          Width="{DynamicResource InputMinWidthXS}"
                           ItemsSource="{StaticResource SuggestionCountOptions}"
                           SelectionChanged="OnComboBoxSettingChanged"/>
               </Grid>
 
               <!-- Tags -->
-              <Grid Grid.Row="2" Margin="{StaticResource LabelMarginTop}">
+              <Grid Grid.Row="2" Margin="{DynamicResource LabelMarginTop}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0"
                            Text="{DynamicResource Settings.LLM.Suggestions.Tags}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"/>
                 <ComboBox Grid.Column="1"
                           x:Name="TagsSuggestionCountComboBox"
-                          Width="{StaticResource InputMinWidthXS}"
+                          Width="{DynamicResource InputMinWidthXS}"
                           ItemsSource="{StaticResource SuggestionCountOptions}"
                           SelectionChanged="OnComboBoxSettingChanged"/>
               </Grid>
@@ -444,3 +444,4 @@
     </ScrollViewer>
   </Grid>
 </UserControl>
+

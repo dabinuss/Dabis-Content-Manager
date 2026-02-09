@@ -132,13 +132,13 @@ public partial class UploadView : UserControl
         {
             // Valid: green checkmark
             TitleValidationIconGlyph.Text = "\ue5ca";
-            TitleValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+            TitleValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
         }
         else
         {
             // Invalid: red X
             TitleValidationIconGlyph.Text = "\ue5cd";
-            TitleValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+            TitleValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "DangerBrush");
         }
     }
 
@@ -166,12 +166,12 @@ public partial class UploadView : UserControl
         if (text.Length >= 10)
         {
             DescriptionValidationIconGlyph.Text = "\ue5ca";
-            DescriptionValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+            DescriptionValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
         }
         else
         {
             DescriptionValidationIconGlyph.Text = "\ue5cd";
-            DescriptionValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+            DescriptionValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "DangerBrush");
         }
     }
 
@@ -229,12 +229,12 @@ public partial class UploadView : UserControl
         if (text.Length >= 2)
         {
             TagsValidationIconGlyph.Text = "\ue5ca";
-            TagsValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+            TagsValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
         }
         else
         {
             TagsValidationIconGlyph.Text = "\ue5cd";
-            TagsValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+            TagsValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "DangerBrush");
         }
     }
 
@@ -263,12 +263,12 @@ public partial class UploadView : UserControl
         if (text.Length >= 20)
         {
             TranscriptionValidationIconGlyph.Text = "\ue5ca";
-            TranscriptionValidationIconGlyph.Foreground = (Brush)FindResource("SuccessBrush");
+            TranscriptionValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
         }
         else
         {
             TranscriptionValidationIconGlyph.Text = "\ue5cd";
-            TranscriptionValidationIconGlyph.Foreground = (Brush)FindResource("DangerBrush");
+            TranscriptionValidationIconGlyph.SetResourceReference(TextBlock.ForegroundProperty, "DangerBrush");
         }
     }
 

@@ -16,7 +16,7 @@
         WindowStyle="None"
         ResizeMode="CanResize"
         Icon="pack://application:,,,/DCM.App;component/Assets/appicon.ico"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
 
   <WindowChrome.WindowChrome>
     <shell:WindowChrome CaptionHeight="0"
@@ -30,11 +30,11 @@
     <conv:LanguageCodeToFlagEmojiConverter x:Key="LanguageCodeToFlagEmojiConverter"/>
   </Window.Resources>
 
-  <Border BorderBrush="{StaticResource BorderBrush}"
+  <Border BorderBrush="{DynamicResource BorderBrush}"
           BorderThickness="1"
           SnapsToDevicePixels="True">
 
-    <Grid Background="{StaticResource SurfaceSunkenBrush}">
+    <Grid Background="{DynamicResource SurfaceSunkenBrush}">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
@@ -47,14 +47,14 @@
               Height="3"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Top"
-              Background="{StaticResource MagicAIGradientBrush}"
+              Background="{DynamicResource MagicAIGradientBrush}"
               Panel.ZIndex="5"
               IsHitTestVisible="False"/>
 
       <!-- Top Navigation -->
       <Border Grid.Row="0"
-              Background="{StaticResource SurfaceElevatedBrush}"
-              BorderBrush="{StaticResource BorderBrush}"
+              Background="{DynamicResource AppHeaderBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
               BorderThickness="0,0,0,1"
               MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
         <Grid>
@@ -64,7 +64,7 @@
           </Grid.ColumnDefinitions>
 
           <Border Grid.Column="0"
-                  BorderBrush="{StaticResource BorderBrush}"
+                  BorderBrush="{DynamicResource BorderBrush}"
                   BorderThickness="0,0,1,0">
             <Grid>
               <Grid.RowDefinitions>
@@ -82,17 +82,17 @@
                        HorizontalAlignment="Left"
                        Margin="0,0,0,10"/>
                 <TextBlock Text="{DynamicResource App.Name}"
-                           FontSize="{StaticResource FontSizeM}"
+                           FontSize="{DynamicResource FontSizeM}"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                 <StackPanel Orientation="Horizontal"
                             Margin="0,4,0,0">
-                  <TextBlock FontSize="{StaticResource FontSizeXS}"
-                             Foreground="{StaticResource TextMutedBrush}">
+                  <TextBlock FontSize="{DynamicResource FontSizeXS}"
+                             Foreground="{DynamicResource TextMutedBrush}">
                     <Run Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}"/>
                   </TextBlock>
-                  <TextBlock FontSize="{StaticResource FontSizeXS}"
-                             Foreground="{StaticResource TextMutedBrush}"
+                  <TextBlock FontSize="{DynamicResource FontSizeXS}"
+                             Foreground="{DynamicResource TextMutedBrush}"
                              Margin="8,0,0,0">
                     <Hyperlink Click="CheckUpdatesHyperlink_Click">
                       <Run Text="{DynamicResource App.CheckUpdates}"/>
@@ -103,12 +103,12 @@
 
               <Border Grid.Row="1"
                       Height="1"
-                      Background="{StaticResource BorderBrush}"
+                      Background="{DynamicResource BorderBrush}"
                       Margin="12,0,12,0"/>
 
               <TextBlock x:Name="PageBreadcrumbTextBlock"
                          Grid.Row="2"
-                         Style="{StaticResource Control.Page.Breadcrumb}"
+                         Style="{DynamicResource Control.Page.Breadcrumb}"
                          Margin="12,6,12,10"
                          Text="{DynamicResource Page.Breadcrumb.Default}"/>
             </Grid>
@@ -132,70 +132,70 @@
                           Orientation="Horizontal"
                           VerticalAlignment="Center">
                 <RadioButton x:Name="MainNavUploads"
-                             Style="{StaticResource Control.Navigation.Top.MainButton}"
+                             Style="{DynamicResource Control.Navigation.Top.MainButton}"
                              GroupName="MainMenu"
                              IsChecked="True"
                              Checked="MainMenu_Checked"
                              Tag="0">
                   <StackPanel Margin="0,20">
-                    <TextBlock Style="{StaticResource Control.Icon.XXL}"
+                    <TextBlock Style="{DynamicResource Control.Icon.XXL}"
                                Text="&#xf09b;"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="{DynamicResource Nav.Uploads}"
                                FontWeight="SemiBold"
-                               FontSize="{StaticResource FontSizeM}"
+                               FontSize="{DynamicResource FontSizeM}"
                                Margin="0,6,0,0"
                                HorizontalAlignment="Center"/>
                   </StackPanel>
                 </RadioButton>
 
                 <RadioButton x:Name="MainNavClipper"
-                             Style="{StaticResource Control.Navigation.Top.MainButton}"
+                             Style="{DynamicResource Control.Navigation.Top.MainButton}"
                              GroupName="MainMenu"
                              Checked="MainMenu_Checked"
                              Tag="7">
                   <StackPanel Margin="0,20">
-                    <TextBlock Style="{StaticResource Control.Icon.XXL}"
+                    <TextBlock Style="{DynamicResource Control.Icon.XXL}"
                                Text="&#xe04a;"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="{DynamicResource Nav.Clipper}"
                                FontWeight="SemiBold"
-                               FontSize="{StaticResource FontSizeM}"
+                               FontSize="{DynamicResource FontSizeM}"
                                Margin="0,6,0,0"
                                HorizontalAlignment="Center"/>
                   </StackPanel>
                 </RadioButton>
 
                 <RadioButton x:Name="MainNavConnections"
-                             Style="{StaticResource Control.Navigation.Top.MainButton}"
+                             Style="{DynamicResource Control.Navigation.Top.MainButton}"
                              GroupName="MainMenu"
                              Checked="MainMenu_Checked"
                              Tag="1">
                   <StackPanel Margin="0,20">
-                    <TextBlock Style="{StaticResource Control.Icon.XXL}"
+                    <TextBlock Style="{DynamicResource Control.Icon.XXL}"
                                Text="&#xe1a0;"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="{DynamicResource Nav.Connections}"
                                FontWeight="SemiBold"
-                               FontSize="{StaticResource FontSizeM}"
+                               FontSize="{DynamicResource FontSizeM}"
                                Margin="0,6,0,0"
                                HorizontalAlignment="Center"/>
                   </StackPanel>
                 </RadioButton>
 
                 <RadioButton x:Name="MainNavSettings"
-                             Style="{StaticResource Control.Navigation.Top.MainButton}"
+                             Style="{DynamicResource Control.Navigation.Top.MainButton}"
                              BorderThickness="0"
                              GroupName="MainMenu"
                              Checked="MainMenu_Checked"
                              Tag="4">
                   <StackPanel Margin="0,20">
-                    <TextBlock Style="{StaticResource Control.Icon.XXL}"
+                    <TextBlock Style="{DynamicResource Control.Icon.XXL}"
                                Text="&#xe8b8;"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="{DynamicResource Nav.Settings}"
                                FontWeight="SemiBold"
-                               FontSize="{StaticResource FontSizeM}"
+                               FontSize="{DynamicResource FontSizeM}"
                                Margin="0,6,0,0"
                                HorizontalAlignment="Center"/>
                   </StackPanel>
@@ -207,35 +207,35 @@
                       HorizontalAlignment="Right"
                       Margin="0,0,16,0"
                       Padding="14,16"
-                      CornerRadius="{StaticResource RadiusS}">
+                      CornerRadius="{DynamicResource RadiusS}">
                 <StackPanel Orientation="Vertical">
                   <TextBlock x:Name="WhisperHeaderStatusTextBlock"
-                             Style="{StaticResource Control.Header.StatusText}"/>
+                             Style="{DynamicResource Control.Header.StatusText}"/>
                   <TextBlock x:Name="WhisperHeaderStatusLinkTextBlock"
-                             Style="{StaticResource Control.Header.StatusText}"
+                             Style="{DynamicResource Control.Header.StatusText}"
                              Visibility="Collapsed">
                     <Run x:Name="WhisperHeaderLabelRun"
                          Text=""/>
                     <Run Text=": "/>
                     <Hyperlink Click="WhisperHeaderNotInstalled_Click"
-                               Foreground="{StaticResource TextPrimaryBrush}">
+                               Foreground="{DynamicResource TextPrimaryBrush}">
                       <Run x:Name="WhisperHeaderStatusLinkRun"
                            Text=""/>
                     </Hyperlink>
                   </TextBlock>
 
                   <TextBlock x:Name="LlmHeaderStatusTextBlock"
-                             Style="{StaticResource Control.Header.StatusText}"
+                             Style="{DynamicResource Control.Header.StatusText}"
                              Margin="0,4,0,0"/>
                   <TextBlock x:Name="LlmHeaderStatusLinkTextBlock"
-                             Style="{StaticResource Control.Header.StatusText}"
+                             Style="{DynamicResource Control.Header.StatusText}"
                              Visibility="Collapsed"
                              Margin="0,4,0,0">
                     <Run x:Name="LlmHeaderLabelRun"
                          Text=""/>
                     <Run Text=": "/>
                     <Hyperlink Click="LlmHeaderNotInstalled_Click"
-                               Foreground="{StaticResource TextPrimaryBrush}">
+                               Foreground="{DynamicResource TextPrimaryBrush}">
                       <Run x:Name="LlmHeaderStatusLinkRun"
                            Text=""/>
                     </Hyperlink>
@@ -255,7 +255,7 @@
                                  Height="12"
                                  Margin="0,0,6,0"/>
                           <TextBlock Text="{Binding DisplayName}"
-                                     FontSize="{StaticResource FontSizeS}"/>
+                                     FontSize="{DynamicResource FontSizeS}"/>
                         </StackPanel>
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -268,32 +268,32 @@
                           VerticalAlignment="Top"
                           Margin="0,12,12,0">
                 <Button x:Name="MinimizeButton"
-                        Style="{StaticResource Control.TitleBar.Button}"
+                        Style="{DynamicResource Control.TitleBar.Button}"
                         Margin="0"
                         Padding="0"
                         Click="MinimizeButton_Click">
-                  <TextBlock Style="{StaticResource Control.Icon.L}"
+                  <TextBlock Style="{DynamicResource Control.Icon.L}"
                              Text="&#xe931;"
                              Margin="0"
                              Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
                 <Button x:Name="MaximizeButton"
-                        Style="{StaticResource Control.TitleBar.Button}"
+                        Style="{DynamicResource Control.TitleBar.Button}"
                         Margin="0"
                         Padding="0"
                         Click="MaximizeButton_Click">
                   <TextBlock x:Name="MaximizeIconTextBlock"
-                             Style="{StaticResource Control.Icon.L}"
+                             Style="{DynamicResource Control.Icon.L}"
                              Text="&#xea10;"
                              Margin="0"
                              Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
                 <Button x:Name="CloseButton"
-                        Style="{StaticResource Control.TitleBar.Button.Close}"
+                        Style="{DynamicResource Control.TitleBar.Button.Close}"
                         Margin="0"
                         Padding="0"
                         Click="CloseButton_Click">
-                  <TextBlock Style="{StaticResource Control.Icon.L}"
+                  <TextBlock Style="{DynamicResource Control.Icon.L}"
                              Text="&#xe5cd;"
                              Margin="0"
                              Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
@@ -302,7 +302,7 @@
             </Grid>
 
             <Border Grid.Row="1"
-                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="0,1,0,0">
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -316,7 +316,7 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Stretch">
                   <RadioButton x:Name="NavUpload"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="UploadsSubMenu"
                                IsChecked="True"
                                Checked="NavButton_Checked"
@@ -325,7 +325,7 @@
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                   <RadioButton x:Name="NavPresets"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="UploadsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="2">
@@ -333,7 +333,7 @@
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                   <RadioButton x:Name="NavHistory"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="UploadsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="3">
@@ -350,7 +350,7 @@
                             VerticalAlignment="Stretch"
                             Visibility="Collapsed">
                   <RadioButton x:Name="NavConnections"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="ConnectionsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="1">
@@ -358,7 +358,7 @@
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                   <RadioButton x:Name="NavChannelProfile"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="ConnectionsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="6">
@@ -375,7 +375,7 @@
                             VerticalAlignment="Stretch"
                             Visibility="Collapsed">
                   <RadioButton x:Name="NavClipperMain"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="ClipperSubMenu"
                                Checked="NavButton_Checked"
                                Tag="7">
@@ -392,7 +392,7 @@
                             VerticalAlignment="Stretch"
                             Visibility="Collapsed">
                   <RadioButton x:Name="NavSettingsGeneral"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="SettingsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="4">
@@ -400,7 +400,7 @@
                                HorizontalAlignment="Center"/>
                   </RadioButton>
                   <RadioButton x:Name="NavSettingsLlm"
-                               Style="{StaticResource Control.Navigation.Top.SubButton}"
+                               Style="{DynamicResource Control.Navigation.Top.SubButton}"
                                GroupName="SettingsSubMenu"
                                Checked="NavButton_Checked"
                                Tag="5">
@@ -415,28 +415,28 @@
                             Margin="12,0,12,0">
                   <!-- Auto-Save Indicator -->
                   <Border x:Name="SaveIndicatorBorder"
-                          Style="{StaticResource Control.SaveIndicator.Container}"
+                          Style="{DynamicResource Control.SaveIndicator.Container}"
                           Visibility="Collapsed"
                           Margin="0,0,16,0">
                     <StackPanel Orientation="Horizontal">
                       <TextBlock x:Name="SaveIndicatorIcon"
-                                 Style="{StaticResource Control.SaveIndicator.Icon}"
+                                 Style="{DynamicResource Control.SaveIndicator.Icon}"
                                  Text="&#xe161;"
-                                 Foreground="{StaticResource TextMutedBrush}"/>
+                                 Foreground="{DynamicResource TextMutedBrush}"/>
                       <TextBlock x:Name="SaveIndicatorText"
-                                 Style="{StaticResource Control.SaveIndicator.Text}"
+                                 Style="{DynamicResource Control.SaveIndicator.Text}"
                                  Text="{DynamicResource Status.Saving}"
-                                 Foreground="{StaticResource TextMutedBrush}"/>
+                                 Foreground="{DynamicResource TextMutedBrush}"/>
                     </StackPanel>
                   </Border>
                   <TextBlock Text="{DynamicResource Status}"
-                             Foreground="{StaticResource TextMutedBrush}"
-                             FontSize="{StaticResource FontSizeS}"
+                             Foreground="{DynamicResource TextMutedBrush}"
+                             FontSize="{DynamicResource FontSizeS}"
                              Margin="0,0,6,0"/>
                   <TextBlock x:Name="StatusTextBlock"
                              Text="{DynamicResource Status.Ready}"
-                             Foreground="{StaticResource TextPrimaryBrush}"
-                             FontSize="{StaticResource FontSizeS}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
+                             FontSize="{DynamicResource FontSizeS}"
                              FontWeight="SemiBold"/>
                   <ProgressBar x:Name="UploadProgressBar"
                                Width="120"
@@ -448,12 +448,12 @@
                                Margin="10,0,6,0"/>
                   <TextBlock x:Name="UploadProgressLabel"
                              VerticalAlignment="Center"
-                             Foreground="{StaticResource TextMutedBrush}"
-                             FontSize="{StaticResource FontSizeXS}"
+                             Foreground="{DynamicResource TextMutedBrush}"
+                             FontSize="{DynamicResource FontSizeXS}"
                              Text=""
                              Visibility="Collapsed"/>
                   <TextBlock x:Name="LogLinkTextBlock"
-                             FontSize="{StaticResource FontSizeM}"
+                             FontSize="{DynamicResource FontSizeM}"
                              Cursor="Hand"
                              MouseLeftButtonDown="LogLink_Click"
                              ToolTip="{DynamicResource Log.Link.Tooltip}"
@@ -461,14 +461,14 @@
                     <TextBlock.Style>
                       <Style TargetType="TextBlock">
                         <Setter Property="Foreground"
-                                Value="{StaticResource TextMutedBrush}"/>
+                                Value="{DynamicResource TextMutedBrush}"/>
                         <Setter Property="Text"
                                 Value="{DynamicResource Log.Link.Default}"/>
                         <Style.Triggers>
                           <Trigger Property="IsMouseOver"
                                    Value="True">
                             <Setter Property="Foreground"
-                                    Value="{StaticResource PrimaryBrush}"/>
+                                    Value="{DynamicResource PrimaryBrush}"/>
                           </Trigger>
                         </Style.Triggers>
                       </Style>
@@ -483,8 +483,8 @@
 
       <!-- Page Header -->
       <Border Grid.Row="1"
-              Background="{StaticResource SurfaceSunkenBrush}"
-              BorderBrush="{StaticResource BorderBrush}"
+              Background="{DynamicResource SurfaceSunkenBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
               BorderThickness="0"
               Padding="16,14">
         <Grid>
@@ -495,10 +495,10 @@
 
           <StackPanel Grid.Column="0">
             <TextBlock x:Name="PageTitleTextBlock"
-                       Style="{StaticResource Control.Page.Title}"
+                       Style="{DynamicResource Control.Page.Title}"
                        Text="{DynamicResource Nav.Uploads}"/>
             <TextBlock x:Name="PageContextTextBlock"
-                       Style="{StaticResource Control.Page.Context}"
+                       Style="{DynamicResource Control.Page.Context}"
                        Text=""/>
           </StackPanel>
 
@@ -510,13 +510,13 @@
                         Visibility="Visible">
               <Button x:Name="AddVideosActionButton"
                       Content="{DynamicResource Upload.Actions.AddVideos}"
-                      Style="{StaticResource Control.Button.Secondary}"
+                      Style="{DynamicResource Control.Button.Secondary}"
                       ap:ButtonIcon.Glyph="&#xe145;"
                       Click="AddVideosButton_Click"
                       Margin="0,0,8,0"/>
               <Button x:Name="UploadAllActionButton"
                       Content="{DynamicResource Upload.Actions.UploadAll}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xeb9b;"
                       Click="UploadAllButton_Click"
                       Margin="0,0,8,0"/>
@@ -526,12 +526,12 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Accounts.YouTube.Connect}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xe157;"
                       Click="YouTubeConnectButton_Click"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Accounts.YouTube.Disconnect}"
-                      Style="{StaticResource Control.Button.Secondary}"
+                      Style="{DynamicResource Control.Button.Secondary}"
                       ap:ButtonIcon.Glyph="&#xe16f;"
                       Click="YouTubeDisconnectButton_Click"
                       />
@@ -541,7 +541,7 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Common.Save}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xe161;"
                       Click="ChannelProfileSaveButton_Click"
                       />
@@ -551,22 +551,22 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Common.Add}"
-                      Style="{StaticResource Control.Button.Secondary}"
+                      Style="{DynamicResource Control.Button.Secondary}"
                       ap:ButtonIcon.Glyph="&#xe145;"
                       Click="PresetNewButton_Click"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Edit}"
-                      Style="{StaticResource Control.Button.Secondary}"
+                      Style="{DynamicResource Control.Button.Secondary}"
                       ap:ButtonIcon.Glyph="&#xe3c9;"
                       Click="PresetEditButton_Click"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Delete}"
-                      Style="{StaticResource Control.Button.Danger}"
+                      Style="{DynamicResource Control.Button.Danger}"
                       ap:ButtonIcon.Glyph="&#xe872;"
                       Click="PresetDeleteButton_Click"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Save}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xe161;"
                       Click="PresetSaveButton_Click"
                       />
@@ -576,12 +576,12 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource History.ClearList}"
-                      Style="{StaticResource Control.Button.Danger}"
+                      Style="{DynamicResource Control.Button.Danger}"
                       ap:ButtonIcon.Glyph="&#xe872;"
                       Click="HistoryClearAction_Click"
                       Margin="0,0,8,0"/>
               <Button Content="{DynamicResource Common.Open}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xe89e;"
                       Click="HistoryOpenSelectedAction_Click"
                       />
@@ -591,7 +591,7 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Settings.SaveAll}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xe161;"
                       Click="SettingsSaveButton_Click"
                       />
@@ -601,7 +601,7 @@
                         Orientation="Horizontal"
                         Visibility="Collapsed">
               <Button Content="{DynamicResource Settings.SaveAll}"
-                      Style="{StaticResource Control.Button.Primary}"
+                      Style="{DynamicResource Control.Button.Primary}"
                       ap:ButtonIcon.Glyph="&#xe161;"
                       Click="SettingsSaveButton_Click"
                       />
@@ -622,40 +622,40 @@
                              Value="0"/>
                 <TextBlock x:Name="ClipperHeaderProgressTextBlock"
                            Margin="0,4,0,0"
-                           FontSize="{StaticResource FontSizeXS}"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="{DynamicResource FontSizeXS}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            Text=""/>
               </StackPanel>
 
               <StackPanel Orientation="Horizontal">
                 <Button x:Name="ClipperFindHighlightsButton"
                         Content="{DynamicResource Clipper.Actions.FindHighlights}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe8b6;"
                         Click="ClipperFindHighlightsButton_Click"
                         Margin="0,0,8,0"/>
                 <Button x:Name="ClipperRefreshButton"
                         Content="{DynamicResource Clipper.Actions.Refresh}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe5d5;"
                         Click="ClipperRefreshButton_Click"
                         Margin="0,0,8,0"/>
                 <Button x:Name="ClipperCutButton"
                         Content="{DynamicResource Clipper.Actions.Cut}"
-                        Style="{StaticResource Control.Button.Primary}"
+                        Style="{DynamicResource Control.Button.Primary}"
                         ap:ButtonIcon.Glyph="&#xe14e;"
                         Click="ClipperCutButton_Click"
                         Margin="0,0,8,0"/>
                 <Button x:Name="ClipperCancelAnalysisButton"
                         Content="{DynamicResource Clipper.Actions.CancelAnalysis}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe5cd;"
                         Click="ClipperCancelAnalysisButton_Click"
                         Margin="0,0,8,0"
                         Visibility="Collapsed"/>
                 <Button x:Name="ClipperCancelRenderButton"
                         Content="{DynamicResource Clipper.Actions.CancelRender}"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe5cd;"
                         Click="ClipperCancelRenderButton_Click"
                         Visibility="Collapsed"/>
@@ -667,7 +667,7 @@
 
       <!-- Content Pages -->
       <Grid Grid.Row="2"
-            Margin="{StaticResource ContentPadding}">
+            Margin="{DynamicResource ContentPadding}">
 
         <!-- Page 0: Neuer Upload -->
         <ScrollViewer x:Name="PageUpload"
@@ -726,8 +726,8 @@
 
       <!-- Footer Bar -->
       <Border Grid.Row="3"
-              Background="{StaticResource SurfaceElevatedBrush}"
-              BorderBrush="{StaticResource BorderBrush}"
+              Background="{DynamicResource SurfaceElevatedBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
               BorderThickness="0,1,0,0"
               Padding="16,6">
         <Grid>
@@ -740,23 +740,23 @@
                       Orientation="Horizontal"
                       HorizontalAlignment="Left">
             <TextBlock Text="{DynamicResource App.Copyright}"
-                       FontSize="{StaticResource FontSizeXS}"
-                       Foreground="{StaticResource TextMutedBrush}"
+                       FontSize="{DynamicResource FontSizeXS}"
+                       Foreground="{DynamicResource TextMutedBrush}"
                        VerticalAlignment="Center"/>
-            <TextBlock FontSize="{StaticResource FontSizeXS}"
+            <TextBlock FontSize="{DynamicResource FontSizeXS}"
                        Margin="10,0,0,0"
                        VerticalAlignment="Center">
               <Hyperlink NavigateUri="https://github.com/dabinuss/Dabis-Content-Manager"
                          RequestNavigate="OpenUrlInBrowser"
-                         Foreground="{StaticResource PrimaryBrush}">
+                         Foreground="{DynamicResource PrimaryBrush}">
                 <Run Text="{DynamicResource App.Github}"/>
               </Hyperlink>
             </TextBlock>
-            <TextBlock FontSize="{StaticResource FontSizeXS}"
+            <TextBlock FontSize="{DynamicResource FontSizeXS}"
                        Margin="10,0,0,0"
                        VerticalAlignment="Center">
               <Hyperlink Click="SetupAssistantLink_Click"
-                         Foreground="{StaticResource PrimaryBrush}">
+                         Foreground="{DynamicResource PrimaryBrush}">
                 <Run Text="{DynamicResource App.SetupAssistant}"/>
               </Hyperlink>
             </TextBlock>
@@ -766,3 +766,4 @@
     </Grid>
   </Border>
 </Window>
+

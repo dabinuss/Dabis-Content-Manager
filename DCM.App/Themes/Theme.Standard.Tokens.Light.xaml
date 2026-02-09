@@ -5,137 +5,141 @@
   <!-- LIGHT COLOR OVERRIDES                                                -->
   <!-- =================================================================== -->
 
-  <Color x:Key="BackgroundColor">#FFF7F9FC</Color>
-  <Color x:Key="SurfaceColor">#FFFFFFFF</Color>
-  <Color x:Key="SurfaceLightColor">#FFF2F5FA</Color>
-  <Color x:Key="SurfaceHoverColor">#FFEAF0F8</Color>
-  <Color x:Key="SurfacePressedColor">#FFDFE8F3</Color>
-  <Color x:Key="SurfaceElevatedColor">#FFFFFFFF</Color>
-  <Color x:Key="SurfaceSunkenColor">#FFECF1F8</Color>
-  <Color x:Key="InputBackgroundColor">#FFFFFFFF</Color>
-  <Color x:Key="InputFocusColor">#FFF7FAFF</Color>
+  <Color x:Key="BackgroundColor">#FFEAEFF6</Color>
+  <Color x:Key="SurfaceColor">#FFF3F6FB</Color>
+  <Color x:Key="SurfaceLightColor">#FFE9EEF6</Color>
+  <Color x:Key="SurfaceHoverColor">#FFE1E8F2</Color>
+  <Color x:Key="SurfacePressedColor">#FFD7E0EC</Color>
+  <Color x:Key="SurfaceElevatedColor">#FFF8FAFD</Color>
+  <Color x:Key="SurfaceSunkenColor">#FFE2E9F3</Color>
+  <Color x:Key="AppHeaderColor">#FFD7E0EC</Color>
+  <Color x:Key="InputBackgroundColor">#FFF6F9FD</Color>
+  <Color x:Key="InputFocusColor">#FFEFF4FB</Color>
 
-  <Color x:Key="BorderColor">#FFC8D2E0</Color>
-  <Color x:Key="BorderHoverColor">#FF9EB0C8</Color>
-  <Color x:Key="BorderStrongColor">#FF7F94B1</Color>
+  <Color x:Key="BorderColor">#FFB7C3D4</Color>
+  <Color x:Key="BorderHoverColor">#FF97A8BE</Color>
+  <Color x:Key="BorderStrongColor">#FF7D90AA</Color>
 
-  <Color x:Key="PrimaryColor">#FF2E6BD3</Color>
-  <Color x:Key="PrimaryHoverColor">#FF3A78E0</Color>
-  <Color x:Key="PrimaryPressedColor">#FF225CBF</Color>
+  <Color x:Key="PrimaryColor">#FF2F5FAF</Color>
+  <Color x:Key="PrimaryHoverColor">#FF3A6ABD</Color>
+  <Color x:Key="PrimaryPressedColor">#FF274F95</Color>
   <Color x:Key="PrimaryTextColor">#FFFFFFFF</Color>
 
-  <Color x:Key="SuccessColor">#FF1E9E57</Color>
-  <Color x:Key="DangerColor">#FFD94141</Color>
-  <Color x:Key="WarningColor">#FFC9841A</Color>
-  <Color x:Key="AccentRedColor">#FFD94141</Color>
-  <Color x:Key="AccentRedHoverColor">#FFEC5959</Color>
-  <Color x:Key="MagicAIColor">#FFE4902E</Color>
+  <Color x:Key="SuccessColor">#FF2D8D5B</Color>
+  <Color x:Key="DangerColor">#FFC74A4A</Color>
+  <Color x:Key="WarningColor">#FFB27A2A</Color>
+  <Color x:Key="AccentRedColor">#FFC74A4A</Color>
+  <Color x:Key="AccentRedHoverColor">#FFD96262</Color>
+  <Color x:Key="MagicAIColor">#FFC4843D</Color>
 
-  <Color x:Key="TextPrimaryColor">#FF0F1A2B</Color>
-  <Color x:Key="TextSecondaryColor">#FF2E3C52</Color>
-  <Color x:Key="TextMutedColor">#FF5A6A82</Color>
-  <Color x:Key="TextDisabledColor">#FF8D9AAE</Color>
+  <Color x:Key="TextPrimaryColor">#FF111C2E</Color>
+  <Color x:Key="TextSecondaryColor">#FF2F3E55</Color>
+  <Color x:Key="TextMutedColor">#FF5E7087</Color>
+  <Color x:Key="TextDisabledColor">#FF8998AB</Color>
 
-  <Color x:Key="SidebarColor">#FFF1F5FA</Color>
-  <Color x:Key="SidebarHoverColor">#FFE7EDF6</Color>
+  <Color x:Key="SidebarColor">#FFE7EDF5</Color>
+  <Color x:Key="SidebarHoverColor">#FFDCE5F0</Color>
 
-  <Color x:Key="DisabledBackgroundColor">#FFF0F3F8</Color>
-  <Color x:Key="DisabledBorderColor">#FFD4DCE7</Color>
-  <Color x:Key="ScrollBarTrackColor">#FFEBF0F6</Color>
-  <Color x:Key="ScrollBarThumbColor">#FFC0CBDC</Color>
+  <Color x:Key="DisabledBackgroundColor">#FFE6ECF4</Color>
+  <Color x:Key="DisabledBorderColor">#FFC8D3E1</Color>
+  <Color x:Key="ScrollBarTrackColor">#FFE1E8F1</Color>
+  <Color x:Key="ScrollBarThumbColor">#FFAAB8CC</Color>
 
-  <Color x:Key="ListItemSelectedColor">#FFDCE7F7</Color>
-  <Color x:Key="ListDividerColor">#FFB6C4D8</Color>
-  <Color x:Key="SectionDividerColor">#FF9EAFCA</Color>
+  <Color x:Key="ListItemSelectedColor">#FFCFDAE8</Color>
+  <Color x:Key="ListDividerColor">#FFA6B6CB</Color>
+  <Color x:Key="SectionDividerColor">#FF8EA2BC</Color>
 
   <!-- =================================================================== -->
   <!-- LIGHT BRUSH OVERRIDES                                                -->
   <!-- =================================================================== -->
 
   <SolidColorBrush x:Key="BackgroundBrush"
-                   Color="{StaticResource BackgroundColor}"/>
+                   Color="{DynamicResource BackgroundColor}"/>
   <SolidColorBrush x:Key="SurfaceBrush"
-                   Color="{StaticResource SurfaceColor}"/>
+                   Color="{DynamicResource SurfaceColor}"/>
   <SolidColorBrush x:Key="SurfaceLightBrush"
-                   Color="{StaticResource SurfaceLightColor}"/>
+                   Color="{DynamicResource SurfaceLightColor}"/>
   <SolidColorBrush x:Key="SurfaceHoverBrush"
-                   Color="{StaticResource SurfaceHoverColor}"/>
+                   Color="{DynamicResource SurfaceHoverColor}"/>
   <SolidColorBrush x:Key="SurfacePressedBrush"
-                   Color="{StaticResource SurfacePressedColor}"/>
+                   Color="{DynamicResource SurfacePressedColor}"/>
   <SolidColorBrush x:Key="SurfaceElevatedBrush"
-                   Color="{StaticResource SurfaceElevatedColor}"/>
+                   Color="{DynamicResource SurfaceElevatedColor}"/>
   <SolidColorBrush x:Key="SurfaceSunkenBrush"
-                   Color="{StaticResource SurfaceSunkenColor}"/>
+                   Color="{DynamicResource SurfaceSunkenColor}"/>
+  <SolidColorBrush x:Key="AppHeaderBrush"
+                   Color="{DynamicResource AppHeaderColor}"/>
   <SolidColorBrush x:Key="InputBackgroundBrush"
-                   Color="{StaticResource InputBackgroundColor}"/>
+                   Color="{DynamicResource InputBackgroundColor}"/>
   <SolidColorBrush x:Key="InputFocusBrush"
-                   Color="{StaticResource InputFocusColor}"/>
+                   Color="{DynamicResource InputFocusColor}"/>
 
   <SolidColorBrush x:Key="BorderBrush"
-                   Color="{StaticResource BorderColor}"/>
+                   Color="{DynamicResource BorderColor}"/>
   <SolidColorBrush x:Key="BorderHoverBrush"
-                   Color="{StaticResource BorderHoverColor}"/>
+                   Color="{DynamicResource BorderHoverColor}"/>
   <SolidColorBrush x:Key="BorderStrongBrush"
-                   Color="{StaticResource BorderStrongColor}"/>
+                   Color="{DynamicResource BorderStrongColor}"/>
 
   <SolidColorBrush x:Key="PrimaryBrush"
-                   Color="{StaticResource PrimaryColor}"/>
+                   Color="{DynamicResource PrimaryColor}"/>
   <SolidColorBrush x:Key="PrimaryHoverBrush"
-                   Color="{StaticResource PrimaryHoverColor}"/>
+                   Color="{DynamicResource PrimaryHoverColor}"/>
   <SolidColorBrush x:Key="PrimaryPressedBrush"
-                   Color="{StaticResource PrimaryPressedColor}"/>
+                   Color="{DynamicResource PrimaryPressedColor}"/>
   <SolidColorBrush x:Key="PrimaryTextBrush"
-                   Color="{StaticResource PrimaryTextColor}"/>
+                   Color="{DynamicResource PrimaryTextColor}"/>
 
   <SolidColorBrush x:Key="SuccessBrush"
-                   Color="{StaticResource SuccessColor}"/>
+                   Color="{DynamicResource SuccessColor}"/>
   <SolidColorBrush x:Key="DangerBrush"
-                   Color="{StaticResource DangerColor}"/>
+                   Color="{DynamicResource DangerColor}"/>
   <SolidColorBrush x:Key="WarningBrush"
-                   Color="{StaticResource WarningColor}"/>
+                   Color="{DynamicResource WarningColor}"/>
   <SolidColorBrush x:Key="AccentRedBrush"
-                   Color="{StaticResource AccentRedColor}"/>
+                   Color="{DynamicResource AccentRedColor}"/>
   <SolidColorBrush x:Key="AccentRedHoverBrush"
-                   Color="{StaticResource AccentRedHoverColor}"/>
+                   Color="{DynamicResource AccentRedHoverColor}"/>
   <SolidColorBrush x:Key="MagicAIBrush"
-                   Color="{StaticResource MagicAIColor}"/>
+                   Color="{DynamicResource MagicAIColor}"/>
   <LinearGradientBrush x:Key="MagicAIGradientBrush"
                        StartPoint="0,0"
                        EndPoint="1,1">
-    <GradientStop Color="#FF88C2FF"
+    <GradientStop Color="#FF9EBEDE"
                   Offset="0.0"/>
-    <GradientStop Color="#FF2E6BD3"
+    <GradientStop Color="#FF2F5FAF"
                   Offset="0.7"/>
   </LinearGradientBrush>
 
   <SolidColorBrush x:Key="TextPrimaryBrush"
-                   Color="{StaticResource TextPrimaryColor}"/>
+                   Color="{DynamicResource TextPrimaryColor}"/>
   <SolidColorBrush x:Key="TextSecondaryBrush"
-                   Color="{StaticResource TextSecondaryColor}"/>
+                   Color="{DynamicResource TextSecondaryColor}"/>
   <SolidColorBrush x:Key="TextMutedBrush"
-                   Color="{StaticResource TextMutedColor}"/>
+                   Color="{DynamicResource TextMutedColor}"/>
   <SolidColorBrush x:Key="TextDisabledBrush"
-                   Color="{StaticResource TextDisabledColor}"/>
+                   Color="{DynamicResource TextDisabledColor}"/>
 
   <SolidColorBrush x:Key="SidebarBrush"
-                   Color="{StaticResource SidebarColor}"/>
+                   Color="{DynamicResource SidebarColor}"/>
   <SolidColorBrush x:Key="SidebarHoverBrush"
-                   Color="{StaticResource SidebarHoverColor}"/>
+                   Color="{DynamicResource SidebarHoverColor}"/>
 
   <SolidColorBrush x:Key="DisabledBackgroundBrush"
-                   Color="{StaticResource DisabledBackgroundColor}"/>
+                   Color="{DynamicResource DisabledBackgroundColor}"/>
   <SolidColorBrush x:Key="DisabledBorderBrush"
-                   Color="{StaticResource DisabledBorderColor}"/>
+                   Color="{DynamicResource DisabledBorderColor}"/>
   <SolidColorBrush x:Key="ScrollBarTrackBrush"
-                   Color="{StaticResource ScrollBarTrackColor}"/>
+                   Color="{DynamicResource ScrollBarTrackColor}"/>
   <SolidColorBrush x:Key="ScrollBarThumbBrush"
-                   Color="{StaticResource ScrollBarThumbColor}"/>
+                   Color="{DynamicResource ScrollBarThumbColor}"/>
 
   <SolidColorBrush x:Key="ListItemSelectedBrush"
-                   Color="{StaticResource ListItemSelectedColor}"/>
+                   Color="{DynamicResource ListItemSelectedColor}"/>
   <SolidColorBrush x:Key="ListDividerBrush"
-                   Color="{StaticResource ListDividerColor}"/>
+                   Color="{DynamicResource ListDividerColor}"/>
   <SolidColorBrush x:Key="SectionDividerBrush"
-                   Color="{StaticResource SectionDividerColor}"/>
+                   Color="{DynamicResource SectionDividerColor}"/>
 
 </ResourceDictionary>
+

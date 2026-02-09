@@ -15,12 +15,12 @@
     <conv:ExtractDurationFromStatusConverter x:Key="ExtractDurationFromStatusConverter"/>
 </UserControl.Resources>
   <Grid x:Name="RootGrid"
-      Margin="{StaticResource ViewRootMargin}">
+      Margin="{DynamicResource ViewRootMargin}">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
-      <RowDefinition Height="{StaticResource SpacingL}"/>
+      <RowDefinition Height="{DynamicResource SpacingL}"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
 
@@ -46,7 +46,7 @@
 
         <Border x:Name="UploadListDivider"
                 Grid.Column="1"
-                Style="{StaticResource Control.Divider.MasterDetail}"/>
+                Style="{DynamicResource Control.Divider.MasterDetail}"/>
 
         <Grid x:Name="UploadListPanel"
               Grid.Column="0"
@@ -59,14 +59,14 @@
           </Grid.RowDefinitions>
 
           <Button Grid.Row="0"
-                  Style="{StaticResource Control.Button.Secondary}"
+                  Style="{DynamicResource Control.Button.Secondary}"
                   Click="AddVideosButton_Click"
                   HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Center"
                   VerticalContentAlignment="Center"
                   Margin="0,0,8,10"
-                  Padding="{StaticResource CardPaddingXL}"
-                  MinHeight="{StaticResource CardMinHeightM}">
+                  Padding="{DynamicResource CardPaddingXL}"
+                  MinHeight="{DynamicResource CardMinHeightM}">
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -75,26 +75,26 @@
               <StackPanel Grid.Row="0"
                           Orientation="Horizontal"
                           HorizontalAlignment="Center">
-                <TextBlock Style="{StaticResource Control.Icon.XL}"
+                <TextBlock Style="{DynamicResource Control.Icon.XL}"
                            Text="&#xe145;"
                            Margin="0,0,10,0"/>
                 <TextBlock Text="{DynamicResource Upload.AddVideos}"
-                           FontWeight="{StaticResource FontWeightSemiBold}"
-                           FontSize="{StaticResource FontSizeM}"
+                           FontWeight="{DynamicResource FontWeightSemiBold}"
+                           FontSize="{DynamicResource FontSizeM}"
                            VerticalAlignment="Center"/>
               </StackPanel>
               <TextBlock Grid.Row="1"
                          Text="{DynamicResource Upload.AddVideos.Formats}"
-                         FontSize="{StaticResource FontSizeXS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeXS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Center"
-                         Margin="{StaticResource LabelMarginTop}"/>
+                         Margin="{DynamicResource LabelMarginTop}"/>
             </Grid>
           </Button>
 
           <Border Grid.Row="1"
-                  Height="{StaticResource DividerHeight}"
-                  Background="{StaticResource SectionDividerBrush}"
+                  Height="{DynamicResource DividerHeight}"
+                  Background="{DynamicResource SectionDividerBrush}"
                   Margin="0,8,8,10"
                   HorizontalAlignment="Stretch"
                   VerticalAlignment="Center"
@@ -167,29 +167,29 @@
                 <Border.Style>
                   <Style TargetType="Border">
                     <Setter Property="Background"
-                            Value="{StaticResource SurfaceElevatedBrush}"/>
+                            Value="{DynamicResource SurfaceElevatedBrush}"/>
                     <Setter Property="BorderBrush"
-                            Value="{StaticResource BorderBrush}"/>
+                            Value="{DynamicResource BorderBrush}"/>
                     <Setter Property="CornerRadius"
-                            Value="{StaticResource RadiusS}"/>
+                            Value="{DynamicResource RadiusS}"/>
                     <Setter Property="Margin"
                             Value="0,0,8,0"/>
                     <Style.Triggers>
                       <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}"
                                    Value="True">
                         <Setter Property="Background"
-                                Value="{StaticResource SurfaceHoverBrush}"/>
+                                Value="{DynamicResource SurfaceHoverBrush}"/>
                         <Setter Property="BorderBrush"
-                                Value="{StaticResource BorderHoverBrush}"/>
+                                Value="{DynamicResource BorderHoverBrush}"/>
                       </DataTrigger>
                       <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}"
                                    Value="True">
                         <Setter Property="Background"
-                                Value="{StaticResource ListItemSelectedBrush}"/>
+                                Value="{DynamicResource ListItemSelectedBrush}"/>
                         <Setter Property="BorderBrush"
-                                Value="{StaticResource BorderStrongBrush}"/>
+                                Value="{DynamicResource BorderStrongBrush}"/>
                         <Setter Property="CornerRadius"
-                                Value="{StaticResource ListItemSelectedCornerRadius}"/>
+                                Value="{DynamicResource ListItemSelectedCornerRadius}"/>
                         <Setter Property="Margin"
                                 Value="0"/>
                       </DataTrigger>
@@ -199,7 +199,7 @@
                 <Grid>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="72"/>
-                    <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                    <ColumnDefinition Width="{DynamicResource SpacingM}"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="1"/>
                     <ColumnDefinition Width="32"/>
@@ -214,20 +214,20 @@
                   <Border Grid.Row="0"
                           Grid.Column="0"
                           Grid.RowSpan="4"
-                          Width="{StaticResource ThumbnailSizeM}"
-                          Height="{StaticResource ThumbnailSizeM}"
-                          Background="{StaticResource SurfaceSunkenBrush}"
-                          BorderBrush="{StaticResource BorderBrush}"
-                          BorderThickness="{StaticResource BorderThickness1}"
-                          CornerRadius="{StaticResource RadiusS}"
+                          Width="{DynamicResource ThumbnailSizeM}"
+                          Height="{DynamicResource ThumbnailSizeM}"
+                          Background="{DynamicResource SurfaceSunkenBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          BorderThickness="{DynamicResource BorderThickness1}"
+                          CornerRadius="{DynamicResource RadiusS}"
                           ClipToBounds="True">
                     <Grid>
                       <Image Source="{Binding VideoPreviewPath}"
                              Stretch="UniformToFill"
                              Visibility="{Binding VideoPreviewPath, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                       <TextBlock Text="{DynamicResource Upload.VideoPreview.Placeholder}"
-                                 FontSize="{StaticResource FontSizeXS}"
-                                 Foreground="{StaticResource TextMutedBrush}"
+                                 FontSize="{DynamicResource FontSizeXS}"
+                                 Foreground="{DynamicResource TextMutedBrush}"
                                  HorizontalAlignment="Center"
                                  VerticalAlignment="Center"
                                  TextAlignment="Center"
@@ -238,16 +238,16 @@
                   <TextBlock Grid.Row="0"
                              Grid.Column="2"
                              Text="{Binding DisplayName}"
-                             FontWeight="{StaticResource FontWeightSemiBold}"
-                             FontSize="{StaticResource FontSizeL}"
-                             Foreground="{StaticResource TextPrimaryBrush}"
+                             FontWeight="{DynamicResource FontWeightSemiBold}"
+                             FontSize="{DynamicResource FontSizeL}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              TextTrimming="CharacterEllipsis"
                              Margin="0,0,8,0"/>
 
                   <Border Grid.Row="0"
                           Grid.Column="3"
                           Grid.RowSpan="4"
-                          Background="{StaticResource BorderBrush}"
+                          Background="{DynamicResource BorderBrush}"
                           Margin="0"
                           VerticalAlignment="Stretch"
                           HorizontalAlignment="Stretch"/>
@@ -255,7 +255,7 @@
                   <Button Grid.Row="0"
                           Grid.Column="4"
                           Grid.RowSpan="4"
-                          Style="{StaticResource Control.Button.Suggestion.Close}"
+                          Style="{DynamicResource Control.Button.Suggestion.Close}"
                           Click="RemoveDraftButton_Click"
                           Tag="{Binding}"
                           Margin="0"
@@ -263,40 +263,40 @@
                           VerticalAlignment="Center"
                           ToolTip="{DynamicResource Common.Remove}">
                     <TextBlock Text="&#xe5cd;"
-                               FontFamily="{StaticResource MaterialIconsFont}"
-                               FontSize="{StaticResource FontSizeS}"
+                               FontFamily="{DynamicResource MaterialIconsFont}"
+                               FontSize="{DynamicResource FontSizeS}"
                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                   </Button>
 
                   <StackPanel Grid.Row="1"
                               Grid.Column="2"
                               Orientation="Horizontal"
-                              Margin="{StaticResource LabelMarginTopSmall}">
+                              Margin="{DynamicResource LabelMarginTopSmall}">
                     <TextBlock Text="{Binding VideoResolution, TargetNullValue='-', Mode=OneWay}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="{StaticResource FontSizeXS}"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"/>
                     <TextBlock Text="{DynamicResource Common.Separator.Pipe}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="{StaticResource FontSizeXS}"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"/>
                     <TextBlock Text="{Binding VideoFps, TargetNullValue='-', Mode=OneWay}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="{StaticResource FontSizeXS}"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"/>
                     <TextBlock Text="{DynamicResource Common.Unit.Fps}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"
                                Visibility="{Binding VideoFps, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                     <TextBlock Text="{DynamicResource Common.Separator.Pipe}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="{StaticResource FontSizeXS}"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"/>
                     <TextBlock Text="{Binding FileSizeDisplay, TargetNullValue='-', Mode=OneWay}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="{StaticResource FontSizeXS}"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"/>
                   </StackPanel>
 
                   <StackPanel Grid.Row="2"
                               Grid.Column="2"
                               Orientation="Horizontal"
-                              Margin="{StaticResource LabelMarginTopXS}">
+                              Margin="{DynamicResource LabelMarginTopXS}">
                     <StackPanel.Visibility>
                       <MultiBinding Converter="{StaticResource AnyStringToVisibilityConverter}">
                         <Binding Path="VideoDuration"/>
@@ -304,34 +304,34 @@
                       </MultiBinding>
                     </StackPanel.Visibility>
                     <TextBlock Text="{Binding VideoDuration}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"
                                Visibility="{Binding VideoDuration, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                     <TextBlock Text="{DynamicResource Common.Separator.Pipe}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"
                                Visibility="{Binding VideoDuration, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                     <TextBlock Text="{Binding VideoCodec}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               FontSize="{StaticResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeXS}"
                                Visibility="{Binding VideoCodec, Converter={StaticResource IsStringToVisibilityConverter}}"/>
                   </StackPanel>
 
                   <WrapPanel Grid.Row="3"
                              Grid.Column="2"
-                             Margin="{StaticResource LabelMarginTopSmall}">
-                    <Border Padding="{StaticResource PaddingCompact}"
-                            CornerRadius="{StaticResource RadiusS}"
-                            Background="{StaticResource SurfaceSunkenBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="{StaticResource BorderThickness1}"
+                             Margin="{DynamicResource LabelMarginTopSmall}">
+                    <Border Padding="{DynamicResource PaddingCompact}"
+                            CornerRadius="{DynamicResource RadiusS}"
+                            Background="{DynamicResource SurfaceSunkenBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="{DynamicResource BorderThickness1}"
                             Margin="0,0,6,4">
                       <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="UploadStateIcon"
-                                   FontFamily="{StaticResource MaterialIconsFont}"
-                                   FontSize="{StaticResource FontSizeS}"
+                                   FontFamily="{DynamicResource MaterialIconsFont}"
+                                   FontSize="{DynamicResource FontSizeS}"
                                    Text="&#xe86c;"
-                                   Foreground="{StaticResource SuccessBrush}"
+                                   Foreground="{DynamicResource SuccessBrush}"
                                    Margin="0,0,4,0"
                                    RenderTransformOrigin="0.5,0.5">
                           <TextBlock.RenderTransform>
@@ -345,7 +345,7 @@
                                   <Setter Property="Text"
                                           Value="&#xe863;"/>
                                   <Setter Property="Foreground"
-                                          Value="{StaticResource PrimaryBrush}"/>
+                                          Value="{DynamicResource PrimaryBrush}"/>
                                   <DataTrigger.EnterActions>
                                     <BeginStoryboard x:Name="UploadSpin">
                                       <Storyboard RepeatBehavior="Forever">
@@ -365,22 +365,22 @@
                                   <Setter Property="Text"
                                           Value="&#xe000;"/>
                                   <Setter Property="Foreground"
-                                          Value="{StaticResource DangerBrush}"/>
+                                          Value="{DynamicResource DangerBrush}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding UploadState}"
                                              Value="{x:Static models:UploadDraftUploadState.Pending}">
                                   <Setter Property="Text"
                                           Value="&#xe8b5;"/>
                                   <Setter Property="Foreground"
-                                          Value="{StaticResource TextMutedBrush}"/>
+                                          Value="{DynamicResource TextMutedBrush}"/>
                                 </DataTrigger>
                               </Style.Triggers>
                             </Style>
                           </TextBlock.Style>
                         </TextBlock>
                         <TextBlock x:Name="UploadStateLabel"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Center">
                           <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -409,11 +409,11 @@
                       </StackPanel>
                     </Border>
 
-                    <Border Padding="{StaticResource PaddingCompact}"
-                            CornerRadius="{StaticResource RadiusS}"
-                            Background="{StaticResource SurfaceSunkenBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="{StaticResource BorderThickness1}">
+                    <Border Padding="{DynamicResource PaddingCompact}"
+                            CornerRadius="{DynamicResource RadiusS}"
+                            Background="{DynamicResource SurfaceSunkenBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="{DynamicResource BorderThickness1}">
                       <Border.Style>
                         <Style TargetType="Border">
                           <Setter Property="Visibility"
@@ -429,10 +429,10 @@
                       </Border.Style>
                       <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="TranscriptionStateIcon"
-                                   FontFamily="{StaticResource MaterialIconsFont}"
-                                   FontSize="{StaticResource FontSizeS}"
+                                   FontFamily="{DynamicResource MaterialIconsFont}"
+                                   FontSize="{DynamicResource FontSizeS}"
                                    Text="&#xe86c;"
-                                   Foreground="{StaticResource SuccessBrush}"
+                                   Foreground="{DynamicResource SuccessBrush}"
                                    Margin="0,0,4,0"
                                    RenderTransformOrigin="0.5,0.5">
                           <TextBlock.RenderTransform>
@@ -446,7 +446,7 @@
                                   <Setter Property="Text"
                                           Value="&#xe863;"/>
                                   <Setter Property="Foreground"
-                                          Value="{StaticResource PrimaryBrush}"/>
+                                          Value="{DynamicResource PrimaryBrush}"/>
                                   <DataTrigger.EnterActions>
                                     <BeginStoryboard x:Name="TranscribeSpin">
                                       <Storyboard RepeatBehavior="Forever">
@@ -466,29 +466,29 @@
                                   <Setter Property="Text"
                                           Value="&#xe000;"/>
                                   <Setter Property="Foreground"
-                                          Value="{StaticResource DangerBrush}"/>
+                                          Value="{DynamicResource DangerBrush}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding TranscriptionState}"
                                              Value="{x:Static models:UploadDraftTranscriptionState.Cancelled}">
                                   <Setter Property="Text"
                                           Value="&#xe5c9;"/>
                                   <Setter Property="Foreground"
-                                          Value="{StaticResource TextMutedBrush}"/>
+                                          Value="{DynamicResource TextMutedBrush}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding TranscriptionState}"
                                              Value="{x:Static models:UploadDraftTranscriptionState.Pending}">
                                   <Setter Property="Text"
                                           Value="&#xe8b5;"/>
                                   <Setter Property="Foreground"
-                                          Value="{StaticResource TextMutedBrush}"/>
+                                          Value="{DynamicResource TextMutedBrush}"/>
                                 </DataTrigger>
                               </Style.Triggers>
                             </Style>
                           </TextBlock.Style>
                         </TextBlock>
                         <TextBlock x:Name="TranscriptionStateLabel"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    VerticalAlignment="Center">
                           <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -520,8 +520,8 @@
                           </TextBlock.Style>
                         </TextBlock>
                         <TextBlock Text="{Binding TranscriptionStatus, Converter={StaticResource ExtractDurationFromStatusConverter}}"
-                                   FontSize="{StaticResource FontSizeXS}"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{DynamicResource FontSizeXS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    Margin="6,0,0,0"
                                    VerticalAlignment="Center">
                           <TextBlock.Style>
@@ -565,7 +565,7 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="{StaticResource SpacingS}"/>
+            <RowDefinition Height="{DynamicResource SpacingS}"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
 
@@ -574,7 +574,7 @@
                 Grid.RowSpan="4"
                 Background="Transparent"
                 Height="{Binding ElementName=UploadContentScrollViewer, Path=ActualHeight}"
-                MinHeight="{StaticResource DetailPanelMinHeight}"
+                MinHeight="{DynamicResource DetailPanelMinHeight}"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 AllowDrop="True"
@@ -591,32 +591,32 @@
               <StackPanel Grid.Row="1"
                           HorizontalAlignment="Center"
                           Margin="32">
-                <TextBlock Style="{StaticResource Control.Icon.Base}"
+                <TextBlock Style="{DynamicResource Control.Icon.Base}"
                            Text="&#xe070;"
-                           FontSize="{StaticResource FontSizeXXXXL}"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="{DynamicResource FontSizeXXXXL}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            HorizontalAlignment="Center"
-                           Margin="{StaticResource LabelMarginBottomXL}"/>
+                           Margin="{DynamicResource LabelMarginBottomXL}"/>
                 <TextBlock Text="{DynamicResource Upload.Empty.Title}"
-                           FontSize="{StaticResource FontSizeXXL}"
-                           FontWeight="{StaticResource FontWeightSemiBold}"
-                           Foreground="{StaticResource TextPrimaryBrush}"
+                           FontSize="{DynamicResource FontSizeXXL}"
+                           FontWeight="{DynamicResource FontWeightSemiBold}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
                            HorizontalAlignment="Center"/>
                 <TextBlock Text="{DynamicResource Upload.Empty.Formats}"
-                           FontSize="{StaticResource FontSizeM}"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="{DynamicResource FontSizeM}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            HorizontalAlignment="Center"
-                           Margin="{StaticResource LabelMarginTopL}"/>
+                           Margin="{DynamicResource LabelMarginTopL}"/>
               </StackPanel>
             </Grid>
           </Grid>
 
           <ContentControl x:Name="VideoDropZone"
                           Grid.Row="0"
-                          Style="{StaticResource Control.DropZone.Video}"
-                          Background="{StaticResource SurfaceElevatedBrush}"
-                          BorderBrush="{StaticResource BorderBrush}"
-                          BorderThickness="{StaticResource BorderThickness1}"
+                          Style="{DynamicResource Control.DropZone.Video}"
+                          Background="{DynamicResource SurfaceElevatedBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          BorderThickness="{DynamicResource BorderThickness1}"
                           Visibility="Collapsed"
                           DragOver="VideoDrop_DragOver"
                           DragLeave="VideoDrop_DragLeave"
@@ -645,16 +645,16 @@
                     Height="{Binding ElementName=VideoInfoPanel, Path=ActualHeight}"
                     MinWidth="160"
                     MinHeight="90"
-                    CornerRadius="{StaticResource RadiusM}"
-                    Background="{StaticResource SurfaceLightBrush}"
-                    BorderBrush="{StaticResource BorderStrongBrush}"
+                    CornerRadius="{DynamicResource RadiusM}"
+                    Background="{DynamicResource SurfaceLightBrush}"
+                    BorderBrush="{DynamicResource BorderStrongBrush}"
                     BorderThickness="0.5"
                     Margin="8,8,8,8"
                     VerticalAlignment="Top"
                     ClipToBounds="True">
               <Grid>
                 <Grid x:Name="VideoPreviewEmptyState">
-                  <TextBlock Style="{StaticResource Control.Icon.XXL}"
+                  <TextBlock Style="{DynamicResource Control.Icon.XXL}"
                              Text="&#xe53f;"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"
@@ -673,7 +673,7 @@
                   Margin="0,8,0,8">
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{StaticResource SpacingM}"/>
+                <RowDefinition Height="{DynamicResource SpacingM}"/>
                 <RowDefinition Height="*"/>
               </Grid.RowDefinitions>
 
@@ -685,35 +685,35 @@
                 <StackPanel Orientation="Horizontal"
                             VerticalAlignment="Center">
                 <TextBlock x:Name="VideoFileNameTextBlock"
-                             FontSize="{StaticResource FontSizeL}"
-                             FontWeight="{StaticResource FontWeightSemiBold}"
-                             Foreground="{StaticResource TextPrimaryBrush}"
+                             FontSize="{DynamicResource FontSizeL}"
+                             FontWeight="{DynamicResource FontWeightSemiBold}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              TextTrimming="CharacterEllipsis"/>
-                  <Border Background="{StaticResource SurfaceSunkenBrush}"
-                          BorderBrush="{StaticResource BorderBrush}"
-                          BorderThickness="{StaticResource BorderThickness1}"
-                          CornerRadius="{StaticResource RadiusS}"
+                  <Border Background="{DynamicResource SurfaceSunkenBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          BorderThickness="{DynamicResource BorderThickness1}"
+                          CornerRadius="{DynamicResource RadiusS}"
                           Margin="10,0,0,0"
-                          Padding="{StaticResource PaddingCompact}"
+                          Padding="{DynamicResource PaddingCompact}"
                           VerticalAlignment="Center">
                     <TextBlock x:Name="VideoFileSizeTextBlock"
                                Text="{DynamicResource Upload.VideoFileSize.Unknown}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                   </Border>
                 </StackPanel>
               </Grid>
 
               <Border Grid.Row="2"
-                      Background="{StaticResource SurfaceSunkenBrush}"
-                      BorderBrush="{StaticResource BorderBrush}"
-                      BorderThickness="{StaticResource BorderThickness1}"
-                      CornerRadius="{StaticResource RadiusS}"
+                      Background="{DynamicResource SurfaceSunkenBrush}"
+                      BorderBrush="{DynamicResource BorderBrush}"
+                      BorderThickness="{DynamicResource BorderThickness1}"
+                      CornerRadius="{DynamicResource RadiusS}"
                       Padding="10">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="{DynamicResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
@@ -727,71 +727,71 @@
                               Grid.Column="0"
                               Margin="0,0,12,0">
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Resolution}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBlock x:Name="VideoResolutionTextBlock"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </StackPanel>
                   <StackPanel Grid.Row="0"
                               Grid.Column="1"
                               Margin="0,0,12,0">
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Fps}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBlock x:Name="VideoFpsTextBlock"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </StackPanel>
                   <StackPanel Grid.Row="0"
                               Grid.Column="2"
                               Margin="0,0,12,0">
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Duration}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBlock x:Name="VideoDurationTextBlock"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </StackPanel>
                   <StackPanel Grid.Row="0"
                               Grid.Column="3">
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.VideoCodec}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBlock x:Name="VideoCodecTextBlock"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </StackPanel>
 
                   <StackPanel Grid.Row="2"
                               Grid.Column="0"
                               Margin="0,0,12,0">
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.VideoBitrate}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBlock x:Name="VideoBitrateTextBlock"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </StackPanel>
                   <StackPanel Grid.Row="2"
                               Grid.Column="1"
                               Margin="0,0,12,0">
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.Audio}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBlock x:Name="VideoAudioTextBlock"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </StackPanel>
                   <StackPanel Grid.Row="2"
                               Grid.Column="2"
                               Margin="0,0,12,0">
                     <TextBlock Text="{DynamicResource Upload.VideoInfo.AudioBitrate}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <TextBlock x:Name="VideoAudioBitrateTextBlock"
-                               FontSize="{StaticResource FontSizeM}"
-                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                               FontSize="{DynamicResource FontSizeM}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
                   </StackPanel>
                 </Grid>
               </Border>
@@ -802,32 +802,32 @@
                         VerticalAlignment="Top"
                         Margin="8,8,8,8">
               <Button x:Name="UploadButton"
-                      Style="{StaticResource Control.Button.Primary.L}"
+                      Style="{DynamicResource Control.Button.Primary.L}"
                       Click="UploadButton_Click"
                       IsEnabled="False"
                       ap:ButtonIcon.Glyph="&#xeb9b;"
                       Content="{DynamicResource Upload.StartUpload}"
-                      Margin="{StaticResource LabelMarginBottomL}"/>
+                      Margin="{DynamicResource LabelMarginBottomL}"/>
               <Button x:Name="VideoChangeButton"
                       Content="{DynamicResource Common.Change}"
-                      Style="{StaticResource Control.Button.Tertiary}"
+                      Style="{DynamicResource Control.Button.Tertiary}"
                       ap:ButtonIcon.Glyph="&#xe3c9;"
                       Click="VideoChangeButton_Click"
                       MinWidth="140"/>
             </StackPanel>
           </Grid>
           <Border Grid.Row="1"
-                  Height="{StaticResource DividerHeight}"
-                  Background="{StaticResource BorderBrush}"
+                  Height="{DynamicResource DividerHeight}"
+                  Background="{DynamicResource BorderBrush}"
                   Margin="0,8,0,8"
                   HorizontalAlignment="Stretch"
                   SnapsToDevicePixels="True"/>
           <Border x:Name="UploadActionBar"
                   Grid.Row="2"
                   Background="Transparent"
-                  BorderThickness="{StaticResource BorderThickness0}"
-                  CornerRadius="{StaticResource RadiusNone}"
-                  Padding="{StaticResource InputPaddingM}"
+                  BorderThickness="{DynamicResource BorderThickness0}"
+                  CornerRadius="{DynamicResource RadiusNone}"
+                  Padding="{DynamicResource InputPaddingM}"
                   Visibility="{Binding Visibility, ElementName=VideoDropZone}">
             <Grid>
               <Grid.ColumnDefinitions>
@@ -836,32 +836,32 @@
               </Grid.ColumnDefinitions>
               <StackPanel Orientation="Horizontal">
                 <Button x:Name="ActionFillAllButton"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe663;"
                         Content="{DynamicResource Upload.Actions.FillAll}"
                         Click="FastFillSuggestionsButton_Click"
                         Margin="0,0,8,0"/>
                 <Button x:Name="ActionTranscribeButton"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         Click="TranscribeDraftButton_Click"
                         Margin="0,0,8,0"
                         ToolTip="{DynamicResource Upload.Tooltip.TranscribeVideo}">
                   <StackPanel Orientation="Horizontal">
                     <TextBlock x:Name="ActionTranscribeDraftIcon"
-                               Style="{StaticResource Control.Icon.L}"
+                               Style="{DynamicResource Control.Icon.L}"
                                Text="&#xe048;"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,6,0"/>
                     <TextBlock x:Name="ActionTranscribeDraftLabel"
                                Text="{DynamicResource Upload.Fields.Transcripe}"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>
                   </StackPanel>
                 </Button>
                 <Border Width="1"
                         Height="28"
-                        Background="{StaticResource BorderBrush}"
+                        Background="{DynamicResource BorderBrush}"
                         Margin="4,0,12,0"
                         VerticalAlignment="Center"/>
                 <ComboBox x:Name="PresetComboBox"
@@ -870,7 +870,7 @@
                           ToolTip="{DynamicResource Upload.Tooltip.Preset}"
                           SelectionChanged="PresetComboBox_SelectionChanged"/>
                 <Button x:Name="ApplyPresetButton"
-                        Style="{StaticResource Control.Button.Secondary}"
+                        Style="{DynamicResource Control.Button.Secondary}"
                         ap:ButtonIcon.Glyph="&#xe5ca;"
                         Content="{DynamicResource Upload.Actions.ApplyPreset}"
                         Click="ApplyPresetButton_Click"
@@ -878,8 +878,8 @@
               </StackPanel>
               <TextBlock Grid.Column="1"
                          Text="{DynamicResource Section.Upload.Actions}"
-                         FontSize="{StaticResource FontSizeS}"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         FontSize="{DynamicResource FontSizeS}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center"/>
             </Grid>
           </Border>
@@ -894,7 +894,7 @@
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"
                               MinWidth="350"/>
-            <ColumnDefinition Width="{StaticResource SpacingL}"/>
+            <ColumnDefinition Width="{DynamicResource SpacingL}"/>
             <ColumnDefinition Width="*"
                               MinWidth="300"
                               MaxWidth="400"/>
@@ -905,20 +905,20 @@
                 Grid.Column="0">
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
-              <RowDefinition Height="{StaticResource SpacingS}"/>
+              <RowDefinition Height="{DynamicResource SpacingS}"/>
               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0"
                        Text="{DynamicResource Section.Metadata}"
-                       Style="{StaticResource Control.Text.SectionHeader}"
-                       Margin="{StaticResource LabelMarginBottom}"/>
+                       Style="{DynamicResource Control.Text.SectionHeader}"
+                       Margin="{DynamicResource LabelMarginBottom}"/>
 
             <!-- Titel -->
             <GroupBox Grid.Row="2"
@@ -933,11 +933,11 @@
                   <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Title}" VerticalAlignment="Center"/>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Border x:Name="TitleValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
-                      <TextBlock x:Name="TitleValidationIconGlyph" Style="{StaticResource Control.Text.ValidationIcon}"/>
+                      <TextBlock x:Name="TitleValidationIconGlyph" Style="{DynamicResource Control.Text.ValidationIcon}"/>
                     </Border>
-                    <Border Style="{StaticResource Control.Help.IconButton}"
+                    <Border Style="{DynamicResource Control.Help.IconButton}"
                             ToolTip="{DynamicResource Upload.Tooltip.Title.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                 </Grid>
@@ -945,9 +945,9 @@
               <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
@@ -963,46 +963,46 @@
                   <Button x:Name="GenerateTitleButton"
                           Grid.Row="4"
                           Grid.Column="0"
-                          Style="{StaticResource Control.Button.Secondary}"
+                          Style="{DynamicResource Control.Button.Secondary}"
                           ap:ButtonIcon.Glyph="&#xe663;"
                           Content="{DynamicResource Upload.Fields.Suggest}"
                           Click="GenerateTitleButton_Click"
                           ToolTip="{DynamicResource Upload.Tooltip.GenerateSuggestion}"
-                          BorderBrush="{StaticResource MagicAIGradientBrush}"/>
+                          BorderBrush="{DynamicResource MagicAIGradientBrush}"/>
 
                   <Border x:Name="TitleSuggestionsPanel"
                           Grid.Row="5"
                           Grid.Column="0"
                           Grid.ColumnSpan="2"
-                          Margin="{StaticResource LabelMarginTop}"
-                          BorderBrush="{StaticResource BorderBrush}"
+                          Margin="{DynamicResource LabelMarginTop}"
+                          BorderBrush="{DynamicResource BorderBrush}"
                           BorderThickness="0,1,0,0"
                           Padding="0,8,0,0"
                           Visibility="Collapsed">
                     <Grid>
                       <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="{StaticResource SpacingS}"/>
+                        <RowDefinition Height="{DynamicResource SpacingS}"/>
                         <RowDefinition Height="Auto"/>
                       </Grid.RowDefinitions>
                       <DockPanel Grid.Row="0"
                                  LastChildFill="False">
                         <TextBlock Text="{DynamicResource Upload.Suggestions.Header}"
-                                   FontSize="{StaticResource FontSizeS}"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{DynamicResource FontSizeS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock x:Name="TitleSuggestionsTargetTextBlock"
                                    Text=""
-                                   FontSize="{StaticResource FontSizeS}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource FontSizeS}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="6,0,0,0"
                                    VerticalAlignment="Center"/>
                         <Button x:Name="TitleSuggestionsCloseButton"
                                 DockPanel.Dock="Right"
-                                Style="{StaticResource Control.Button.Suggestion.Close}"
+                                Style="{DynamicResource Control.Button.Suggestion.Close}"
                                 Click="SuggestionCloseButton_Click"
                                 Margin="8,0,0,0">
-                          <TextBlock Style="{StaticResource Control.Icon.L}"
+                          <TextBlock Style="{DynamicResource Control.Icon.L}"
                                      Text="&#xe5cd;"
                                      Margin="0"
                                      Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
@@ -1014,7 +1014,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Visibility="Collapsed">
-                          <TextBlock Style="{StaticResource Control.Icon.XL}"
+                          <TextBlock Style="{DynamicResource Control.Icon.XL}"
                                      Text="&#xe863;"
                                      Margin="0,0,6,0"
                                      RenderTransformOrigin="0.5,0.5">
@@ -1035,8 +1035,8 @@
                             </TextBlock.Triggers>
                           </TextBlock>
                           <TextBlock Text="{DynamicResource Upload.Suggestions.Loading}"
-                                     FontSize="{StaticResource FontSizeS}"
-                                     Foreground="{StaticResource TextMutedBrush}"/>
+                                     FontSize="{DynamicResource FontSizeS}"
+                                     Foreground="{DynamicResource TextMutedBrush}"/>
                         </StackPanel>
                         <ItemsControl x:Name="TitleSuggestionItemsControl"
                                       Visibility="Collapsed">
@@ -1047,8 +1047,8 @@
                           </ItemsControl.ItemsPanel>
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                              <Button Style="{StaticResource Control.Button.Suggestion.Item}"
-                                      Margin="{StaticResource LabelMarginBottom}"
+                              <Button Style="{DynamicResource Control.Button.Suggestion.Item}"
+                                      Margin="{DynamicResource LabelMarginBottom}"
                                       ap:ButtonIcon.Glyph="&#xe8f4;"
                                       Click="SuggestionItemButton_Click"
                                       HorizontalAlignment="Stretch">
@@ -1078,11 +1078,11 @@
                   <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Description}" VerticalAlignment="Center"/>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Border x:Name="DescriptionValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
-                      <TextBlock x:Name="DescriptionValidationIconGlyph" Style="{StaticResource Control.Text.ValidationIcon}"/>
+                      <TextBlock x:Name="DescriptionValidationIconGlyph" Style="{DynamicResource Control.Text.ValidationIcon}"/>
                     </Border>
-                    <Border Style="{StaticResource Control.Help.IconButton}"
+                    <Border Style="{DynamicResource Control.Help.IconButton}"
                             ToolTip="{DynamicResource Upload.Tooltip.Description.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                 </Grid>
@@ -1090,7 +1090,7 @@
               <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
@@ -1101,7 +1101,7 @@
                            VerticalScrollBarVisibility="Auto"
                            TextWrapping="Wrap"
                            TextChanged="DescriptionTextBox_TextChanged"
-                           MinHeight="{StaticResource TextAreaMinHeightL}"/>
+                           MinHeight="{DynamicResource TextAreaMinHeightL}"/>
 
                   <!-- Buttons -->
                   <Grid Grid.Row="2">
@@ -1111,45 +1111,45 @@
                     </Grid.ColumnDefinitions>
                   <Button x:Name="GenerateDescriptionButton"
                           Grid.Column="0"
-                          Style="{StaticResource Control.Button.Secondary}"
+                          Style="{DynamicResource Control.Button.Secondary}"
                           ap:ButtonIcon.Glyph="&#xe663;"
                           Content="{DynamicResource Upload.Fields.Suggest}"
                           Click="GenerateDescriptionButton_Click"
                           ToolTip="{DynamicResource Upload.Tooltip.GenerateSuggestion}"
-                          BorderBrush="{StaticResource MagicAIGradientBrush}"/>
+                          BorderBrush="{DynamicResource MagicAIGradientBrush}"/>
                   </Grid>
 
                   <Border x:Name="DescriptionSuggestionsPanel"
                           Grid.Row="3"
-                          Margin="{StaticResource LabelMarginTop}"
-                          BorderBrush="{StaticResource BorderBrush}"
+                          Margin="{DynamicResource LabelMarginTop}"
+                          BorderBrush="{DynamicResource BorderBrush}"
                           BorderThickness="0,1,0,0"
                           Padding="0,8,0,0"
                           Visibility="Collapsed">
                     <Grid>
                       <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="{StaticResource SpacingS}"/>
+                        <RowDefinition Height="{DynamicResource SpacingS}"/>
                         <RowDefinition Height="Auto"/>
                       </Grid.RowDefinitions>
                       <DockPanel Grid.Row="0"
                                  LastChildFill="False">
                         <TextBlock Text="{DynamicResource Upload.Suggestions.Header}"
-                                   FontSize="{StaticResource FontSizeS}"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{DynamicResource FontSizeS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock x:Name="DescriptionSuggestionsTargetTextBlock"
                                    Text=""
-                                   FontSize="{StaticResource FontSizeS}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource FontSizeS}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="6,0,0,0"
                                    VerticalAlignment="Center"/>
                         <Button x:Name="DescriptionSuggestionsCloseButton"
                                 DockPanel.Dock="Right"
-                                Style="{StaticResource Control.Button.Suggestion.Close}"
+                                Style="{DynamicResource Control.Button.Suggestion.Close}"
                                 Click="SuggestionCloseButton_Click"
                                 Margin="8,0,0,0">
-                          <TextBlock Style="{StaticResource Control.Icon.L}"
+                          <TextBlock Style="{DynamicResource Control.Icon.L}"
                                      Text="&#xe5cd;"
                                      Margin="0"
                                      Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
@@ -1161,7 +1161,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Visibility="Collapsed">
-                          <TextBlock Style="{StaticResource Control.Icon.XL}"
+                          <TextBlock Style="{DynamicResource Control.Icon.XL}"
                                      Text="&#xe863;"
                                      Margin="0,0,6,0"
                                      RenderTransformOrigin="0.5,0.5">
@@ -1182,8 +1182,8 @@
                             </TextBlock.Triggers>
                           </TextBlock>
                           <TextBlock Text="{DynamicResource Upload.Suggestions.Loading}"
-                                     FontSize="{StaticResource FontSizeS}"
-                                     Foreground="{StaticResource TextMutedBrush}"/>
+                                     FontSize="{DynamicResource FontSizeS}"
+                                     Foreground="{DynamicResource TextMutedBrush}"/>
                         </StackPanel>
                         <ItemsControl x:Name="DescriptionSuggestionItemsControl"
                                       Visibility="Collapsed">
@@ -1194,8 +1194,8 @@
                           </ItemsControl.ItemsPanel>
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                              <Button Style="{StaticResource Control.Button.Suggestion.Item}"
-                                      Margin="{StaticResource LabelMarginBottom}"
+                              <Button Style="{DynamicResource Control.Button.Suggestion.Item}"
+                                      Margin="{DynamicResource LabelMarginBottom}"
                                       ap:ButtonIcon.Glyph="&#xe8f4;"
                                       Click="SuggestionItemButton_Click"
                                       HorizontalAlignment="Stretch">
@@ -1225,11 +1225,11 @@
                   <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Tags}" VerticalAlignment="Center"/>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Border x:Name="TagsValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
-                      <TextBlock x:Name="TagsValidationIconGlyph" Style="{StaticResource Control.Text.ValidationIcon}"/>
+                      <TextBlock x:Name="TagsValidationIconGlyph" Style="{DynamicResource Control.Text.ValidationIcon}"/>
                     </Border>
-                    <Border Style="{StaticResource Control.Help.IconButton}"
+                    <Border Style="{DynamicResource Control.Help.IconButton}"
                             ToolTip="{DynamicResource Upload.Tooltip.Tags.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                 </Grid>
@@ -1237,7 +1237,7 @@
               <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
@@ -1251,11 +1251,11 @@
                           Grid.Row="0"
                           Grid.Column="0"
                           Grid.ColumnSpan="2"
-                          Background="{StaticResource InputBackgroundBrush}"
-                          BorderBrush="{StaticResource BorderBrush}"
-                          BorderThickness="{StaticResource BorderThickness1}"
-                          CornerRadius="{StaticResource RadiusS}"
-                          Padding="{StaticResource InputPaddingM}"
+                          Background="{DynamicResource InputBackgroundBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          BorderThickness="{DynamicResource BorderThickness1}"
+                          CornerRadius="{DynamicResource RadiusS}"
+                          Padding="{DynamicResource InputPaddingM}"
                           ToolTip="{DynamicResource Upload.Tooltip.TagsInput}"
                           MouseDown="TagsInputBorder_MouseDown">
                     <WrapPanel>
@@ -1267,23 +1267,23 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
-                            <Border Background="{StaticResource SurfaceSunkenBrush}"
-                                    BorderBrush="{StaticResource BorderBrush}"
-                                    BorderThickness="{StaticResource BorderThickness1}"
-                                    CornerRadius="{StaticResource RadiusS}"
-                                    Padding="{StaticResource PaddingCompact}"
+                            <Border Background="{DynamicResource SurfaceSunkenBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="{DynamicResource BorderThickness1}"
+                                    CornerRadius="{DynamicResource RadiusS}"
+                                    Padding="{DynamicResource PaddingCompact}"
                                     Margin="0,0,6,6">
                               <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding}"
-                                           FontSize="{StaticResource FontSizeS}"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="{DynamicResource FontSizeS}"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                            VerticalAlignment="Center"/>
-                                <Button Style="{StaticResource Control.Upload.TagChip.RemoveButton}"
+                                <Button Style="{DynamicResource Control.Upload.TagChip.RemoveButton}"
                                         Tag="{Binding}"
                                         Click="TagChipRemoveButton_Click"
                                         Margin="6,0,0,0">
                                   <TextBlock Text="&#xe5cd;"
-                                             FontFamily="{StaticResource MaterialIconsFont}"/>
+                                             FontFamily="{DynamicResource MaterialIconsFont}"/>
                                 </Button>
                               </StackPanel>
                             </Border>
@@ -1310,46 +1310,46 @@
                   <Button x:Name="GenerateTagsButton"
                           Grid.Row="2"
                           Grid.Column="0"
-                          Style="{StaticResource Control.Button.Secondary}"
+                          Style="{DynamicResource Control.Button.Secondary}"
                           ap:ButtonIcon.Glyph="&#xe663;"
                           Content="{DynamicResource Upload.Fields.Suggest}"
                           Click="GenerateTagsButton_Click"
                           ToolTip="{DynamicResource Upload.Tooltip.GenerateSuggestion}"
-                          BorderBrush="{StaticResource MagicAIGradientBrush}"/>
+                          BorderBrush="{DynamicResource MagicAIGradientBrush}"/>
 
                   <Border x:Name="TagsSuggestionsPanel"
                           Grid.Row="3"
                           Grid.Column="0"
                           Grid.ColumnSpan="2"
-                          Margin="{StaticResource LabelMarginTop}"
-                          BorderBrush="{StaticResource BorderBrush}"
+                          Margin="{DynamicResource LabelMarginTop}"
+                          BorderBrush="{DynamicResource BorderBrush}"
                           BorderThickness="0,1,0,0"
                           Padding="0,8,0,0"
                           Visibility="Collapsed">
                     <Grid>
                       <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="{StaticResource SpacingS}"/>
+                        <RowDefinition Height="{DynamicResource SpacingS}"/>
                         <RowDefinition Height="Auto"/>
                       </Grid.RowDefinitions>
                       <DockPanel Grid.Row="0"
                                  LastChildFill="False">
                         <TextBlock Text="{DynamicResource Upload.Suggestions.Header}"
-                                   FontSize="{StaticResource FontSizeS}"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{DynamicResource FontSizeS}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    VerticalAlignment="Center"/>
                         <TextBlock x:Name="TagsSuggestionsTargetTextBlock"
                                    Text=""
-                                   FontSize="{StaticResource FontSizeS}"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="{DynamicResource FontSizeS}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    Margin="6,0,0,0"
                                    VerticalAlignment="Center"/>
                         <Button x:Name="TagsSuggestionsCloseButton"
                                 DockPanel.Dock="Right"
-                                Style="{StaticResource Control.Button.Suggestion.Close}"
+                                Style="{DynamicResource Control.Button.Suggestion.Close}"
                                 Click="SuggestionCloseButton_Click"
                                 Margin="8,0,0,0">
-                          <TextBlock Style="{StaticResource Control.Icon.L}"
+                          <TextBlock Style="{DynamicResource Control.Icon.L}"
                                      Text="&#xe5cd;"
                                      Margin="0"
                                      Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
@@ -1361,7 +1361,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Visibility="Collapsed">
-                          <TextBlock Style="{StaticResource Control.Icon.XL}"
+                          <TextBlock Style="{DynamicResource Control.Icon.XL}"
                                      Text="&#xe863;"
                                      Margin="0,0,6,0"
                                      RenderTransformOrigin="0.5,0.5">
@@ -1382,8 +1382,8 @@
                             </TextBlock.Triggers>
                           </TextBlock>
                           <TextBlock Text="{DynamicResource Upload.Suggestions.Loading}"
-                                     FontSize="{StaticResource FontSizeS}"
-                                     Foreground="{StaticResource TextMutedBrush}"/>
+                                     FontSize="{DynamicResource FontSizeS}"
+                                     Foreground="{DynamicResource TextMutedBrush}"/>
                         </StackPanel>
                         <ItemsControl x:Name="TagsSuggestionItemsControl"
                                       Visibility="Collapsed">
@@ -1394,8 +1394,8 @@
                           </ItemsControl.ItemsPanel>
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                              <Button Style="{StaticResource Control.Button.Suggestion.Item}"
-                                      Margin="{StaticResource LabelMarginBottom}"
+                              <Button Style="{DynamicResource Control.Button.Suggestion.Item}"
+                                      Margin="{DynamicResource LabelMarginBottom}"
                                       ap:ButtonIcon.Glyph="&#xe8f4;"
                                       Click="SuggestionItemButton_Click"
                                       HorizontalAlignment="Stretch">
@@ -1425,11 +1425,11 @@
                   <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Transcription}" VerticalAlignment="Center"/>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Border x:Name="TranscriptionValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
-                      <TextBlock x:Name="TranscriptionValidationIconGlyph" Style="{StaticResource Control.Text.ValidationIcon}"/>
+                      <TextBlock x:Name="TranscriptionValidationIconGlyph" Style="{DynamicResource Control.Text.ValidationIcon}"/>
                     </Border>
-                    <Border Style="{StaticResource Control.Help.IconButton}"
+                    <Border Style="{DynamicResource Control.Help.IconButton}"
                             ToolTip="{DynamicResource Upload.Tooltip.Transcription.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                 </Grid>
@@ -1437,28 +1437,28 @@
               <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="{DynamicResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
 
                   <TextBlock Grid.Row="0"
                              Text="{DynamicResource Upload.Fields.Transcription.Descr}"
-                             FontSize="{StaticResource FontSizeS}"
-                             Foreground="{StaticResource TextMutedBrush}"/>
+                             FontSize="{DynamicResource FontSizeS}"
+                             Foreground="{DynamicResource TextMutedBrush}"/>
 
                   <TextBox x:Name="TranscriptTextBox"
                            Grid.Row="2"
                            AcceptsReturn="True"
                            VerticalScrollBarVisibility="Auto"
                            TextWrapping="Wrap"
-                           MinHeight="{StaticResource TextAreaMinHeightL}"
+                           MinHeight="{DynamicResource TextAreaMinHeightL}"
                            MaxHeight="320"
                            TextChanged="TranscriptTextBox_TextChanged"/>
 
@@ -1466,7 +1466,7 @@
                   <Grid Grid.Row="4">
                     <Grid.RowDefinitions>
                       <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="{StaticResource SpacingS}"/>
+                      <RowDefinition Height="{DynamicResource SpacingS}"/>
                       <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -1512,7 +1512,7 @@
                     <Button x:Name="TranscriptionExportButton"
                             Grid.Row="0"
                             Grid.Column="1"
-                            Style="{StaticResource Control.Button.Secondary}"
+                            Style="{DynamicResource Control.Button.Secondary}"
                             ap:ButtonIcon.Glyph="&#xe2c4;"
                             Click="TranscriptionExportButton_Click"
                             ToolTip="{DynamicResource Upload.Tooltip.ExportTranscript}"
@@ -1550,7 +1550,7 @@
                                  Grid.Row="0"
                                  Grid.Column="3"
                                  Height="20"
-                                 Margin="{StaticResource SpacingHorizontalM}"
+                                 Margin="{DynamicResource SpacingHorizontalM}"
                                  Minimum="0"
                                  Maximum="100"
                                  Value="0"
@@ -1560,14 +1560,14 @@
                                Grid.Row="2"
                                Grid.Column="0"
                                Grid.ColumnSpan="4"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                Visibility="Collapsed"/>
                   </Grid>
 
                   <Border Grid.Row="5"
-                          Height="{StaticResource DividerHeight}"
-                          Background="{StaticResource BorderBrush}"
+                          Height="{DynamicResource DividerHeight}"
+                          Background="{DynamicResource BorderBrush}"
                           Margin="-8,12,-8,12"
                           HorizontalAlignment="Stretch"
                           SnapsToDevicePixels="True"/>
@@ -1575,18 +1575,18 @@
                   <StackPanel Grid.Row="7">
                     <StackPanel Orientation="Horizontal">
                       <TextBlock Text="{DynamicResource Upload.Fields.Chapters}"
-                                 FontSize="{StaticResource FontSizeS}"
-                                 FontWeight="{StaticResource FontWeightSemiBold}"
-                                 Foreground="{StaticResource TextPrimaryBrush}"/>
-                      <Border Style="{StaticResource Control.Help.IconButton}"
+                                 FontSize="{DynamicResource FontSizeS}"
+                                 FontWeight="{DynamicResource FontWeightSemiBold}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"/>
+                      <Border Style="{DynamicResource Control.Help.IconButton}"
                               ToolTip="{DynamicResource Upload.Tooltip.Chapters.Example}">
-                        <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                        <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                       </Border>
                     </StackPanel>
                     <TextBlock Text="{DynamicResource Upload.Fields.Chapters.Descr}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               Margin="{StaticResource LabelMarginTopXS}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               Margin="{DynamicResource LabelMarginTopXS}"/>
                   </StackPanel>
 
                   <TextBox x:Name="ChaptersTextBox"
@@ -1594,7 +1594,7 @@
                            AcceptsReturn="True"
                            VerticalScrollBarVisibility="Auto"
                            TextWrapping="Wrap"
-                           MinHeight="{StaticResource TextAreaMinHeightM}"
+                           MinHeight="{DynamicResource TextAreaMinHeightM}"
                            ToolTip="{DynamicResource Upload.Fields.Chapters.ToolTip}"
                            TextChanged="ChaptersTextBox_TextChanged"/>
               </Grid>
@@ -1605,31 +1605,31 @@
           <!-- RECHTE SPALTE -->
           <StackPanel Grid.Column="2">
             <TextBlock Text="{DynamicResource Section.Publishing}"
-                       Style="{StaticResource Control.Text.SectionHeader}"
-                       Margin="{StaticResource LabelMarginBottom}"/>
+                       Style="{DynamicResource Control.Text.SectionHeader}"
+                       Margin="{DynamicResource LabelMarginBottom}"/>
 
-            <Border Style="{StaticResource Control.Upload.Section.Card}">
+            <Border Style="{DynamicResource Control.Upload.Section.Card}">
               <StackPanel>
-                <Grid Margin="{StaticResource Control.Text.SectionHeaderMarginBottom}">
+                <Grid Margin="{DynamicResource Control.Text.SectionHeaderMarginBottom}">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
-                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Thumbnail}" Style="{StaticResource Control.Text.Label}"/>
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Thumbnail}" Style="{DynamicResource Control.Text.Label}"/>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Border x:Name="ThumbnailValidationIcon" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,4,0">
-                      <TextBlock x:Name="ThumbnailValidationIconGlyph" Style="{StaticResource Control.Text.ValidationIcon}"/>
+                      <TextBlock x:Name="ThumbnailValidationIconGlyph" Style="{DynamicResource Control.Text.ValidationIcon}"/>
                     </Border>
-                    <Border Style="{StaticResource Control.Help.IconButton}"
+                    <Border Style="{DynamicResource Control.Help.IconButton}"
                             ToolTip="{DynamicResource Upload.Tooltip.Thumbnail.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                 </Grid>
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingM}"/>
+                    <RowDefinition Height="{DynamicResource SpacingM}"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
 
@@ -1642,7 +1642,7 @@
                                     Width="320"
                                     Height="180"
                                     ClipToBounds="True"
-                                    Style="{StaticResource Control.DropZone.Thumbnail}"
+                                    Style="{DynamicResource Control.DropZone.Thumbnail}"
                                     DragOver="ThumbnailDrop_DragOver"
                                     DragLeave="ThumbnailDrop_DragLeave"
                                     Drop="ThumbnailDrop_Drop"
@@ -1653,24 +1653,24 @@
                               Visibility="Visible">
                           <StackPanel HorizontalAlignment="Center"
                                       VerticalAlignment="Center">
-                            <TextBlock Style="{StaticResource Control.Icon.XXL}"
+                            <TextBlock Style="{DynamicResource Control.Icon.XXL}"
                                        Text="&#xe40b;"
                                        HorizontalAlignment="Center"
-                                       Margin="{StaticResource LabelMarginBottom}"/>
+                                       Margin="{DynamicResource LabelMarginBottom}"/>
                             <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail.DropZone}"
-                                       FontSize="{StaticResource FontSizeM}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       FontSize="{DynamicResource FontSizeM}"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                        HorizontalAlignment="Center"/>
                             <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail.DropZone.Descr}"
-                                       FontSize="{StaticResource FontSizeS}"
-                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="{DynamicResource FontSizeS}"
+                                       Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center"
-                                       Margin="{StaticResource LabelMarginTopXS}"/>
+                                       Margin="{DynamicResource LabelMarginTopXS}"/>
                             <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail.DropZone.AllowedFiles}"
-                                       FontSize="{StaticResource FontSizeXS}"
-                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="{DynamicResource FontSizeXS}"
+                                       Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center"
-                                       Margin="{StaticResource LabelMarginTop}"/>
+                                       Margin="{DynamicResource LabelMarginTop}"/>
                           </StackPanel>
                         </Grid>
 
@@ -1680,13 +1680,13 @@
                           <Image x:Name="ThumbnailPreviewImage"
                                  Stretch="Uniform"/>
                           <Border x:Name="ThumbnailOverlay"
-                                  Background="{StaticResource OverlayDimBrush}"
+                                  Background="{DynamicResource OverlayDimBrush}"
                                   Opacity="0">
                             <StackPanel HorizontalAlignment="Center"
                                         VerticalAlignment="Center">
                               <TextBlock Text="{DynamicResource Upload.Fields.Thumbnail.Change}"
                                          Foreground="White"
-                                         FontSize="{StaticResource FontSizeM}"
+                                         FontSize="{DynamicResource FontSizeM}"
                                          HorizontalAlignment="Center"/>
                             </StackPanel>
                           </Border>
@@ -1700,19 +1700,19 @@
                               Orientation="Horizontal"
                               Visibility="{Binding Visibility, ElementName=ThumbnailPreviewState}">
                     <TextBlock x:Name="ThumbnailFileNameTextBlock"
-                               FontSize="{StaticResource FontSizeS}"
-                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
                                VerticalAlignment="Center"
-                               Margin="{StaticResource SpacingHorizontalM}"
+                               Margin="{DynamicResource SpacingHorizontalM}"
                                MaxWidth="200"
                                TextTrimming="CharacterEllipsis"/>
                     <Button x:Name="ThumbnailClearButton"
                             Content="{DynamicResource Common.Remove}"
-                            Style="{StaticResource Control.Button.Secondary}"
+                            Style="{DynamicResource Control.Button.Secondary}"
                             ap:ButtonIcon.Glyph="&#xe872;"
                             Click="ThumbnailClearButton_Click"
-                            Padding="{StaticResource CardPaddingS}"
-                            FontSize="{StaticResource FontSizeS}"/>
+                            Padding="{DynamicResource CardPaddingS}"
+                            FontSize="{DynamicResource FontSizeS}"/>
                   </StackPanel>
 
                   <TextBox x:Name="ThumbnailPathTextBox"
@@ -1721,39 +1721,39 @@
               </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource Control.Upload.Section.Card}">
+            <Border Style="{DynamicResource Control.Upload.Section.Card}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Section.Upload.VisibilityPlanning}"
-                           Style="{StaticResource Control.Upload.Section.Header}"/>
-                <Grid Margin="{StaticResource LabelMarginBottom}">
+                           Style="{DynamicResource Control.Upload.Section.Header}"/>
+                <Grid Margin="{DynamicResource LabelMarginBottom}">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
-                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Paylists}" Style="{StaticResource Control.Text.Label}"/>
-                  <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Paylists}" Style="{DynamicResource Control.Text.Label}"/>
+                  <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                           ToolTip="{DynamicResource Upload.Tooltip.Playlist.Example}">
-                    <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                    <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                   </Border>
                 </Grid>
                 <ComboBox x:Name="PlaylistComboBox"
                           DisplayMemberPath="Title"
                           SelectionChanged="PlaylistComboBox_SelectionChanged"/>
-                <Border Height="{StaticResource DividerHeight}"
-                        Background="{StaticResource BorderBrush}"
+                <Border Height="{DynamicResource DividerHeight}"
+                        Background="{DynamicResource BorderBrush}"
                         Margin="-14,12,-14,12"
                         HorizontalAlignment="Stretch"
                         SnapsToDevicePixels="True"/>
 
-                <Grid Margin="{StaticResource LabelMarginBottom}">
+                <Grid Margin="{DynamicResource LabelMarginBottom}">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
-                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Visibility}" Style="{StaticResource Control.Text.Label}"/>
-                  <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Visibility}" Style="{DynamicResource Control.Text.Label}"/>
+                  <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                           ToolTip="{DynamicResource Upload.Tooltip.Visibility.Example}">
-                    <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                    <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                   </Border>
                 </Grid>
                 <ComboBox x:Name="VisibilityComboBox"
@@ -1766,27 +1766,27 @@
                   <ComboBoxItem Content="{DynamicResource Upload.Fields.Visibility.Private}"
                                 Tag="{x:Static core:VideoVisibility.Private}"/>
                 </ComboBox>
-                <Border Height="{StaticResource DividerHeight}"
-                        Background="{StaticResource BorderBrush}"
+                <Border Height="{DynamicResource DividerHeight}"
+                        Background="{DynamicResource BorderBrush}"
                         Margin="-14,12,-14,12"
                         HorizontalAlignment="Stretch"
                         SnapsToDevicePixels="True"/>
 
-                <Grid Margin="{StaticResource LabelMarginBottom}">
+                <Grid Margin="{DynamicResource LabelMarginBottom}">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
-                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Publication}" Style="{StaticResource Control.Text.Label}"/>
-                  <Border Grid.Column="1" Style="{StaticResource Control.Help.IconButton}"
+                  <TextBlock Grid.Column="0" Text="{DynamicResource Upload.Fields.Publication}" Style="{DynamicResource Control.Text.Label}"/>
+                  <Border Grid.Column="1" Style="{DynamicResource Control.Help.IconButton}"
                           ToolTip="{DynamicResource Upload.Tooltip.Schedule.Example}">
-                    <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                    <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                   </Border>
                 </Grid>
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="{DynamicResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
 
@@ -1804,28 +1804,28 @@
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                       <ColumnDefinition Width="*"/>
-                      <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                      <ColumnDefinition Width="{DynamicResource SpacingM}"/>
                       <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
                                Text="{DynamicResource Upload.Fields.Publication.Date}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               Margin="{StaticResource LabelMarginBottomM}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               Margin="{DynamicResource LabelMarginBottomM}"/>
                     <TextBlock Grid.Row="0"
                                Grid.Column="2"
                                Text="{DynamicResource Upload.Fields.Publication.Time}"
-                               FontSize="{StaticResource FontSizeXS}"
-                               Foreground="{StaticResource TextMutedBrush}"
-                               Margin="{StaticResource LabelMarginBottomM}"/>
+                               FontSize="{DynamicResource FontSizeXS}"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               Margin="{DynamicResource LabelMarginBottomM}"/>
                     <Border x:Name="ScheduleCalendarBox"
                             Grid.Row="1"
                             Grid.Column="0"
-                            Background="{StaticResource SurfaceSunkenBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="{StaticResource BorderThickness1}"
-                            CornerRadius="{StaticResource RadiusS}"
+                            Background="{DynamicResource SurfaceSunkenBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="{DynamicResource BorderThickness1}"
+                            CornerRadius="{DynamicResource RadiusS}"
                             Padding="0">
                       <Grid>
                         <Grid.RowDefinitions>
@@ -1837,9 +1837,9 @@
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Top"
                                   Background="Transparent"
-                                  Foreground="{StaticResource TextPrimaryBrush}"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
                                   BorderThickness="0"
-                                  FontSize="{StaticResource FontSizeS}"
+                                  FontSize="{DynamicResource FontSizeS}"
                                   SelectedDate="{Binding SelectedDate, ElementName=ScheduleDatePicker, Mode=TwoWay}"
                                   DisplayDate="{Binding SelectedDate, ElementName=ScheduleDatePicker, Mode=TwoWay}"
                                   FirstDayOfWeek="Monday"/>
@@ -1855,10 +1855,10 @@
                     </Border>
                     <Border Grid.Row="1"
                             Grid.Column="2"
-                            Background="{StaticResource SurfaceSunkenBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
-                            BorderThickness="{StaticResource BorderThickness1}"
-                            CornerRadius="{StaticResource RadiusS}"
+                            Background="{DynamicResource SurfaceSunkenBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="{DynamicResource BorderThickness1}"
+                            CornerRadius="{DynamicResource RadiusS}"
                             Padding="6"
                             VerticalAlignment="Stretch"
                             Height="{Binding ElementName=ScheduleCalendarBox, Path=ActualHeight}">
@@ -1890,17 +1890,17 @@
                         <TextBlock Grid.Row="0"
                                    Grid.Column="0"
                                    Text="{DynamicResource Upload.Fields.Publication.HourShort}"
-                                   FontSize="{StaticResource FontSizeM}"
-                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{DynamicResource FontSizeM}"
+                                   FontWeight="{DynamicResource FontWeightSemiBold}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,4,0,8"/>
                         <TextBlock Grid.Row="0"
                                    Grid.Column="2"
                                    Text="{DynamicResource Upload.Fields.Publication.MinuteShort}"
-                                   FontSize="{StaticResource FontSizeM}"
-                                   FontWeight="{StaticResource FontWeightSemiBold}"
-                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="{DynamicResource FontSizeM}"
+                                   FontWeight="{DynamicResource FontWeightSemiBold}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0,4,0,8"/>
 
@@ -1913,9 +1913,9 @@
                                 Height="22"
                                 Cursor="Hand">
                           <TextBlock Text="&#xe316;"
-                                     FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="{StaticResource FontSizeL}"
-                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     FontFamily="{DynamicResource MaterialIconsFont}"
+                                     FontSize="{DynamicResource FontSizeL}"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>
                         <Button x:Name="MinuteUpButton"
@@ -1927,107 +1927,107 @@
                                 Height="22"
                                 Cursor="Hand">
                           <TextBlock Text="&#xe316;"
-                                     FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="{StaticResource FontSizeL}"
-                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     FontFamily="{DynamicResource MaterialIconsFont}"
+                                     FontSize="{DynamicResource FontSizeL}"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>
 
                         <Button x:Name="ScheduleHourRow0"
                                 Grid.Row="2"
                                 Grid.Column="0"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleHourRow_Click"
                                 Margin="0,2"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Style="{DynamicResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
                         <Button x:Name="ScheduleMinuteRow0"
                                 Grid.Row="2"
                                 Grid.Column="2"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleMinuteRow_Click"
                                 Margin="0,2"/>
 
                         <Button x:Name="ScheduleHourRow1"
                                 Grid.Row="3"
                                 Grid.Column="0"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleHourRow_Click"
                                 Margin="0,2"/>
-                        <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Style="{DynamicResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
                         <Button x:Name="ScheduleMinuteRow1"
                                 Grid.Row="3"
                                 Grid.Column="2"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleMinuteRow_Click"
                                 Margin="0,2"/>
 
                         <Button x:Name="ScheduleHourRow2"
                                 Grid.Row="4"
                                 Grid.Column="0"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleHourRow_Click"
                                 Margin="0,2"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Style="{DynamicResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
                         <Button x:Name="ScheduleMinuteRow2"
                                 Grid.Row="4"
                                 Grid.Column="2"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleMinuteRow_Click"
                                 Margin="0,2"/>
 
                         <Button x:Name="ScheduleHourRow3"
                                 Grid.Row="5"
                                 Grid.Column="0"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleHourRow_Click"
                                 Margin="0,2"/>
-                        <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Style="{DynamicResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
                         <Button x:Name="ScheduleMinuteRow3"
                                 Grid.Row="5"
                                 Grid.Column="2"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleMinuteRow_Click"
                                 Margin="0,2"/>
 
                         <Button x:Name="ScheduleHourRow4"
                                 Grid.Row="6"
                                 Grid.Column="0"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleHourRow_Click"
                                 Margin="0,2"/>
-                        <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
+                        <TextBlock Grid.Row="6" Grid.Column="1" Style="{DynamicResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
                         <Button x:Name="ScheduleMinuteRow4"
                                 Grid.Row="6"
                                 Grid.Column="2"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleMinuteRow_Click"
                                 Margin="0,2"/>
 
                         <Button x:Name="ScheduleHourRow5"
                                 Grid.Row="7"
                                 Grid.Column="0"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleHourRow_Click"
                                 Margin="0,2"/>
-                        <TextBlock Grid.Row="7" Grid.Column="1" Style="{StaticResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
+                        <TextBlock Grid.Row="7" Grid.Column="1" Style="{DynamicResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
                         <Button x:Name="ScheduleMinuteRow5"
                                 Grid.Row="7"
                                 Grid.Column="2"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleMinuteRow_Click"
                                 Margin="0,2"/>
 
                         <Button x:Name="ScheduleHourRow6"
                                 Grid.Row="8"
                                 Grid.Column="0"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleHourRow_Click"
                                 Margin="0,2"/>
-                        <TextBlock Grid.Row="8" Grid.Column="1" Style="{StaticResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
+                        <TextBlock Grid.Row="8" Grid.Column="1" Style="{DynamicResource Control.Upload.Schedule.TimeColon}" Margin="0,2"/>
                         <Button x:Name="ScheduleMinuteRow6"
                                 Grid.Row="8"
                                 Grid.Column="2"
-                                Style="{StaticResource Control.Upload.Schedule.TimeRowButton}"
+                                Style="{DynamicResource Control.Upload.Schedule.TimeRowButton}"
                                 Click="ScheduleMinuteRow_Click"
                                 Margin="0,2"/>
 
@@ -2040,9 +2040,9 @@
                                 Height="22"
                                 Cursor="Hand">
                           <TextBlock Text="&#xe313;"
-                                     FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="{StaticResource FontSizeL}"
-                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     FontFamily="{DynamicResource MaterialIconsFont}"
+                                     FontSize="{DynamicResource FontSizeL}"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>
                         <Button x:Name="MinuteDownButton"
@@ -2054,9 +2054,9 @@
                                 Height="22"
                                 Cursor="Hand">
                           <TextBlock Text="&#xe313;"
-                                     FontFamily="{StaticResource MaterialIconsFont}"
-                                     FontSize="{StaticResource FontSizeL}"
-                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     FontFamily="{DynamicResource MaterialIconsFont}"
+                                     FontSize="{DynamicResource FontSizeL}"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"
                                      HorizontalAlignment="Center"/>
                         </Button>
                         </Grid>
@@ -2083,31 +2083,31 @@
               </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource Control.Upload.Section.Card}">
+            <Border Style="{DynamicResource Control.Upload.Section.Card}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Upload.Fields.Metadata}"
-                           Style="{StaticResource Control.Upload.Section.Header}"/>
+                           Style="{DynamicResource Control.Upload.Section.Header}"/>
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="{DynamicResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="{DynamicResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource SpacingS}"/>
+                    <RowDefinition Height="{DynamicResource SpacingS}"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="130"/>
-                    <ColumnDefinition Width="{StaticResource SpacingM}"/>
+                    <ColumnDefinition Width="{DynamicResource SpacingM}"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
                   <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{DynamicResource Upload.Fields.Category}" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+                    <TextBlock Text="{DynamicResource Upload.Fields.Category}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                             ToolTip="{DynamicResource Upload.Tooltip.Category.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                   <ComboBox x:Name="CategoryComboBox"
@@ -2117,10 +2117,10 @@
                             SelectionChanged="CategoryComboBox_SelectionChanged"/>
 
                   <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{DynamicResource Upload.Fields.Language}" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+                    <TextBlock Text="{DynamicResource Upload.Fields.Language}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                             ToolTip="{DynamicResource Upload.Tooltip.Language.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                   <ComboBox x:Name="LanguageComboBox"
@@ -2130,10 +2130,10 @@
                             SelectionChanged="LanguageComboBox_SelectionChanged"/>
 
                   <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{DynamicResource Upload.Fields.MadeForKids}" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+                    <TextBlock Text="{DynamicResource Upload.Fields.MadeForKids}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                             ToolTip="{DynamicResource Upload.Tooltip.MadeForKids.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                   <ComboBox x:Name="MadeForKidsComboBox"
@@ -2150,10 +2150,10 @@
                   </ComboBox>
 
                   <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{DynamicResource Upload.Fields.CommentStatus}" Foreground="{StaticResource TextSecondaryBrush}"/>
-                    <Border Style="{StaticResource Control.Help.IconButton}" Margin="4,0,0,0"
+                    <TextBlock Text="{DynamicResource Upload.Fields.CommentStatus}" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <Border Style="{DynamicResource Control.Help.IconButton}" Margin="4,0,0,0"
                             ToolTip="{DynamicResource Upload.Tooltip.Comments.Example}">
-                      <TextBlock Style="{StaticResource Control.Help.IconGlyph}"/>
+                      <TextBlock Style="{DynamicResource Control.Help.IconGlyph}"/>
                     </Border>
                   </StackPanel>
                   <ComboBox x:Name="CommentStatusComboBox"
@@ -2193,5 +2193,7 @@
                   Unchecked="PlatformYouTubeToggle_Unchecked"/>
   </Grid>
 </UserControl>
+
+
 
 

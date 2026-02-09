@@ -171,9 +171,9 @@ public partial class MainWindow
             {
                 // Show "Saving..." with pulse animation
                 SaveIndicatorIcon.Text = "\ue161"; // save icon
-                SaveIndicatorIcon.Foreground = (System.Windows.Media.Brush)FindResource("TextMutedBrush");
+                SaveIndicatorIcon.SetResourceReference(TextBlock.ForegroundProperty, "TextMutedBrush");
                 SaveIndicatorText.Text = LocalizationHelper.Get("Status.Saving");
-                SaveIndicatorText.Foreground = (System.Windows.Media.Brush)FindResource("TextMutedBrush");
+                SaveIndicatorText.SetResourceReference(TextBlock.ForegroundProperty, "TextMutedBrush");
 
                 // Start pulse animation (create new storyboard to avoid frozen issue)
                 _pulseStoryboard?.Stop(SaveIndicatorBorder);
@@ -190,9 +190,9 @@ public partial class MainWindow
 
                 // Show "Saved ✓" with success color
                 SaveIndicatorIcon.Text = "\ue5ca"; // check icon
-                SaveIndicatorIcon.Foreground = (System.Windows.Media.Brush)FindResource("SuccessBrush");
+                SaveIndicatorIcon.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
                 SaveIndicatorText.Text = LocalizationHelper.Get("Status.Saved");
-                SaveIndicatorText.Foreground = (System.Windows.Media.Brush)FindResource("SuccessBrush");
+                SaveIndicatorText.SetResourceReference(TextBlock.ForegroundProperty, "SuccessBrush");
 
                 // Auto-hide after 3 seconds
                 _saveIndicatorHideTimer ??= new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
