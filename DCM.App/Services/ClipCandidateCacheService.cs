@@ -242,21 +242,7 @@ public sealed class ClipCandidateCacheService
         }
     }
 
-    /// <summary>
-    /// Berechnet einen Hash aus dem Transkript-Text für Cache-Validierung.
-    /// </summary>
-    public static string ComputeTranscriptHash(string? transcript)
-    {
-        if (string.IsNullOrWhiteSpace(transcript))
-        {
-            return string.Empty;
-        }
-
-        using var sha = System.Security.Cryptography.SHA256.Create();
-        var bytes = System.Text.Encoding.UTF8.GetBytes(transcript);
-        var hash = sha.ComputeHash(bytes);
-        return Convert.ToHexString(hash);
-    }
+    // ComputeTranscriptHash entfernt – verwende ClipCandidateStore.ComputeTranscriptHash()
 
     /// <summary>
     /// Cache-Eintrag für persistierte Kandidaten.

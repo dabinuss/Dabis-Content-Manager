@@ -502,8 +502,13 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
 
             return await File.ReadAllBytesAsync(tempPath, ct).ConfigureAwait(false);
         }
-        catch
+        catch (OperationCanceledException)
         {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"FaceDetection: Frame-Extraktion bei {timestamp} fehlgeschlagen: {ex.Message}");
             return null;
         }
         finally
@@ -520,8 +525,13 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
             var info = await FFProbe.AnalyseAsync(videoPath, cancellationToken: ct).ConfigureAwait(false);
             return info.Duration;
         }
-        catch
+        catch (OperationCanceledException)
         {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"FaceDetection: Video-Dauer konnte nicht ermittelt werden: {ex.Message}");
             return null;
         }
     }

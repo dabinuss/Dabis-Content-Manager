@@ -362,6 +362,12 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
         return text[..(maxLength - 3)] + "...";
     }
 
+    /// <summary>
+    /// Normalisiert Start/End in den gültigen Bereich des Windows und stellt
+    /// sicher, dass die Duration zwischen MinClipDuration und MaxClipDuration liegt.
+    /// Gibt (TimeSpan.Zero, TimeSpan.Zero) zurück wenn kein gültiger Bereich
+    /// innerhalb der Constraints möglich ist – der Caller filtert dann via end &lt;= start.
+    /// </summary>
     private static (TimeSpan Start, TimeSpan End) NormalizeCandidateRange(
         TimeSpan start,
         TimeSpan end,
@@ -375,12 +381,20 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
             return (start, end);
         }
 
+        // Window-Range zu kurz für MinClipDuration → kein gültiger Kandidat möglich
+        if (rangeEnd - rangeStart < MinClipDuration)
+        {
+            return (TimeSpan.Zero, TimeSpan.Zero);
+        }
+
         start = start < rangeStart ? rangeStart : start;
         end = end > rangeEnd ? rangeEnd : end;
 
         if (end <= start)
         {
-            return (rangeStart, rangeEnd);
+            // Fallback: gesamtes Window nutzen
+            start = rangeStart;
+            end = rangeEnd;
         }
 
         var duration = end - start;
@@ -413,9 +427,11 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
             }
         }
 
-        if (end <= start)
+        // Finale Validierung: Duration muss im gültigen Bereich liegen
+        duration = end - start;
+        if (end <= start || duration < MinClipDuration)
         {
-            return (rangeStart, rangeEnd);
+            return (TimeSpan.Zero, TimeSpan.Zero);
         }
 
         return (start, end);

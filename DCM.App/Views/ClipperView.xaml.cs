@@ -299,6 +299,8 @@ public partial class ClipperView : UserControl
         }
     }
 
+    // TODO: CropMode-Auswahl über UI implementieren (AutoDetect, Center, Manual sind vorhanden aber deaktiviert).
+    //       Aktuell ist SplitLayout der einzige aktive Modus.
     public CropMode GetSelectedCropMode() => CropMode.SplitLayout;
 
     public double GetManualCropOffsetX() => 0;
@@ -1662,7 +1664,13 @@ public partial class ClipperView : UserControl
     private static void RunBackgroundTask(Task task, string operationName)
     {
         _ = task.ContinueWith(
-            t => Debug.WriteLine($"Clipper background task '{operationName}' failed: {t.Exception}"),
+            t =>
+            {
+                // Trace statt Debug: Auch in Release-Builds sichtbar über TraceListeners.
+                var msg = $"Clipper background task '{operationName}' failed: {t.Exception}";
+                System.Diagnostics.Trace.TraceWarning(msg);
+                Debug.WriteLine(msg);
+            },
             CancellationToken.None,
             TaskContinuationOptions.OnlyOnFaulted,
             TaskScheduler.Default);

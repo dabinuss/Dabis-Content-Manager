@@ -25,10 +25,6 @@ public sealed class ClipRenderService : IClipRenderService
     private readonly IAppLogger _logger;
     private bool _isReady;
 
-    public ClipRenderService() : this(null, null, null)
-    {
-    }
-
     internal ClipRenderService(
         DraftTranscriptStore? segmentStore = null,
         IFaceDetectionService? faceDetectionService = null,
@@ -437,8 +433,9 @@ public sealed class ClipRenderService : IClipRenderService
         {
             throw;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.Warning($"FFmpeg-Rendering fehlgeschlagen: {ex.Message}", "ClipRenderService");
             return false;
         }
     }
