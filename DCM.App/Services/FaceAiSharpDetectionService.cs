@@ -508,7 +508,7 @@ public sealed class FaceAiSharpDetectionService : IFaceDetectionService, IDispos
         try
         {
             ct.ThrowIfCancellationRequested();
-            var info = await FFProbe.AnalyseAsync(videoPath).ConfigureAwait(false);
+            var info = await FFProbe.AnalyseAsync(videoPath, cancellationToken: ct).ConfigureAwait(false);
             return info.Duration;
         }
         catch

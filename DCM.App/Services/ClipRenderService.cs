@@ -148,7 +148,6 @@ public sealed class ClipRenderService : IClipRenderService
                     var clipSegments = BuildSubtitleSegmentsFromStore(job);
                     if (clipSegments is { Count: > 0 })
                     {
-                        job.SubtitleSegments = clipSegments;
                         progress?.Report(new ClipRenderProgress
                         {
                             JobId = job.Id,
@@ -157,7 +156,9 @@ public sealed class ClipRenderService : IClipRenderService
                             TotalProgress = 10,
                             StatusMessage = "Untertitel werden generiert..."
                         });
-                        subtitlePath = await GenerateSubtitleFileAsync(job, sourceWidth, sourceHeight, cancellationToken);
+                        // Segmente direkt übergeben statt job.SubtitleSegments zu mutieren,
+                        // damit der Input-Parameter unverändert bleibt (Retry-Sicherheit).
+                        subtitlePath = await GenerateSubtitleFileAsync(job, clipSegments, sourceWidth, sourceHeight, cancellationToken);
                     }
                 }
 
@@ -742,7 +743,17 @@ public sealed class ClipRenderService : IClipRenderService
         int sourceHeight,
         CancellationToken cancellationToken)
     {
-        if (job.SubtitleSegments is null || job.SubtitleSegments.Count == 0)
+        return await GenerateSubtitleFileAsync(job, job.SubtitleSegments, sourceWidth, sourceHeight, cancellationToken);
+    }
+
+    private async Task<string?> GenerateSubtitleFileAsync(
+        ClipRenderJob job,
+        IReadOnlyList<ClipSubtitleSegment>? segments,
+        int sourceWidth,
+        int sourceHeight,
+        CancellationToken cancellationToken)
+    {
+        if (segments is null || segments.Count == 0)
         {
             return null;
         }
@@ -757,7 +768,7 @@ public sealed class ClipRenderService : IClipRenderService
             var settings = job.SubtitleSettings ?? new ClipSubtitleSettings();
             var playResX = job.OutputWidth > 0 ? job.OutputWidth : (sourceWidth > 0 ? sourceWidth : 1080);
             var playResY = job.OutputHeight > 0 ? job.OutputHeight : (sourceHeight > 0 ? sourceHeight : 1920);
-            var assContent = _subtitleGenerator.Generate(job.SubtitleSegments, settings, playResX, playResY);
+            var assContent = _subtitleGenerator.Generate(segments, settings, playResX, playResY);
             await File.WriteAllTextAsync(subtitlePath, assContent, Encoding.UTF8, cancellationToken);
             return subtitlePath;
         }
@@ -971,7 +982,7 @@ public sealed class ClipRenderService : IClipRenderService
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var info = await FFProbe.AnalyseAsync(path).ConfigureAwait(false);
+            var info = await FFProbe.AnalyseAsync(path, cancellationToken: cancellationToken).ConfigureAwait(false);
             var stream = info.PrimaryVideoStream;
             if (stream is null)
             {

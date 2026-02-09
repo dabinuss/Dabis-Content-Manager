@@ -127,6 +127,21 @@ Style: Default,{settings.FontFamily},{settings.FontSize},{primary},{secondary},{
         return $"{hours}:{ts.Minutes:D2}:{ts.Seconds:D2}.{ts.Milliseconds / 10:D2}";
     }
 
+    /// <summary>
+    /// Konvertiert einen Hex-Farbwert in das ASS-Format (&amp;HAABBGGRR).
+    /// <para>
+    /// Erwartetes Eingabeformat (WPF-Konvention):
+    /// <list type="bullet">
+    ///   <item><c>#RRGGBB</c> – 6-stellig, Alpha wird als 00 (opak) angenommen</item>
+    ///   <item><c>#AARRGGBB</c> – 8-stellig, WPF-Format (Alpha-Red-Green-Blue)</item>
+    /// </list>
+    /// Ungültige oder leere Werte geben opakes Weiß (&amp;H00FFFFFF) zurück.
+    /// </para>
+    /// <para>
+    /// Hinweis: Das CSS-Format (#RRGGBBAA) wird <b>nicht</b> unterstützt.
+    /// WPF-ColorPicker und <see cref="System.Windows.Media.Color"/> verwenden #AARRGGBB.
+    /// </para>
+    /// </summary>
     public static string ColorToAss(string? hexColor)
     {
         if (string.IsNullOrWhiteSpace(hexColor))
@@ -136,6 +151,13 @@ Style: Default,{settings.FontFamily},{settings.FontSize},{primary},{secondary},{
 
         var color = hexColor.Trim().TrimStart('#');
 
+        // Validierung: Nur gültige Hex-Zeichen erlauben
+        if (!IsValidHex(color))
+        {
+            return "&H00FFFFFF";
+        }
+
+        // 8-stellig: AARRGGBB (WPF-Konvention) → ASS: &HAABBGGRR
         if (color.Length == 8)
         {
             var a = color.Substring(0, 2);
@@ -145,6 +167,7 @@ Style: Default,{settings.FontFamily},{settings.FontSize},{primary},{secondary},{
             return $"&H{a}{b}{g}{r}";
         }
 
+        // 6-stellig: RRGGBB → ASS: &H00BBGGRR (Alpha 00 = opak)
         if (color.Length == 6)
         {
             var r = color.Substring(0, 2);
@@ -154,6 +177,18 @@ Style: Default,{settings.FontFamily},{settings.FontSize},{primary},{secondary},{
         }
 
         return "&H00FFFFFF";
+    }
+
+    private static bool IsValidHex(string value)
+    {
+        foreach (var c in value)
+        {
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
+            {
+                return false;
+            }
+        }
+        return value.Length > 0;
     }
 
     private static string GenerateEventsHeader()

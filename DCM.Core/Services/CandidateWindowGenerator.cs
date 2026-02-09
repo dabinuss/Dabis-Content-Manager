@@ -50,6 +50,13 @@ public sealed class CandidateWindowGenerator
                 break;
             }
 
+            // Bei Lücken im Transkript: windowStart auf den Start des nächsten
+            // Segments vorspringen, um leere Iterationen zu vermeiden.
+            if (ordered[startIndex].Start > windowStart + step)
+            {
+                windowStart = ordered[startIndex].Start;
+            }
+
             var windowSegments = new List<ITimedSegment>();
             TimeSpan? actualStart = null;
             var actualEnd = TimeSpan.Zero;

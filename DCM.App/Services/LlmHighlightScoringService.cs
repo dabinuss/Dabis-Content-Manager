@@ -222,6 +222,9 @@ ANTWORT als JSON (NUR das Array, kein Markdown):
                 var index = indexProp.GetInt32() - 1;
                 if (index < 0 || index >= windows.Count)
                 {
+                    _logger.Warning(
+                        $"LLM gab ungültigen Index {index + 1} zurück (Chunk hat {windows.Count} Windows) – Kandidat wird ignoriert",
+                        "HighlightScoring");
                     continue;
                 }
 
