@@ -177,8 +177,8 @@
           <ListBox.ItemTemplate>
             <DataTemplate>
               <Border x:Name="UploadItemCard"
-                      Height="88"
-                      Padding="10,8,10,8"
+                      Height="68"
+                      Padding="8,5,8,5"
                       SnapsToDevicePixels="True"
                       UseLayoutRounding="True">
                 <Border.Style>
@@ -186,7 +186,9 @@
                     <Setter Property="Background"
                             Value="{DynamicResource SurfaceElevatedBrush}"/>
                     <Setter Property="BorderThickness"
-                            Value="0"/>
+                            Value="1"/>
+                    <Setter Property="BorderBrush"
+                            Value="Transparent"/>
                     <Setter Property="CornerRadius"
                             Value="{DynamicResource RadiusS}"/>
                     <Setter Property="Margin"
@@ -196,36 +198,34 @@
                                    Value="True">
                         <Setter Property="Background"
                                 Value="{DynamicResource SurfaceHoverBrush}"/>
+                        <Setter Property="BorderBrush"
+                                Value="{DynamicResource BorderHoverBrush}"/>
                       </DataTrigger>
                       <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}"
                                    Value="True">
-                        <Setter Property="CornerRadius"
-                                Value="{DynamicResource RadiusS}"/>
+                        <Setter Property="BorderBrush"
+                                Value="{DynamicResource PrimaryBrush}"/>
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
                 </Border.Style>
                 <Grid>
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="72"/>
+                    <ColumnDefinition Width="8"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="30"/>
-                    <ColumnDefinition Width="20"/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
 
+                  <!-- Thumbnail -->
                   <Border Grid.Row="0"
                           Grid.Column="0"
-                          Grid.RowSpan="2"
-                          Width="80"
-                          Height="45"
-                          Background="{DynamicResource SurfaceSunkenBrush}"
-                          BorderBrush="{DynamicResource BorderBrush}"
-                          BorderThickness="{DynamicResource BorderThickness1}"
+                          Width="72"
+                          Height="40"
+                          VerticalAlignment="Top"
                           CornerRadius="{DynamicResource RadiusS}"
                           ClipToBounds="True">
                     <Border.Style>
@@ -270,6 +270,7 @@
                     </Grid>
                   </Border>
 
+                  <!-- Title -->
                   <TextBlock Grid.Row="0"
                              Grid.Column="2"
                              Text="{Binding DisplayName}"
@@ -278,42 +279,68 @@
                              Foreground="{DynamicResource TextPrimaryBrush}"
                              VerticalAlignment="Top"
                              TextTrimming="CharacterEllipsis"
-                             Margin="0,0,8,0"/>
+                             Margin="0,0,24,0"/>
 
+                  <!-- Close Button -->
                   <Button Grid.Row="0"
-                           Grid.Column="4"
-                           Width="18"
-                           Height="18"
-                           Padding="0"
-                           Background="Transparent"
-                           BorderThickness="0"
-                           Click="RemoveDraftButton_Click"
-                           Tag="{Binding}"
-                           Margin="0,-7,0,0"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Top"
-                           Cursor="Hand"
-                           ToolTip="{DynamicResource Common.Remove}">
+                          Grid.Column="2"
+                          Width="20"
+                          Height="20"
+                          Padding="0"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          Click="RemoveDraftButton_Click"
+                          Tag="{Binding}"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Top"
+                          Cursor="Hand"
+                          ToolTip="{DynamicResource Common.Remove}">
                     <TextBlock Text="&#xe5cd;"
                                FontFamily="{DynamicResource MaterialIconsFont}"
                                FontSize="{DynamicResource FontSizeS}"
                                Foreground="{DynamicResource DangerBrush}"/>
                   </Button>
 
+                  <!-- Meta row: full width under thumbnail -->
                   <StackPanel Grid.Row="1"
-                              Grid.Column="2"
-                              Margin="0,4,0,0"
+                              Grid.Column="0"
+                              Grid.ColumnSpan="3"
                               Orientation="Horizontal"
-                              VerticalAlignment="Top">
-                    <TextBlock Style="{DynamicResource Control.Icon.S}"
-                               Text="&#xe8b5;"
-                               FontFamily="{DynamicResource MaterialIconsFont}"
-                               FontSize="{DynamicResource FontSizeXS}"
-                               Foreground="{DynamicResource TextMutedBrush}"
-                               VerticalAlignment="Center"
-                               ToolTip="{DynamicResource Upload.List.Tooltip.Duration}"/>
-                    <TextBlock Margin="6,0,0,0"
+                              VerticalAlignment="Center"
+                              Margin="0,4,0,0">
+
+                    <!-- Orientation Icon -->
+                    <TextBlock FontFamily="{DynamicResource MaterialIconsFont}"
+                               FontSize="{DynamicResource FontSizeS}"
                                VerticalAlignment="Center">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                          <Setter Property="Text"
+                                  Value="&#xe1bc;"/>
+                          <Setter Property="Foreground"
+                                  Value="{DynamicResource PrimaryBrush}"/>
+                          <Setter Property="ToolTip"
+                                  Value="{DynamicResource Upload.List.Tooltip.Orientation.Landscape}"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPortraitVideo}"
+                                         Value="True">
+                              <Setter Property="Text"
+                                      Value="&#xe1bd;"/>
+                              <Setter Property="ToolTip"
+                                      Value="{DynamicResource Upload.List.Tooltip.Orientation.Portrait}"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
+
+                    <!-- Duration -->
+                    <TextBlock VerticalAlignment="Center">
                       <TextBlock.Style>
                         <Style TargetType="TextBlock"
                                BasedOn="{StaticResource Control.List.MetaText}">
@@ -329,21 +356,28 @@
                         </Style>
                       </TextBlock.Style>
                     </TextBlock>
-                  </StackPanel>
 
-                  <StackPanel Grid.Row="0"
-                              Grid.Column="3"
-                              Grid.RowSpan="2"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"
-                              Margin="0">
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
+
+                    <!-- File size -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text="{Binding FileSizeDisplay}"
+                               VerticalAlignment="Center"/>
+
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
+
+                    <!-- Upload Status Icon -->
                     <TextBlock x:Name="UploadStateIcon"
                                FontFamily="{DynamicResource MaterialIconsFont}"
-                               FontSize="{DynamicResource FontSizeM}"
+                               FontSize="{DynamicResource FontSizeS}"
                                VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               RenderTransformOrigin="0.5,0.5"
-                               Margin="0,0,0,5">
+                               RenderTransformOrigin="0.5,0.5">
                       <TextBlock.Style>
                         <Style TargetType="TextBlock">
                           <Setter Property="RenderTransform">
@@ -352,7 +386,7 @@
                             </Setter.Value>
                           </Setter>
                           <Setter Property="Text"
-                                  Value="&#xe14b;"/>
+                                  Value="&#xe2c3;"/>
                           <Setter Property="Foreground"
                                   Value="{DynamicResource WarningBrush}"/>
                           <Setter Property="ToolTip"
@@ -361,7 +395,7 @@
                             <DataTrigger Binding="{Binding IsUploadReady}"
                                          Value="True">
                               <Setter Property="Text"
-                                      Value="&#xe86c;"/>
+                                      Value="&#xe2bf;"/>
                               <Setter Property="Foreground"
                                       Value="{DynamicResource SuccessBrush}"/>
                               <Setter Property="ToolTip"
@@ -370,7 +404,7 @@
                             <DataTrigger Binding="{Binding UploadState}"
                                          Value="{x:Static models:UploadDraftUploadState.Uploading}">
                               <Setter Property="Text"
-                                      Value="&#xe863;"/>
+                                      Value="&#xe2c3;"/>
                               <Setter Property="Foreground"
                                       Value="{DynamicResource PrimaryBrush}"/>
                               <Setter Property="ToolTip"
@@ -401,7 +435,7 @@
                             <DataTrigger Binding="{Binding UploadState}"
                                          Value="{x:Static models:UploadDraftUploadState.Completed}">
                               <Setter Property="Text"
-                                      Value="&#xe86c;"/>
+                                      Value="&#xe2bf;"/>
                               <Setter Property="Foreground"
                                       Value="{DynamicResource SuccessBrush}"/>
                               <Setter Property="ToolTip"
@@ -412,13 +446,17 @@
                       </TextBlock.Style>
                     </TextBlock>
 
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
+
+                    <!-- Transcription Status Icon -->
                     <TextBlock x:Name="TranscriptionStateIcon"
                                FontFamily="{DynamicResource MaterialIconsFont}"
-                               FontSize="{DynamicResource FontSizeM}"
+                               FontSize="{DynamicResource FontSizeS}"
                                VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               RenderTransformOrigin="0.5,0.5"
-                               Margin="0,0,0,5">
+                               RenderTransformOrigin="0.5,0.5">
                       <TextBlock.Style>
                         <Style TargetType="TextBlock">
                           <Setter Property="RenderTransform">
@@ -427,7 +465,7 @@
                             </Setter.Value>
                           </Setter>
                           <Setter Property="Text"
-                                  Value="&#xe8b5;"/>
+                                  Value="&#xe048;"/>
                           <Setter Property="Foreground"
                                   Value="{DynamicResource TextMutedBrush}"/>
                           <Setter Property="ToolTip"
@@ -436,7 +474,7 @@
                             <DataTrigger Binding="{Binding TranscriptionState}"
                                          Value="{x:Static models:UploadDraftTranscriptionState.Completed}">
                               <Setter Property="Text"
-                                      Value="&#xe86c;"/>
+                                      Value="&#xe048;"/>
                               <Setter Property="Foreground"
                                       Value="{DynamicResource SuccessBrush}"/>
                               <Setter Property="ToolTip"
@@ -481,32 +519,6 @@
                                       Value="{DynamicResource TextMutedBrush}"/>
                               <Setter Property="ToolTip"
                                       Value="{DynamicResource Upload.List.Tooltip.Transcription.Cancelled}"/>
-                            </DataTrigger>
-                          </Style.Triggers>
-                        </Style>
-                      </TextBlock.Style>
-                    </TextBlock>
-
-                    <TextBlock x:Name="OrientationIcon"
-                               FontFamily="{DynamicResource MaterialIconsFont}"
-                               FontSize="{DynamicResource FontSizeM}"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center">
-                      <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                          <Setter Property="Text"
-                                  Value="&#xe3f4;"/>
-                          <Setter Property="Foreground"
-                                  Value="{DynamicResource PrimaryBrush}"/>
-                          <Setter Property="ToolTip"
-                                  Value="{DynamicResource Upload.List.Tooltip.Orientation.Landscape}"/>
-                          <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsPortraitVideo}"
-                                         Value="True">
-                              <Setter Property="Text"
-                                      Value="&#xe3f5;"/>
-                              <Setter Property="ToolTip"
-                                      Value="{DynamicResource Upload.List.Tooltip.Orientation.Portrait}"/>
                             </DataTrigger>
                           </Style.Triggers>
                         </Style>

@@ -60,10 +60,10 @@
                  Style="{DynamicResource Control.Text.SectionHeader}"/>
 
       <Border Grid.Row="2"
-              Style="{DynamicResource Control.Container.SurfaceCard}">
+              Padding="0">
         <ListBox x:Name="DraftListBox"
                  SelectionChanged="DraftListBox_SelectionChanged"
-                 Background="Transparent"
+                 Background="{x:Null}"
                  BorderThickness="0"
                  UseLayoutRounding="True"
                  SnapsToDevicePixels="True"
@@ -106,18 +106,19 @@
           </ListBox.ItemContainerStyle>
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <Border Padding="8,7,6,7"
-                      Margin="8,6,8,0"
+              <Border Height="68"
+                      Padding="8,5,8,5"
+                      Margin="0"
                       SnapsToDevicePixels="True"
                       UseLayoutRounding="True">
                 <Border.Style>
                   <Style TargetType="Border">
                     <Setter Property="Background"
                             Value="{DynamicResource SurfaceElevatedBrush}"/>
-                    <Setter Property="BorderBrush"
-                            Value="{DynamicResource BorderBrush}"/>
                     <Setter Property="BorderThickness"
                             Value="1"/>
+                    <Setter Property="BorderBrush"
+                            Value="Transparent"/>
                     <Setter Property="CornerRadius"
                             Value="{DynamicResource RadiusS}"/>
                     <Style.Triggers>
@@ -132,8 +133,6 @@
                                    Value="True">
                         <Setter Property="BorderBrush"
                                 Value="{DynamicResource PrimaryBrush}"/>
-                        <Setter Property="CornerRadius"
-                                Value="{DynamicResource RadiusS}"/>
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
@@ -141,7 +140,7 @@
                 <Grid>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="72"/>
-                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="8"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
@@ -149,21 +148,46 @@
                     <RowDefinition Height="Auto"/>
                   </Grid.RowDefinitions>
 
-                  <Border Grid.Column="0"
-                          Grid.RowSpan="2"
-                          Width="{DynamicResource ThumbnailSizeM}"
-                          Height="{DynamicResource ThumbnailSizeM}"
-                          Background="{DynamicResource SurfaceSunkenBrush}"
-                          BorderBrush="{DynamicResource BorderBrush}"
-                          BorderThickness="{DynamicResource BorderThickness1}"
+                  <!-- Thumbnail -->
+                  <Border Grid.Row="0"
+                          Grid.Column="0"
+                          Width="72"
+                          Height="40"
+                          VerticalAlignment="Top"
                           CornerRadius="{DynamicResource RadiusS}"
                           ClipToBounds="True">
+                    <Border.Style>
+                      <Style TargetType="Border">
+                        <Setter Property="Background"
+                                Value="{DynamicResource SurfaceSunkenBrush}"/>
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding Draft.IsPortraitVideo}"
+                                       Value="True">
+                            <Setter Property="Background"
+                                    Value="#FF000000"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </Border.Style>
                     <Grid>
                       <Image Source="{Binding Draft.VideoPreviewPath}"
-                             Stretch="UniformToFill"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"
-                             Visibility="{Binding Draft.VideoPreviewPath, Converter={StaticResource IsStringToVisibilityConverter}}"/>
+                             Visibility="{Binding Draft.VideoPreviewPath, Converter={StaticResource IsStringToVisibilityConverter}}">
+                        <Image.Style>
+                          <Style TargetType="Image">
+                            <Setter Property="Stretch"
+                                    Value="UniformToFill"/>
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding Draft.IsPortraitVideo}"
+                                           Value="True">
+                                <Setter Property="Stretch"
+                                        Value="Uniform"/>
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </Image.Style>
+                      </Image>
                       <TextBlock Text="{DynamicResource Upload.VideoPreview.Placeholder}"
                                  FontSize="{DynamicResource FontSizeXS}"
                                  Foreground="{DynamicResource TextMutedBrush}"
@@ -174,106 +198,156 @@
                     </Grid>
                   </Border>
 
-                  <TextBlock Grid.Column="2"
+                  <!-- Title -->
+                  <TextBlock Grid.Row="0"
+                             Grid.Column="2"
                              Text="{Binding Title}"
                              FontWeight="{DynamicResource FontWeightSemiBold}"
                              FontSize="{DynamicResource FontSizeS}"
                              Foreground="{DynamicResource TextPrimaryBrush}"
-                             TextTrimming="CharacterEllipsis"
-                             Margin="4,0,8,0"/>
+                             VerticalAlignment="Top"
+                             TextTrimming="CharacterEllipsis"/>
 
+                  <!-- Meta row: full width under thumbnail -->
                   <StackPanel Grid.Row="1"
-                              Grid.Column="2"
-                              Margin="0,4,0,0"
-                              VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                      <Border Style="{DynamicResource Control.List.MetaBadge}">
-                        <TextBlock x:Name="ClipperUploadStateIcon">
-                          <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource Control.List.MetaIcon}">
-                              <Setter Property="FontFamily" Value="{DynamicResource MaterialIconsFont}"/>
-                              <Setter Property="Text" Value="&#xe14b;"/>
-                              <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
-                              <Setter Property="ToolTip" Value="{DynamicResource Upload.List.Tooltip.Upload.NotReady}"/>
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding Draft.IsUploadReady}" Value="True">
-                                  <Setter Property="Text" Value="&#xe86c;"/>
-                                  <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                  <Setter Property="ToolTip" Value="{DynamicResource Upload.List.Tooltip.Upload.Ready}"/>
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </TextBlock.Style>
-                        </TextBlock>
-                      </Border>
+                              Grid.Column="0"
+                              Grid.ColumnSpan="3"
+                              Orientation="Horizontal"
+                              VerticalAlignment="Center"
+                              Margin="0,4,0,0">
 
-                      <Border Style="{DynamicResource Control.List.MetaBadge}">
-                        <TextBlock x:Name="ClipperTranscriptionStateIcon">
-                          <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource Control.List.MetaIcon}">
-                              <Setter Property="FontFamily" Value="{DynamicResource MaterialIconsFont}"/>
-                              <Setter Property="Text" Value="&#xe8b5;"/>
-                              <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
-                              <Setter Property="ToolTip" Value="{DynamicResource Upload.List.Tooltip.Transcription.NotTranscribed}"/>
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasTranscript}" Value="True">
-                                  <Setter Property="Text" Value="&#xe86c;"/>
-                                  <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                  <Setter Property="ToolTip" Value="{DynamicResource Upload.List.Tooltip.Transcription.Transcribed}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Draft.TranscriptionState}" Value="{x:Static models:UploadDraftTranscriptionState.Completed}">
-                                  <Setter Property="Text" Value="&#xe86c;"/>
-                                  <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                                  <Setter Property="ToolTip" Value="{DynamicResource Upload.List.Tooltip.Transcription.Transcribed}"/>
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </TextBlock.Style>
-                        </TextBlock>
-                      </Border>
-                    </StackPanel>
+                    <!-- Orientation Icon -->
+                    <TextBlock FontFamily="{DynamicResource MaterialIconsFont}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               VerticalAlignment="Center">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                          <Setter Property="Text"
+                                  Value="&#xe1bc;"/>
+                          <Setter Property="Foreground"
+                                  Value="{DynamicResource PrimaryBrush}"/>
+                          <Setter Property="ToolTip"
+                                  Value="{DynamicResource Upload.List.Tooltip.Orientation.Landscape}"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding Draft.IsPortraitVideo}"
+                                         Value="True">
+                              <Setter Property="Text"
+                                      Value="&#xe1bd;"/>
+                              <Setter Property="ToolTip"
+                                      Value="{DynamicResource Upload.List.Tooltip.Orientation.Portrait}"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                      <Border Style="{DynamicResource Control.List.MetaBadge}">
-                        <TextBlock x:Name="ClipperOrientationIcon">
-                          <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource Control.List.MetaIcon}">
-                              <Setter Property="FontFamily" Value="{DynamicResource MaterialIconsFont}"/>
-                              <Setter Property="Text" Value="&#xe3f4;"/>
-                              <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
-                              <Setter Property="ToolTip" Value="{DynamicResource Upload.List.Tooltip.Orientation.Landscape}"/>
-                              <Style.Triggers>
-                                <DataTrigger Binding="{Binding Draft.IsPortraitVideo}" Value="True">
-                                  <Setter Property="Text" Value="&#xe3f5;"/>
-                                  <Setter Property="ToolTip" Value="{DynamicResource Upload.List.Tooltip.Orientation.Portrait}"/>
-                                </DataTrigger>
-                              </Style.Triggers>
-                            </Style>
-                          </TextBlock.Style>
-                        </TextBlock>
-                      </Border>
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
 
-                      <Border Style="{DynamicResource Control.List.MetaBadge}">
-                        <StackPanel Orientation="Horizontal">
-                          <TextBlock Style="{DynamicResource Control.List.MetaIcon}"
-                                     Text="&#xe8b5;"
-                                     Foreground="{DynamicResource TextMutedBrush}"
-                                     ToolTip="{DynamicResource Upload.List.Tooltip.Duration}"/>
-                          <TextBlock>
-                            <TextBlock.Style>
-                              <Style TargetType="TextBlock" BasedOn="{StaticResource Control.List.MetaText}">
-                                <Setter Property="Text" Value="{Binding VideoDuration, TargetNullValue='--:--'}"/>
-                                <Style.Triggers>
-                                  <DataTrigger Binding="{Binding VideoDuration}" Value="">
-                                    <Setter Property="Text" Value="--:--"/>
-                                  </DataTrigger>
-                                </Style.Triggers>
-                              </Style>
-                            </TextBlock.Style>
-                          </TextBlock>
-                        </StackPanel>
-                      </Border>
-                    </StackPanel>
+                    <!-- Duration -->
+                    <TextBlock VerticalAlignment="Center">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock"
+                               BasedOn="{StaticResource Control.List.MetaText}">
+                          <Setter Property="Text"
+                                  Value="{Binding VideoDuration, TargetNullValue='--:--'}"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding VideoDuration}"
+                                         Value="">
+                              <Setter Property="Text"
+                                      Value="--:--"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
+
+                    <!-- File size -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text="{Binding Draft.FileSizeDisplay}"
+                               VerticalAlignment="Center"/>
+
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
+
+                    <!-- Upload Status Icon -->
+                    <TextBlock x:Name="ClipperUploadStateIcon"
+                               FontFamily="{DynamicResource MaterialIconsFont}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               VerticalAlignment="Center">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                          <Setter Property="Text"
+                                  Value="&#xe2c3;"/>
+                          <Setter Property="Foreground"
+                                  Value="{DynamicResource WarningBrush}"/>
+                          <Setter Property="ToolTip"
+                                  Value="{DynamicResource Upload.List.Tooltip.Upload.NotReady}"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding Draft.IsUploadReady}"
+                                         Value="True">
+                              <Setter Property="Text"
+                                      Value="&#xe2bf;"/>
+                              <Setter Property="Foreground"
+                                      Value="{DynamicResource SuccessBrush}"/>
+                              <Setter Property="ToolTip"
+                                      Value="{DynamicResource Upload.List.Tooltip.Upload.Ready}"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- Separator -->
+                    <TextBlock Style="{DynamicResource Control.List.MetaText}"
+                               Text=" · "
+                               Margin="2,0"/>
+
+                    <!-- Transcription Status Icon -->
+                    <TextBlock x:Name="ClipperTranscriptionStateIcon"
+                               FontFamily="{DynamicResource MaterialIconsFont}"
+                               FontSize="{DynamicResource FontSizeS}"
+                               VerticalAlignment="Center">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                          <Setter Property="Text"
+                                  Value="&#xe048;"/>
+                          <Setter Property="Foreground"
+                                  Value="{DynamicResource TextMutedBrush}"/>
+                          <Setter Property="ToolTip"
+                                  Value="{DynamicResource Upload.List.Tooltip.Transcription.NotTranscribed}"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasTranscript}"
+                                         Value="True">
+                              <Setter Property="Text"
+                                      Value="&#xe048;"/>
+                              <Setter Property="Foreground"
+                                      Value="{DynamicResource SuccessBrush}"/>
+                              <Setter Property="ToolTip"
+                                      Value="{DynamicResource Upload.List.Tooltip.Transcription.Transcribed}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Draft.TranscriptionState}"
+                                         Value="{x:Static models:UploadDraftTranscriptionState.Completed}">
+                              <Setter Property="Text"
+                                      Value="&#xe048;"/>
+                              <Setter Property="Foreground"
+                                      Value="{DynamicResource SuccessBrush}"/>
+                              <Setter Property="ToolTip"
+                                      Value="{DynamicResource Upload.List.Tooltip.Transcription.Transcribed}"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
                   </StackPanel>
                 </Grid>
               </Border>
