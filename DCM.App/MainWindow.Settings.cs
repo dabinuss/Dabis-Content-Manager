@@ -262,7 +262,10 @@ public partial class MainWindow
         var llm = _settings.Llm ?? new LlmSettings();
         LlmSettingsPageView?.ApplyLlmSettings(llm);
         UpdateLlmControlsEnabled();
-        GeneralSettingsPageView?.ApplyTranscriptionSettings(_settings.Transcription ?? new TranscriptionSettings());
+        var transcriptionSettings = _settings.Transcription ?? new TranscriptionSettings();
+        _settings.Transcription = transcriptionSettings;
+        GeneralSettingsPageView?.ApplyTranscriptionSettings(transcriptionSettings);
+        UploadPageView?.SetAutoTranscribeEnabled(transcriptionSettings.AutoTranscribeOnVideoSelect);
         ClipperPageView?.ApplyClipperSettings(_settings.Clipper ?? new ClipperSettings());
     }
 

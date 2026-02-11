@@ -65,6 +65,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
                 UpdateFileInfo(value);
                 OnPropertyChanged(nameof(DisplayName));
                 OnPropertyChanged(nameof(HasVideo));
+                OnPropertyChanged(nameof(IsUploadReady));
             }
         }
     }
@@ -77,6 +78,7 @@ public sealed class UploadDraft : INotifyPropertyChanged
             if (SetProperty(ref _title, value))
             {
                 OnPropertyChanged(nameof(DisplayName));
+                OnPropertyChanged(nameof(IsUploadReady));
             }
         }
     }
@@ -221,7 +223,13 @@ public sealed class UploadDraft : INotifyPropertyChanged
     public string? VideoResolution
     {
         get => _videoResolution;
-        set => SetProperty(ref _videoResolution, value);
+        set
+        {
+            if (SetProperty(ref _videoResolution, value))
+            {
+                OnPropertyChanged(nameof(IsPortraitVideo));
+            }
+        }
     }
 
     public string? VideoFps
@@ -317,7 +325,13 @@ public sealed class UploadDraft : INotifyPropertyChanged
     public bool IsGeneratedClipDraft
     {
         get => _isGeneratedClipDraft;
-        set => SetProperty(ref _isGeneratedClipDraft, value);
+        set
+        {
+            if (SetProperty(ref _isGeneratedClipDraft, value))
+            {
+                OnPropertyChanged(nameof(IsPortraitVideo));
+            }
+        }
     }
 
     public Guid? SourceDraftId
@@ -331,6 +345,21 @@ public sealed class UploadDraft : INotifyPropertyChanged
     public bool TranscriptDirty => _transcriptDirty;
 
     public bool HasVideo => !string.IsNullOrWhiteSpace(VideoPath);
+
+    public bool IsUploadReady => HasVideo && !string.IsNullOrWhiteSpace(Title);
+
+    public bool IsPortraitVideo
+    {
+        get
+        {
+            if (TryParseResolution(VideoResolution, out var width, out var height))
+            {
+                return height > width;
+            }
+
+            return IsGeneratedClipDraft;
+        }
+    }
 
     public string DisplayName
     {
@@ -424,6 +453,28 @@ public sealed class UploadDraft : INotifyPropertyChanged
         }
 
         return $"{len:0.##} {sizes[order]}";
+    }
+
+    private static bool TryParseResolution(string? value, out int width, out int height)
+    {
+        width = 0;
+        height = 0;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var normalized = value.Trim().Replace('x', 'X').Replace('×', 'X');
+        var separatorIndex = normalized.IndexOf('X');
+        if (separatorIndex <= 0 || separatorIndex >= normalized.Length - 1)
+        {
+            return false;
+        }
+
+        var widthText = normalized.Substring(0, separatorIndex).Trim();
+        var heightText = normalized.Substring(separatorIndex + 1).Trim();
+        return int.TryParse(widthText, out width) && int.TryParse(heightText, out height) && width > 0 && height > 0;
     }
 
     public UploadDraftSnapshot ToSnapshot()

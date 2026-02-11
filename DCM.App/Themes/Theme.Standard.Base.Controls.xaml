@@ -1084,10 +1084,8 @@
          TargetType="Border">
     <Setter Property="Background"
             Value="{DynamicResource SurfaceElevatedBrush}"/>
-    <Setter Property="BorderBrush"
-            Value="{DynamicResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="{DynamicResource BorderThickness1}"/>
+            Value="0"/>
     <Setter Property="CornerRadius"
             Value="{DynamicResource RadiusL}"/>
     <Setter Property="Padding"
@@ -1099,10 +1097,8 @@
          TargetType="Border">
     <Setter Property="Background"
             Value="{DynamicResource SurfaceElevatedBrush}"/>
-    <Setter Property="BorderBrush"
-            Value="{DynamicResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="{DynamicResource BorderThickness1}"/>
+            Value="0"/>
     <Setter Property="CornerRadius"
             Value="{DynamicResource RadiusM}"/>
     <Setter Property="Padding"
@@ -1116,10 +1112,8 @@
          TargetType="Border">
     <Setter Property="Background"
             Value="{DynamicResource SurfaceElevatedBrush}"/>
-    <Setter Property="BorderBrush"
-            Value="{DynamicResource BorderBrush}"/>
     <Setter Property="BorderThickness"
-            Value="{DynamicResource BorderThickness1}"/>
+            Value="0"/>
     <Setter Property="CornerRadius"
             Value="{DynamicResource RadiusS}"/>
     <Setter Property="Padding"

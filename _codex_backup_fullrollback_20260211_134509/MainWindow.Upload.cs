@@ -676,7 +676,6 @@ public partial class MainWindow
         _settings.Transcription ??= new TranscriptionSettings();
         var autoTranscribeEnabled = UploadView.IsAutoTranscribeEnabled;
         _settings.Transcription.AutoTranscribeOnVideoSelect = autoTranscribeEnabled;
-        GeneralSettingsPageView?.ApplyTranscriptionSettings(_settings.Transcription);
         SaveTranscriptionSettings();
 
         if (!autoTranscribeEnabled)

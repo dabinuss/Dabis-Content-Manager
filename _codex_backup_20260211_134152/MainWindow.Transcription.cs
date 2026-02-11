@@ -768,7 +768,7 @@ public partial class MainWindow
         {
             try
             {
-                job.CancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(200));
+                job.CancellationTokenSource.Cancel();
             }
             catch
             {

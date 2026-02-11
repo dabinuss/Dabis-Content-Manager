@@ -40,10 +40,10 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
     private readonly TranscriptionPostProcessor _postProcessor;
 
     private readonly SemaphoreSlim _transcriptionLock = new(1, 1);
-    private readonly object _factoryLock = new();
+    private static readonly object _factoryLock = new();
 
-    private WhisperFactory? _whisperFactory;
-    private string? _loadedModelPath;
+    private static WhisperFactory? _whisperFactory;
+    private static string? _loadedModelPath;
 
     private string? _configuredFfmpegDir;
     private bool _disposed;
@@ -1293,10 +1293,21 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
             // Alte Factory disposen falls vorhanden
             _whisperFactory?.Dispose();
+            _whisperFactory = null;
+            _loadedModelPath = null;
 
-            // Neue Factory erstellen
-            _whisperFactory = WhisperFactory.FromPath(modelPath);
-            _loadedModelPath = modelPath;
+            try
+            {
+                // Neue Factory erstellen
+                _whisperFactory = WhisperFactory.FromPath(modelPath);
+                _loadedModelPath = modelPath;
+            }
+            catch (Exception)
+            {
+                _whisperFactory = null;
+                _loadedModelPath = null;
+                return null;
+            }
 
             return _whisperFactory;
         }
@@ -1344,11 +1355,8 @@ public sealed class TranscriptionService : ITranscriptionService, IDisposable
 
         _disposed = true;
 
-        lock (_factoryLock)
-        {
-            _whisperFactory?.Dispose();
-            _whisperFactory = null;
-        }
+        // Static factory is shared across instances — do not dispose here.
+        // It will be cleaned up when the app exits.
 
         _transcriptionLock.Dispose();
 

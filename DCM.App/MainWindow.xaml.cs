@@ -510,8 +510,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var selectedItem = ClipperPageView.DraftListBox.SelectedItem as Views.ClipperDraftItem;
-        var draft = selectedItem?.Draft;
+        var draft = ClipperPageView.SelectedDraft;
 
         // Video-Pfad für Preview setzen
         ClipperPageView.SetVideoPath(draft?.VideoPath);
@@ -3609,9 +3608,9 @@ public partial class MainWindow : Window
 
         EnsureClipperServicesInitialized();
 
-        var selectedDraft = (ClipperPageView.DraftListBox.SelectedItem as ClipperDraftItem)?.Draft;
+        var selectedDraft = ClipperPageView.SelectedDraft;
         var hasDraft = selectedDraft is not null;
-        var hasTranscript = !string.IsNullOrWhiteSpace(selectedDraft?.Transcript);
+        var hasTranscript = EnsureDraftTranscriptAvailable(selectedDraft);
         var hasVideo = !string.IsNullOrWhiteSpace(selectedDraft?.VideoPath);
         var hasSelectedCandidates = ClipperPageView.SelectedCandidates.Count > 0;
 
@@ -3848,8 +3847,7 @@ public partial class MainWindow : Window
         }
 
         // Prüfe ob Draft ausgewählt
-        var selectedItem = ClipperPageView.DraftListBox.SelectedItem as Views.ClipperDraftItem;
-        var draft = selectedItem?.Draft;
+        var draft = ClipperPageView.SelectedDraft;
 
         if (draft is null)
         {
@@ -3858,7 +3856,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(draft.Transcript))
+        if (!EnsureDraftTranscriptAvailable(draft))
         {
             StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoTranscript");
             UpdateClipperActionState();
@@ -4016,6 +4014,42 @@ public partial class MainWindow : Window
         }
     }
 
+    private bool EnsureDraftTranscriptAvailable(UploadDraft? draft)
+    {
+        if (draft is null)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(draft.Transcript))
+        {
+            return true;
+        }
+
+        var transcript = _draftTranscriptStore.LoadTranscript(draft.Id, storedPath: null);
+        if (string.IsNullOrWhiteSpace(transcript))
+        {
+            var segments = _draftTranscriptStore.LoadSegments(draft.Id, draft.TranscriptSegmentsPath);
+            if (segments is not null && segments.Count > 0)
+            {
+                transcript = string.Join(
+                    Environment.NewLine,
+                    segments
+                        .Select(segment => segment.Text?.Trim())
+                        .Where(text => !string.IsNullOrWhiteSpace(text)));
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(transcript))
+        {
+            return false;
+        }
+
+        draft.Transcript = transcript;
+        ScheduleDraftPersistenceDebounced();
+        return true;
+    }
+
     private void EnsureClipperServicesInitialized()
     {
         _clipCandidateStore ??= new ClipCandidateStore(_logger);
@@ -4109,8 +4143,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var selectedDraftItem = ClipperPageView.DraftListBox.SelectedItem as ClipperDraftItem;
-        var draft = selectedDraftItem?.Draft;
+        var draft = ClipperPageView.SelectedDraft;
         if (draft is null || string.IsNullOrWhiteSpace(draft.VideoPath))
         {
             StatusTextBlock.Text = LocalizationHelper.Get("Clipper.NoDraftSelected");
